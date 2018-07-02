@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <form action="/assets/groups/edit/{{ assetgroup_id }}" method="post" class="form-horizontal">
+    <legend>Edit an asset group</legend>
+    {% csrf_token %}
+    {% for field in form %}
+        {% if field.errors %}
+            <div class="form-group has-error">
+                <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                <div class="col-sm-4">
+                    {{ field }}
+                    <span class="help-block">
+                        {% for error in  field.errors %}{{ error }}{% endfor %}
+                    </span>
+                </div>
+            </div>
+        {% elif not field.is_hidden %}
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                <div class="col-sm-4">
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="help-block"><small>{{ field.help_text }}</small></p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+    <div class="form-group submit-div">
+      <div class="col-sm-2">
+      </div>
+      <div class="col-sm-4">
+        <button type="submit" class="btn btn-warning col-sm-12 form-control-sm">Modify the asset group</button>
+        <br/>
+        <br/>
+        <button class="btn btn-danger col-sm-12 form-control-sm" type="button" data-toggle="modal" data-target="#modal-delete-asset-group"
+          asset-group-id="{{ asset_group.id }}" asset-group-value="{{ asset_group.name }}">Delete</button>
+      </div>
+    </div>
+  </form>
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<!-- Delete Asset Group modal -->
+<div class="modal fade" id="modal-delete-asset-group" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Asset Group</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-asset-group" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-danger btn-delete-asset-group" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function() {
+  // Delete asset group modal
+  $("#modal-delete-asset-group").on('show.bs.modal', function (e) {
+    id = e.relatedTarget.getAttribute('asset-group-id');
+    asset_group_value = e.relatedTarget.getAttribute('asset-group-value');
+    $("div#delete-asset-group").attr('asset-group-id', id);
+    $("div#delete-asset-group").html("Asset Group Name: <b>"+asset_group_value+"</b><br/><br/>");
+  });
+  $("button.btn-delete-asset-group").on('click', function (e) {
+    csrf_token = $("div#delete-asset-group").attr('csrf-token');
+    id = $("div#delete-asset-group").attr('asset-group-id');
+    delete_asset_group_url = "/assets/deletegroup/"+id;
+    var request = $.ajax({
+      url: delete_asset_group_url,
+      method: "POST",
+      data: "csrfmiddlewaretoken="+csrf_token,
+      success: function(){
+        window.location = "/assets/list";
+      }
+    });
+  });
+});
+
+</script>
+
+{% endblock %}

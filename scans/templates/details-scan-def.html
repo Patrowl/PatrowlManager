@@ -1,0 +1,542 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+
+<ul class="breadcrumb">
+  <li><a href="/scans/list">scans</a></li>
+  <li><a href="/scans/defs/list">definition</a></li>
+  <li class="active"> {{ scan_def.title }} [<a href="javascript:goBack()">back</a>]</li>
+</ul>
+<div class="container-fluid">
+  <div class="col-sm-5">
+    <dl class="dl-horizontal">
+      <dt>Title</dt>
+      <dd><a href="/scans/defs/edit/{{ scan_def.id }}">{{ scan_def.title }}</a></dd>
+      <dt>Assets</dt>
+      <dd>
+        {% if scan_def.assets_list.all|join:", "|length > 128 %}
+          {{ scan_def.assets_list.all|join:", "|truncatechars:128 }} <a data-toggle="modal" data-target="#modal-showall-assets">show all</a><br/>
+        {% elif scan_def.assets_list.all|join:", "|length > 0 %}
+          {{ scan_def.assets_list.all|join:", " }}<br/>
+        {% endif %}
+        {% if scan_def.assetgroups_list.count > 0 %}
+          {% for assetgroup in scan_def.assetgroups_list.all %}
+            {{ assetgroup.name }} (<a data-toggle="modal" data-target="#modal-showall-grouped-assets">+</a>)
+            {% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        {% endif %}
+      </dd>
+      <dt>Scan Type</dt>
+      <dd>{{ scan_def.scan_type }}</dd>
+      <dt>Engine</dt>
+      <dd>{{ scan_def.engine_type.name }}</dd>
+      <dt>Policy</dt>
+      <dd><a href="/engines/policies/edit/{{ scan_def.engine_policy_id }}">{{ scan_def.engine_policy.name }}</a></dd>
+      <dt>Created at</dt>
+      <dd>{{ scan_def.created_at | date:"Y/m/d-H:m:s" }}</dd>
+      {% if scan_def.scheduled_at %}
+      <dt>Scheduled at</dt>
+      <dd>{{ scan_def.scheduled_at | date:"Y/m/d-H:m:s" }}</dd>
+      {% endif %}
+      <dt>Scans performed</dt>
+      <dd>{{ scan_def.scan_set.all.count }}
+        {% if scan_def.scan_type == "single" %}
+          <button type="button" class="btn btn-warning btn-xs btn-run-now"
+          scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}"
+          data-toggle="modal" data-target="#modal-run-scan">Run</button>
+        {% endif %}
+        <!-- Todo: for perdiodic scans, add buttons for enabling/disabling the scan -->
+      </dd>
+    </dl>
+  </div>
+  <select id="chart-selection">
+    <option value="5" selected>Last 5 scans</option>
+    <option value="10">Last 10 scans</option>
+    <option value="20">Last 20 scans</option>
+    <option value="40">Last 40 scans</option>
+  </select>
+  <div class="col-sm-7">
+    <canvas id="chart-findingsByScanDef"/>
+  </div>
+</div>
+
+<div class="container">
+  <div class="dropdown">
+    <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      Actions
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+      <li><a class="btn-compare-selected" href="#">Compare selected scans (2 scans max.)</a></li>
+      <li><a class="btn-delete-selected" href="#">Delete selected scans (no confirm)</a></li>
+    </ul>
+  </div>
+  <table class="table table-hover" id="table">
+    <thead>
+      <tr>
+        <th><input type="checkbox" onClick="toggle(this)" /></th>
+        <th>ID</th>
+        <th>Run at</th>
+        <th>Findings</th>
+        <th>Report</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for scan in scan_def.scan_set.all|sort_by:"-created_at" %}
+      <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
+        <td><input type="checkbox" class="radio" name="scan" value="{{scan.id}}"/></td>
+        <td>{{ scan.id }}</td>
+        <td>{{ scan.updated_at | date:"Y/m/d-H:m:s.u" }}</td>
+        <td>
+          {% if scan.summary.high == 0 %}
+            0
+          {% else %}
+            <span class="label label-danger">{{ scan.summary.high }}</span>
+          {% endif %}/
+          {% if scan.summary.medium == 0 %}
+            0
+          {% else %}
+            <span class="label label-warning">{{ scan.summary.medium }}</span>
+          {% endif %}/
+          {% if scan.summary.low == 0 %}
+            0
+          {% else %}
+            <span class="label label-info">{{ scan.summary.low }}</span>
+          {% endif %}/
+          {% if scan.summary.info == 0 %}
+            0
+          {% else %}
+            <span class="label label-primary">{{ scan.summary.info }}</span>
+          {% endif %}
+          (<text class="text-success">+{{ scan.summary.new }}</text>/<text class="text-warning">-{{ scan.summary.missing }}</text>)
+        </td>
+        {% if scan.status == "finished"  %}
+        <td>
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/json/{{ scan.id }}'">json</button>
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/html/{{ scan.id }}'">html</button>
+          <button type="button" class="btn btn-default btn-xs" onclick="#">raw</button>
+        </td>
+        {% else %}
+        <td>No report</td>
+        {% endif %}
+        {% if scan.status == "started" %}
+        <td><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:orange"></span> Started</td>
+        {% elif scan.status == "stopping"  %}
+        <td><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:red"></span> Stopping</td>
+        {% elif scan.status == "stopped"  %}
+        <td><span class="glyphicon glyphicon-remove" style="color:red"></span> Stopped</td>
+        {% elif scan.status == "finished"  %}
+        <td><span class="glyphicon glyphicon-ok" style="color:green"></span> Finished</td>
+        {% elif scan.status == "scheduled"  %}
+        <td><span class="glyphicon glyphicon-time" style="color:blue"></span> Scheduled</td>
+        {% elif scan.status == "enqueued"  %}
+        <td><span class="glyphicon glyphicon-pushpin" style="color:orange"></span> Enqueued</td>
+        {% elif scan.status == "error"  %}
+        <td><span class="glyphicon glyphicon-fire" style="color:red"></span> Error</td>
+        {% else %}
+        <td>{{ scan.status }}</td>
+        {% endif %}
+        <td>
+          <a href="/scans/details/{{ scan.id }}" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus-sign"></span></a>
+          {% if scan.status == "enqueued" or scan.status == "started" %}
+          <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
+            <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
+          {% endif %}
+          <button type="button" class="btn btn-danger btn-xs" title="Delete scan" data-toggle="modal" data-target="#modal-delete-scan" scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
+            <span class="glyphicon glyphicon-remove"></span></button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <!-- <button type="button" class="btn btn-default btn-xs" onclick="location.href='/scans/defs/list'">Cancel</button> -->
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<!-- Do not Remove -->
+<div id="chartjs-tooltip"></div>
+
+<!-- Run single scan modal -->
+<div class="modal fade" id="modal-run-scan" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Direct Scan</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="run-scan">
+          <!-- Content -->
+        </div>
+        <a href="/scans/list">View last performed scans</a><br/><br/>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Show all assets (if truncated) modal -->
+<div class="modal fade" id="modal-showall-assets" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">All assets</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <!-- Content -->
+        <div id="showall-assets">
+          {{ scan_def.assets_list.all|join:", " }}
+        </div>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Show all assets in group (if truncated) modal -->
+<div class="modal fade" id="modal-showall-grouped-assets" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">All assets</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <!-- Content -->
+        <div id="showall-grouped-assets">
+          {% for assetgroup in scan_def.assetgroups_list.all %}
+            <strong>{{ assetgroup.name }}</strong>:<br/>
+            {% for a in assetgroup.assets.all %}
+              {{ a.value }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            <br/><br/>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete scan modal -->
+<div class="modal fade" id="modal-delete-scan" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Scan</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-scan" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-danger btn-delete-scan" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// Select all scans
+function toggle(source) {
+  checkboxes = document.getElementsByName('scan');
+  for(var i=0, n=checkboxes.length;i<n;i++) {
+    checkboxes[i].checked = source.checked;
+  }
+} // End fo function toggle()
+
+var findingsByScanDef_chart;
+
+function print_chart(num_records=20){
+  if(findingsByScanDef_chart){findingsByScanDef_chart.destroy();}
+  // update the findings stat pies
+  findingsByScanDef_url = "/scans/api/v1/stats?scope=scan_def&scan_id={{scan_def.id}}&num_records="+num_records;
+
+  data_labels_id = [];
+  data_labels_date = [];
+  data_datasets_total = [];
+  data_datasets_info = [];
+  data_datasets_low = [];
+  data_datasets_medium = [];
+  data_datasets_high = [];
+  data_datasets_new = [];
+
+  xhr = $.get(findingsByScanDef_url, function(resp) {
+    for (i = 0; i < resp.length; i++){
+      data_labels_id.push(resp[i]["id"]);
+      data_labels_date.push(resp[i]["created_at"]);
+      if (resp[i]["summary"]){
+        data_datasets_total.push(resp[i]["summary"]["total"]);
+        data_datasets_info.push(resp[i]["summary"]["info"]);
+        data_datasets_low.push(resp[i]["summary"]["low"]);
+        data_datasets_medium.push(resp[i]["summary"]["medium"]);
+        data_datasets_high.push(resp[i]["summary"]["high"]);
+        data_datasets_new.push(resp[i]["summary"]["new"]);
+      } else {
+        data_datasets_total.push(0);
+        data_datasets_info.push(0);
+        data_datasets_low.push(0);
+        data_datasets_medium.push(0);
+        data_datasets_high.push(0);
+        data_datasets_new.push(0);
+      }
+    };
+
+    findingsByScanDef_config = {
+      type: 'bar',
+      data: {
+        datasets: [],
+        borderWidth: 1
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+          display: true,
+          position: 'top',
+          //fullWidth: true,
+          labels: {
+            boxWidth: 20
+          }
+        },
+        scales: {
+          xAxes: [{
+            stacked: true,
+            gridLines: {
+              display: false
+            }
+          }],
+          yAxes:[{
+            stacked: true,
+            ticks: {
+              beginAtZero: true,
+              callback: function(value, index, values) {
+                if (Math.floor(value) === value) {
+                  return value;
+                }
+              }
+            }
+          }, {
+              id: "not-stacked-line",
+              stacked: false,
+              display: false,
+              ticks: {
+                beginAtZero: true,
+                callback: function(value, index, values) {
+                  if (Math.floor(value) === value) {
+                    return value;
+                  }
+                }
+              }
+          }]
+        },
+        tooltips: {
+          mode: 'index',
+          //yAlign: 'bottom',
+          position: 'nearest',
+          callbacks: {
+            title: function(tooltipItems, data) {
+              return data_labels_date[tooltipItems[0].index] + ' (id: '+data.labels[tooltipItems[0].index]+')';
+            }
+          }
+        }
+      }
+    }
+
+    config = jQuery.extend(true, {}, findingsByScanDef_config);
+    config["data"]["labels"] = data_labels_id;
+    config["data"]["datasets"].push(
+      {
+        "type": 'line',
+        "label": "Total",
+        "data": data_datasets_total,
+        "fill": false, "lineTension": 0.1, "borderColor": "#000000",
+        "yAxisID": "not-stacked-line"
+      },
+      {
+        "type": 'line',
+        "label": "New",
+        "data": data_datasets_new,
+        "fill": false, "lineTension": 0.1, "borderColor": "#18bc9c",
+        "yAxisID": "not-stacked-line"
+      },
+      {
+        "label": "Info",
+        "data": data_datasets_info,
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#66D2FF"
+      },
+      {
+        "label": "Low",
+        "data": data_datasets_low,
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#FFFF00"
+      },
+      {
+        "label": "Medium",
+        "data": data_datasets_medium,
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#FF8000"
+      },
+      {
+        "label": "High",
+        "data": data_datasets_high,
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#FF0000"
+      }
+    );
+
+    var canvas_findings = document.getElementById("chart-findingsByScanDef");
+    var ctx_findings = canvas_findings.getContext("2d");
+    findingsByScanDef_chart = new Chart(ctx_findings, config);
+
+    canvas_findings.onclick = function (evt) {
+      var activePoints = findingsByScanDef_chart.getElementsAtEvent(evt);
+      if (typeof activePoints != "undefined" && activePoints != null && activePoints.length > 0){
+        var chartData = activePoints[0]['_chart'].config.data;
+        var idx = activePoints[0]['_index'];
+        var label = chartData.labels[idx];
+        //var value = chartData.datasets[0].data[idx];
+        window.location = "/scans/details/"+label;
+      }
+    };
+  });
+}; // End fo function print_chart()
+
+print_chart(5);
+// jQuery
+$(function() {
+
+  $('#chart-selection').change(function(){
+    print_chart($("#chart-selection").val());
+  });
+
+  // Run direct scan now Event
+  $("#modal-run-scan").on('show.bs.modal', function (e) {
+    scan_title = e.relatedTarget.getAttribute('scan-title');
+    $("div#run-scan").html("Scan started: <b>"+scan_title+"</b><br/><br/>");
+
+    //Hide the modal 3 seconds later
+    var myModal = $(this);
+    clearTimeout(myModal.data('hideInterval'));
+    myModal.data('hideInterval', setTimeout(function(){
+        myModal.modal('hide');
+        location.reload();
+    }, 3000));
+  });
+  $("button.btn-run-now").on('click', function(eventObject) {
+    scan_url = "/scans/defs/run/"+eventObject.target.getAttribute('scan-id')
+    var xhr = $.get(scan_url, function(data) {
+      //location.reload();
+    })
+  });
+
+  // Compare scans
+  $("a.btn-compare-selected").on('click', function (e) {
+    scans_to_compare = []
+    $("input[name='scan']").each(function(cbx){
+      if (this.checked) {
+        scans_to_compare.push(this.value)
+      }
+    });
+    if(scans_to_compare.length == 2){
+      window.location.href ="/scans/compare?scan_a_id="+scans_to_compare[0]+"&scan_b_id="+scans_to_compare[1];
+    }
+  });
+
+  // Delete scans
+  $("a.btn-delete-selected").on('click', function(eventObject) {
+    scans_to_delete = []
+    $("input[name='scan']").each(function(cbx){
+      if (this.checked) {
+        scans_to_delete.push(this.value)
+      }
+    })
+
+    if (scans_to_delete.length != 0){
+      delete_url="/scans/delete"
+      var request = $.ajax({
+        url: delete_url,
+        method: "POST",
+        data: JSON.stringify(scans_to_delete),
+        contentType: "application/json"
+      });
+      request.done(function(response){
+        if (response.status == 'success'){location.reload()}
+      });
+    }
+  });
+
+  // Stop scan
+  $("button.btn-stop-scan").on('click', function (e) {
+    id = e.target.getAttribute('scan-id');
+    stop_scan_url = "/scans/stop/"+id;
+    var request = $.ajax({
+      url: stop_scan_url,
+      method: "GET",
+      success: function(){
+        location.reload();
+      }
+    });
+  });
+
+  // Delete scan modal
+  $("#modal-delete-scan").on('show.bs.modal', function (e) {
+    id = e.relatedTarget.getAttribute('scan-id');
+    scan_title = e.relatedTarget.getAttribute('scan-title');
+    $("div#delete-scan").attr('scan-id', id);
+    $("div#delete-scan").html("ID: <b>"+id+"</b><br/>Title: <b>"+scan_title+"</b><br/><br/>");
+  });
+  $("button.btn-delete-scan").on('click', function (e) {
+    csrf_token = $("div#delete-scan").attr('csrf-token');
+    id = $("div#delete-scan").attr('scan-id');
+    delete_scan_url = "/scans/delete/"+id;
+    var request = $.ajax({
+      url: delete_scan_url,
+      method: "POST",
+      data: "csrfmiddlewaretoken="+csrf_token,
+      success: function(){
+        location.reload();
+      }
+    });
+  });
+
+}); // End of jQuery-ready
+</script>
+
+
+{% endblock %}

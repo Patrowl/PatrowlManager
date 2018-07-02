@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <form action="/engines/policies/edit/{{ policy_id }}" method="post" class="form-horizontal" enctype="multipart/form-data">
+    <legend>Edit an engine policy</legend>
+      {% csrf_token %}
+      {% for field in form %}
+          {% if field.errors %}
+              <div class="form-group has-error">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      <span class="help-block">
+                          {% for error in  field.errors %}{{ error }}{% endfor %}
+                      </span>
+                  </div>
+              </div>
+          {% elif not field.is_hidden %}
+              <div class="form-group">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      {% if field.help_text %}
+                          <p class="help-block"><small>{{ field.help_text }}</small></p>
+                      {% endif %}
+                  </div>
+              </div>
+          {% endif %}
+      {% endfor %}
+      <div class="form-group submit-div">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-4">
+          <button type="submit" class="btn btn-warning col-sm-12">Update policy</button>
+        </div>
+      </div>
+  </form>
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock %}

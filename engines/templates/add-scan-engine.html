@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/engines/list">engines</a></li>
+  <li class="active">add new scan engine</li>
+</ul>
+
+<div class="container">
+  <form action="/engines/add" method="post" class="form-horizontal">
+    <legend>Add a new scan engine</legend>
+      {% csrf_token %}
+      {% for field in form %}
+          {% if field.errors %}
+              <div class="form-group has-error">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      <span class="help-block">
+                          {% for error in  field.errors %}{{ error }}{% endfor %}
+                      </span>
+                  </div>
+              </div>
+          {% elif not field.is_hidden %}
+              <div class="form-group">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      {% if field.help_text %}
+                          <p class="help-block"><small>{{ field.help_text }}</small></p>
+                      {% endif %}
+                  </div>
+              </div>
+          {% endif %}
+      {% endfor %}
+      <div class="form-group submit-div">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-4">
+          <button type="submit" class="btn btn-warning col-sm-12">Create a new engine</button>
+        </div>
+      </div>
+
+  </form>
+</div>
+
+<script>
+  $('#id_username').parent().parent().addClass("hidden");
+  $('#id_password').parent().parent().addClass("hidden");
+  $('#id_api_key').parent().parent().addClass("hidden");
+
+  $('#id_authentication_method').change(function(e){
+    if($('#id_authentication_method').val() == "HTTPBasic") {
+      $('#id_username').parent().parent().removeClass("hidden");
+      $('#id_password').parent().parent().removeClass("hidden");
+      $('#id_api_key').parent().parent().addClass("hidden");
+    } else if ($('#id_authentication_method').val() == "APIKEY") {
+      $('#id_username').parent().parent().addClass("hidden");
+      $('#id_password').parent().parent().addClass("hidden");
+      $('#id_api_key').parent().parent().removeClass("hidden");
+    } else {
+      $('#id_username').parent().parent().addClass("hidden");
+      $('#id_password').parent().parent().addClass("hidden");
+      $('#id_api_key').parent().parent().addClass("hidden");
+    }
+  });
+</script>
+
+{% endblock %}

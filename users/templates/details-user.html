@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<div class="container">
+  <h2>User details</h2>
+
+  <dl class="dl-horizontal">
+    <dt>User ID</dt><dd>{{ user.id }}</dd>
+    <dt>Username</dt><dd>{{ user.username }}</dd>
+    <dt>First Name</dt><dd>{{ user.first_name }}</dd>
+    <dt>Last Name</dt><dd>{{ user.last_name }}</dd>
+    <dt>Email</dt><dd>{{ user.email }}</dd>
+    <dt>Is Active?</dt><dd>{{ user.is_active }}</dd>
+    <dt>Is Superuser?</dt><dd>{{ user.is_superuser }}</dd>
+    <dt>Is Staff?</dt><dd>{{ user.is_staff }}</dd>
+    <dt>Last Login</dt><dd>{{ user.last_login }}</dd>
+    <dt>Permissions</dt><dd>{{ user.permissions.all }}</dd>
+    <dt>Groups</dt><dd>{{ user.groups.all }}</dd>
+    <dt>Group Permissions</dt><dd>{{ user.get_group_permissions }}</dd>
+  </dl>
+
+
+
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+
+{% endblock %}

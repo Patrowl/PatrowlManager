@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <form action="/assets/owners/delete/{{ owner.id }}" method="post" class="form-horizontal">
+
+    <legend>Do you confirm the deletion?</legend>
+    {% csrf_token %}
+    <p>Asset ID: {{ owner.id }}</p>
+    <p>Name: {{ owner.name }}</p>
+    <div class="form-group">
+      <button type="submit" class="btn btn-warning">Delete</button>
+      <button class="btn btn-primary"><a href="/assets/owners/list">Cancel</a></button>
+    </div>
+  </form>
+
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock %}

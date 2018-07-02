@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<style>
+.fileinput-button {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+.fileinput-button input {
+  position: absolute;
+  top: 0;
+  -ms-filter: 'alpha(opacity=0)';
+  font-size: 200px !important;
+  direction: ltr;
+  cursor: pointer;
+}
+
+</style>
+
+<ul class="breadcrumb">
+  <li class="active"><a href="/settings/">settings</a></li>
+</ul>
+
+<div id="menu_tabs" class="container-fluid">
+  <ul class="nav nav-tabs" id="menu_tabs_ul">
+    <li class="active"><a data-toggle="tab"  href="#settings" >Global settings</a></li>
+    <li><a data-toggle="tab" href="#infos_updates">Infos & Updates</a></li>
+    <li><a data-toggle="tab" href="#users">Users</a></li>
+    <li><a data-toggle="tab" href="#events">Events</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div id="settings" class="tab-pane fade in active">
+      <h3>Settings</h3>
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-3">
+            <strong>Key</strong>
+          </div>
+          <div class="col-sm-7">
+            <strong>Value</strong>
+          </div>
+          <div class="col-sm-1">
+            <strong>Actions</strong>
+          </div>
+        </div>
+        {% for setting in settings|sort_by:"key" %}
+        <div class="row">
+          <div class="col-sm-3">
+            <label>{{ setting.key }}</label>
+          </div>
+          <div class="col-sm-7 value-setting" setting-id="{{ setting.id }}" id="setting_value_{{ setting.id }}">
+            <i>{{ setting.value }}</i>
+          </div>
+          <div class="col-sm-1">
+            <button type="button" class="btn btn-danger btn-xs" setting-id="{{ setting.id }}" setting-key="{{ setting.key }}" data-toggle="modal" data-target="#modal-delete-setting">
+              <span class="glyphicon glyphicon-remove"></span></button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-6">
+            <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modal-add-setting">
+              + Add new setting </button>
+            <span class="btn btn-xs btn-default fileinput-button">
+              <i class="glyphicon glyphicon-plus"></i>
+              <span>Import settings</span>
+              <input id="fileupload" type="file" name="files[]" multiple>
+            </span>
+            <a type="button" class="btn btn-default btn-xs" href="/settings/api/v1/export">
+              > Export settings </a>
+
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+    <div id="infos_updates" class="tab-pane fade">
+      <h3>Infos and updates</h3>
+    </div>
+    <div id="users" class="tab-pane fade">
+      <h3>Users Management</h3>
+      {% include 'menu-users.html' with users=users %}
+    </div>
+    <div id="events" class="tab-pane fade">
+      <h3>Events Management</h3>
+      <table id="dt_events" class="display" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Severity</th>
+            <th>Message</th>
+            <th>Type</th>
+            <th>Timestamp</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tfoot>
+           <tr>
+             <th>Id</th>
+             <th>Severity</th>
+             <th>Message</th>
+             <th>Type</th>
+             <th>Timestamp</th>
+             <th>Actions</th>
+           </tr>
+       </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Delete event modal -->
+<div class="modal fade" id="modal-delete-setting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Setting</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-setting">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-setting" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add event modal -->
+<div class="modal fade" id="modal-add-setting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Add new setting</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="add-setting">
+          <!-- <form action="#" method="POST"> -->
+            <div class="form-group">
+              <label><b>Key</b></label>
+              <input type="text" placeholder="Enter key" id="add_setting_key" required class="form-control form-control-sm">
+            </div>
+            <div class="form-group">
+              <label><b>Value</b></label>
+              <input type="text" placeholder="Enter setting value" id="add_setting_value" required class="form-control form-control-sm">
+            </div>
+            <button type="submit" class="btn btn-primary btn-add-setting" data-dismiss="modal">Submit</button>
+          <!-- </form> -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+  $(document).ready(function() {
+
+    EventTable = $('#dt_events').DataTable({
+      // "processing": true,
+      // "retrieve": true,
+      //"serverSide": true,
+      "ajax": {
+        "url": "/events/",
+        "dataType": "json",
+        "type": "GET"
+      },
+      "data": [],
+      rowCallback: function (row, data) {},
+      "columns": [
+        { "data": "id" },
+        { "data": "severity" },
+        { "data": "message" },
+        { "data": "type" },
+        { "data": "created_at" }
+      ],
+      "aoColumnDefs":[{
+        "aTargets":[5],
+        "mData": "id",
+        "mRender": function (data, type, full) {
+            return '<button type="button" event-id="'+data+'" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-event"><span class="glyphicon glyphicon-remove"></span></button>';
+        }
+      }],
+      "order": [[ 0, 'desc' ]],
+      initComplete: function () {
+        this.api().columns().every( function () {
+          if (this.index() == 1 || this.index() == 3){
+            var column = this;
+            var select = $('<select><option value=""></option></select>')
+                .appendTo( $(column.footer()).empty() )
+                .on( 'change', function () {
+                    var val = $.fn.dataTable.util.escapeRegex(
+                        $(this).val()
+                    );
+
+                    column
+                        .search( val ? '^'+val+'$' : '', true, false )
+                        .draw();
+                } );
+
+            column.data().unique().sort().each( function ( d, j ) {
+                select.append( '<option value="'+d+'">'+d+'</option>' )
+            } );
+          }
+        } );
+      }
+    });
+  });
+
+  // $('li a[href="#events"]').on("click", function (e) {
+  //   $.ajax({
+  //     url: "/events/",
+  //     type: "GET",
+  //     dataType: "json",
+  //     }).done(function (result) {
+  //       EventTable.clear().draw();
+  //       EventTable.rows.add(result).draw();
+  //     });
+  // });
+
+  // Delete setting modal
+  $("#modal-delete-setting").on('show.bs.modal', function (e) {
+    id = e.relatedTarget.getAttribute('setting-id');
+    key = e.relatedTarget.getAttribute('setting-key');
+    $("div#delete-setting").attr('setting-id', id);
+    $("div#delete-setting").html("Setting: <b>"+key+"</b><br/><br/>");
+  });
+  $("button.btn-delete-setting").on('click', function (e) {
+    id = $("div#delete-setting").attr('setting-id');
+    delete_setting_url = "/settings/api/v1/delete/"+id;
+    var request = $.ajax({
+      url: delete_setting_url,
+      method: "GET",
+      success: function(){
+        location.reload();
+      }
+    });
+  });
+
+  $("button.btn-add-setting").on('click', function (e) {
+    key = $('#add_setting_key').val();
+    value = $('#add_setting_value').val();
+    args = {
+      "setting_key": key,
+      "setting_value": value
+    };
+    add_setting_url = "/settings/api/v1/add";
+    var request = $.ajax({
+      url: add_setting_url,
+      method: "POST",
+      data: JSON.stringify(args),
+      success: function(){
+        location.reload();
+      }
+    });
+  });
+
+  // Fixing bootstrap tab issue
+  $('#menu_tabs > ul > li > a').click(function (e) {
+    $(this).removeClass('active');
+  });
+
+  // Edit setting
+  var edit_setting = function (e) {
+    setting_id=e.delegateTarget.getAttribute("setting-id");
+    setting_value=$('div#setting_value_'+setting_id+' i').text();
+    $('div#setting_value_'+setting_id).empty();
+    $('div#setting_value_'+setting_id).append("<input type='text' value='"+setting_value+"' name='setting_value' class='form-control form-control-sm'/>");
+
+    //On Enter key press, update the field
+    $('input[name="setting_value"]').keyup(function(e){
+        if(e.keyCode == 13) {
+            $(this).trigger("enterKey");
+        }
+        if(e.keyCode == 27) {
+            $(this).trigger("escapeKey");
+        }
+    });
+    $('input').bind("enterKey", function(e){
+       var request = $.ajax({
+         url: "/settings/api/v1/update",
+         method: "POST",
+         data: JSON.stringify({
+           "setting_id": e.target.parentElement.getAttribute("setting-id"),
+           "setting_value": e.target.value
+         }),
+         success: function(){
+           location.reload();
+           $('div#setting_value_'+setting_id).empty();
+           $('div#setting_value_'+setting_id).append("<i>"+e.target.value+"</i>");
+         }
+       });
+    });
+    $('input').bind("escapeKey", function(e){
+       setting_id = e.target.parentElement.getAttribute("setting-id");
+       setting_value = e.target.getAttribute("value");
+       $('div#setting_value_'+setting_id).empty();
+       $('div#setting_value_'+setting_id).append("<i>"+setting_value+"</i>");
+    });
+  };
+
+  $('button.btn-edit-setting').click(edit_setting);
+  $('div.value-setting').dblclick(edit_setting);
+
+
+</script>
+
+
+{% endblock %}

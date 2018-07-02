@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/engines/list">engines</a></li>
+  <li class="active">types</li>
+</ul>
+
+<div class="container">
+  <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+    <thead>
+      <tr>
+        <th data-field="name">Name</th>
+        <th data-field="allowed_asset_types">Allowed Asset type</th>
+        <th data-field="updated_at">Last update</th>
+        <th data-field="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for engine in engines %}
+    <tr>
+      <td>{{ engine.name }}</td>
+      <td>{{ engine.allowed_asset_types }}</td>
+      <td>{{ engine.updated_at|smartdate }}</td>
+      <td>
+        <button type="button" class="btn btn-default btn-xs btn-engine-info" data-toggle="modal" data-target="#modal_info_{{engine.id}}">
+          <span class="glyphicon glyphicon-info-sign"></span></button>
+        <div id="modal_info_{{engine.id}}" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-primary">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">{{ engine.name }}</h4>
+              </div>
+              <div class="modal-body">
+                <dl class="dl-horizontal">
+                  <dt>Name</dt><dd>{{engine.name}}</dd>
+                  <dt>Description</dt><dd>{{engine.description}}</dd>
+                  <dt>Engines instances</dt><dd>{{engine.engineinstance_set.all|join:", "}}</dd>
+                  <dt>Allowed assets</dt><dd>{{engine.allowed_asset_types}}</dd>
+                  <dt>Created at</dt><dd>{{engine.created_at|smartdate}}</dd>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-xs" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/types/edit/{{ engine.id }}'">
+          <span class="glyphicon glyphicon-edit"></span></button>
+        <button type="button" class="btn btn-danger btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/types/delete/{{ engine.id }}'">
+          <span class="glyphicon glyphicon-remove"></span></button>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  <a href="/engines/types/add">+ Add a new engine type</a>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<script>
+
+  $(function() {
+
+    // Refresh engine status
+    $("button.btn-refresh-engine-status").on('click', function(eventObject) {
+      engine_id = eventObject.currentTarget.getAttribute('engine-id')
+      engine_url = "/engines/"+engine_id+"/refresh"
+      var xhr = $.get(engine_url, function(data) {
+        location.reload()
+        if (data.status == "success") {
+          console.log( "Status successfully refreshed!" );
+          $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
+          $("div.notifications>div").delay(3000).fadeOut(
+            function () {
+                $("div.notifications>div").remove();
+            }
+          );
+        }
+      })
+    });
+
+  });
+</script>
+{% endblock %}

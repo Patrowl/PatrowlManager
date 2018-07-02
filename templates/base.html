@@ -1,0 +1,428 @@
+{% load staticfiles %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PatrOwl</title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+
+  <!-- Core CSS - Include with every page -->
+  <!-- <link href="{% static 'css/bootstrap-4.0.0.min.css' %}" rel="stylesheet"> -->
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/cal-heatmap.css' %}" rel="stylesheet">
+  <link href="{% static 'css/jquery-ui.css' %}" rel="stylesheet">
+
+
+  <!-- Core Scripts - Include with every page -->
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'js/jquery-ui.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'js/tether.min.js' %}"></script>
+  <script src="{% static 'js/d3.min.js' %}"></script>
+  <script src="{% static 'js/cal-heatmap.min.js' %}"></script>
+  <script src="{% static 'js/Chart.bundle.min.js' %}"></script>
+
+  <!-- DataTables -->
+  <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+  <link href="{% static 'css/jquery.dataTables.min.css' %}" rel="stylesheet">
+
+  <!-- DateTime picker -->
+  <link href="/static/css/datetimepicker.css" type="text/css" media="all" rel="stylesheet" />
+  <script type="text/javascript" src="/static/js/bootstrap-datetimepicker.js"></script>
+
+  <!-- Typeahead jQuery plugin -->
+  <script src="{% static 'js/typeahead/typeahead.bundle.min.js' %}"></script>
+
+  <!-- Font Awesome -->
+  <script src="{% static 'js/fontawesome-all.min.js' %}"></script>
+
+  <!-- Admin -->
+  <script type="text/javascript" src="/admin/jsi18n/"></script>
+  <script type="text/javascript" src="/static/admin/js/core.js"></script>
+  <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
+  <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+  <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+  <script type="text/javascript" src="/static/admin/js/actions.js"></script>
+  <script type="text/javascript" src="/static/admin/js/urlify.js"></script>
+  <script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
+  <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+  <script type="text/javascript" src="/static/admin/js/calendar.js"></script>
+  <script type="text/javascript" src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+
+  <script>
+    function goBack() {
+        window.history.back();
+    }
+
+    $(function(){
+      $(".clickable-row").click(function() {
+        var sel = getSelection().toString();
+        if(!sel){
+            window.location = $(this).data("href");
+        }
+      });
+      $(".dblclickable-row").dblclick(function() {
+        window.location = $(this).data("href");
+      });
+
+      // Refresh engines status only if the user is authenticated
+      {% if user.is_authenticated %}
+      refresh_engines_status();
+      {% endif %}
+
+      // On-demand refresh
+      $("#engines_status_label").click(function(){
+        refresh_engines_status();
+      });
+
+
+      $("#engines_status_label").dblclick(function(){
+        window.location = "/engines/list"
+      });
+
+    });
+
+  </script>
+
+  {% if user.is_authenticated %}
+  <script>
+    function refresh_engines_status(){
+      $('span.engine-status').empty();
+      $('span.running-scans').empty();
+      //$('span.engine-status').append("");
+      var xhr = $.get("/engines/api/v1/list", function(response) {
+        engines_json = response.engines;
+        for (var engine_id in engines_json) {
+          engine = engines_json[engine_id];
+          enabled = ""
+          if (engine["enabled"] == true) {enabled = "Enabled";} else {enabled="Disabled"}
+          title = engine["name"] + " ("+enabled+"/"+engine["status"]+")";
+          status_color = "default";
+          if (engine["enabled"] && engine["status"] == "READY" || engine["status"] == "WORKING") {
+            status_color = "success";
+          } else if (engine["enabled"] && engine["status"] != "READY" && engine["status"] != "WORKING") {
+            status_color = "danger";
+          }
+          $('span.engine-status').append('<i class="glyphicon glyphicon-record text-'+status_color+'" title="'+title+'" id="engine_'+engine["id"]+'" data-toggle="tooltip"></i>')
+          $('#engine_'+engine["id"]).tooltip();
+        }
+
+        running_scans = response.running_scans;
+        if (running_scans == 1) {$('span.running-scans').append('&nbsp;-&nbsp;1 scan running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
+        if (running_scans > 1) {$('span.running-scans').append('&nbsp;-&nbsp;' + running_scans+' scan(s) running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
+      });
+    }
+    setInterval(function() {
+      refresh_engines_status();
+    }, 5000);
+
+  </script>
+  {% endif %}
+
+
+  <style>
+    body { padding-top: 60px; }
+
+    .table>tbody>tr>td, .table>thead>tr>th { padding: 3px; }
+
+    .gly-spin {
+      -webkit-animation: spin 2s infinite linear;
+      -moz-animation: spin 2s infinite linear;
+      -o-animation: spin 2s infinite linear;
+      animation: spin 2s infinite linear;
+    }
+
+    .glyphicon-refresh-animate {
+        -animation: spin .7s infinite linear;
+        -webkit-animation: spin2 .7s infinite linear;
+    }
+
+    @-webkit-keyframes spin2 {
+        from { -webkit-transform: rotate(0deg);}
+        to { -webkit-transform: rotate(360deg);}
+    }
+
+    @keyframes spin {
+        from { transform: scale(1) rotate(0deg);}
+        to { transform: scale(1) rotate(360deg);}
+    }
+
+    .form-control-sm {
+      padding: 6px 9px;
+      line-height: 1.5;
+      border-radius: 3px;
+      height: 35px;
+    }
+
+    .form-control-xs {
+      padding: 6px 9px;
+      line-height: 1.5;
+      border-radius: 3px;
+      height: 25px;
+    }
+
+    body, html{height:100%;}
+
+    #main{
+      /* max-width:1280px; */
+      min-height:100%;
+      margin:0 auto;
+      position:relative;
+      padding-bottom: 30px;
+    }
+
+    .footer {
+      height: 30px;
+      line-height: 30px;
+      background-color: #f5f5f5;
+      margin-top: 20px;
+      font-size: 12px;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      position: absolute;
+    }
+
+    .badge-secondary {
+      color: #fff;
+      background-color: #95a5a6;
+    }
+
+    .navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
+      color: darkorange;
+    }
+    .navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus {
+      color: darkorange;
+    }
+
+    .label-info {
+      background-color: #efe636;
+    }
+
+    .form-control-xs-feedback {
+      position: absolute;
+      top: -3px;
+      right: 0;
+      display: block;
+      width: 25px;
+      height: 45px;
+      line-height: 33px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .form-control-sm-feedback {
+      position: absolute;
+      top: 1px;
+      right: 3px;
+      display: block;
+      width: 25px;
+      height: 45px;
+      line-height: 33px;
+      text-align: center;
+      /* pointer-events: none; */
+    }
+
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/dashboard">PatrOwl Manager</a>
+      </div>
+      <ul class="nav navbar-nav">
+        {% if user.is_authenticated %}
+        <!-- <li><a href="/home">Home</a></li> -->
+        <!-- Assets Management -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+            <span class="glyphicon glyphicon-cloud"></span> Assets<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/assets/list">List assets</a></li>
+            <li><a href="/assets/add">+ Add new asset</a></li>
+            <li><a href="/assets/bulkadd">+ Add new assets in bulk (CSV file)</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/assets/list?target=asset_group">List asset groups</a></li>
+            <li><a href="/assets/addgroup">+ Add new group of assets</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/assets/owners/list">List asset owners</a></li>
+            <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/admin/assets/assetcategory/">List categories (Admin only)</a></li>
+            <li><a href="/admin/assets/assetcategory/add/">+ Add new category (Admin only)</a></li>
+          </ul>
+        </li>
+
+        <!-- Findings Management -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+            <span class="glyphicon glyphicon-map-marker"></span> Findings<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/findings/list">List</a></li>
+            <li><a href="/findings/import">Manual import</a></li>
+            <!-- <li><a href="/findings/export">Export</a></li> -->
+          </ul>
+        </li>
+
+        <!-- Scans Management -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+            <span class="glyphicon glyphicon-search"></span> Scans<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/scans/list">List scans performed</a></li>
+            <!-- <li><a href="/scans/compare">Compare scans</a></li> -->
+            <li role="separator" class="divider"></li>
+            <li><a href="/scans/defs/list">List scans definitions</a></li>
+            <li><a href="/scans/defs/add">+ Add new scan</a></li>
+            <!-- <li role="separator" class="divider"></li>
+            <li><a href="/scans/campaigns/list">List scan campaigns</a></li>
+            <li><a href="/scans/campaigns/add">+ Add scan Campaign</a></li> -->
+          </ul>
+        </li>
+
+        <!-- Engines Management -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+            <span class="glyphicon glyphicon-screenshot"></span> Engines<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-submenu" >
+              <a href="/engines/list"><strong>Scan Engines</strong></a>
+              <li><a href="/engines/list">List engines</a></li>
+              <li><a href="/engines/add">+ Add scan engine instance</a></li>
+            </li>
+            <li role="separator" class="divider"></li>
+            <li class="dropdown-submenu" >
+              <a href="/engines/policies/list"><strong>Scan Engines Policies</strong></a>
+              <li><a href="/engines/policies/list">List policies</a></li>
+              <li><a href="/engines/policies/add">+ Add policy</a></li>
+              <li><a href="/engines/policies/import">* Import policies</a></li>
+            </li>
+            <li role="separator" class="divider"></li>
+            <li class="dropdown-submenu">
+              <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
+              <li><a href="/engines/types/list">List types</a></li>
+              <li><a href="/engines/types/add">+ Add engine type</a></li>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Reportings & Bashboards Management -->
+        <!-- <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+            Reportings<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/reportings/patch_management">Patch Management</a></li>
+            <li><a href="/reportings/add">+ Add new reprtings</a></li>
+          </ul>
+        </li> -->
+
+        <!-- Settings -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+            <span class="glyphicon glyphicon-bell"></span> Rules<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/rules/list">List rules</a></li>
+            <li><a href="/rules/add">Add new rule</a></li>
+          </ul>
+        </li>
+
+        <!-- Settings -->
+        <!-- <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+            <span class="glyphicon glyphicon-wrench"></span> Settings<span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/settings/">Global settings</a></li>
+            <li><a href="/settings/">Updates</a></li>
+            <li><a href="/settings/">Users</a></li>
+            <li><a href="/settings/">Events</a></li>
+          </ul>
+        </li> -->
+      </ul>
+
+      <form class="navbar-form navbar-left" role="search" method="get" accept-charset="utf-8" action="/search" style="padding-top: 4px;">
+        <div class="input-group">
+          <input type="text" class="form-control input-sm" placeholder="Search" name="srch-term" id="srch-term">
+          <div class="input-group-btn">
+            <button class="btn btn-default btn-search btn-sm" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+          </div>
+        </div>
+      </form>
+
+      <!-- User Account Management -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+              <span class="glyphicon glyphicon-user"></span> {{ user.username }}
+              <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/home">Homepage</a></li>
+              <li><a href="/dashboard">Dashboards</a></li>
+              <li><a href="/settings/"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
+
+              <li class="divider"></li>
+              <li><a href="/users/details">My account</a></li>
+              <li><a href="/users/changepwd">{% trans "Change password" %}</a></li>
+              <li><a href="/logout">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      {% else %}
+      <!-- <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2"> -->
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/signup"><span class="glyphicon glyphicon-user"></span> {% trans "Sign up" %}</a></li>
+          <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> {% trans "Login" %}</a></li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+
+  <div id="main">
+    {% block content %} {% endblock %}
+  </div>
+
+  <div id="footer-div" style="position: sticky;">
+    <footer class="footer">
+      <div class="container-fluid">
+        <div class="col-sm-6">
+          <span class="text-muted">PatrOwl Manager (1.0.0-BETA), 2018</span>
+          <a href="https://github.com/Patrowl/patrowl"><i class="text-muted fab fa-github fa-lg" aria-hidden="true"></i></a>
+          <a href="https://linkedin.com/patrowl.io"><i class="text-muted fab fa-linkedin fa-lg" aria-hidden="true"></i></a>
+        </div>
+        {% if user.is_authenticated %}
+        <div class="col-sm-6">
+          <span class="text-muted pull-right running-scans"></span>
+          <span class="text-muted pull-right engine-status"></span>
+          <text class="text-muted pull-right" id='engines_status_label'>Engines status: &nbsp;</text>
+        </div>
+        {% endif %}
+      </div>
+    </footer>
+  </div>
+
+  {% block javascript %} {% endblock %}
+</body>
+</html>

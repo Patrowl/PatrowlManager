@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/rules/list">Rules</a></li>
+  <li class="active">List</li>
+</ul>
+
+<div class="container">
+  <table class="table table-hover" data-toggle="table">
+    <thead>
+      <tr>
+        <th data-field="cb"><input type="checkbox" onClick="toggle(this)" /></th>
+        <th data-field="name">Name</th>
+        <th data-field="scope">Scope</th>
+        <!-- <th data-field="scope_attr">Attribute</th> -->
+        <th data-field="condition">Condition</th>
+        <th data-field="trigger">Trigger</th>
+        <th data-field="severity">Severity</th>
+        <th data-field="target">Target</th>
+        <th data-field="status">Status</th>
+        <th data-field="updated_at">Last update</th>
+        <th data-field="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rule in rules %}
+      <tr>
+        <td><input type="checkbox" class="radio" name="rule" value="{{ rule.id }}"/></td>
+        <td>{{ rule.title }}</td>
+        <td>{{ rule.scope }}.{{ rule.scope_attr }}</td>
+        <!-- <td>{{ rule.scope_attr }}</td> -->
+        <td>
+          {% if rule.condition.keys|join:"" == "__exact" %}
+            is '{{rule.condition|keyvalue:"__exact"}}'
+          {% else %}
+            {{ rule.condition }}
+          {% endif %}
+        </td>
+        <td>{{ rule.trigger }}</td>
+        <td>{{ rule.severity }}</td>
+        <td>{{ rule.target }}</td>
+        {% if rule.enabled %}
+        <td><span class="label label-success rule-status" rule-id="{{ rule.id }}">Enabled</span></td>
+        {% else %}
+        <td><span class="label label-danger rule-status" rule-id="{{ rule.id }}">Disabled</span></td>
+        {% endif %}
+        <td>{{ rule.updated_at|smartdate }}</td>
+        <td>
+          <!-- <button type="button" class="btn btn-default btn-xs" onclick="location.href='/rules/edit/{{ rule.id }}'">
+            <span class="glyphicon glyphicon-edit"></span></button> -->
+          <button type="button" class="btn btn-default btn-xs btn-duplicate-rule" rule-id="{{ rule.id }}">
+            <span class="glyphicon glyphicon-duplicate"></span></button>
+          <!-- <button type="button" class="btn btn-warning btn-xs btn-eval-rule" rule-id="{{ rule.id }}">
+            <span class="glyphicon glyphicon-fire"></span></button> -->
+          <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-rule"
+            rule-id="{{ rule.id }}" rule-title="{{ rule.title }}"><span class="glyphicon glyphicon-remove"></button>
+        </td>
+      </tr>
+      {% endfor %}
+      <tr class="add-new-rule-form">
+        <td><span class="glyphicon glyphicon-plus text-warning"></span></td>
+        <td><!-- Title -->
+          <input id="title_id" name="title" type="text" class="form-control form-control-sm" placeholder="Title.."/>
+        </td>
+        <td><!-- Scope -->
+          <select id="scope_id" name="scope" class="form-control form-control-sm">
+            {% for scope_id, scope_value in form_options.rule_scopes %}
+              <option value="{{ scope_id }}">{{scope_value}}</option>
+            {% endfor %}
+          </select>
+        <!-- </td>
+        <td> -->
+          <!-- Scope attribute -->
+          <select id="scope_attr_id" name="scope_attr" class="form-control form-control-sm">
+            <!-- filled by jQuery -->
+            <option value="-">-</option>
+          </select>
+        </td>
+        <td><!-- Condition -->
+          <select id="condition_id" name="condition" class="form-control form-control-sm">
+            <!-- filled by jQuery -->
+            <option value="-">-</option>
+          </select>
+          <div id="criteria_div">
+            <!-- filled by jQuery -->
+            <!-- input or select -->
+          </div>
+        </td>
+        <td><!-- Trigger -->
+          <select id="trigger_id" name="trigger" class="form-control form-control-sm">
+            {% for trigger_id, trigger_value in form_options.rule_triggers %}
+              <option value="{{ trigger_id }}">{{trigger_value}}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><!-- Scope -->
+          <select id="scope_id" name="scope" class="form-control form-control-sm">
+            {% for severity_id, severity_value in form_options.rule_severities %}
+              <option value="{{ severity_id }}">{{severity_value}}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><!-- Target -->
+          <select id="target_id" name="target" class="form-control form-control-sm">
+            {% for target_id, target_value in form_options.rule_targets %}
+              <option value="{{ target_id }}">{{target_value}}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><!-- Enable -->
+          <select id="enable_id" name="enable" class="form-control form-control-sm">
+            <option value="enabled">Enable</option>
+            <option value="disabled">Disable</option>
+          </select>
+        </td>
+        <td colspan="2">
+          <button type="submit" class="btn btn-sm btn-success btn-add-rule col-sm-12">
+            Add</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <!-- {{ form_options.rule_scope_attributes }} -->
+
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+
+<!-- Delete rule modal -->
+<div class="modal fade" id="modal-delete-rule" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Rule ?</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-rule" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-rule" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  $(function() {
+
+    // global variables for common rules attributes
+    scope_attributes = JSON.parse("{{form_options.rule_scope_attributes|escapejs}}");
+    rules_conditions = JSON.parse("{{form_options.rule_conditions|escapejs}}");
+    //console.log(rules_conditions);
+    // rules_severities = JSON.parse("{{form_options.rule_severities|escapejs}}");
+    var scope;
+    var scope_attrs;
+    refresh_scope_attributes();
+
+    function refresh_scope_attributes(){
+      scope = $('#scope_id').val();
+      scope_attrs = Object.keys(scope_attributes[scope]);
+
+      // reset and replace the options available
+      $("#scope_attr_id").empty();
+      for (var i = 0; i < scope_attrs.length; i++) {
+        $("#scope_attr_id").append("<option value='"+scope_attrs[i]+"'>"+scope_attrs[i]+"</option>");
+      }
+
+      // update the condition criterias
+      refresh_conditions();
+    }
+
+    // Refresh the condition inputs&selects
+    function refresh_conditions(){
+      // update the condition criterias
+      $("#condition_id").empty();
+      $("#criteria_div").empty();
+      scope_attr = $("#scope_attr_id").val();
+      condition_type = scope_attributes[scope][scope_attr]["type"];
+      condition_types = Object.entries(rules_conditions);
+      for (var i=0; i<condition_types.length; i++){
+        //console.log(condition_types[i][0]);
+        if (condition_type == condition_types[i][0] && condition_type != 'list' ) {
+          conditions = condition_types[i][1]
+          for (var k in conditions) {
+            if (conditions.hasOwnProperty(k)) {
+               $("#condition_id").append("<option value='"+k+"'>"+conditions[k]+"</option>");
+            }
+          }
+
+          $("#criteria_div").append("<input type='text' name='criteria' id='criteria_id' class='form-control form-control-sm'/>");
+          break;
+        } else if (condition_type == 'list') {
+           $("#condition_id").append("<option value='__exact'>is</option>");
+           list_choices = scope_attributes[scope][scope_attr]["values"];
+           choices = ""
+           for (c in list_choices) {
+             choices += "<option value='"+list_choices[c]+"'>"+list_choices[c]+"</option>"
+           }
+           $("#criteria_div").append("<select name='criteria' id='criteria_id' class='form-control form-control-sm'>"+choices+"</select>");
+           break;
+        }
+      }
+    }
+
+    $("#scope_id").on('change', function(e){
+      refresh_scope_attributes();
+    });
+    $("#scope_attr_id").on('change', function(e){
+      refresh_conditions();
+    });
+
+    // Add rule
+    $("button.btn-add-rule").on('click', function(eventObject) {
+      rule_args = {
+        "title": $("#title_id").val(),
+        "scope": $("#scope_id").val(),
+        "scope_attr": $("#scope_attr_id").val(),
+        "condition": $("#condition_id").val(),
+        "criteria": $("#criteria_id").val(),
+        "trigger": $("#trigger_id").val(),
+        "target": $("#target_id").val(),
+        "enable": $("#enable_id").val()
+      }
+
+      var request = $.ajax({
+        url: "/rules/api/v1/add",
+        method: "POST",
+        data: JSON.stringify(rule_args),
+        contentType: "application/json"
+      });
+      request.done(function(response){
+        if (response.status == 'success'){location.reload()}
+      });
+    });
+
+    // Duplicate rule
+    $("button.btn-duplicate-rule").on('click', function(e) {
+      rule_id = e.currentTarget.getAttribute('rule-id');
+
+      var request = $.ajax({
+        url: "/rules/api/v1/duplicate/"+rule_id,
+        method: "GET",
+      });
+      request.done(function(response){
+        if (response.status == 'success'){location.reload()}
+      });
+    });
+
+    // toggle rule status (enable/disable)
+    $('span.rule-status').on('dblclick', function(e){
+      rule_id = e.currentTarget.getAttribute('rule-id');
+      var request = $.ajax({
+        url: "/rules/api/v1/change_status/"+rule_id,
+        method: "GET",
+        success: function(){
+          if (e.currentTarget.textContent == "Disabled") {
+            $(e.currentTarget).removeClass("label-danger");
+            $(e.currentTarget).addClass("label-success");
+            e.currentTarget.textContent = "Enabled";
+          } else {
+            $(e.currentTarget).removeClass("label-success");
+            $(e.currentTarget).addClass("label-danger");
+            e.currentTarget.textContent = "Disabled";
+          }
+        }
+      });
+    });
+
+    // $('button.btn-eval-rule').on('click', function(e){
+    //   rule_id = e.currentTarget.getAttribute('rule-id');
+    //   var request = $.ajax({
+    //     url: "/rules/api/v1/evaluate/"+rule_id,
+    //     method: "GET",
+    //     success: function(){
+    //       location.reload();
+    //     }
+    //   });
+    // });
+
+    // Delete rule modal
+    $("#modal-delete-rule").on('show.bs.modal', function (e) {
+      rule_id = e.relatedTarget.getAttribute('rule-id');
+      rule_title = e.relatedTarget.getAttribute('rule-title');
+      $("div#delete-rule").attr('rule-id', rule_id);
+      $("div#delete-rule").html("Name: <b>"+rule_title+"</b><br/>");
+    });
+    $("button.btn-delete-rule").on('click', function (e) {
+      delete_rule_args = {
+        "csrfmiddlewaretoken": $("div#delete-rule").attr('csrf-token'),
+        "rule_id": $("div#delete-rule").attr('rule-id')
+      }
+      delete_rule_args = []
+      delete_rule_args.push($("div#delete-rule").attr('rule-id'))
+      // csrf_token = $("div#delete-rule").attr('csrf-token');
+      // rule_id = $("div#delete-rule").attr('rule-id');
+      delete_rule_url = "/rules/api/v1/delete";
+      var request = $.ajax({
+        url: delete_rule_url,
+        method: "POST",
+        data: JSON.stringify(delete_rule_args),
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+
+    // Delete selected rules
+    $("a.btn-delete-selected").on('click', function(eventObject) {
+      rules_to_delete = [];
+      $("input[name='rule']").each(function(cbx){
+        if (this.checked) {
+          rules_to_delete.push(this.value)
+        }
+      })
+
+      if (rules_to_delete.length != 0){
+        delete_url="/rules/delete"
+        var request = $.ajax({
+          url: delete_url,
+          method: "POST",
+          data: JSON.stringify(rules_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+  });
+</script>
+{% endblock %}

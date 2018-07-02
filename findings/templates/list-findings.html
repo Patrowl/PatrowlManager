@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<style>
+.modal.right .modal-dialog {
+		position: fixed;
+		margin: auto;
+		width: 700px;
+		height: 100%;
+		-webkit-transform: translate3d(0%, 0, 0);
+		    -ms-transform: translate3d(0%, 0, 0);
+		     -o-transform: translate3d(0%, 0, 0);
+		        transform: translate3d(0%, 0, 0);
+	}
+
+.modal.right .modal-content {
+		/*height: 100%;*/
+		overflow-y: auto;
+	}
+
+.modal.right .modal-body {
+		padding: 15px 15px 20px;
+	}
+
+.modal.right.fade .modal-dialog {
+		right: -320px;
+		-webkit-transition: opacity 0.3s linear, right 0.3s ease-out;
+		   -moz-transition: opacity 0.3s linear, right 0.3s ease-out;
+		     -o-transition: opacity 0.3s linear, right 0.3s ease-out;
+		        transition: opacity 0.3s linear, right 0.3s ease-out;
+	}
+
+.modal.right.fade.in .modal-dialog {
+	right: 0;
+}
+
+ul.ui-autocomplete {
+  position: fixed;
+  top: initial;
+}
+
+#finding-filter-form > .form-group {
+	margin-bottom: 5px;
+}
+
+.pagination>li>a, .pagination>li>span {
+  padding: 2px 7px;
+  font-size: 12px;
+}
+</style>
+
+<script language="JavaScript">
+function toggle(source, element) {
+  checkboxes = document.getElementsByName(element);
+  for(var i=0, n=checkboxes.length;i<n;i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+</script>
+
+<ul class="breadcrumb">
+  <li><a href="/findings/list">findings</a></li>
+  <li class="active">list</li>
+</ul>
+
+<div class="container-fluid">
+	<div class="btn-group">
+    <a href="/findings/list" class="btn btn-xs btn-primary">Quick filters</a>
+    <a href="#" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+    <ul class="dropdown-menu">
+      <li><a href="/findings/list">Show all findings</a></li>
+      <li><a href="/findings/list?_status=new">Show new findings</a></li>
+      <li><a href="/findings/list?_status=ack">Show acked findings</a></li>
+    </ul>
+  </div>
+  or <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#modal-filters">Advanced filters</button>
+  <table class="table table-hover" id="table-findings">
+    <thead>
+      <tr>
+        <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'finding')" /></th>
+        <th data-field="asset_value">Asset</th>
+        <th data-field="title">Title</th>
+        <!-- <th data-field="type">Type</th> -->
+        <th data-field="severity">Severity</th>
+        <th data-field="status">Status</th>
+        <th data-field="engine_type">From</th>
+        <th data-field="updated_at">Last update</th>
+        <th data-field="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for finding in findings %}
+    <tr class='dblclickable-row' data-href='/findings/details/{{ finding.id }}'>
+      <td><input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/></td>
+      <td>{{ finding.asset_name|truncatechars:60 }}</td>
+      <td>{{ finding.title|truncatechars:60 }}</td>
+      <!-- <td>{{ finding.type }}</td> -->
+      {% if finding.severity == 'critical' or finding.severity == 'high' %}
+      <td><span class="label label-danger">{{ finding.severity }}</span></td>
+      {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+      <td><span class="label label-warning">{{ finding.severity }}</span></td>
+      {% elif finding.severity == 'low' %}
+      <td><span class="label label-info">{{ finding.severity }}</span></td>
+      {% else %}
+      <td><span class="label label-default">{{ finding.severity }}</span></td>
+      {% endif %}
+      {% if finding.status == 'new' %}
+      <td class="text-danger">{{ finding.status }}</td>
+      {% else %}
+      <td>{{ finding.status }}</td>
+      {% endif %}
+      <td>{{ finding.engine_type }}</td>
+      <td>{{ finding.updated_at|smartdate}}</td>
+      <td>
+        <div class="btn-toolbar btn-group">
+          <button type="button" class="btn btn-default btn-xs" onclick="location.href='/findings/details/{{ finding.id }}'"><span class="glyphicon glyphicon-plus-sign"></span></button>
+					<button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-finding"
+            finding-id="{{ finding.id }}" finding-title="{{ finding.title }}" finding-asset="{{ finding.asset_name }}" finding-severity="{{ finding.severity }}">
+            <span class="glyphicon glyphicon-remove"></button>
+        </div>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+
+  <a href="#" class="btn-compare-selected">// Compare findings</a><br/>
+  <a href="/findings/add">+ Add a new finding manually</a><br/>
+  <a class="text-warning btn-ack" href="#">* Ack selected findings</a><br/>
+  <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a>
+	<br/><br/>
+
+	<div style="display: inline-flex;">
+		<ul class="pagination pagination-xs">
+			<li class="page-item">
+				<a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a>
+			</li>
+			{% if findings.has_previous %}
+			<li class="page-item">
+				<a class="page-link" href= "#" onclick="gotopage({{ findings.previous_page_number }});">&laquo;</a>
+			</li>
+			{% endif %}
+			{% for pn in findings.paginator.page_range %}
+			{% if pn == findings.number %}
+			<li class="page-item active">
+			{% else %}
+			<li class="page-item">
+			{% endif %}
+				<a class="page-link" href="#" onclick="gotopage({{ pn }});">{{ pn }}</a>
+			</li>
+			{% endfor %}
+			{% if findings.has_next %}
+			<li class="page-item">
+				<a class="page-link" href="#" onclick="gotopage({{ findings.next_page_number }});">&raquo;</a>
+			</li>
+			{% endif %}
+			<li class="page-item">
+				<a class="page-link" href="#" onclick="gotopage({{ findings.paginator.num_pages }});">&raquo;&raquo;</a>
+			</li>
+		</ul>
+		<div style="margin: 21px;">
+			<select id="nb_rows_per_page" >
+				<option value="10">10</option>
+				<option value="25">25</option>
+				<option value="50" selected>50</option>
+				<option value="200">200</option>
+			</select>
+			findings per page
+		</div>
+	</div>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<!-- Delete scan definition modal -->
+<div class="modal fade" id="modal-delete-finding" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Finding ?</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-finding" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-finding" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter modal -->
+<div class="modal right fade" id="modal-filters" tabindex="-1" role="dialog"
+  aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Filter findings</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div class="container">
+          <form action="/findings/list" method="GET" id="finding-filter-form" class="form-horizontal">
+          <!-- <form class="form-inline"> -->
+						<div class="form-group">
+	            <label class="col-sm-2 control-label" for="filter_startdate">Start at</label>
+							<div class="col-sm-5">
+	              <input type="text" class="form-control input-append date input-sm" id="filter_startdate">
+							</div>
+						</div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_enddate">End at</label>
+							<div class="col-sm-5">
+              	<input type="text" class="form-control input-append date input-sm" id="filter_enddate">
+							</div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_asset_value_label">Asset value</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_asset_value_condition">
+	                <option value="exact">is exactly</option>
+	                <option value="not_exact">is not exactly</option>
+	                <option value="icontains">contains</option>
+	                <option value="not_icontains">does not contain</option>
+	                <option value="istartwith">start with</option>
+	                <option value="not_istartwith">does not start with</option>
+	                <option value="iendwith">end with</option>
+	                <option value="not_iendwith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_asset_value_input">
+							</div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_title_label">Finding title</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_title_condition">
+									<option value="exact">is exactly</option>
+									<option value="not_exact">is not exactly</option>
+									<option value="icontains">contains</option>
+									<option value="not_icontains">does not contain</option>
+									<option value="istartwith">start with</option>
+									<option value="not_istartwith">does not start with</option>
+									<option value="iendwith">end with</option>
+									<option value="not_iendwith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_finding_title_input">
+							</div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_severity_label">Finding severity</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_severity_condition">
+	                <option value="exact">is</option>
+	                <option value="not_exact">is not</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <select class="form-control input-sm" id="filter_finding_severity_selection">
+	                <option value="none" selected>-</option>
+	                <option value="high">High</option>
+	                <option value="medium">Medium</option>
+	                <option value="low">Low</option>
+	                <option value="info">Info</option>
+	              </select>
+							</div>
+            </div>
+
+						<div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_type_label">Finding type</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_type_condition">
+									<option value="exact">is exactly</option>
+									<option value="not_exact">is not exactly</option>
+									<option value="icontains">contains</option>
+									<option value="not_icontains">does not contain</option>
+									<option value="istartwith">start with</option>
+									<option value="not_istartwith">does not start with</option>
+									<option value="iendwith">end with</option>
+									<option value="not_iendwith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_finding_type_input">
+							</div>
+            </div>
+
+						<div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_ref_label">Finding reference</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_ref_condition">
+	                <option value="CVE">CVE</option>
+	                <option value="MS">MS Bulletin</option>
+	                <option value="NESSUS">Nessus Plugin ID</option>
+	                <option value="CWE">CWE</option>
+	                <option value="OSVDB">OSVDB</option>
+	                <option value="DIB">Security Focus Bid</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_finding_ref_input">
+							</div>
+            </div>
+
+            <!-- <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_asset_tags">Asset tags</label>
+							<div class="col-sm-1">
+								<select class="form-control input-sm" id="filter_asset_tag_condition">
+	                <option value="is">is</option>
+	                <option value="is_not">is not</option>
+	                <option value="contains">contains</option>
+	                <option value="contains_not">does not contain</option>
+	                <option value="start">start with</option>
+	                <option value="start_not">does not start with</option>
+	                <option value="end">end with</option>
+	                <option value="end_not">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-4">
+	              <input type="text" class="form-control input-sm" id="filter_asset_tags">
+							</div>
+            </div> -->
+
+		        <!-- <button type="submit" class="btn btn-xs btn-warning btn-save-filters" data-dismiss="modal">Yes</button>
+		        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button> -->
+						<div>
+							<label class="col-sm-2 control-label">Apply Filters?</label>
+							<div class="btn-group">
+							 <button type="submit" class="btn btn-xs btn-warning btn-save-filters" data-dismiss="modal" style="margin-left: 5px;">Yes</button>
+							 <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+							</div>
+						</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+	url = new URL(window.location.href);
+
+	function gotopage(page_num) {
+		url.searchParams.set("page", page_num);
+		window.location = url.search;
+	};
+
+
+  $(function() {
+
+		$('#nb_rows_per_page').change(function(e){
+      nb_rows = e.target.value;
+      url.searchParams.set("n", nb_rows);
+      window.location = url.search;
+    });
+
+		// Apply filters
+		$('button.btn-save-filters').on('click', function (e){
+			//console.log($('#finding-filter-form'));
+			filter_findings_url = "/findings/list?";
+			if ($('input#filter_asset_value_input').val() != "") {
+				filter_findings_url+="&_asset_value="+$('#filter_asset_value_input').val();
+				filter_findings_url+="&_asset_value_cond="+$('#filter_asset_value_condition').val();
+			}
+			if ($('input#filter_finding_title_input').val() != "") {
+				filter_findings_url+="&_title="+$('#filter_finding_title_input').val();
+				filter_findings_url+="&_title_cond="+$('#filter_finding_title_condition').val();
+			}
+			if ($('input#filter_finding_type_input').val() != "") {
+				filter_findings_url+="&_type="+$('#filter_finding_type_input').val();
+				filter_findings_url+="&_type_cond="+$('#filter_finding_type_condition').val();
+			}
+			if ($('input#filter_finding_severity_selection').val() != "") {
+				filter_findings_url+="&_severity="+$('#filter_finding_severity_selection').val();
+				filter_findings_url+="&_severity_cond="+$('#filter_finding_severity_condition').val();
+			}
+			if ($('input#filter_finding_ref_input').val() != "") {
+				filter_findings_url+="&_reference="+$('#filter_finding_ref_input').val();
+				filter_findings_url+="&_reference_cond="+$('#filter_finding_ref_condition').val();
+			}
+
+
+      window.location = filter_findings_url;
+		})
+
+		// Delete finding modal
+    $("#modal-delete-finding").on('show.bs.modal', function (e) {
+      finding_id = e.relatedTarget.getAttribute('finding-id');
+      finding_title = e.relatedTarget.getAttribute('finding-title');
+      finding_asset = e.relatedTarget.getAttribute('finding-asset');
+      finding_severity = e.relatedTarget.getAttribute('finding-severity');
+      $("div#delete-finding").attr('finding-id', finding_id);
+      $("div#delete-finding").html(
+				"Title: <b>"+finding_title+"</b><br/> \
+				Asset: <b>"+finding_asset+"</b><br/> \
+				Severity: <b>"+finding_severity+"</b><br/><br/>"
+			);
+    });
+    $("button.btn-delete-finding").on('click', function (e) {
+      csrf_token = $("div#delete-finding").attr('csrf-token');
+      finding_id = $("div#delete-finding").attr('finding-id');
+      delete_finding_url = "/findings/delete/"+finding_id;
+      var request = $.ajax({
+        url: delete_finding_url,
+        method: "POST",
+        data: "csrfmiddlewaretoken="+csrf_token,
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+
+    // Delete selected findings
+    $("a.btn-delete-selected").on('click', function(eventObject) {
+      findings_to_delete = [];
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_delete.push(this.value)
+        }
+      })
+
+      if (findings_to_delete.length != 0){
+        delete_url="/findings/delete"
+        var request = $.ajax({
+          url: delete_url,
+          method: "POST",
+          data: JSON.stringify(findings_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    // Change the finding status
+    $("a.btn-ack").on('click', function(eventObject) {
+      findings_to_ack = []
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_ack.push({'ack': this.value})
+        }
+      });
+
+      if (findings_to_ack.length != 0){
+        console.log("ack");
+        ack_url="/findings/status"
+        var request = $.ajax({
+          url: ack_url,
+          method: "POST",
+          data: JSON.stringify(findings_to_ack),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){
+            location.reload();
+          }
+        });
+      }
+    });
+
+    // Compare findings
+    $("a.btn-compare-selected").on('click', function (e) {
+      findings_to_compare = []
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_compare.push(this.value)
+        }
+      });
+      if(findings_to_compare.length == 2){
+        window.location.href ="/findings/compare?raw=true&finding_a_id="+findings_to_compare[0]+"&finding_b_id="+findings_to_compare[1];
+      }
+    });
+
+    // Advanced filters
+    $("#filter_startdate").datetimepicker({
+      minuteStep: 5,
+      autoclose: true,
+      language: 'en',
+      format: 'yyyy-mm-dd hh:ii:ss',
+      clearBtn: true,
+      showMeridian: false,
+      todayHighlight: true}
+    );
+    $("#filter_enddate").datetimepicker({
+      minuteStep: 5,
+      autoclose: true,
+      language: 'en',
+      format: 'yyyy-mm-dd hh:ii:ss',
+      clearBtn: true,
+      showMeridian: false,
+      todayHighlight: true}
+    );
+
+		// Autocomplete tags modal searchbar
+		$("#filter_asset_tags").autocomplete({
+			source: function(req, response) {
+				 $.ajax({
+					url: "/assets/get_tags",
+					dataType: "json",
+					success: function( data ) {
+						var re = $.ui.autocomplete.escapeRegex(req.term);
+						var matcher = new RegExp(re, "i" ); //Start with
+						response($.grep(data, function(item){return matcher.test(item.value || item.label || item);}) );
+						}
+					});
+			 },
+			minLength: 2,
+			appendTo: "#filter_asset_tags",
+			autoFocus: true
+		});
+
+  });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/engines/list">engines</a></li>
+  <li><a href="/engines/types/list">types</a></li>
+  <li class="active">add new engine type</li>
+</ul>
+
+<div class="container">
+  <form action="/engines/types/add" method="post" class="form-horizontal">
+    <legend>Add a engine type</legend>
+      {% csrf_token %}
+      {% for field in form %}
+          {% if field.errors %}
+              <div class="form-group has-error">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      <span class="help-block">
+                          {% for error in  field.errors %}{{ error }}{% endfor %}
+                      </span>
+                  </div>
+              </div>
+          {% elif not field.is_hidden %}
+              <div class="form-group">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      {% if field.help_text %}
+                          <p class="help-block"><small>{{ field.help_text }}</small></p>
+                      {% endif %}
+                  </div>
+              </div>
+          {% endif %}
+      {% endfor %}
+      <div class="form-group submit-div">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-4">
+          <button type="submit" class="btn btn-warning col-sm-12">Create a new engine type</button>
+        </div>
+      </div>
+  </form>
+</div>
+
+{% endblock %}

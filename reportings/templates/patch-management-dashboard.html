@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/reportings/list">reportings</a></li>
+  <li class="active">patch management</li>
+</ul>
+<div class="container">
+  {{data}}
+  <div>
+    <canvas id="chart_current-assets_path_report"/>
+  </div>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<script>
+var assets_path_report_chart;
+
+function print_chart_current(){
+  if(assets_path_report_chart){assets_path_report_chart.destroy();}
+  // update the findings stat pies
+  //my_datasets = {{data}}
+
+  chart_config = {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [
+          "10", "4", "2", "15"
+            //resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"]
+        ],
+        backgroundColor: [
+          "#FF0000", // High - RED
+          //"#FF8000", // Medium - ORANGE
+          "#FFFF00", // Low - YELLOW
+          "#66D2FF"  // Info - BLUE
+        ],
+      }],
+      labels: ["More than 30 critical patches unapplied", "Critical patches applied (reboot needed)", "Critical patches applied"]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      legend: {
+        display: true,
+        position: 'left'
+      }
+    }
+  };
+
+  config = jQuery.extend(true, {}, chart_config);
+  config["data"]["datasets"][0]["data"] = new Array(1,2,3);
+
+  var canvas = document.getElementById("chart_current-assets_path_report");
+  var ctx = canvas.getContext("2d");
+  ctx.canvas.width = 150;
+  ctx.canvas.height = 150;
+  assets_path_report_chart = new Chart(ctx, config);
+
+
+
+}; // End fo function print_chart()
+
+print_chart_current();
+
+</script>
+
+{% endblock %}

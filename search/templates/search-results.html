@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <h2>Search results for '{{ search_term }}':</h2>
+  <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+    <tr>
+      <th data-field="type">Type</th>
+      <th data-field="value">Item</th>
+    </tr>
+    {% for result in results %}
+    <tr>
+      <td>{{ result.type }}</td>
+      <td><a href="{{ result.link }}">{{ result.value }}</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock %}

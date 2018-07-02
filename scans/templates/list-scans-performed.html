@@ -1,0 +1,565 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+<style>
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+
+.progress-bar-high {
+  background-color: #E43725
+}
+.progress-bar-medium {
+  background-color: #EE9336
+}
+.progress-bar-low {
+  background-color: #FDC431
+}
+.progress-bar-info {
+  background-color: #357ABD
+}
+
+table tr td.scan-progress {
+  vertical-align: middle;
+}
+
+.scan-progress .progress {
+  margin-bottom: 0;
+}
+
+.modal.right .modal-dialog {
+	position: fixed;
+	margin: auto;
+	width: 600px;
+	/*width: 320px;*/
+	height: 100%;
+	-webkit-transform: translate3d(0%, 0, 0);
+	    -ms-transform: translate3d(0%, 0, 0);
+	     -o-transform: translate3d(0%, 0, 0);
+	        transform: translate3d(0%, 0, 0);
+}
+
+.modal.right .modal-content {
+	height: 100%;
+	overflow-y: auto;
+}
+
+.modal.right .modal-body {
+	padding: 15px 15px 80px;
+}
+
+.modal.right.fade .modal-dialog {
+	right: -320px;
+	-webkit-transition: opacity 0.3s linear, right 0.3s ease-out;
+	   -moz-transition: opacity 0.3s linear, right 0.3s ease-out;
+	     -o-transition: opacity 0.3s linear, right 0.3s ease-out;
+	        transition: opacity 0.3s linear, right 0.3s ease-out;
+}
+
+.modal.right.fade.in .modal-dialog {
+	right: 0;
+}
+</style>
+<ul class="breadcrumb">
+  <li><a href="/scans/list">scans</a></li>
+  <li class="active">scans performed [<a href="javascript:goBack()">back</a>]</li>
+</ul>
+
+<div class="container">
+  <div class="pull-left">
+    <button id="cal-heatmap-repeat" class="btn btn-xs btn-default" style="margin-bottom: 10px;" onclick="location.reload()">
+      <span class="glyphicon glyphicon-repeat"></span></button>
+    <button id="btn-jumpTo-1m-before" class="btn btn-xs" style="margin-bottom: 10px;" title="1 month before"> < 1m </button>
+    <button id="btn-jumpTo-1w-before" class="btn btn-xs" style="margin-bottom: 10px;" title="1 week before"> < 1w </button>
+    <button id="cal-heatmap-PreviousDomain-selector" style="margin-bottom: 10px;" class="btn btn-xs">
+      <span class="glyphicon glyphicon-chevron-left"></span></button>
+    <button id="btn-jumpTo-today" class="btn btn-xs btn-warning" style="margin-bottom: 10px;">Today</button>
+    <button id="cal-heatmap-NextDomain-selector" style="margin-bottom: 10px;" class="btn btn-xs">
+      <span class="glyphicon glyphicon-chevron-right"></span></button>
+    <button id="btn-jumpTo-1w-later" class="btn btn-xs" style="margin-bottom: 10px;" title="1 week later"> > 1w </button>
+    <button id="btn-jumpTo-1m-later" class="btn btn-xs" style="margin-bottom: 10px;" title="1 month later"> > 1m </button>
+  </div>
+
+  <div class="pull-right">
+    <button id="btn-modal-filters" class="btn btn-xs btn-default" style="margin-bottom: 10px;" data-toggle="modal" data-target="#modal-filters">Filters</button></div>
+  <br/>
+  <div id="cal-heatmap"></div>
+</div>
+<br/>
+
+<div class="container all-scans">
+  <h4>Selection: <b class="scan-selection-title">all findings</b></h4>
+  <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+    <thead>
+      <tr>
+        <th data-field="cb"><input type="checkbox" onClick="toggle(this)" /></th>
+        <th data-field="title">Title</th>
+        <th data-field="status">Status</th>
+        <th data-field="progress" style="width:20%">Progress</th>
+        <th data-field="updated_at">Last update</th>
+        <th data-field="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for scan in scans %}
+      <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
+        <td><input type="checkbox" class="radio" name="scan" value="{{ scan.id }}"/></td>
+        <td>[{{ scan.engine_type }}] {{ scan.title }}</td>
+        <!-- <td><a href="/scans/defs/details/{{scan.scan_definition.id}}">[{{ scan.engine_type }}] {{ scan.title }}</a></td> -->
+        {% if scan.status == "started" %}
+        <td class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:orange" title="Started"></span></td>
+        {% elif scan.status == "stopping"  %}
+        <td class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:red" title="Stopping"></span></td>
+        {% elif scan.status == "stopped"  %}
+        <td class="text-center"><span class="glyphicon glyphicon-remove" style="color:red" title="Stopped"></span></td>
+        {% elif scan.status == "finished"  %}
+        <td class="text-center"><span class="glyphicon glyphicon-ok" style="color:green" title="Finished"></span></td>
+        {% elif scan.status == "scheduled"  %}
+        <td class="text-center"><span class="glyphicon glyphicon-time" style="color:blue" title="Scheduled"></span></td>
+        {% elif scan.status == "enqueued"  %}
+        <td class="text-center"><span class="glyphicon glyphicon-pushpin" style="color:orange" title="Enqueued"></span></td>
+        {% elif scan.status == "error"  %}
+        <td class="text-center"><span class="glyphicon glyphicon-fire" style="color:red" title="Error"></span></td>
+        {% else %}
+        <td>{{ scan.status }}</td>
+        {% endif %}
+
+        <!--  -->
+        <td class="scan-progress">
+          <div class="progress" id="pb-{{ scan.id }}">
+            {% if scan.status == "finished" %}
+            <div class="progress-bar progress-bar-striped progress-bar-high" role="progressbar" style="width:{{ scan.summary.high | perc:scan.summary.total }}%">
+              {{ scan.summary.high }}
+            </div>
+            <div class="progress-bar progress-bar-striped progress-bar-medium" role="progressbar" style="width:{{ scan.summary.medium | perc:scan.summary.total }}%">
+              {{ scan.summary.medium }}
+            </div>
+            <div class="progress-bar progress-bar-striped progress-bar-low" role="progressbar" style="width:{{ scan.summary.low | perc:scan.summary.total }}%">
+              {{ scan.summary.low }}
+            </div>
+            <div class="progress-bar progress-bar-striped progress-bar-info" role="progressbar" style="width:{{ scan.summary.info | perc:scan.summary.total }}%">
+              {{ scan.summary.info }}
+            </div>
+            {% else %}
+            <div class="progress-bar progress-bar-striped active" role="progressbar">
+              -
+            </div>
+            {% endif %}
+          </div>
+        </td>
+        <td>{{ scan.updated_at|smartdate }}</td>
+        <td>
+          <button type="button" class="btn btn-default btn-xs" title="Details" onclick="location.href='/scans/details/{{ scan.id }}'">
+            details</button>
+          {% if scan.status == "enqueued" or scan.status == "started" %}
+          <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
+            <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
+          {% else %}
+          <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/report/html/{{ scan.id }}'">
+            <span class="glyphicon glyphicon-share"></span></button>
+          {% endif %}
+          <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_definition.id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
+            Run </button>
+          <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
+            scan-id="{{ scan.id }}" scan-title="{{ scan.title }} [{{ scan.engine_type }}]">
+            <span class="glyphicon glyphicon-remove"></button>
+        </td>
+      </tr>
+    {% endfor %}
+
+    </tbody>
+  </table>
+  <div>
+    <a class="text-danger btn-delete-selected" href="#">- Delete selected scans (no confirm)</a><br/>
+    <a class="text-default btn-compare-selected" href="#">// Compare selected scans (2 scans max.)</a>
+  </div>
+  <div class="pagination">
+    <span class="step-links">
+        {% if scans.has_previous %}
+            <a href="?page={{ scans.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ scans.number }} of {{ scans.paginator.num_pages }}.
+        </span>
+
+        {% if scans.has_next %}
+            <a href="?page={{ scans.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+  </div>
+
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<!-- Delete scan modal -->
+<div class="modal fade" id="modal-delete-scan" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Scan</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-scan" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-scan" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Run single scan modal -->
+<div class="modal fade" id="modal-run-scan" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Direct Scan</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="run-scan">
+          <!-- Content -->
+        </div>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter modal -->
+<div class="modal right fade" id="modal-filters" tabindex="-1" role="dialog"
+  aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Filter Scan</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div class="container">
+          <form class="form-inline">
+            <div class="form-group">
+              <label for="filter_startdate">Start at</label>
+              <input type="text" class="form-control input-append date input-sm" id="filter_startdate">
+            </div><br/>
+            <div class="form-group">
+              <label for="filter_enddate">End at</label>
+              <input type="text" class="form-control input-append date input-sm" id="filter_enddate">
+            </div><br/>
+            <div class="form-group">
+              <label for="filter_asset">Asset</label>
+              <select class="form-control input-sm" id="filter_asset_condition">
+                <option value="is">is</option>
+                <option value="is_not">is not</option>
+                <option value="contains">contains</option>
+                <option value="contains_not">does not contain</option>
+                <option value="start">start with</option>
+                <option value="start_not">does not start with</option>
+                <option value="end">end with</option>
+                <option value="end_not">does not end with</option>
+              </select>
+              <input type="text" class="form-control input-sm" id="filter_asset_value">
+            </div><br>
+            <div class="form-group">
+              <label for="filter_asset_tags">Asset tags</label>
+              <input type="text" class="form-control input-sm" id="filter_asset_tags">
+            </div>
+          </form>
+        </div>
+
+        Apply Filters?
+        <button type="button" class="btn btn-xs btn-warning btn-save-filters" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  function formatDate(date) {
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    //var ampm = hours >= 12 ? 'pm' : 'am';
+    //hours = hours % 12;
+    //hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0'+minutes : minutes;
+    var strTime = hours + ':' + minutes// + ' ' + ampm;
+    return date.getDate() + "/" + date.getMonth()+1 + "/" + date.getFullYear() + " - " + strTime + " (1h)";
+  }
+
+
+  var cal = new CalHeatMap();
+  var range_size = 23;
+  var date_cursor = new Date(); //today
+  date_cursor.setDate(date_cursor.getDate() - range_size + 2); // - 20days
+  cal.init({
+    id: "cal-heatmap",
+    data: "/scans/api/v1/list",
+    itemSelector: "#cal-heatmap",
+    domain: "day",
+    subDomain: "hour",
+    start: date_cursor,
+    cellSize: 9,
+    range: range_size,
+    highlight: "now",
+    previousSelector: "#cal-heatmap-PreviousDomain-selector",
+    nextSelector: "#cal-heatmap-NextDomain-selector",
+    legend: [2, 4, 6, 8],
+    legendColors: {
+      min: "yellow",
+      max: "red",
+      empty: "white"
+      // Will use the CSS for the missing keys
+    },
+    onClick: function(date, nb) {
+      $("h4 b.scan-selection-title").html(nb+" scan(s) on "+formatDate(date));
+      $("div.container.all-scans table tbody").find("tr").remove();
+      $("div.pagination").addClass("hidden");
+
+      tzoffset = (new Date()).getTimezoneOffset() * 60000;
+      date_tz = (new Date(date - tzoffset)).toISOString().split('.')[0]+"Z"
+      scan_url = "/scans/api/v1/listbydate?date=" + date_tz + "&scope=hour"
+
+      xhr = $.get(scan_url, function(data) {
+        for (i = 0; i < data.length; ++i){
+          scan_row_html = "<tr class='dblclickable-row' data-href='/scans/details/"+data[i]["scan_id"]+"'>\
+            <td><input type='checkbox' class='radio' name='scan' value='"+data[i]["scan_id"]+"'/></td>\
+            <td><a href='/scans/details/"+data[i]["scan_id"]+"'>["+data[i]["engine_type"]+"] "+data[i]["title"]+"</a></td>"
+            //<td><a href='/scans/defs/details/"+data[i]["scan_definition_id"]+"'>["+data[i]["engine_type"]+"] "+data[i]["title"]+"</a></td>"
+
+          if (data[i]["status"] == "started"){
+            scan_row_html += "<td class='text-center'><span class='glyphicon glyphicon-refresh glyphicon-refresh-animate' style='color:orange' title='Started'></span></td>"
+          } else if (data[i]["status"] == "stopping"){
+            scan_row_html += "<td class='text-center'><span class='glyphicon glyphicon-refresh glyphicon-refresh-animate' style='color:red' title='Stopping'></span></td>"
+          } else if (data[i]["status"] == "stopped"){
+            scan_row_html += "<td class='text-center'><span class='glyphicon glyphicon-remove' style='color:red' title='Stopped'></span></td>"
+          } else if (data[i]["status"] == "finished"){
+            scan_row_html += "<td class='text-center'><span class='glyphicon glyphicon-ok' style='color:green' title='Finished'></span></td>"
+          } else if (data[i]["status"] == "scheduled"){
+            scan_row_html += "<td class='text-center'><span class='glyphicon glyphicon-time' style='color:blue' title='Scheduled'></span></td>"
+          } else if (data[i]["status"] == "enqueued"){
+            scan_row_html += "<td class='text-center'><span class='glyphicon glyphicon-pushpin' style='color:orange' title='Enqueued'></span></td>"
+          } else if (data[i]["status"] == "error"){
+            scan_row_html += "<td class='text-center'><span class='glyphicon glyphicon-fire' style='color:red' title='Error'></span></td>"
+          }
+          scan_row_html += "<td class='scan-progress'>\
+              <div class='progress' id='pb-"+data[i]["scan_id"]+"'>"
+          if(data[i]["status"] == "finished"){
+            scan_summary = JSON.parse(data[i]["summary"]);
+            perc_high = scan_summary['high']*100/scan_summary['total']
+            perc_medium = scan_summary['medium']*100/scan_summary['total']
+            perc_low = scan_summary['low']*100/scan_summary['total']
+            perc_info = scan_summary['info']*100/scan_summary['total']
+            scan_row_html += "<div class='progress-bar progress-bar-striped progress-bar-high' role='progressbar' style='width:"+perc_high+"%'>"+scan_summary['high']+"</div>"
+            scan_row_html += "<div class='progress-bar progress-bar-striped progress-bar-medium' role='progressbar' style='width:"+perc_medium+"%'>"+scan_summary['medium']+"</div>"
+            scan_row_html += "<div class='progress-bar progress-bar-striped progress-bar-low' role='progressbar' style='width:"+perc_low+"%'>"+scan_summary['low']+"</div>"
+            scan_row_html += "<div class='progress-bar progress-bar-striped progress-bar-info' role='progressbar' style='width:"+perc_info+"%'>"+scan_summary['info']+"</div>"
+          } else {
+            scan_row_html += "<div class='progress-bar progress-bar-striped active' role='progressbar'> - </div>"
+          }
+          scan_row_html += "\
+            </div></td>\
+            <td>"+data[i]["updated_at"]+"</td>"
+          scan_row_html += "\
+            <td>\
+            <button type='button' class='btn btn-default btn-xs' title='Details' onclick='location.href=\"/scans/details/"+data[i]["scan_id"]+"\"'>details</button>\
+              <button type='button' class='btn btn-default btn-xs' title='Export scan findings' onclick='location.href=\"/scans/report/html/"+data[i]["scan_id"]+"\"'>\
+                <span class='glyphicon glyphicon-share'></span></button>\
+              <button type='button' class='btn btn-warning btn-xs btn-run-now' scan-id='"+data[i]["scan_definition_id"]+"' scan-title='"+data[i]["title"]+"' data-toggle='modal' data-target='#modal-run-scan'>\
+                Run </button>\
+              <button type='button' class='btn btn-danger btn-xs' data-toggle='modal' data-target='#modal-delete-scan'\
+                scan-id='"+data[i]["scan_id"]+"' scan-title='"+data[i]["title"]+" ["+data[i]["engine_type"]+"]'>\
+                <span class='glyphicon glyphicon-remove'></button></td>\
+          </tr>"
+          $("div.container.all-scans table tbody").append(scan_row_html);
+        }
+      });
+    }
+  });
+
+  $("#btn-jumpTo-today").on("click", function(event) {
+    cal.jumpTo(new Date(), true);
+  });
+  $("#btn-jumpTo-1m-before").on("click", function(event) {
+    date_cursor.setMonth(date_cursor.getMonth() - 1);
+    cal.jumpTo(date_cursor, true);
+  });
+  $("#btn-jumpTo-1m-later").on("click", function(event) {
+    date_cursor.setMonth(date_cursor.getMonth() + 1);
+    cal.jumpTo(date_cursor, true);
+  });
+  $("#btn-jumpTo-1w-before").on("click", function(event) {
+    date_cursor.setDate(date_cursor.getDate() - 7);
+    cal.jumpTo(date_cursor, true);
+  });
+  $("#btn-jumpTo-1w-later").on("click", function(event) {
+    date_cursor.setDate(date_cursor.getDate() + 7);
+    cal.jumpTo(date_cursor, true);
+  });
+
+</script>
+<script>
+  function toggle(source) {
+    checkboxes = document.getElementsByName('scan');
+    for(var i=0, n=checkboxes.length;i<n;i++) {
+      checkboxes[i].checked = source.checked;
+    }
+  }
+
+  $(function() {
+
+    $("#filter_startdate").datetimepicker({
+      minuteStep: 5,
+      autoclose: true,
+      language: 'en',
+      format: 'yyyy-mm-dd hh:ii:ss',
+      clearBtn: true,
+      //pickerPosition: 'bottom-right',
+      showMeridian: false,
+      todayHighlight: true}
+    );
+    $("#filter_enddate").datetimepicker({
+      minuteStep: 5,
+      autoclose: true,
+      language: 'en',
+      format: 'yyyy-mm-dd hh:ii:ss',
+      clearBtn: true,
+      //pickerPosition: 'bottom-right',
+      showMeridian: false,
+      todayHighlight: true}
+    );
+
+    // Run direct scan now Event
+    $("#modal-run-scan").on('show.bs.modal', function (e) {
+      scan_title = e.relatedTarget.getAttribute('scan-title');
+      $("div#run-scan").html("Scan started: <b>"+scan_title+"</b><br/><br/>");
+
+      //Hide the modal 3 seconds later
+      var myModal = $(this);
+      clearTimeout(myModal.data('hideInterval'));
+      myModal.data('hideInterval', setTimeout(function(){
+          myModal.modal('hide');
+      }, 2000));
+    });
+    $("button.btn-run-now").on('click', function(eventObject) {
+      scan_url = "/scans/defs/run/"+eventObject.target.getAttribute('scan-id');
+      var xhr = $.get(scan_url, function(data) {
+      })
+    });
+
+    // Delete scan modal
+    $("#modal-delete-scan").on('show.bs.modal', function (e) {
+      id = e.relatedTarget.getAttribute('scan-id');
+      scan_title = e.relatedTarget.getAttribute('scan-title');
+      $("div#delete-scan").attr('scan-id', id);
+      $("div#delete-scan").html("Title: <b>"+scan_title+"</b><br/><br/>");
+    });
+    $("button.btn-delete-scan").on('click', function (e) {
+      csrf_token = $("div#delete-scan").attr('csrf-token');
+      id = $("div#delete-scan").attr('scan-id');
+      delete_scan_url = "/scans/delete/"+id;
+      var request = $.ajax({
+        url: delete_scan_url,
+        method: "POST",
+        //data: "doc_id="+doc_id+"&csrfmiddlewaretoken="+csrf_token,
+        data: "csrfmiddlewaretoken="+csrf_token,
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+    // Stop scan
+    $("button.btn-stop-scan").on('click', function (e) {
+      id = e.target.getAttribute('scan-id');
+      stop_scan_url = "/scans/stop/"+id;
+      var request = $.ajax({
+        url: stop_scan_url,
+        method: "GET",
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+    // Delete scans
+    $("a.btn-delete-selected").on('click', function(eventObject) {
+      scans_to_delete = []
+      $("input[name='scan']").each(function(cbx){
+        if (this.checked) {
+          scans_to_delete.push(this.value)
+        }
+      })
+
+      if (scans_to_delete.length != 0){
+        delete_url="/scans/delete"
+        var request = $.ajax({
+          url: delete_url,
+          method: "POST",
+          data: JSON.stringify(scans_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    // Compare scans
+    $("a.btn-compare-selected").on('click', function (e) {
+      scans_to_compare = []
+      $("input[name='scan']").each(function(cbx){
+        if (this.checked) {
+          scans_to_compare.push(this.value)
+        }
+      });
+      if(scans_to_compare.length == 2){
+        window.location.href ="/scans/compare?scan_a_id="+scans_to_compare[0]+"&scan_b_id="+scans_to_compare[1];
+      }
+    });
+
+
+  });
+</script>
+
+{% endblock %}

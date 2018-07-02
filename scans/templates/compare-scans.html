@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<style>
+.dl-horizontal dt { width: 80px; }
+.dl-horizontal dd { margin-left: 90px; }
+</style>
+
+<ul class="breadcrumb">
+  <li><a href="/scans/list">scans</a></li>
+  <li class="active">compare scan results [<a href="javascript:goBack()">back</a>]</li>
+</ul>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-6">
+      {% with scan=scan_a %}
+      <div class="row">
+        <div class="col-md-6">
+          <dl class="dl-horizontal">
+            <dt>Title</dt>
+            <dd><a href="/scans/defs/details/{{scan.scan_definition_id}}">{{ scan.title }}</a></dd>
+            <dt>Policy</dt>
+            <dd><a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a></dd>
+            <dt>Started at</dt>
+            <dd>{{ scan.started_at|date:"Y/m/d-H:m:s" }}</dd>
+            <dt>Finished at</dt>
+            <dd>{{ scan.finished_at|date:"Y/m/d-H:m:s" }}</dd>
+            <dt>Status</dt>
+            <dd>{{ scan.status|capfirst }}</dd>
+            <dt>Engine</dt>
+            <dd>{{ scan.engine_type.name }} / {{ scan.engine.name }}</dd>
+          </dl>
+        </div>
+        <div class="col-md-6">
+          <p class="text-center"><b>Findings by severity:</b></p>
+          <div>
+            <canvas id="chart-findings-summary-a" scan-id="{{ scan.id }}"></canvas>
+          </div>
+        </div>
+      </div>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Asset</th>
+            <th>Title</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for finding in scan.rawfinding_set.all|sort_by:'severity,asset_name,title' %}
+          {% if finding in scan_b_missing_findings%}
+          <tr style="border: 1px solid #18bc9c">
+            <td class="bg-success">
+          {% else %}
+          <tr>
+            <td>
+          {% endif %}
+              <input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/>
+            </td>
+            <td>{{finding.asset.value}}</td>
+            <td><a href="/findings/details/{{finding.id}}?raw=true">{{finding.title}}</a></td>
+            <td>
+              {% if finding.severity == 'critical' or finding.severity == 'high' %}
+              <span class="label label-danger">{{ finding.severity }}</span>
+              {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+              <span class="label label-warning">{{ finding.severity }}</span>
+              {% elif finding.severity == 'low' %}
+              <span class="label label-primary">{{ finding.severity }}</span>
+              {% else %}
+              <span class="label label-default">{{ finding.severity }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% endwith %}
+    </div>
+    <div class="col-md-6">
+      {% with scan=scan_b %}
+        <div class="row">
+          <div class="col-md-6">
+            <dl class="dl-horizontal">
+              <dt>Title</dt>
+              <dd><a href="/scans/defs/details/{{scan.scan_definition_id}}">{{ scan.title }}</a></dd>
+              <dt>Policy</dt>
+              <dd><a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a></dd>
+              <dt>Started at</dt>
+              <dd>{{ scan.started_at|date:"Y/m/d-H:m:s" }}</dd>
+              <dt>Finished at</dt>
+              <dd>{{ scan.finished_at|date:"Y/m/d-H:m:s" }}</dd>
+              <dt>Status</dt>
+              <dd>{{ scan.status|capfirst }}</dd>
+              <dt>Engine</dt>
+              <dd>{{ scan.engine_type.name }} / {{ scan.engine.name }}</dd>
+            </dl>
+          </div>
+          <div class="col-md-6">
+            <p class="text-center"><b>Findings by severity:</b></p>
+            <div>
+              <canvas id="chart-findings-summary-b" scan-id="{{ scan.id }}"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Asset</th>
+              <th>Title</th>
+              <th>Severity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for finding in scan.rawfinding_set.all|sort_by:'severity,asset_name,title' %}
+
+            {% if finding in scan_a_missing_findings%}
+            <tr style="border: 1px solid #18bc9c">
+              <td class="bg-success">
+            {% else %}
+            <tr>
+              <td>
+            {% endif %}
+                <input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/>
+              </td>
+              <td>{{finding.asset.value}}</td>
+              <td><a href="/findings/details/{{finding.id}}?raw=true">{{finding.title}}</a></td>
+              <td>
+                {% if finding.severity == 'critical' or finding.severity == 'high' %}
+                <span class="label label-danger">{{ finding.severity }}</span>
+                {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+                <span class="label label-warning">{{ finding.severity }}</span>
+                {% elif finding.severity == 'low' %}
+                <span class="label label-primary">{{ finding.severity }}</span>
+                {% else %}
+                <span class="label label-default">{{ finding.severity }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      {% endwith %}
+    </div>
+    <a class="text-default btn-compare-selected" href="#">// Compare selected findings (2 scans max.)</a>
+  </div>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<script>
+
+  scan_id_a = $("#chart-findings-summary-a").attr('scan-id');
+  scan_id_b = $("#chart-findings-summary-b").attr('scan-id');
+  getfindings_severities_url_a = "/findings/api/v1/stats?scope=scan&scan_id="+scan_id_a
+  getfindings_severities_url_b = "/findings/api/v1/stats?scope=scan&scan_id="+scan_id_b
+  chart_fs_config = {
+    type: 'doughnut',
+    data: {
+        datasets: [{
+            backgroundColor: [
+                "#FF0000", // High - RED
+                "#FF8000", // Medium - ORANGE
+                "#FFFF00", // Low - YELLOW
+                "#66D2FF"  // Info - BLUE
+            ],
+        }],
+        labels: ["High", "Medium", "Low", "Info"]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      legend: {
+        display: false
+      },
+      animation: {
+        animateScale: true,
+        animateRotate: true
+      }
+    }
+  };
+  xhr_a = $.get(getfindings_severities_url_a, function(resp) {
+    config = jQuery.extend(true, {}, chart_fs_config);
+    config["data"]["datasets"][0]["data"] = new Array(resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
+    ctx = $("#chart-findings-summary-a");
+    ctx.attr('width', 100);
+    ctx.attr('height',100);
+    window.chart_a = new Chart(ctx, config);
+  });
+  xhr_b = $.get(getfindings_severities_url_b, function(resp) {
+    config = jQuery.extend(true, {}, chart_fs_config);
+    config["data"]["datasets"][0]["data"] = new Array(resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
+    ctx = $("#chart-findings-summary-b");
+    ctx.attr('width', 100);
+    ctx.attr('height',100);
+    window.chart_b = new Chart(ctx, config);
+  });
+
+  // jQuery functions
+  $(function(){
+    // Compare findings
+    $("a.btn-compare-selected").on('click', function (e) {
+      findings_to_compare = []
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_compare.push(this.value)
+        }
+      });
+      if(findings_to_compare.length == 2){
+        window.location.href ="/findings/compare?raw=true&finding_a_id="+findings_to_compare[0]+"&finding_b_id="+findings_to_compare[1];
+      }
+    });
+  });
+
+
+</script>
+
+{% endblock %}

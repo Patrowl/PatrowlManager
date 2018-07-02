@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <legend>Engines Info</legend>
+    {% csrf_token %}
+    <!-- {{ engine_infos }} -->
+    {% for key, value in engine_infos.items %}
+    <ul>
+      <li>{{ key }}: {{ value }}</li>
+    </ul>
+    {% endfor %}
+    <ul>
+      <li>Nb scans performed: {{ nb_scans }}</li>
+    </ul>
+    <ul>
+      <li>Current scans: {{ current_scans }}</li>
+    </ul>
+  <div class="form-group">
+    <button class="btn btn-primary"><a href="/engines/list">Cancel</a></button>
+  </div>
+</div>
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

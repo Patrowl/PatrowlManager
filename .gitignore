@@ -1,0 +1,15 @@
+*.pyc
+__pycache__
+env
+db.sqlite3
+.DS_Store
+dump.rdb
+*.pid
+settings.py
+media/imports/*
+media/owners_docs/*
+media/policies/*
+media/reports/*
+var/tmp/db.json
+var/log/*.log
+**/migrations/[0-9]*.py

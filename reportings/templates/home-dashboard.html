@@ -1,0 +1,616 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<style>
+.strong {
+  font-weight: 700;
+}
+
+.small {
+  font-size: 86%;
+}
+
+.col-sm-15, .col-sm-25, .col-sm-35 {
+  position: relative;
+  min-height: 1px;
+  padding-right: 5px;
+  padding-left: 10px;
+}
+@media (min-width: 768px) {
+.col-sm-15 {
+    width: 20%;
+    float: left;
+  }
+}
+
+@media (min-width: 768px) {
+.col-sm-25 {
+    width: 40%;
+    float: left;
+  }
+.col-sm-35 {
+    width: 60%;
+    float: left;
+  }
+}
+
+.tile {
+  /* background: whitesmoke; */
+}
+
+.tile-content {
+  margin: 0px -5px;
+  padding: 15px;
+  background: whitesmoke;
+  height: 100%;
+}
+
+.tile-header.with-border {
+  border-bottom: 1px solid #ecebeb;
+}
+
+.table-tile {
+  margin-bottom: 0px;
+  font-size: small;
+}
+
+.row {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+@media (min-width: 768px) {
+  .row.equal {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+h2, .h2 {
+    font-size: 40px;
+}
+
+span.badge-risk-grade-A { background-color: limegreen; }
+span.badge-risk-grade-B { background-color: yellowgreen; }
+span.badge-risk-grade-C { background-color: orange; }
+span.badge-risk-grade-D { background-color: darkorange; }
+span.badge-risk-grade-E { background-color: orangered; }
+span.badge-risk-grade-F { background-color: red; }
+span.badge-risk-grade-- { background-color: lightgray; }
+
+td.bg-grade---low, td.bg-grade---medium, td.bg-grade---high {background-color: lightgray;}
+td.bg-grade-A-low, td.bg-grade-A-medium, td.bg-grade-A-high, td.bg-grade-B-low {background-color: yellowgreen;}
+td.bg-grade-B-medium, td.bg-grade-B-high, td.bg-grade-C-low, td.bg-grade-C-medium, td.bg-grade-D-low {background-color: yellow; }
+td.bg-grade-E-low, td.bg-grade-D-medium, td.bg-grade-C-high {background-color: orange; }
+td.bg-grade-F-low, td.bg-grade-E-medium, td.bg-grade-D-high {background-color: red; color: white;}
+td.bg-grade-F-medium, td.bg-grade-E-high {background-color: darkred; color: white;}
+td.bg-grade-F-high {background-color: black; color: white;}
+
+.progress-bar-high { background-color: #E43725; }
+.progress-bar-medium { background-color: #EE9336; }
+.progress-bar-low { background-color: #FDC431; }
+.progress-bar-info { background-color: #357ABD; }
+
+</style>
+
+<div class="container-fluid">
+  <!-- 1st row -->
+  <div class="row equal">
+    <div class="tile col-sm-15" ondblclick="window.location='/assets/list'">
+      <div class="tile-content">
+        <h2 class="text-center strong">{{global_stats.assets.total}}</h2>
+        <h6 class="text-muted text-center">Assets defined</h6>
+        <small>
+          {% for type in global_stats.asset_types %}
+          <span class="badge badge-secondary small">{{type}}: {{ global_stats.asset_types|keyvalue:type}}</span>
+          {% endfor %}
+        </small>
+      </div>
+    </div>
+    <div class="tile col-sm-15" ondblclick="window.location='/findings/list'">
+      <div class="tile-content">
+        <h2 class="text-center strong">{{global_stats.findings.new}}</h2>
+        <h6 class="text-muted text-center">New findings</h6>
+        <small>Unique findings: {{global_stats.findings.total}}</small><br/>
+      </div>
+    </div>
+    <div class="tile col-sm-15" ondblclick="window.location='/scans/list'">
+      <div class="tile-content">
+        <h2 class="text-center strong">{{global_stats.scans.active_periodic}}</h2>
+        <h6 class="text-muted text-center">Active scans</h6>
+        <small>Performed: {{global_stats.scans.performed}}</small><br/>
+        <small>Defined: {{global_stats.scans.defined}}</small>
+      </div>
+    </div>
+    <div class="tile col-sm-15" ondblclick="window.location='/rules/list'">
+      <div class="tile-content">
+        <h2 class="text-center strong">{{global_stats.rules.active}}</h2>
+        <h6 class="text-muted text-center">Active rules</h6>
+        <small>Defined: {{global_stats.rules.total}}</small><br/>
+        <small>Notified: {{global_stats.rules.nb_matches}}</small><br/>
+      </div>
+    </div>
+    <div class="tile col-sm-15" ondblclick="window.location='/engines/list'">
+      <div class="tile-content">
+        <h2 class="text-center strong">{{global_stats.engines.active}}</h2>
+        <h6 class="text-muted text-center">Active engines</h6>
+        <small>Total engines: {{global_stats.engines.total}}</small><br/>
+        <small>Total policies: {{global_stats.engines.policies}}</small><br/>
+      </div>
+    </div>
+  </div>
+  <!-- End 1st row -->
+  <!-- 2nd row -->
+  <div class="row equal">
+    <div class="tile col-sm-15">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Asset grades</h4>
+        </div>
+        <div class="tile-body">
+          <table style="text-align: center; font-size: small;">
+            <tr>
+              <th rowspan="2" style="text-align: center;">Grade</th>
+              <th colspan="3" style="text-align: center;">Criticity</th>
+            </tr>
+            <tr>
+              <th style="text-align: center; font-weight: lighter;">Low</th>
+              <th style="text-align: center; font-weight: lighter;">Medium</th>
+              <th style="text-align: center; font-weight: lighter;">High</th>
+            </tr>
+            {% for grades in asset_grades_map %}
+             {% for grade, value in grades.items %}
+           <tr>
+             <td>{{ grade }}</td>
+             <td style="width: 25%;" class="bg-grade-{{grade}}-low" onclick="window.location='/assets/list?filter=criticity:low%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
+             <td style="width: 25%;" class="bg-grade-{{grade}}-medium" onclick="window.location='/assets/list?filter=criticity:medium%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
+             <td style="width: 25%;" class="bg-grade-{{grade}}-high" onclick="window.location='/assets/list?filter=criticity:high%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
+           </tr>
+             {% endfor %}
+           {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="tile col-sm-15">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Most critical assets</h4>
+        </div>
+        <div class="tile-body">
+          <table class="table table-hover table-tile">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Value</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for asset in top_critical_assets %}
+              <tr class='dblclickable-row' data-href='/assets/details/{{asset.id}}'>
+                <td><span class="badge badge-risk-grade-{{asset.risk_level|keyvalue:'grade'}}">{{asset.risk_level|keyvalue:"grade"}}</span></td>
+                <td>{{asset.value|truncatechars:35}}</td>
+                <td>{{asset|risk_score}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="tile col-sm-15">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Findings by criticities</h4>
+        </div>
+        <div class="tile-body">
+          <div id="findings-by-criticities">
+            <canvas id="chart-findings-by-criticities" width="200" height="200"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tile col-sm-25">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Most critical findings</h4>
+        </div>
+        <div class="tile-body">
+          <table class="table table-hover table-tile">
+            <thead>
+              <tr>
+                <th>Severity</th>
+                <th>Title</th>
+                <th>Asset</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for finding in top_critical_findings %}
+              <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}'>
+                {% if finding.severity == 'critical' or finding.severity == 'high' %}
+                <td><span class="label label-danger">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+                <td><span class="label label-warning">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'low' %}
+                <td><span class="label label-primary">{{ finding.severity }}</span></td>
+                {% else %}
+                <td><span class="label label-default">{{ finding.severity }}</span></td>
+                {% endif %}
+                <td>{{finding.title|truncatechars:40}}</td>
+                <td>{{finding.asset_name|truncatechars:30}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End 2nd row -->
+  <!-- 3rd row -->
+  <div class="row equal">
+    <div class="tile col-sm-15">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Asset group grades</h4>
+        </div>
+        <div class="tile-body">
+          <table style="text-align: center; font-size: small;">
+            <tr>
+              <th rowspan="2" style="text-align: center;">Grade</th>
+              <th colspan="3" style="text-align: center;">Criticity</th>
+            </tr>
+            <tr>
+              <th style="text-align: center; font-weight: lighter;">Low</th>
+              <th style="text-align: center; font-weight: lighter;">Medium</th>
+              <th style="text-align: center; font-weight: lighter;">High</th>
+            </tr>
+            {% for grades in assetgroup_grades_map %}
+             {% for grade, value in grades.items %}
+           <tr>
+             <td>{{ grade }}</td>
+             <td style="width: 25%;" class="bg-grade-{{grade}}-low">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
+             <td style="width: 25%;" class="bg-grade-{{grade}}-medium">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
+             <td style="width: 25%;" class="bg-grade-{{grade}}-high">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
+           </tr>
+             {% endfor %}
+           {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="tile col-sm-15">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Most critical asset groups</h4>
+        </div>
+        <div class="tile-body">
+          <table class="table table-hover table-tile">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Name</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for assetgroup in top_critical_assetgroups %}
+              <tr class='dblclickable-row' data-href='/assets/groups/details/{{assetgroup.id}}'>
+                <td><span class="badge badge-risk-grade-{{assetgroup.risk_level|keyvalue:'grade'}}">{{assetgroup.risk_level|keyvalue:"grade"}}</span></td>
+                <td>{{assetgroup.name}}</td>
+                <td>{{assetgroup|risk_score}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="tile col-sm-35">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Last scans</h4>
+        </div>
+        <div class="tile-body">
+          <table class="table table-hover table-tile">
+            <thead>
+              <tr>
+                <th class="col-sm-4">Title</th>
+                <th class="col-sm-2">Findings</th>
+                <th class="col-sm-1">Status</th>
+                <th class="col-sm-2">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for scan in last_scans %}
+              <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
+                <td>{{scan.title|truncatechars:64}}</td>
+                <td class="scan-progress" style="vertical-align: middle;">
+                  <div class="progress" style="margin-bottom: 0;">
+                    {% if scan.status == "finished" %}
+                    {% with total=scan.summary|keyvalue:'total' %}
+                    <div class="progress-bar progress-bar progress-bar-high" role="progressbar" style="width:{{ scan.summary|keyvalue:'high' | perc:total }}%">
+                      {{scan.summary|keyvalue:"high"}}
+                    </div>
+                    <div class="progress-bar progress-bar progress-bar-medium" role="progressbar" style="width:{{ scan.summary|keyvalue:'medium' | perc:total }}%">
+                      {{scan.summary|keyvalue:"medium"}}
+                    </div>
+                    <div class="progress-bar progress-bar progress-bar-low" role="progressbar" style="width:{{ scan.summary|keyvalue:'low' | perc:total }}%">
+                      {{scan.summary|keyvalue:"low"}}
+                    </div>
+                    <div class="progress-bar progress-bar progress-bar-info" role="progressbar" style="width:{{ scan.summary|keyvalue:'info' | perc:total }}%">
+                      {{scan.summary|keyvalue:"info"}}
+                    </div>
+                    {% endwith %}
+                    {% else %}
+                    <div class="progress-bar progress-bar active" role="progressbar">
+                      -
+                    </div>
+                    {% endif %}
+
+                  </div>
+                </td>
+                <td class="text-center">
+                  {% if scan.status == "finished" %}
+                  <span class="label label-success">Finished</span>
+                  {% elif scan.status == "started" %}
+                  <span class="label label-warning">Started</span>
+                  {% elif scan.status == "error" %}
+                  <span class="label label-danger">Error</span>
+                  {% else %}
+                  <span class="label label-primary">{{scan.status|capfirst}}</span>
+                  {% endif %}
+                </td>
+                <td>{{scan.started_at|date:"Y-m-d H:i:s"}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End 3rd row -->
+  <div class="row equal">
+    <div class="tile col-sm-15">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Top CVSS Score / Findings</h4>
+        </div>
+        <div class="tile-body">
+          <dl class="dl-horizontal">
+            <dt>#CVSS < 5.0: </dt><dd>{{cvss_scores.lte5}}</dd>
+            <dt>#5.0 < CVSS < 7.0 : </dt><dd>{{cvss_scores.5to7}}</dd>
+            <dt>#CVSS > 7.0: </dt><dd>{{cvss_scores.gte7}}</dd>
+            <dt>#CVSS = 10: </dt><dd>{{cvss_scores.eq10}}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="tile col-sm-25">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Top CVE</h4>
+        </div>
+        <div class="tile-body">
+          Todo.
+        </div>
+      </div>
+    </div>
+    <div class="tile col-sm-25">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Top CWE</h4>
+        </div>
+        <div class="tile-body">
+          Todo.
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End 4th row -->
+
+</div> <!-- End container-fluid -->
+
+<script>
+
+  var chart_findings_by_criticities;
+
+  cfbc_config = {
+      type: 'pie',
+      data: {
+          datasets: [{
+              backgroundColor: [
+                  "#FF0000",
+                  "#FF8000",
+                  "#FFFF00",
+                  "#66D2FF"
+              ],
+          }],
+          labels: ["High", "Medium", "Low", "Info"]
+      },
+      options: {
+        responsive: false,
+        // responsive: true,
+        maintainAspectRatio: false,
+        // maintainAspectRatio: true,
+        legend: {
+          display: true
+        }
+      }
+    };
+
+    //cfbc_config = jQuery.extend(true, {}, cfbc_config);
+    cfbc_config["data"]["datasets"][0]["data"] = new Array(
+      {{global_stats.findings.high}},
+      {{global_stats.findings.medium}},
+      {{global_stats.findings.low}},
+      {{global_stats.findings.info}}
+    );
+
+    var ctx_findings = document.getElementById("chart-findings-by-criticities").getContext("2d");
+    window.cfbc_pie_chart = new Chart(ctx_findings, cfbc_config);
+
+    // Hide 'info' findings
+    window.cfbc_pie_chart.getDatasetMeta(0).data[3].hidden = true;
+    window.cfbc_pie_chart.update();
+
+
+  // var finding_trends_chart;
+  //
+  // function print_chart(num_records=20){
+  //   if(finding_trends_chart){findingsByScanDef_chart.destroy();}
+  //   // update the findings stat pies
+  //   data_url = "/scans/api/v1/stats?scope=scans&num_records="+num_records;
+  //
+  //   data_labels_id = [];
+  //   data_labels_date = [];
+  //   data_datasets_total = [];
+  //   data_datasets_info = [];
+  //   data_datasets_low = [];
+  //   data_datasets_medium = [];
+  //   data_datasets_high = [];
+  //   data_datasets_new = [];
+  //
+  //   xhr = $.get(data_url, function(resp) {
+  //     for (i = 0; i < resp.length; i++){
+  //       data_labels_id.push(resp[i]["id"]);
+  //       data_labels_date.push(resp[i]["created_at"]);
+  //       if (resp[i]["summary"]){
+  //         data_datasets_total.push(resp[i]["summary"]["total"]);
+  //         data_datasets_info.push(resp[i]["summary"]["info"]);
+  //         data_datasets_low.push(resp[i]["summary"]["low"]);
+  //         data_datasets_medium.push(resp[i]["summary"]["medium"]);
+  //         data_datasets_high.push(resp[i]["summary"]["high"]);
+  //         data_datasets_new.push(resp[i]["summary"]["new"]);
+  //       } else {
+  //         data_datasets_total.push(0);
+  //         data_datasets_info.push(0);
+  //         data_datasets_low.push(0);
+  //         data_datasets_medium.push(0);
+  //         data_datasets_high.push(0);
+  //         data_datasets_new.push(0);
+  //       }
+  //     };
+  //
+  //     finding_trends_chart_config = {
+  //       type: 'bar',
+  //       data: {
+  //         datasets: [],
+  //         borderWidth: 1
+  //       },
+  //       options: {
+  //         responsive: true,
+  //         maintainAspectRatio: false,
+  //         legend: {
+  //           display: true,
+  //           position: 'top',
+  //           //fullWidth: true,
+  //           labels: {
+  //             boxWidth: 20
+  //           }
+  //         },
+  //         scales: {
+  //           xAxes: [{
+  //             stacked: true,
+  //             gridLines: {
+  //               display: false
+  //             }
+  //           }],
+  //           yAxes:[{
+  //             stacked: true,
+  //             ticks: {
+  //               beginAtZero: true,
+  //               callback: function(value, index, values) {
+  //                 if (Math.floor(value) === value) {
+  //                   return value;
+  //                 }
+  //               }
+  //             }
+  //           }, {
+  //               id: "not-stacked-line",
+  //               stacked: false,
+  //               display: false,
+  //               ticks: {
+  //                 beginAtZero: true,
+  //                 callback: function(value, index, values) {
+  //                   if (Math.floor(value) === value) {
+  //                     return value;
+  //                   }
+  //                 }
+  //               }
+  //           }]
+  //         },
+  //         tooltips: {
+  //           mode: 'index',
+  //           //yAlign: 'bottom',
+  //           position: 'nearest',
+  //           callbacks: {
+  //             title: function(tooltipItems, data) {
+  //               return data_labels_date[tooltipItems[0].index] + ' (id: '+data.labels[tooltipItems[0].index]+')';
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //
+  //     config = jQuery.extend(true, {}, finding_trends_chart_config);
+  //     config["data"]["labels"] = data_labels_id;
+  //     config["data"]["datasets"].push(
+  //       {
+  //         "type": 'line',
+  //         "label": "Total",
+  //         "data": data_datasets_total,
+  //         "fill": false, "lineTension": 0.1, "borderColor": "#000000",
+  //         "yAxisID": "not-stacked-line"
+  //       },
+  //       {
+  //         "type": 'line',
+  //         "label": "New",
+  //         "data": data_datasets_new,
+  //         "fill": false, "lineTension": 0.1, "borderColor": "#18bc9c",
+  //         "yAxisID": "not-stacked-line"
+  //       },
+  //       {
+  //         "label": "Info",
+  //         "data": data_datasets_info,
+  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#66D2FF"
+  //       },
+  //       {
+  //         "label": "Low",
+  //         "data": data_datasets_low,
+  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#FFFF00"
+  //       },
+  //       {
+  //         "label": "Medium",
+  //         "data": data_datasets_medium,
+  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#FF8000"
+  //       },
+  //       {
+  //         "label": "High",
+  //         "data": data_datasets_high,
+  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#FF0000"
+  //       }
+  //     );
+  //
+  //     var canvas_findings = document.getElementById("chart-finding-trends");
+  //     var ctx_findings = canvas_findings.getContext("2d");
+  //     finding_trends_chart = new Chart(ctx_findings, config);
+  //
+  //     canvas_findings.onclick = function (evt) {
+  //       var activePoints = finding_trends_chart.getElementsAtEvent(evt);
+  //       if (typeof activePoints != "undefined" && activePoints != null && activePoints.length > 0){
+  //         var chartData = activePoints[0]['_chart'].config.data;
+  //         var idx = activePoints[0]['_index'];
+  //         var label = chartData.labels[idx];
+  //       }
+  //     };
+  //   });
+  // }; // End fo function print_chart()
+  //
+  // print_chart(5);
+</script>
+
+{% endblock %}

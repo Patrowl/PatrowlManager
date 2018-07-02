@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <form action="/engines/delete/{{ engine.id }}" method="post" class="form-horizontal">
+
+    <legend>Do you confirm the deletion?</legend>
+    {% csrf_token %}
+    <p>engine_id: {{ engine.id }}</p>
+    <p>name: {{ engine.name }}</p>
+    <p>url: {{ engine.api_url }}</p>
+    <div class="form-group">
+      <button type="submit" class="btn btn-warning">Delete</button>
+      <button class="btn btn-primary"><a href="/engines/list">Cancel</a></button>
+    </div>
+  </form>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/scans/defs/list">scans</a></li>
+  <li class="active">add new scan</li>
+</ul>
+
+<div class="container">
+  <form action="/scans/defs/add" method="post" class="form-horizontal">
+    <legend>Add a new scan definition</legend>
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_title">Title</label>
+      <div class="col-sm-10">
+        <input id="id_title" name="title" type="text" required class="form-control"/>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_description">Description</label>
+      <div class="col-sm-10">
+        <textarea cols="40" id="id_description" name="description" rows="10" class="form-control"></textarea>
+      </div>
+    </div>
+
+    <!-- Scan Type: single/periodic -->
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="id_scan_type">Scan Type</label>
+        <div class="col-sm-10">
+          <select id="id_scan_type" name="scan_type" class="form-control" required>
+            <option value="single">On Demand</option>
+            <option value="periodic">Periodic</option>
+          </select>
+        </div>
+    </div>
+
+    <!-- Peridicity options -->
+    <div class="form-group hidden well" id="id_every_div">
+      <label class="col-sm-2 control-label"></label>
+      <div class="row">
+        <div class="offset-sm-2" >
+          <div class="col-sm-2" >
+            <label class="control-label" for="id_every">Every</label>
+            <input id="id_every" name="every" type="number" step="1" class="form-control"/>
+          </div>
+          <div class="col-sm-4" >
+            <label class="control-label" for="id_period">Period</label>
+            <select id="id_period" name="period" class="form-control" required>
+              <option value="days">Days</option>
+              <option value="hours">Hours</option>
+              <option value="minutes">Minutes</option>
+              <option value="seconds">Seconds</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enable now -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_enabled">Enable ? (run now)</label>
+      <div class="col-sm-10">
+        <input checked="" id="id_enabled" name="enabled" type="checkbox" class="form-control"/>
+      </div>
+    </div>
+
+    <!-- Scheduled at -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_scheduled_at">Scheduled at:</label>
+      <div class="col-sm-10 controls input-append date" id="id_scheduled_at_div">
+        <input id="id_scheduled_at" name="scheduled_at" type="text" class="form-control"/>
+        <span class="add-on"><i class="icon-remove"></i></span>
+        <span class="add-on"><i class="icon-th"></i></span>
+      </div>
+    </div>
+
+    <!-- <div class="form-group" id="search_policy_div">
+      <label class="col-sm-2 control-label">Filter by keywords:</label>
+      <div class="col-sm-2">
+        <input id="id_search_policy_div" name="search_policy" type="text"/>
+      </div>
+    </div> -->
+
+
+    <!-- Asset selection -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_assets_list">Select asset(s):</label>
+      <div class="col-sm-10">
+        {% for checkbox in form.assets_list %}
+          {{checkbox}}<br/>
+        {% endfor %}
+      </div>
+    </div>
+    <!-- {% if form.assets_list.errors %}
+    <div class="form-group has-error">
+        <label class="col-sm-2 control-label" for="id_assets_list">Select asset(s)</label>
+        <div class="col-sm-10">
+            {{ form.assets_list }}
+            <span class="help-block">
+                {% for error in form.assets_list.errors %}{{ error }}{% endfor %}
+            </span>
+        </div>
+    </div>
+    {% else %}
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_assets_list">Select asset(s):</label>
+      <div class="col-sm-10">
+        {{ form.assets_list }}
+      </div>
+    </div>
+    {% endif %} -->
+
+    <!-- Filter scan policies by engine name -->
+    <div class="form-group" id="engine-buttons">
+      <label class="col-sm-2 control-label" for="id_engine_name">Filter by Engine:</label>
+      <div class="col-sm-10">
+        <div class="btn-group btn-group-sm" role="group" data-toggle="buttons">
+          <label class="btn btn-primary" engineId="0">
+            <input type="radio" autocomplete="off">
+            All
+          </label>
+          {% for engine in scan_engines %}
+            <label class="btn btn-primary" engineId="{{ engine.id }}">
+              <input type="radio" autocomplete="off">
+              {{ engine.name }}
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter scan policies by scan category -->
+    <div class="form-group" id="category-buttons">
+      <label class="col-sm-2 control-label" for="id_scan_category">Or, Filter by Category:</label>
+      <div class="col-sm-10">
+        <div class="btn-group btn-group-sm" role="group" data-toggle="buttons">
+          <label class="btn btn-primary" categoryId="0">
+            <input type="radio" autocomplete="off">All
+          </label>
+          {% for category in scan_cats %}
+          <label class="btn btn-primary" categoryId="{{ category.id }}">
+            <input type="radio" autocomplete="off">{{ category.name }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Scan policy selection -->
+    <div class="form-group" id="policies-div">
+      <label class="col-sm-2 control-label" for="id_engine_policy_id">Select Policy:</label>
+      <div class="col-sm-10">
+        {% for policy in scan_policies %}
+        <label class="radio" label-id="{{ policy.id }}">
+          <input type="radio" name="engine_policy_id" id="id_engine_policy_id_{{ policy.id }}" value="{{ policy.id }}" engine-name="{{ policy.engine.name }}" required/>{{ policy.name }} - {{ policy.engine }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Engine instance selection -->
+    <div class="form-group" id="engine-div">
+      <label class="col-sm-2 control-label" for="id_engine_id">Select Engine:</label>
+      <div class="col-sm-10">
+        <select id="id_engine" name="engine_id" class="form-control" required>
+          <!-- autofilled by jQuery -->
+        </select>
+      </div>
+    </div>
+
+
+    <!-- {% for field in form %}
+      {% if field.errors %}
+        {{field.name}}
+      {% endif %}
+    {% endfor %} -->
+
+    <!-- {% for field in form %}
+        {% if field.errors %}
+            <div class="form-group has-error">
+                <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                <div class="col-sm-10">
+                    {{ field }}
+                    <span class="help-block">
+                        {% for error in field.errors %}{{ error }}{% endfor %}
+                    </span>
+                </div>
+            </div>
+        {% elif not field.is_hidden %}
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                <div class="col-sm-10">
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="help-block"><small>{{ field.help_text }}</small></p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+      {% endfor %} -->
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button class="btn btn-primary"><a href="/scans/defs/list">Cancel</a></button>
+      </div>
+  </form>
+</div>
+
+<script>
+  //jQuery
+  $(function() {
+
+    $("#id_scheduled_at").datetimepicker({
+      minuteStep: 5,
+      autoclose: true,
+      language: 'en',
+      format: 'yyyy-mm-dd hh:ii:ss',
+      clearBtn: true,
+      //pickerPosition: 'bottom-right',
+      showMeridian: false,
+      todayHighlight: true}
+    );
+
+    // Hide/Show every & period on periodic scan
+    $('#id_scan_type').bind('change', function (e) {
+      if( $('#id_scan_type').val() == 'periodic') {
+        $("#id_every_div").removeClass('hidden');
+        $("#id_period_div").removeClass('hidden');
+      } else {
+        $("#id_every_div").addClass('hidden');
+        $("#id_period_div").addClass('hidden');
+      }
+    });
+
+    // Filter scan policy by engines & categories
+    var policies_list = {{ scan_policies_json | safe }};
+    var hidden_policies_by_cat = []
+    var hidden_policies_by_engine = []
+    $('#category-buttons').bind('change', function(e){
+      $('#engine-buttons > div > div > label').removeClass('active');
+      $('#engine-buttons > div > div > label[engineid=0]').addClass('active');
+
+      active_cat = parseInt($(e.target).attr('categoryId'));
+      hidden_policies_by_cat = [];
+
+      if (active_cat != 0) {
+        var i, j;
+
+        // loop on all policies
+        for (i = 0; i < policies_list.length; ++i){
+          scopes = policies_list[i]["scopes"];
+          if (scopes.indexOf(active_cat) == -1) {
+            if (hidden_policies_by_cat.indexOf(policies_list[i]["id"]) === -1){
+              hidden_policies_by_cat.push(policies_list[i]["id"]);
+            }
+          };
+        }
+      }
+
+      //list policies with categoryId in scopes
+      labels = $("#policies-div").find('div > label');
+      for (i = 0; i < labels.length; ++i){
+        if (hidden_policies_by_cat.indexOf(parseInt($(labels[i]).attr('label-id'))) > -1){
+          $(labels[i]).addClass('hidden');
+        } else {
+          $(labels[i]).removeClass('hidden');
+        }
+      }
+
+    }); //End of $('#category-buttons').bind('change')
+
+    $('#engine-buttons').bind('change', function(e){
+      $('#category-buttons > div > div > label').removeClass('active');
+      $('#category-buttons > div > div > label[categoryid=0]').addClass('active');
+
+      active_engine = parseInt($(e.target).attr('engineId'));
+      hidden_policies_by_engine = [];
+
+      if (active_engine != 0) {
+        var i, j;
+
+        // loop on all policies
+        for (i = 0; i < policies_list.length; ++i){
+          if( policies_list[i]['engine'] != active_engine){
+            hidden_policies_by_engine.push(policies_list[i]['id'])
+          }
+        }
+      }
+
+      //list policies with matching categoryId
+      labels = $("#policies-div").find('div > label');
+      for (i = 0; i < labels.length; ++i){
+        if (hidden_policies_by_engine.indexOf(parseInt($(labels[i]).attr('label-id'))) > -1){
+          $(labels[i]).addClass('hidden');
+        } else {
+          $(labels[i]).removeClass('hidden');
+        }
+      }
+    }); //End of $('#engine-buttons').bind('change')
+
+    // List appropriate engine instances depending on scan policy
+    engine_list = {{scan_engines_json|safe}}
+    $("[name='engine_policy_id']").change(function(e){
+      engine_name = e.currentTarget.getAttribute('engine-name');
+      $('select#id_engine').empty();
+      $('select#id_engine').append("<option value='-1'>---- optional (random by default) ----</option>");
+      for (i = 0; i< engine_list.length; i++){
+        if(engine_list[i]["engine__name"] == engine_name){
+          $('select#id_engine').append($('<option>', {
+              value: engine_list[i]['id'],
+              text: engine_list[i]['name']
+            })
+          );
+        }
+      }
+    });
+
+  }); //End of jQuery ready
+
+</script>
+
+{% endblock %}

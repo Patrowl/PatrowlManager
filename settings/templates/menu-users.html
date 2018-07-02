@@ -1,0 +1,82 @@
+{% block content %}
+{% load patrowl_tags %}
+
+<div class="container-fluid">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th data-field="name">Username</th>
+        <!-- <th data-field="profile">Profil</th> -->
+        <th data-field="status">Status</th>
+        <th data-field="is_authenticated">Authenticated ?</th>
+        <th data-field="updated_at">Last update</th>
+        <th data-field="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+    <tr class='dblclickable-row' data-href='/user/edit/{{user.id}}'>
+      <td>{{ user.username }}</td>
+      <!-- <td>{{ user.profile }}</td> -->
+      <td>
+        {% if user.profile.status == 'ACTIVE' %}
+        Active <span class="glyphicon glyphicon-ok text-success"></span>
+        {% else %}
+        Disabled <span class="glyphicon glyphicon-remove text-danger"></span>
+        {% endif %}
+      </td>
+      <td>
+        {% if user.is_authenticated %}
+        Yes <span class="glyphicon glyphicon-ok text-success"></span>
+        {% else %}
+        No <span class="glyphicon glyphicon-remove text-warning"></span>
+        {% endif %}
+      </td>
+      <td>{{ user.profile.updated_at|smartdate }}</td>
+      <td>
+        <button type="button" class="btn btn-default btn-xs btn-user-info" data-toggle="modal" data-target="#modal_info_{{user.id}}">
+          <span class="glyphicon glyphicon-info-sign"></span></button>
+        <div id="modal_info_{{user.id}}" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-primary">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">{{ user.username }}</h4>
+              </div>
+              <div class="modal-body">
+                <dl class="dl-horizontal">
+                  <dt>Username</dt><dd>{{user.username}}</dd>
+                  <dt>First Name</dt><dd>{{user.first_name}}</dd>
+                  <dt>Last Name</dt><dd>{{user.last_name}}</dd>
+                  <dt>Email</dt><dd>{{user.email}}</dd>
+                  <dt>Last login</dt><dd>{{user.last_login}}</dd>
+                  <dt>Created at</dt><dd>{{user.date_joined}}</dd>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-warning btn-xs" data-dismiss="modal" onclick="location.href='/users/edit/{{ user.id }}'">Edit</button>
+                <button type="button" class="btn btn-default btn-xs" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/users/edit/{{ user.id }}'">
+          <span class="glyphicon glyphicon-edit"></span></button>
+        <button type="button" class="btn btn-danger btn-xs">
+          <span class="glyphicon glyphicon-remove"></span></button>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  <a href="/users/add">+ Add a new user</a>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock %}

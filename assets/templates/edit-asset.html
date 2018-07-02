@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/assets/list">assets</a></li>
+  <li><a href="/assets/details/{{asset.id}}">{{asset.value}}</a></li>
+  <li class="active">edit</a></li>
+</ul>
+
+<div class="container">
+  <form action="/assets/edit/{{ asset.id }}" method="post" class="form-horizontal">
+    <legend>Edit an asset</legend>
+      {% csrf_token %}
+      {% for field in form %}
+          {% if field.errors %}
+              <div class="form-group has-error">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      <span class="help-block">
+                          {% for error in  field.errors %}{{ error }}{% endfor %}
+                      </span>
+                  </div>
+              </div>
+          {% elif not field.is_hidden %}
+              <div class="form-group">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-4">
+                      {{ field }}
+                      {% if field.help_text %}
+                          <p class="help-block"><small>{{ field.help_text }}</small></p>
+                      {% endif %}
+                  </div>
+              </div>
+          {% endif %}
+      {% endfor %}
+      <div class="form-group submit-div">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-4">
+          <button type="submit" class="btn btn-warning col-sm-12 form-control-sm">Modify the asset</button>
+          <br/>
+          <br/>
+          <button class="btn btn-danger col-sm-12 form-control-sm" type="button" data-toggle="modal" data-target="#modal-delete-asset"
+             asset-id="{{ asset.id }}" asset-value="{{ asset.value }}">Delete</button>
+        </div>
+      </div>
+  </form>
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<!-- Delete Asset modal -->
+<div class="modal fade" id="modal-delete-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Asset</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-asset" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-danger btn-delete-asset" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function() {
+    // Delete asset modal
+    $("#modal-delete-asset").on('show.bs.modal', function (e) {
+      id = e.relatedTarget.getAttribute('asset-id');
+      asset_value = e.relatedTarget.getAttribute('asset-value');
+      $("div#delete-asset").attr('asset-id', id);
+      $("div#delete-asset").html("Asset: <b>"+asset_value+"</b><br/><br/>");
+    });
+    $("button.btn-delete-asset").on('click', function (e) {
+      csrf_token = $("div#delete-asset").attr('csrf-token');
+      id = $("div#delete-asset").attr('asset-id');
+      delete_asset_url = "/assets/delete/"+id;
+      var request = $.ajax({
+        url: delete_asset_url,
+        method: "POST",
+        data: "csrfmiddlewaretoken="+csrf_token,
+        success: function(){
+          window.location = "/assets/list";
+        }
+      });
+    });
+  });
+</script>
+
+{% endblock %}

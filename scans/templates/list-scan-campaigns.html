@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+</style>
+
+<ul class="breadcrumb">
+  <li><a href="/scans/list">scans</a></li>
+  <li><a href="/scans/campaigns/list">scans</a></li>
+  <li class="active">list</li>
+</ul>
+
+<div class="container">
+  <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+    <thead>
+      <tr>
+        <th data-field="title">Title</th>
+        <th data-field="status">Status</th>
+        <th data-field="updated_at">Last update</th>
+        <th data-field="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for scan_campaign in scan_campaigns %}
+      <tr>
+        <td>{{ scan_campaign.title }}</td>
+        {% if scan_campaign.enabled %}
+        <td><span class="label label-success">Enabled</span></td>
+        {% else %}
+        <td><span class="label label-danger">Disabled</span></td>
+        {% endif %}
+        <td>{{ scan_campaign.updated_at|date:"Y/m/d-H:m:s" }}</td>
+        <td>
+          <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/campaigns/edit/{{ scan_campaign.scan_campaign_id }}'">
+            <span class="glyphicon glyphicon-edit"></span></button>
+          <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/campaigns/delete/{{ scan_campaign.scan_campaign_id }}'">
+            <span class="glyphicon glyphicon-remove"></button>
+          {% if scan_campaign.scan_type == "periodic" %}
+            {% if scan_campaign.enabled %}
+            <button type="button" class="btn btn-warning btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_campaign.scan_campaign_id }}">
+              Disable</button>
+            {% else %}
+            <button type="button" class="btn btn-success btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_campaign.scan_campaign_id }}">
+              Enable</button>
+            {% endif %}
+          {% elif scan_campaign.scan_type == "single" %}
+            <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan_campaign.scan_campaign_id }}">
+              Run </button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="/scans/campaigns/add">+ Add a new scan campaign</a><br/>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<script>
+
+  function toggle(source) {
+    checkboxes = document.getElementsByName('scan');
+    for(var i=0, n=checkboxes.length;i<n;i++) {
+      checkboxes[i].checked = source.checked;
+    }
+  }
+
+  $(function() {
+    $("a.btn-delete-selected").on('click', function(eventObject) {
+      scans_to_delete = []
+      $("input[name='scan']").each(function(cbx){
+        if (this.checked) {
+          scans_to_delete.push(this.value)
+        }
+      })
+
+      if (scans_to_delete.length != 0){
+        delete_url="/scans/campaigns/delete"
+        var request = $.ajax({
+          url: delete_url,
+          method: "POST",
+          data: JSON.stringify(scans_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    $("button.btn-run-now").on('click', function(eventObject) {
+      scan_id = eventObject.target.getAttribute('scan-id')
+      scan_url = "/scans/campaigns/run/"+scan_id
+      console.log(scan_url)
+      var xhr = $.get( scan_url, function(data) {
+        location.reload()
+        if (data.status == "success") {
+          console.log( "Scan successfully enqueued !" );
+          $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
+          $("div.notifications>div").delay(3000).fadeOut(
+            function () {
+                $("div.notifications>div").remove();
+            }
+        );
+        }
+      })
+    });
+
+    $("button.btn-change-status").on('click', function(eventObject) {
+      scan_id = eventObject.target.getAttribute('scan-id')
+      scan_url = "/scans/campaigns/change_status/"+scan_id
+      console.log(scan_url)
+      var xhr = $.get( scan_url, function(data) {
+        location.reload()
+        if (data.status == "success") {
+          console.log( "Status successfully updated!" );
+          $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
+          $("div.notifications>div").delay(3000).fadeOut(
+            function () {
+                $("div.notifications>div").remove();
+            }
+        );
+        }
+      })
+    });
+  });
+</script>
+
+{% endblock %}

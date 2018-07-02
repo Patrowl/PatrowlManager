@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- <div class="container">
+  <form action="/assets/owners/add" method="post" class="form-horizontal">
+    <legend>Add an asset owner</legend>
+      {% csrf_token %}
+      {% for field in form %}
+          {% if field.errors %}
+              <div class="form-group has-error">
+                <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                <div class="col-sm-10">
+                  {{ field }}
+                  <span class="help-block">
+                    {% for error in  field.errors %}{{ error }}{% endfor %}
+                  </span>
+                </div>
+              </div>
+          {% elif not field.is_hidden %}
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                <div class="col-sm-10">
+                  {{ field }}
+                  {% if field.help_text %}
+                  <p class="help-block"><small>{{ field.help_text }}</small></p>
+                  {% endif %}
+                </div>
+              </div>
+          {% endif %}
+      {% endfor %}
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button class="btn btn-primary"><a href="/assets/owners/list">Cancel</a></button>
+      </div>
+  </form>
+</div> -->
+
+<ul class="breadcrumb">
+  <li><a href="/assets/list">assets</a></li>
+  <li><a href="/assets/owners/list">owners</a></li>
+  <li class="active">add new asset owner [<a href='/assets/owners/list'>back</a>]</li>
+</ul>
+
+<div class="container">
+  <form action="/assets/owners/add" method="post" class="form-horizontal">
+    <legend>Add an asset owner</legend>
+    {% csrf_token %}
+
+    <!-- Name -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_name">Asset Owner Name</label>
+      <div class="col-sm-10">
+        <input id="id_name" name="name" type="text" required/>
+      </div>
+    </div>
+
+    <!-- Url -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_url">Owner URL</label>
+      <div class="col-sm-10">
+        <input id="id_url" name="url" type="url">
+      </div>
+    </div>
+
+    <!-- Asset selection -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_assets">Select asset(s):</label>
+      <div class="col-sm-10">
+        {% for checkbox in form.assets %}
+          {{ checkbox }}<br/>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_comments">Comments</label>
+      <div class="col-sm-10">
+        <textarea cols="40" id="id_comments" name="comments" rows="10">Here are the rules...</textarea>
+      </div>
+    </div>
+
+    <!-- Submit/Cancel buttons -->
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary">Submit</button>
+      <button class="btn btn-primary"><a href="/assets/owners/list">Cancel</a></button>
+    </div>
+
+  </form>
+</div>
+
+
+<div class="notifications">
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <form action="/events/delete/{{ event.id }}" method="post" class="form-horizontal">
+
+    <legend>Do you confirm the deletion?</legend>
+    {% csrf_token %}
+    <p>Event ID: {{ event.id }}</p>
+    <p>Message: {{ event.message }}</p>
+    <p>Timestamp: {{ event.created_at }}</p>
+    <div class="form-group">
+      <button type="submit" class="btn btn-warning">Delete</button>
+      <button class="btn btn-primary"><a href="/settings/#events">Cancel</a></button>
+    </div>
+  </form>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock %}

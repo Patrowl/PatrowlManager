@@ -1,0 +1,839 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<style>
+ul.ui-autocomplete {
+  position: fixed;
+  top: initial;
+}
+.table-sum>tbody>tr>td, .table-sum>thead>tr>th { padding: 1px; }
+.table-sum>tbody>tr>td.ct{ text-align: center; }
+
+.row.finding-stats > div {
+  margin: 0;
+  padding: 2px;
+}
+div.tile {
+  border-width: thin;
+  border-style: solid;
+  border-left-width: 1rem;
+  border-radius: 3px;
+  padding-bottom: 15px;
+  text-align: center;
+}
+div.tile div { font-size: large; }
+div.tile-high { border-color: red; }
+div.tile-medium { border-color: orange; }
+/* div.tile-low { border-color: #3498db; } */
+div.tile-low { border-color: #efe636; }
+div.tile-info { border-color: lightgrey; }
+
+span.badge-risk-grade-A { background-color: limegreen; }
+span.badge-risk-grade-B { background-color: yellowgreen; }
+span.badge-risk-grade-C { background-color: orange; }
+span.badge-risk-grade-D { background-color: darkorange; }
+span.badge-risk-grade-E { background-color: orangered; }
+span.badge-risk-grade-F { background-color: red; }
+span.badge-risk-grade-- { background-color: lightgray; }
+
+div.risk-grade { font-size: xx-large; padding: 10px; border-radius: 5px; }
+div.risk-grade-A { background-color: limegreen; }
+div.risk-grade-B { background-color: yellowgreen; }
+div.risk-grade-C { background-color: orange; }
+div.risk-grade-D { background-color: darkorange; }
+div.risk-grade-E { background-color: orangered; }
+div.risk-grade-F { background-color: red; }
+
+div.risk-trends {
+  border-top-color: lightgray;
+  border-top-style: solid;
+}
+
+.row {
+    margin-left: -15px;
+    margin-right: 15px;
+}
+
+</style>
+
+<ul class="breadcrumb">
+  <li><a href="/assets/list">assets</a></li>
+  <li><a href="/assets/list?target=asset_group">groups</a></li>
+  <li class="active">details for: {{ asset_group.name }} [<a href='/assets/groups/edit/{{ asset_group.id }}'>edit</a>]</li>
+</ul>
+
+<div class="container-fluid" asset-id="{{asset_group.id}}">
+  <div class="row">
+    <div class="col-md-5">
+      <dl class="dl-horizontal">
+        <dt>Name</dt>
+        <dd><b>{{ asset_group.name }}</b></dd>
+
+        <dt>Description</dt>
+        <dd>{{ asset_group.description }}</dd>
+
+        <dt>Tags</dt>
+        <dd>
+          {% for tag in asset_group.categories.all %}
+          <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}" csrf-token="{{ csrf_token }}"></i></span>
+          {% endfor %}
+          <a href="#modal-edit-asset-group-tags" data-toggle="modal" data-target="#modal-edit-asset-group-tags">+ add</a>
+        </dd>
+
+        <dt>Criticity</dt>
+        {% if asset_group.criticity == 'low' %}
+        <dd><span class="label label-info">low</span></dd>
+        {% elif asset_group.criticity == 'medium' %}
+        <dd><span class="label label-warning">medium</span></dd>
+        {% elif asset_group.criticity == 'high' %}
+        <dd><span class="label label-danger">high</span></dd>
+        {% endif %}
+
+        <dt>Created at</dt>
+        <dd>{{ asset_group.created_at|smartdate }}</dd>
+
+        <dt>Download report</dt>
+        <dd>
+          <a href="/assets/groups/report/json/{{ asset_group.id }}">json</a> -
+          <a href="/assets/groups/report/html/{{ asset_group.id }}">html</a> -
+          pdf
+        </dd>
+        <dt>Export assets</dt>
+        <dd>
+          <a href="/assets/export/{{ asset_group.id }}">CSV</a>
+        </dd>
+      </dl>
+    </div><!-- End of first col -->
+
+    <div class="col-md-5 tiles"> <!-- Second col -->
+      <div class="row">
+        <b>Findings Stats </b><span class="glyphicon glyphicon-stats"></span>
+      </div>
+      <div class="row finding-stats">
+        <!-- <div class="col-md-3 tile" style="outline: 1px solid red;"> -->
+        <div class="col-md-3">
+          <div class="tile tile-high">
+      		    <div>High:</div><span class="label label-danger">{{findings_stats.high}}</span>
+          </div>
+      	</div>
+        <div class="col-md-3">
+          <div class="tile tile-medium">
+      		    <div>Medium:</div><span class="label label-warning">{{findings_stats.medium}}</span>
+          </div>
+      	</div>
+        <div class="col-md-3">
+          <div class="tile tile-low">
+      		    <div>Low:</div><span class="label label-info">{{findings_stats.low}}</span>
+          </div>
+      	</div>
+        <div class="col-md-3">
+          <div class="tile tile-info">
+      		    <div>Info:</div><span class="label label-default">{{findings_stats.info}}</span>
+          </div>
+      	</div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+      		<b># Findings</b>: <i>{{findings_stats.total}} ({{findings_stats.new}} news, {{findings_stats.ack}} ackd.)</i><br/>
+      		<b># Scans related</b>: <i>{{scans_stats.performed}} performed, {{scans_stats.defined}} defined, {{scans_stats.running}} currently running</i><br/>
+      		<b># Scans from engines</b>: <i>
+          {% for engine, counter in engines_stats.items %}
+            {{ engine }}: {{ counter }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}</i><br/>
+      	</div>
+      </div>
+    </div>
+
+    <div class="col-md-2 text-center"> <!-- Thrird col -->
+      <div class="row">
+      <b>Global Security Rating </b><span class="glyphicon glyphicon-dashboard"></span>
+        <div class="risk-grade risk-grade-{{asset_group_risk_grade|keyvalue:'now'}}">
+          <b>{{asset_group_risk_grade|keyvalue:"now"}}</b></div>
+        </div><br/>
+      <div class="row risk-trends">
+      <b>Trends </b><span class="glyphicon glyphicon-time"></span>
+      </div>
+      <div class="row">
+        <div class="col-md-4" title="1 day ago">-1d
+          {% if asset_group_risk_grade|keyvalue:"now" > asset_group_risk_grade|keyvalue:"day_ago" %}
+          <span class="glyphicon glyphicon-arrow-down text-danger"></span>
+          {% elif asset_group_risk_grade|keyvalue:"now" == asset_group_risk_grade|keyvalue:"day_ago" %}
+          <span class="glyphicon glyphicon-minus"></span>
+          {% else %}
+          <span class="glyphicon glyphicon-arrow-up text-success"></span>
+          {% endif %}
+        </div>
+        <div class="col-md-4">-1w
+          {% if asset_group_risk_grade|keyvalue:"now" > asset_group_risk_grade|keyvalue:"week_ago" %}
+          <span class="glyphicon glyphicon-arrow-down text-danger"></span>
+          {% elif asset_group_risk_grade|keyvalue:"now" == asset_group_risk_grade|keyvalue:"week_ago" %}
+          <span class="glyphicon glyphicon-minus"></span>
+          {% else %}
+          <span class="glyphicon glyphicon-arrow-up text-success"></span>
+          {% endif %}
+        </div>
+        <div class="col-md-4">-1m
+          {% if asset_group_risk_grade|keyvalue:"now" > asset_group_risk_grade|keyvalue:"month_ago" %}
+          <span class="glyphicon glyphicon-arrow-down text-danger"></span>
+          {% elif asset_group_risk_grade|keyvalue:"now" == asset_group_risk_grade|keyvalue:"month_ago" %}
+          <span class="glyphicon glyphicon-minus"></span>
+          {% else %}
+          <span class="glyphicon glyphicon-arrow-up text-success"></span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div><!-- End of row -->
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-11">
+      <!-- <h4>Quick report</h4> -->
+      <p>
+        {% for scope, counter in asset_scopes %}
+          <a href="/findings/list?_scope={{ counter.id }}&_asset_group_id={{ asset_group.id }}" style="text-decoration:none;">
+          {% if counter.high > 0 %}
+          <span class="label label-danger">{{ scope }}: {{ counter.high }}/{{ counter.total }}</span>
+          {% elif counter.medium > 0 %}
+          <span class="label label-warning">{{ scope }}: {{ counter.medium }}/{{ counter.total }}</span>
+          {% elif counter.low > 0 %}
+          <span class="label label-info">{{ scope }}: {{ counter.low }}/{{ counter.total }}</span>
+          {% else %}
+          <span class="label label-default">{{ scope }}: {{ counter.total }}</span>
+          {% endif %}
+          </a>
+        {% endfor %}
+        <a href="#" data-toggle="modal" data-target="#modal-scopes-details">+ details</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<div class="container-fluid">
+  <ul class="nav nav-tabs" id="menu_tabs_ul">
+    <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div">Assets</a></li>
+    <li class="menu_findings"><a data-toggle="tab"  href="#findings_div">Findings</a></li>
+    <li class="menu_remediations"><a data-toggle="tab" href="#remediations_div">Remediations</a></li>
+    <li class="menu_scans"><a data-toggle="tab" href="#scans_div">Scans</a></li>
+    <li class="menu_owners"><a data-toggle="tab" href="#owners_div">Owners</a></li>
+    <li class="menu_alerts"><a data-toggle="tab" href="#alerts_div">Alerts</a></li>
+    <li class="menu_comments"><a data-toggle="tab" href="#comments_div">Comments</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="assets_div" class="tab-pane fade in active">
+
+      <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+        <thead>
+          <tr>
+            <th><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
+            <th data-field="name">Name</th>
+            <th data-field="findings_summary">Findings summary</th>
+            <th data-field="criticity">Criticity</th>
+            <th data-field="score">Score</th>
+            <th data-field="type">Type</th>
+            <th data-field="updated_at">Last update</th>
+            <th data-field="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for asset in asset_group.assets.all %}
+          <tr class='dblclickable-row' data-href='/assets/details/{{ asset.id }}'>
+            <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
+            <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value }})</a></td>
+            <td>
+              {% if asset.risk_level.high == 0 %}
+                0
+              {% else %}
+                <span class="label label-danger">{{ asset.risk_level.high }}</span>
+              {% endif %}/
+              {% if asset.risk_level.medium == 0 %}
+                0
+              {% else %}
+                <span class="label label-warning">{{ asset.risk_level.medium }}</span>
+              {% endif %}/
+              {% if asset.risk_level.low == 0 %}
+                0
+              {% else %}
+                <span class="label label-info">{{ asset.risk_level.low }}</span>
+              {% endif %}/
+              {% if asset.risk_level.info == 0 %}
+                0
+              {% else %}
+                <span class="label label-primary">{{ asset.risk_level.info }}</span>
+              {% endif %}
+            </td>
+            {% if asset.criticity == 'low' %}
+            <td><span class="label label-info">Low</span></td>
+            {% elif asset.criticity == 'medium' %}
+            <td><span class="label label-warning">Medium</span></td>
+            {% elif asset.criticity == 'high' %}
+            <td><span class="label label-danger">High</span></td>
+            {% endif %}
+            <td><span class="badge badge-risk-grade-{{ asset.get_risk_grade }}">{{ asset.get_risk_grade }}</span></td>
+            <td>{{ asset.type }}</td>
+            <td>{{ asset.updated_at|smartdate }}</td>
+            <td>
+              <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/details/{{ asset.id }}'">
+                <span class="glyphicon glyphicon-eye-open"></span></button>
+              <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/edit/{{ asset.id }}'">
+                <span class="glyphicon glyphicon-pencil"></span></button>
+              <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset"
+                 asset-id="{{ asset.id }}" asset-value="{{ asset.value }}">
+                 <span class="glyphicon glyphicon-remove"></span></button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div id="findings_div" class="tab-pane fade">
+      <div class="dropdown">
+        <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+          Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+          <li><a class="btn-ack" href="#">Ack selected findings</a></li>
+          <li><a class="btn-compare-selected" href="#">Compare selected findings (2 findings max.)</a></li>
+          <li><a class="btn-delete-selected" href="#">Delete selected findings (no confirm)</a></li>
+        </ul>
+      </div>
+      <table class="table table-hover" id="table" data-toggle="table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" onClick="toggle(this, 'finding')" /></th>
+            <th>Asset</th>
+            <th>Finding Title</th>
+            <th>Finding Type</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>From</th>
+            <th>Last update</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for finding in findings %}
+        <tr class='dblclickable-row' data-href='/findings/details/{{ finding.id }}'>
+          <td><input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/></td>
+          <td><a href="/assets/details/{{ finding.asset_id }}">{{ finding.asset_name }}</a></td>
+          <td>{{ finding.title }}</td>
+          <td>{{ finding.type }}</td>
+          <td>
+            {% if finding.severity == 'critical' or finding.severity == 'high' %}
+            <span class="label label-danger">{{ finding.severity }}</span>
+            {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+            <span class="label label-warning">{{ finding.severity }}</span>
+            {% elif finding.severity == 'low' %}
+            <span class="label label-info">{{ finding.severity }}</span>
+            {% else %}
+            <span class="label label-default">{{ finding.severity }}</span>
+            {% endif %}
+          </td>
+          {% if finding.status == 'new' %}
+          <td class="text-danger">{{ finding.status }}</td>
+          {% else %}
+          <td>{{ finding.status }}</td>
+          {% endif %}
+          <td>{{ finding.engine_type }}</td>
+          <td>{{ finding.updated_at|smartdate }}</td>
+          <td>
+            <div class="btn-toolbar btn-group">
+              <a href="/findings/details/{{ finding.id }}" class="btn btn-default btn-xs">
+                <span class="glyphicon glyphicon-eye-open"></span></a>
+              <a href="/findings/delete/{{ finding.id }}" class="btn btn-danger btn-xs"
+                data-toggle="modal" data-target="#modal-delete-finding"
+                finding-id="{{ finding.id }}" finding-title="{{ finding.title }}">
+                <span class="glyphicon glyphicon-remove"></span></a>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+    </div>
+    <div id="remediations_div" class="tab-pane fade">
+
+      <table class="table table-hover" id="table" data-toggle="table">
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Remediations</th>
+            <th>Scopes</th>
+            <th>Related findings</th>
+            <th>Status</th>
+            <th>Last update</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for finding in findings %}
+          {% if finding.severity != "info" %}
+          <tr>
+            <td>
+              {% if finding.severity == 'critical' or finding.severity == 'high' %}
+              <span class="label label-danger">{{ finding.severity }}</span>
+              {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+              <span class="label label-warning">{{ finding.severity }}</span>
+              {% elif finding.severity == 'low' %}
+              <span class="label label-info">{{ finding.severity }}</span>
+              {% else %}
+              <span class="label label-default">{{ finding.severity }}</span>
+              {% endif %}
+            </td>
+            <td>{{ finding.solution }}</td>
+            <td>
+              {# for scope in finding.scan.engine_policy.scopes.all #}
+              {% for scope in finding.scope_list %}
+                {{scope}}{% if not forloop.last %},{% endif %}
+              {% endfor %}
+            </td>
+            <td><a href="/findings/details/{{ finding.id }}">{{ finding.id }}</a></td>
+            <td>{{ finding.status }}</td>
+            <td>{{ finding.updated_at|smartdate }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div id="scans_div" class="tab-pane fade">
+      <h5>Scan definitions [<a href="/scans/defs/add?asset_group_id={{asset_group.id}}#notsupported">+ add new</a>]</h5>
+      <table class="table table-hover" id="table" data-toggle="table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" onClick="toggle(this, 'scan_defs')" /></th>
+            <th>Title</th>
+            <th># Scans</th>
+            <th>Type</th>
+            <th>Engine</th>
+            <th>Status</th>
+            <th>Last update</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan_def in scan_defs %}
+          <tr>
+            <td><input type="checkbox" class="radio" name="scan_defs" value="{{ scan_def.id }}"/></td>
+            <td><a href="/scans/defs/details/{{ scan_def.id }}" class="text-primary">{{ scan_def.title }}</a></td>
+            <td>{{ scan_def.scan_set.count }}</td>
+            <td>{{ scan_def.scan_type }}</td>
+            <td>{{ scan_def.engine_type_name }}</td>
+            {% if scan_def.scan_type == "periodic" %}
+              {% if scan_def.enabled %}
+              <td><span class="label label-success">Enabled</span></td>
+              {% else %}
+              <td><span class="label label-danger">Disabled</span></td>
+              {% endif %}
+            {% elif scan_def.scan_type == "single" %}
+                <td><span class="label label-default">n/a</span></td>
+            {% endif %}
+            <td>{{ scan_def.updated_at|smartdate }}</td>
+            <td>
+              <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/edit/{{ scan_def.id }}'">
+                <span class="glyphicon glyphicon-edit"></span></button>
+              {% if scan_def.scan_type == "periodic" %}
+                {% if scan_def.enabled %}
+                <button type="button" class="btn btn-warning btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
+                  Disable</button>
+                {% else %}
+                <button type="button" class="btn btn-success btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
+                  Enable</button>
+                {% endif %}
+              {% elif scan_def.scan_type == "single" %}
+                <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}" data-toggle="modal" data-target="#modal-run-scan">
+                  Run </button>
+              {% endif %}
+              <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan-def"
+                scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}">
+                <span class="glyphicon glyphicon-remove"></button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <hr>
+
+      <h5>Scans performed</h5>
+      <table class="table table-hover" id="table" data-toggle="table">
+        <thead>
+          <tr>
+            <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'scan')" /></th>
+            <th data-field="title">Title</th>
+            <th data-field="status">Status</th>
+            <th data-field="progress" style="width:20%">Progress</th>
+            <th data-field="updated_at">Last update</th>
+            <th data-field="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan in scans %}
+            <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
+              <td><input type="checkbox" class="radio" name="scan" value="{{ scan.id }}"/></td>
+              <td>{{ scan.title }}</td>
+              {% if scan.status == "started" %}
+              <td class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:orange" title="Started"></span></td>
+              {% elif scan.status == "stopping"  %}
+              <td class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:red" title="Stopping"></span></td>
+              {% elif scan.status == "stopped"  %}
+              <td class="text-center"><span class="glyphicon glyphicon-remove" style="color:red" title="Stopped"></span></td>
+              {% elif scan.status == "finished"  %}
+              <td class="text-center"><span class="glyphicon glyphicon-ok" style="color:green" title="Finished"></span></td>
+              {% elif scan.status == "scheduled"  %}
+              <td class="text-center"><span class="glyphicon glyphicon-time" style="color:blue" title="Scheduled"></span></td>
+              {% elif scan.status == "enqueued"  %}
+              <td class="text-center"><span class="glyphicon glyphicon-pushpin" style="color:orange" title="Enqueued"></span></td>
+              {% elif scan.status == "error"  %}
+              <td class="text-center"><span class="glyphicon glyphicon-fire" style="color:red" title="Error"></span></td>
+              {% else %}
+              <td>{{ scan.status }}</td>
+              {% endif %}
+
+              <td class="scan-progress">
+                <div class="progress" id="pb-{{ scan.id }}">
+                  {% if scan.status == "finished" %}
+                  <div class="progress-bar progress-bar-striped progress-bar-high" role="progressbar" style="width:{{ scan.summary.high | perc:scan.summary.total }}%">
+                    {{ scan.summary.high }}
+                  </div>
+                  <div class="progress-bar progress-bar-striped progress-bar-medium" role="progressbar" style="width:{{ scan.summary.medium | perc:scan.summary.total }}%">
+                    {{ scan.summary.medium }}
+                  </div>
+                  <div class="progress-bar progress-bar-striped progress-bar-low" role="progressbar" style="width:{{ scan.summary.low | perc:scan.summary.total }}%">
+                    {{ scan.summary.low }}
+                  </div>
+                  <div class="progress-bar progress-bar-striped progress-bar-info" role="progressbar" style="width:{{ scan.summary.info | perc:scan.summary.total }}%">
+                    {{ scan.summary.info }}
+                  </div>
+                  {% else %}
+                  <div class="progress-bar progress-bar-striped active" role="progressbar">
+                    -
+                  </div>
+                  {% endif %}
+                </div>
+              </td>
+              <td>{{ scan.updated_at|smartdate }}</td>
+              <td>
+                <button type="button" class="btn btn-default btn-xs" title="Details" onclick="location.href='/scans/details/{{ scan.id }}'">
+                  details</button>
+                {% if scan.status == "enqueued" or scan.status == "started" %}
+                <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
+                  <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
+                {% else %}
+                <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/report/html/{{ scan.id }}'">
+                  <span class="glyphicon glyphicon-share"></span></button>
+                {% endif %}
+                <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_definition__id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
+                  Run </button>
+                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
+                  scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
+                  <span class="glyphicon glyphicon-remove"></button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div id="owners_div" class="tab-pane fade">
+      Owners<br/>
+      TODO.
+    </div>
+    <div id="alerts_div" class="tab-pane fade">
+      Alerts<br/>
+      TODO.
+    </div>
+    <div id="comments_div" class="tab-pane fade">
+      Comments<br/>
+      TODO.
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<!-- Scope details modal -->
+<div class="modal fade" id="modal-scopes-details" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Details</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="scopes-details">
+          <!-- Content -->
+          <table class="table table-sum table-hover">
+            <thead>
+              <tr>
+                <th>Scopes</th>
+                <th>High</th>
+                <th>Medium</th>
+                <th>Low</th>
+                <th>Info</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for scope, counter in asset_scopes %}
+              <tr>
+                <td>{{scope}}</td>
+                <td class="col-md-1 ct">
+                  {% if counter.high > 0 %}
+                  <span class="label label-danger">{{counter.high}}</span>
+                  {% else %}
+                  {{counter.high}}
+                  {% endif %}
+                </td>
+                <td class="col-md-1 ct">
+                  {% if counter.medium > 0 %}
+                  <span class="label label-warning">{{counter.medium}}</span>
+                  {% else %}
+                  {{counter.medium}}
+                  {% endif %}
+                </td>
+                <td class="col-md-1 ct">
+                  {% if counter.low > 0 %}
+                  <span class="label label-info">{{counter.low}}</span>
+                  {% else %}
+                  {{counter.low}}
+                  {% endif %}
+                </td>
+                <td class="col-md-1 ct">{% if counter.info > 0 %}
+                  <span class="label label-default">{{counter.info}}</span>
+                  {% else %}
+                  {{counter.info}}
+                  {% endif %}
+                </td>
+                <td class="col-md-1 ct"><strong>{{counter.total}}</strong></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <button type="button" class="btn btn-xs btn-primary col-sm-12" data-dismiss="modal">Cancel</button><br/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete finding modal -->
+<div class="modal fade" id="modal-delete-finding" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Finding</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-finding" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-finding" data-dismiss="modal" autofocus>Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Asset Modal -->
+<div class="modal fade" id="modal-edit-asset-group-tags" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Add tags</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <!-- <div class="modal-body"> -->
+      <div class="modal-body">
+        <div id="asset-tags" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+          <b>Current tags</b>: {{ asset_group.categories.all|join:", " }}<br/>
+          <p class="text-warning">
+            Warning: <br/>
+            1/ All sub-tags will be deleted if a parent tag is added<br/>
+            2/ Parent tag will be deleted if a child tag is added</p>
+
+          <form class="search-asset-group-tags-form" action="/assets/groups/details/{{asset_group.id}}/add_tag" method="post">
+            {% csrf_token %}
+            <input type="text" id="input-search-tags" name="input-search-tags"/><button class="btn btn-xs btn-warning" type="submit">+</button>
+          </form>
+
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-xs btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+  function toggle(source, element) {
+    checkboxes = document.getElementsByName(element);
+    for(var i=0, n=checkboxes.length;i<n;i++) {
+      checkboxes[i].checked = source.checked;
+    }
+  }
+
+  $(function() {
+    // Delete selected findings
+    $("a.btn-delete-selected").on('click', function(eventObject) {
+      findings_to_delete = []
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_delete.push(this.value)
+        }
+      })
+
+      if (findings_to_delete.length != 0){
+        delete_url="/findings/delete"
+        var request = $.ajax({
+          url: delete_url,
+          method: "POST",
+          data: JSON.stringify(findings_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    // Compare findings
+    $("a.btn-compare-selected").on('click', function (e) {
+      findings_to_compare = []
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_compare.push(this.value)
+        }
+      });
+      if(findings_to_compare.length == 2){
+        window.location.href ="/findings/compare?finding_a_id="+findings_to_compare[0]+"&finding_b_id="+findings_to_compare[1];
+      }
+    });
+
+    // Change the finding status
+    $("a.btn-ack").on('click', function(eventObject) {
+      findings_to_ack = []
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_ack.push({'ack': this.value})
+        }
+      })
+
+      if (findings_to_ack.length != 0){
+        ack_url="/findings/status"
+        var request = $.ajax({
+          url: ack_url,
+          method: "POST",
+          data: JSON.stringify(findings_to_ack),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){
+            location.reload();
+          }
+        });
+      }
+    });
+
+    // Delete tag
+    $("i.delete-tag-btn").on('click', function(eventObject) {
+      del_url="/assets/groups/details/{{asset_group.id}}/del_tag"
+      csrf_token = eventObject.currentTarget.getAttribute('csrf-token');
+      tag_id = eventObject.currentTarget.getAttribute('tag-id');
+      var request = $.ajax({
+        url: del_url,
+        method: "POST",
+        data: "tag_id="+tag_id+"&csrfmiddlewaretoken="+csrf_token,
+        //contentType: "application/json"
+        success: function(data, textStatus, xhr){
+          location.reload();
+        }
+      });
+    });
+
+    // Autocomplete tags modal searchbar
+    $("#input-search-tags").autocomplete({
+      source: function(req, response) {
+         $.ajax({
+          url: "/assets/get_tags",
+          dataType: "json",
+          success: function( data ) {
+            var re = $.ui.autocomplete.escapeRegex(req.term);
+            //var matcher = new RegExp( "^" + re, "i" ); //Start with
+            var matcher = new RegExp(re, "i" ); //Start with
+            response($.grep(data, function(item){return matcher.test(item.value || item.label || item);}) );
+            }
+          });
+       },
+      minLength: 2,
+      appendTo: ".search-asset-group-tags-form",
+      autoFocus: true
+    });
+
+    // Delete finding modal
+    $("#modal-delete-finding").on('show.bs.modal', function (e) {
+      finding_id = e.relatedTarget.getAttribute('finding-id');
+      finding_title = e.relatedTarget.getAttribute('finding-title');
+      $("div#delete-finding").attr('finding-id', finding_id);
+      $("div#delete-finding").html("Finding: <b>"+finding_title+"</b><br/><br/>");
+    });
+    $("button.btn-delete-finding").on('click', function (e) {
+      csrf_token = $("div#delete-finding").attr('csrf-token');
+      finding_id = $("div#delete-finding").attr('finding-id');
+      delete_finding_url = "/findings/delete/"+finding_id;
+      var request = $.ajax({
+        url: delete_finding_url,
+        method: "POST",
+        data: "csrfmiddlewaretoken="+csrf_token,
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+    // Fixing bootstrap tab issue
+    $('#menu_tabs_ul > li > a').click(function(e) {
+      $(this).removeClass('active');
+    });
+
+  });
+</script>
+
+
+{% endblock %}

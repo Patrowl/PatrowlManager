@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/assets/list">assets</a></li>
+  <li><a href="/assets/owners/list">owners</a></li>
+  <li class="active">{{ owner.name }}</li>
+</ul>
+
+<div class="container" owner-id="{{owner.id}}">
+  <dl class="dl-horizontal">
+    <dt>Asset Owner Name</dt>
+    <dd>{{ owner.name }} (<a href="{{ owner.url }}">link</a>)</dd>
+
+    <dt>Assets list</dt>
+    <dd><a href="#" data-toggle="modal" data-target="#modalAssets">View/Edit asset list...</a></dd>
+
+    <dt>Comments</dt>
+    <dd>
+      {{ owner.comments|linebreaks }}<br/>
+      <a href="#" data-toggle="modal" data-target="#modalComment">edit</a>
+    </dd>
+
+    <dt>Contacts list</dt>
+    <dd>
+      <a href="#" data-toggle="modal" data-target="#modalContact">+ add contact</a>
+      <ul>
+      {% for contact in owner.contacts %}
+        <li>{{ contact.name }} - {{ contact.phone }} - <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+          <a href="#" data-toggle="modal" data-target="#modal-edit-contact"
+           contact-id="{{ contact.id }}">
+           <span class="glyphicon glyphicon-eye-open text-primary"></span></a>
+          <a href="#" data-toggle="modal" data-target="#modal-delete-contact"
+           contact-id="{{ contact.id }}"
+           contact-name="{{ contact.name }}">
+           <span class="glyphicon glyphicon-remove text-warning"></span></a></li>
+      {% endfor %}
+      </ul>
+    </dd>
+
+    <dt>Documents</dt>
+    <dd>
+      <a href="#" data-toggle="modal" data-target="#modalDocument">+ add document</a>
+      <ul>
+      {% for doc in owner.documents %}
+        {% if doc.tlp_color == 'red' %}
+        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-danger">TLP:RED</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        {% elif doc.tlp_color == 'amber' %}
+        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-warning">TLP:AMBER</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        {% elif doc.tlp_color == 'green' %}
+        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-success">TLP:GREEN</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        {% elif doc.tlp_color == 'white' %}
+        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-white" style="color: black;">TLP:WHITE</span>({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        {% endif %}
+          <a href="#" data-toggle="modal" data-target="#modal-delete-document"
+           doc-id="{{ doc.id }}"
+           doc-filename="{{ doc.filename }}">
+           <span class="glyphicon glyphicon-remove text-warning"></span></a>
+         </li>
+      {% endfor %}
+      </ul>
+    </dd>
+  </dl>
+  <button class="btn btn-xs btn-primary"><a href="/assets/owners/list">Cancel</a></button>
+</div>
+
+
+<div class="notifications">
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+</div>
+
+
+<!-- View/Edit assets modal -->
+<div class="modal fade" id="modalAssets" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+           <span aria-hidden="true">&times;</span>
+           <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Assets</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form id="assets-form" role="form" action="/assets/owners/editassets/{{owner.id}}" method="post" class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_assets">Select asset(s):</label>
+            <div class="col-sm-10">
+              {% for asset in owner.assets %}
+                {{ asset.value }}<br/>
+              {% endfor %}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-xs btn-default" data-dismiss="modal">Close
+        </button>
+        <button type="submit" form="assets-form" class="btn btn-xs btn-warning">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add document modal -->
+<div class="modal fade" id="modalContact" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Add a new contact</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form id="contact-form" role="form" action="/assets/owners/addcontact/{{owner.id}}" method="post" class="form-horizontal" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_name">Name:</label>
+            <div class="col-sm-10">
+              <input id="id_name" name="name" type="text" class="form-control" placeholder="Required: Enter full name... John Doo, Joe Bar" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_department">Company/Department:</label>
+            <div class="col-sm-10">
+              <input id="id_department" name="department" type="text" class="form-control" placeholder="Optional: Enter Company and/or department name"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_name">Title:</label>
+            <div class="col-sm-10">
+              <input id="id_title" name="title" type="text" class="form-control" placeholder="Optional: Security Handler, CTO, ..."/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_email">Email:</label>
+            <div class="col-sm-10">
+              <input id="id_email" name="email" type="email" class="form-control" placeholder="Optional: Enter valid email address"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_phone">Phone #:</label>
+            <div class="col-sm-10">
+              <input id="id_phone" name="phone" type="text" class="form-control" placeholder="Optional: Enter phone number"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_address">Postal Address:</label>
+            <div class="col-sm-10">
+              <input id="id_address" name="address" type="text" class="form-control" placeholder="Optional: Enter full postal address"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_url">URL:</label>
+            <div class="col-sm-10">
+              <input id="id_url" name="url" type="url" class="form-control" placeholder="Optional: Enter contact url"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_contact_comments">Comments:</label>
+            <div class="col-sm-10">
+              <textarea id="id_contact_comments" class="form-control" name="comments" rows="5" placeholder="Optional: Enter comments"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-xs btn-default" data-dismiss="modal">Close
+        </button>
+        <button type="submit" form="contact-form" class="btn btn-xs btn-warning">Save contact</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add document modal -->
+<div class="modal fade" id="modalDocument" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Add a new document</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form id="document-form" role="form" action="/assets/owners/adddoc/{{owner.id}}" method="post" class="form-horizontal" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_doctitle">Title:</label>
+            <div class="col-sm-10">
+              <input id="id_doctitle" name="doctitle" type="text" class="form-control" placeholder="Enter document title"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_tlp_color">TLP Color:</label>
+            <div class="col-sm-10">
+              <select id="id_tlp_color" name="tlp_color" required="false">
+                <option value="red">RED</option>
+                <option value="amber">AMBER</option>
+                <option value="green">GREEN</option>
+                <option value="white">WHITE</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="id_file">Select document:</label>
+            <div class="col-sm-10">
+              <input id="id_file" name="file" type="file">
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-xs btn-default" data-dismiss="modal">Close
+        </button>
+        <button type="submit" form="document-form" class="btn btn-xs btn-warning">Save document</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit comment modal -->
+<div class="modal fade" id="modalComment" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Edit comment</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form id="comment-form" role="form" method="post" class="form-horizontal" asset-owner-id="{{owner.id}}">
+          {% csrf_token %}
+          <div class="form-group">
+            <!-- <label class="col-sm-2 control-label" for="id_doctitle">Comments:</label> -->
+            <div class="col-sm-10">
+              <textarea cols="40" id="id_comments" class="form-control" name="comments" rows="10">{{owner.comments}}</textarea>
+              <!-- <input id="id_comments" name="doctitle" type="text" class="form-control" placeholder="Enter comments"/> -->
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-xs btn-default" data-dismiss="modal">Close
+        </button>
+        <button type="submit" form="comment-form" class="btn btn-xs btn-warning btn-save-comments">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete contact modal -->
+<div class="modal fade" id="modal-delete-contact" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete contact</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-contact-info" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deletion?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-contact" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete document modal -->
+<div class="modal fade" id="modal-delete-document" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete document</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-document-info" csrf-token="{{ csrf_token }}">
+          <!-- Content -->
+        </div>
+        Confirm Deletion?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-document" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    $(function() {
+      $("button.btn-save-comments").on('click', function(eventObject) {
+        save_comments_url = "/assets/owners/editcom/{{owner.id}}";
+        comments = $("#id_comments")[0].value
+        //alert(save_comments_url)
+        var request = $.ajax({
+          url: save_comments_url,
+          method: "POST",
+          data: "new_comments="+comments
+        });
+        // request.done(function(response){
+        //   if (response.status == 'success'){
+        //     location.reload();
+        //   }
+        // });
+      }); // End - $("button.btn-save-comments").on('click')
+
+      // Delete Contact modal
+      $("#modal-delete-contact").on('show.bs.modal', function (e) {
+        contact_id = e.relatedTarget.getAttribute('contact-id');
+        contact_name = e.relatedTarget.getAttribute('contact-name');
+        $("div#delete-contact-info").attr('contact-id', contact_id);
+        $("div#delete-contact-info").html("<b>"+contact_name+"</b><br/>");
+      });
+      $("button.btn-delete-contact").on('click', function (e) {
+        csrf_token = $("div#delete-contact-info").attr('csrf-token');
+        contact_id = $("div#delete-contact-info").attr('contact-id');
+        owner_id = $("div[owner-id]").attr('owner-id');
+        delete_contact_url = "/assets/owners/deletecontact/"+contact_id;
+        var request = $.ajax({
+          url: delete_contact_url,
+          method: "POST",
+          data: "contact_id="+contact_id+"&csrfmiddlewaretoken="+csrf_token,
+          success: function(){
+            location.reload();
+          }
+        });
+      });
+
+      // Delete document modal
+      $("#modal-delete-document").on('show.bs.modal', function (e) {
+        doc_id = e.relatedTarget.getAttribute('doc-id');
+        doc_filename = e.relatedTarget.getAttribute('doc-filename');
+        $("div#delete-document-info").attr('doc-id', doc_id);
+        $("div#delete-document-info").html("<b>"+doc_filename+"</b><br/>");
+      });
+      $("button.btn-delete-document").on('click', function (e) {
+        csrf_token = $("div#delete-document-info").attr('csrf-token');
+        doc_id = $("div#delete-document-info").attr('doc-id');
+        owner_id = $("div[owner-id]").attr('owner-id');
+        delete_doc_url = "/assets/owners/deletedoc/"+owner_id;
+        var request = $.ajax({
+          url: delete_doc_url,
+          method: "POST",
+          data: "doc_id="+doc_id+"&csrfmiddlewaretoken="+csrf_token,
+          success: function(){
+            location.reload();
+          }
+        });
+      });
+
+
+    }); // End - jQuery ready
+</script>
+
+
+{% endblock %}

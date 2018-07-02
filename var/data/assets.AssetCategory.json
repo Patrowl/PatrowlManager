@@ -1,0 +1,218 @@
+[
+  {
+    "model": "assets.assetcategory",
+    "pk": 1,
+    "fields": {
+      "parent": null,
+      "value": "All",
+      "comments": "root"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 2,
+    "fields": {
+      "parent": 1,
+      "value": "Operating systems",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 3,
+    "fields": {
+      "parent": 2,
+      "value": "Windows",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 4,
+    "fields": {
+      "parent": 3,
+      "value": "Windows 7",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 5,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Server 2003",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 6,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Server 2008",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 7,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Server 2008 R2",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 8,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Server 2012",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 9,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Server 2012 R2",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 10,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Server 2016",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 11,
+    "fields": {
+      "parent": 2,
+      "value": "Unix/Linux",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 12,
+    "fields": {
+      "parent": 11,
+      "value": "Red Hat Enterprise Linux",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 13,
+    "fields": {
+      "parent": 12,
+      "value": "RHEL 2.1",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 14,
+    "fields": {
+      "parent": 12,
+      "value": "RHEL 3",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 15,
+    "fields": {
+      "parent": 12,
+      "value": "RHEL 4",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 16,
+    "fields": {
+      "parent": 12,
+      "value": "RHEL 5",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 17,
+    "fields": {
+      "parent": 12,
+      "value": "RHEL 6",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 18,
+    "fields": {
+      "parent": 12,
+      "value": "RHEL 7",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 19,
+    "fields": {
+      "parent": 18,
+      "value": "RHEL 7.1",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 20,
+    "fields": {
+      "parent": 18,
+      "value": "RHEL 7.2",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 21,
+    "fields": {
+      "parent": 18,
+      "value": "RHEL 7.3",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 22,
+    "fields": {
+      "parent": 11,
+      "value": "AIX",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 23,
+    "fields": {
+      "parent": 11,
+      "value": "Solaris",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 24,
+    "fields": {
+      "parent": 11,
+      "value": "HP-UX",
+      "comments": "n/a"
+    }
+  }
+]

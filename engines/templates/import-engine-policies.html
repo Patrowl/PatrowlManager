@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="/engines/policies/list">policies</a></li>
+  <li class="active">Import policies</li>
+</ul>
+
+<div class="container">
+  <form action="/engines/policies/import" method="post" class="form-horizontal" enctype="multipart/form-data">
+    <legend>Import engine policies (JSON-formatted)</legend>
+      {% csrf_token %}
+      {% for field in form %}
+          {% if field.errors %}
+              <div class="form-group has-error">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-10">
+                      {{ field }}
+                      <span class="help-block">
+                          {% for error in  field.errors %}{{ error }}{% endfor %}
+                      </span>
+                  </div>
+              </div>
+          {% elif not field.is_hidden %}
+              <div class="form-group">
+                  <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                  <div class="col-sm-10">
+                      {{ field }}
+                      {% if field.help_text %}
+                          <p class="help-block"><small>{{ field.help_text }}</small></p>
+                      {% endif %}
+                  </div>
+              </div>
+          {% endif %}
+      {% endfor %}
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button class="btn btn-primary"><a href="/engines/policies/list">Cancel</a></button>
+      </div>
+  </form>
+</div>
+
+{% endblock %}

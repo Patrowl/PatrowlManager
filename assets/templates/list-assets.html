@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<style>
+span.badge-risk-grade-A { background-color: limegreen; }
+span.badge-risk-grade-B { background-color: yellowgreen; }
+span.badge-risk-grade-C { background-color: orange; }
+span.badge-risk-grade-D { background-color: darkorange; }
+span.badge-risk-grade-E { background-color: orangered; }
+span.badge-risk-grade-F { background-color: red; }
+span.badge-risk-grade-- { background-color: lightgray; }
+
+.pagination>li>a, .pagination>li>span {
+  padding: 2px 7px;
+  font-size: 12px;
+}
+
+</style>
+
+<script language="JavaScript">
+function toggle(source, element) {
+  checkboxes = document.getElementsByName(element);
+  for(var i=0, n=checkboxes.length;i<n;i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+</script>
+
+<ul class="breadcrumb">
+  <li><a href="/assets/list">assets</a></li>
+  <li class="active">list</li>
+</ul>
+
+<div class="container-fluid">
+
+  <a href="/assets/export" class="text-warning">>> Export assets (CSV)</a><br/>
+  <a href="/assets/api/v1/refresh_all_grades" class="text-danger">>> Refresh all scores</a><br/>
+
+  <div id="menu_tabs" class="container-fluid">
+    <ul class="nav nav-tabs" id="menu_tabs_ul">
+      <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div" >Assets</a></li>
+      <li class="menu_assetgroups"><a data-toggle="tab" href="#assetgroups_div">Asset Groups</a></li>
+    </ul>
+    <div class="tab-content">
+      <div id="assets_div" class="tab-pane fade in active">
+        <div class="row" style="margin-top: 5px;">
+
+          <div class="dropdown col-sm-1">
+            <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="dropdown-menu-sort" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              Actions
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
+              <li><a class="btn-asset-add" href="/assets/add">+ Add a new asset manually</a></li>
+              <li><a class="btn-asset-bulkadd" href="/assets/bulkadd">+ Add new assets in bulk</a></li>
+              <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+            </ul>
+          </div>
+
+          <!-- search bar -->
+          <div class="has-feedback col-sm-3" style="padding-left: 0px; padding-right: 0px;">
+            <input type="text" placeholder="Quick search..." class="form-control form-control-xs" id="asset-quick-search-name"/>
+            <i class="form-control-xs-feedback glyphicon glyphicon-search" style="color: #b4bcc2;"></i>
+          </div>
+
+          <div class="dropdown col-sm-2" style="padding-left: 0px;">
+            <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              Sort by
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+              <li><a onclick="sortby('name', 'assets');">Name</a></li>
+              <li><a onclick="sortby('criticity_num', 'assets');">Criticity</a></li>
+              <li><a onclick="sortby('-risk_level', 'assets');">Score</a></li>
+              <li><a onclick="sortby('criticity_num,-risk_level', 'assets');">Criticity + Score</a></li>
+              <li><a onclick="sortby('type', 'assets');">Type</a></li>
+              <li><a onclick="sortby('-updated_at', 'assets');">Last update</a></li>
+            </ul>
+            <button class="btn btn-primary btn-xs" type="button" onclick="location.href='/assets/list'">
+              Reset
+            </button>
+          </div>
+
+        </div>
+
+        <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+          <thead>
+            <tr>
+              <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
+              <th data-field="name"  onclick="sortby('name', 'assets');">Name</th>
+              <!-- <th data-field="value">Value</th> -->
+              <th data-field="categories">Tags</th>
+              <th data-field="criticity" onclick="sortby('criticity_num', 'assets');">Criticity</th>
+              <th data-field="score" onclick="sortby('-risk_level', 'assets');">Score</th>
+              <th data-field="type" onclick="sortby('type', 'assets');">Type</th>
+              <th data-field="updated_at" onclick="sortby('-updated_at', 'assets');">Last update</th>
+              <th data-field="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for asset in assets %}
+          <tr>
+            <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
+            <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value|truncatechars:50 }})</a></td>
+            <td>{{ asset.cat_list|join:", "|truncatechars:15 }}</td>
+            {% if asset.criticity == 'low' %}
+            <td><span class="label label-info">Low</span></td>
+            {% elif asset.criticity == 'medium' %}
+            <td><span class="label label-warning">Medium</span></td>
+            {% elif asset.criticity == 'high' %}
+            <td><span class="label label-danger">High</span></td>
+            {% endif %}
+            <td><span class="badge badge-risk-grade-{{ asset.get_risk_grade }}">{{ asset.get_risk_grade }}</span></td>
+            <td>{{ asset.type }}</td>
+            <td>{{ asset.updated_at|smartdate }}</td>
+            <td>
+              <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/details/{{ asset.id }}'">
+                <span class="glyphicon glyphicon-eye-open"></span></button>
+              <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/edit/{{ asset.id }}'">
+                <span class="glyphicon glyphicon-pencil"></span></button>
+              <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset"
+                 asset-id="{{ asset.id }}" asset-value="{{ asset.value }}">
+                 <span class="glyphicon glyphicon-remove"></span></button>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div style="display: inline-flex;">
+          <ul class="pagination pagination-xs">
+            <li class="page-item">
+              <a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a>
+            </li>
+            {% if assets.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href= "#" onclick="gotopage({{ assets.previous_page_number }}, 'assets');">&laquo;</a>
+            </li>
+            {% endif %}
+            {% for pn in assets.paginator.page_range %}
+            {% if pn == assets.number %}
+            <li class="page-item active">
+            {% else %}
+            <li class="page-item">
+            {% endif %}
+              <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'assets');">{{ pn }}</a>
+            </li>
+            {% endfor %}
+            {% if assets.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="#" onclick="gotopage({{ assets.next_page_number }}, 'assets');">&raquo;</a>
+            </li>
+            {% endif %}
+            <li class="page-item">
+              <a class="page-link" href="#" onclick="gotopage({{ assets.paginator.num_pages }}, 'assets');">&raquo;&raquo;</a>
+            </li>
+          </ul>
+          <div style="margin: 21px;">
+            <select id="nb_rows_per_page" >
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="200">200</option>
+            </select>
+            assets per page
+          </div>
+        </div>
+
+      </div>
+      <div id="assetgroups_div" class="tab-pane fade">
+        <!-- <h2>Asset Groups</h2> -->
+
+        <div class="dropdown">
+          <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            Actions
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+            <li><a class="btn-assetgroup-add" href="/assets/addgroup">+ Add a new asset group manually</a></li>
+            <!-- <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li> -->
+          </ul>
+        </div>
+
+        <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+          <thead>
+            <tr>
+              <th data-field="name">Name</th>
+              <th data-field="assets">Assets</th>
+              <!-- <th data-field="assets" width="50%">Assets</th> -->
+              <!-- <th data-field="tags">Tags</th> -->
+              <th data-field="criticity">Criticity</th>
+              <th data-field="score">Score</th>
+              <th data-field="updated_at">Last update</th>
+              <th data-field="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for asset_group in asset_groups %}
+          <tr>
+            <td><a href="/assets/groups/details/{{ asset_group.id }}">{{ asset_group.name }}</a></td>
+            <td>{{ asset_group.assets_names|truncatechars:85 }}</td>
+            <!-- <td>{{ asset_group.assets.categories.all|join:", " }}</td> -->
+            {% if asset_group.criticity == 'low' %}
+            <td><span class="label label-info">Low</span></td>
+            {% elif asset_group.criticity == 'medium' %}
+            <td><span class="label label-warning">Medium</span></td>
+            {% elif asset_group.criticity == 'high' %}
+            <td><span class="label label-danger">High</span></td>
+            {% endif %}
+            <td><span class="badge badge-risk-grade-{{ asset_group.risk_grade }}">{{ asset_group.risk_grade }}</span></td>
+            <td>{{ asset_group.updated_at|smartdate }}</td>
+            <td>
+              <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/groups/details/{{ asset_group.id }}'">
+                <span class="glyphicon glyphicon-eye-open"></span></button>
+              <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/groups/edit/{{ asset_group.id }}'">
+                <span class="glyphicon glyphicon-pencil"></span></button>
+              <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset-group"
+                asset-group-id="{{ asset_group.id }}" asset-group-value="{{ asset_group.name }}">
+                <span class="glyphicon glyphicon-remove"></span></button>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- <div class="dropdown">
+    <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      Actions
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+      <li><a class="btn-asset-add" href="/assets/add">+ Add a new asset manually</a></li>
+      <li><a class="btn-asset-bulkadd" href="/assets/bulkadd">+ Add new assets in bulk</a></li>
+      <li><a class="btn-assetgroup-add" href="/assets/addgroup">+ Add a new asset group</a></li>
+      <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+    </ul>
+  </div> -->
+
+
+  <div class="notifications">
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    </div>
+  </div>
+
+
+  <!-- Delete Asset modal -->
+  <div class="modal fade" id="modal-delete-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary">
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel">Delete Asset</h4>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div id="delete-asset" csrf-token="{{ csrf_token }}">
+            <!-- Content -->
+          </div>
+          Confirm Deleting?
+          <button type="button" class="btn btn-xs btn-danger btn-delete-asset" data-dismiss="modal">Yes</button>
+          <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Asset Group modal -->
+  <div class="modal fade" id="modal-delete-asset-group" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary">
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel">Delete Asset Group</h4>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div id="delete-asset-group" csrf-token="{{ csrf_token }}">
+            <!-- Content -->
+          </div>
+          Confirm Deleting?
+          <button type="button" class="btn btn-xs btn-danger btn-delete-asset-group" data-dismiss="modal">Yes</button>
+          <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+<script>
+
+  NB_ROWS=10;
+  current_url = window.location.href;
+  url = new URL(current_url);
+
+  var sortby = function sortby(sort_criteria, target = "asset") {
+    url.searchParams.set("sort", sort_criteria);
+    url.searchParams.set("target", target);
+    window.location = url.search;
+  };
+
+  var gotopage = function gotopage(page_num, target = "asset") {
+    url.searchParams.set("page", page_num);
+    url.searchParams.set("target", target);
+    window.location = url.search;
+  };
+
+  $(function() {
+
+    // tab selection
+    target = url.searchParams.get("target");
+    if (target == "asset_group") {
+      $('#assets_div').removeClass('in active');
+      $('#assetgroups_div').addClass('in active');
+      $('li.menu_assets').removeClass('active');
+      $('li.menu_assetgroups').addClass('active');
+    } else {
+      $('#assetgroups_div').removeClass('in active');
+      $('#assets_div').addClass('in active');
+      $('li.menu_assetgroups').removeClass('active');
+      $('li.menu_assets').addClass('active');
+    }
+
+    // Autofill searchbar with url params
+    $('#asset-quick-search-name')[0].value = url.searchParams.get("filter");
+
+    // Quick search
+    $('#asset-quick-search-name').keyup(function(e) {
+      if(e.which == 13) { // Enter Key
+
+        var sort_options = url.searchParams.get("sort");
+        var n_options = url.searchParams.get("n");
+        if (url.searchParams.get("n") == null) {
+          n_options = NB_ROWS;
+        }
+        window.location = "/assets/list?sort="+sort_options+"&filter="+e.target.value+"&n="+n_options;
+
+      } else if (e.which == 27) { e.target.value = ""; } // Escape Key
+    });
+
+    // Delete asset modal
+    $("#modal-delete-asset").on('show.bs.modal', function (e) {
+      id = e.relatedTarget.getAttribute('asset-id');
+      asset_value = e.relatedTarget.getAttribute('asset-value');
+      $("div#delete-asset").attr('asset-id', id);
+      $("div#delete-asset").html("Asset: <b>"+asset_value+"</b><br/><br/>");
+    });
+    $("button.btn-delete-asset").on('click', function (e) {
+      csrf_token = $("div#delete-asset").attr('csrf-token');
+      id = $("div#delete-asset").attr('asset-id');
+      delete_asset_url = "/assets/delete/"+id;
+      var request = $.ajax({
+        url: delete_asset_url,
+        method: "POST",
+        data: "csrfmiddlewaretoken="+csrf_token,
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+    // Delete asset group modal
+    $("#modal-delete-asset-group").on('show.bs.modal', function (e) {
+      id = e.relatedTarget.getAttribute('asset-group-id');
+      asset_group_value = e.relatedTarget.getAttribute('asset-group-value');
+      $("div#delete-asset-group").attr('asset-group-id', id);
+      $("div#delete-asset-group").html("Asset Group Name: <b>"+asset_group_value+"</b><br/><br/>");
+    });
+    $("button.btn-delete-asset-group").on('click', function (e) {
+      csrf_token = $("div#delete-asset-group").attr('csrf-token');
+      id = $("div#delete-asset-group").attr('asset-group-id');
+      delete_asset_group_url = "/assets/deletegroup/"+id;
+      var request = $.ajax({
+        url: delete_asset_group_url,
+        method: "POST",
+        data: "csrfmiddlewaretoken="+csrf_token,
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+    // Delete selected assets
+    $("a.btn-delete-selected").on('click', function(eventObject) {
+      assets_to_delete = [];
+      $("input[name='asset']").each(function(cbx){
+        if (this.checked) {
+          assets_to_delete.push(this.value)
+        }
+      })
+
+      if (assets_to_delete.length != 0){
+        delete_url="/assets/delete"
+        var request = $.ajax({
+          url: delete_url,
+          method: "POST",
+          data: JSON.stringify(assets_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    // Manage nb_rows_per_page //TODO: debug
+    // _nb_rows = getUrlParameter('n')
+    _nb_rows = url.searchParams.get("n");
+    if (typeof _nb_rows === "undefined") {
+
+    } else {
+      $('#nb_rows_per_page option:eq('+_nb_rows+')').prop('selected', true);
+    }
+
+    $('#nb_rows_per_page').change(function(e){
+      nb_rows = e.target.value;
+      url.searchParams.set("n", nb_rows);
+      window.location = url.search;
+    });
+
+    // Fixing bootstrap tab issue
+    $('#menu_tabs > ul > li > a').click(function (e) {
+      $(this).removeClass('active');
+    });
+
+  });
+</script>
+
+{% endblock %}

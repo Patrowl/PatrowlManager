@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <form action="/scans/campaigns/delete/{{ scan_campaign.id }}" method="post" class="form-horizontal">
+
+    <legend>Do you confirm the deletion?</legend>
+    {% csrf_token %}
+    <p>Scan Campaign ID: {{ scan_campaign.scan_campaign_id }}</p>
+    <p>Title: {{ scan_campaign.title }}</p>
+    <div class="form-group">
+      <button type="submit" class="btn btn-warning">Delete</button>
+      <button class="btn btn-primary"><a href="/scans/campaigns/list">Cancel</a></button>
+    </div>
+  </form>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock %}
