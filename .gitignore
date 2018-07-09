@@ -13,3 +13,4 @@ media/reports/*
 var/tmp/db.json
 var/log/*.log
 **/migrations/[0-9]*.py
+.idea
