@@ -6,8 +6,10 @@ from django.contrib.auth import views as auth_views
 from users.forms import LoginForm
 from users import views as user_views
 
+
 def i18n_javascript(request):
-  return admin.site.i18n_javascript(request)
+    return admin.site.i18n_javascript(request)
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -23,7 +25,7 @@ urlpatterns = [
     url(r'^search', include('search.urls')),
     url(r'^', include('users.urls'), name='home'),
 
-    #url(r'^login/$', auth_views.login, kwargs={'template_name': 'login.html'}, name='login'),
+    # url(r'^login/$', auth_views.login, kwargs={'template_name': 'login.html'}, name='login'),
     url(r'^login$', auth_views.login, {
         'template_name': 'login.html',
         'authentication_form': LoginForm}, name='login'),
@@ -32,16 +34,17 @@ urlpatterns = [
 
     url(r'^admin/jsi18n/', i18n_javascript),
 
-    #url(r'^api-auth/', include('rest_framework.urls')),
     # url(r'^api-auth/', include('rest_framework.urls')),
 ]
 
 # debug toolbar & download file
 if settings.DEBUG:
     import debug_toolbar
+
     urlpatterns = [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+                      url(r'^__debug__/', include(debug_toolbar.urls)),
+                  ] + urlpatterns
 
     from django.conf.urls.static import static
+
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
