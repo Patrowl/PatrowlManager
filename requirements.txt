@@ -20,8 +20,7 @@ jsonfield==2.0.2
 kombu
 libmagic==1.0
 meld3==1.0.2
-psycopg2
-psycopg2-binary
+psycopg2-binary==2.7.5
 python-magic==0.4.15
 python-memcached==1.59
 pytz==2018.3
