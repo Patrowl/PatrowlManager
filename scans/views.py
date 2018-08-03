@@ -9,8 +9,8 @@ from django.db.models import Count, F, Q#, Min, Sum, Avg
 from django.views.decorators.csrf import csrf_exempt
 from django_celery_beat.models import PeriodicTask, IntervalSchedule, PeriodicTasks
 
+from app.settings import TIME_ZONE
 from .forms import ScanCampaignForm, ScanDefinitionForm
-
 from .models import Scan, ScanCampaign, ScanDefinition
 from engines.models import Engine, EnginePolicy, EngineInstance, EnginePolicyScope
 from engines.tasks import startscan_task, start_periodic_scan_task, stopscan_task
@@ -594,7 +594,8 @@ def add_scan_def_view(request):
             if form.data['start_scan'] == "scheduled":
                 try:
                     if form.cleaned_data['scheduled_at'] > datetime.now(): # check if it's future ...
-                        scan_definition.scheduled_at = form.cleaned_data['scheduled_at']
+                        scan_definition.scheduled_at = timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at'])
+                        # scan_definition.scheduled_at = form.cleaned_data['scheduled_at']
                         scan_definition.enabled = True
                 except:
                     scan_definition.scheduled_at = None
@@ -797,6 +798,7 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         else:
             engine = None
 
+
     scan = Scan.objects.create(
         scan_definition=scan_def,
         title=scan_def.title,
@@ -823,7 +825,6 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     for assetgroup in scan_def.assetgroups_list.all():
         for a in assetgroup.assets.all():
             scan.assets.add(a)
-            #assets_list.append(a.value)
             assets_list.append({
                 "id": a.id,
                 "value": a.value.strip(),
@@ -850,21 +851,19 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         "owner_id": owner_id
     }
 
-    # Format eta
-    if eta != None:
-        eta = timezone('Europe/Paris').localize(eta)
-    else:
-        eta = timezone('Europe/Paris').localize(datetime.now())
+    scan_options = {
+        "args": [parameters],
+        "queue": 'scan-'+scan.engine_type.name.lower(),
+        "routing_key": 'scan.'+scan.engine_type.name.lower(),
+        "retry": False,
+        "countdown": 1
+    }
+
+    if eta is not None:
+        scan_options.update({"eta": eta})
 
     # enqueue the task in the right queue
-    resp = startscan_task.apply_async(
-        args=[parameters],
-        queue='scan-'+scan.engine_type.name.lower(),
-        routing_key='scan.'+scan.engine_type.name.lower(),
-        retry=False,
-        eta=eta
-    )
-
+    resp = startscan_task.apply_async(**scan_options)
     scan.status = "enqueued"
     scan.task_id = uuid.UUID(str(resp))
     scan.save()

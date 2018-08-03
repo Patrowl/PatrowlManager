@@ -1,6 +1,16 @@
 New features/fixes in the latest update
 =====================================
 
+August 3, 2018
+---
+* FEATURE: None
+* FIX:
+  - #7 Error Rules Route /add
+  - #8 Error / Add New Scan | kombu.exceptions.OperationalError
+  - #11 Remove rabbitMQ from supervisord.conf
+* DOC: None
+* MISC: None
+
 June 29, 2018
 ---
 * FEATURE: None
