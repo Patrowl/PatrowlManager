@@ -33,7 +33,7 @@ class ScanDefinition(models.Model):
     assets_list      = models.ManyToManyField(Asset,  blank=True)
     assetgroups_list = models.ManyToManyField(AssetGroup, blank=True)
     title            = models.CharField(max_length=256)
-    description      = models.CharField(max_length=256, default='n/a')
+    description      = models.CharField(max_length=256, blank=True)
     every            = models.IntegerField(null=True, blank=True)
     period           = models.CharField(choices=PERIOD_CHOICES, default='hours', max_length=10, null=True, blank=True)
     enabled          = models.BooleanField(default=False)
