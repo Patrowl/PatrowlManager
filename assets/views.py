@@ -347,7 +347,7 @@ def edit_asset_view(request, asset_id):
     if request.method == 'GET':
         form = AssetForm(instance=asset)
     elif request.method == 'POST':
-        form = AssetForm(request.POST)
+        form = AssetForm(request.POST, instance=asset)
         if form.is_valid():
             asset.value = form.cleaned_data['value']
             asset.name = form.cleaned_data['name']
