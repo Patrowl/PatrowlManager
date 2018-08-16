@@ -1,9 +1,7 @@
 ![](https://github.com/Patrowl/PatrowlDocs/blob/master/images/logos/logo-patrowl-light.png)
-[![Known Vulnerabilities](https://snyk.io/test/github/Patrowl/PatrowlManager/badge.svg)](https://snyk.io/test/github/Patrowl/PatrowlManager)
-
-
 
 [![Join the chat at https://gitter.im/Patrowl/Support](https://badges.gitter.im/Patrowl/Support.png)](https://gitter.im/Patrowl/Support)
+[![Known Vulnerabilities](https://snyk.io/test/github/Patrowl/PatrowlManager/badge.svg)](https://snyk.io/test/github/Patrowl/PatrowlManager)
 
 # **PatrOwl**
 [PatrOwl](https://www.patrowl.io/) is a scalable, free and open-source solution for orchestrating Security Operations.  

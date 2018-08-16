@@ -5,7 +5,7 @@ billiard==3.5.0.3
 celery==4.0.2
 certifi==2017.4.17
 chardet==3.0.4
-Django==1.11.10
+Django==1.11.11
 django-celery-beat==1.0.1
 django-celery-results==1.0.1
 django-datetime-widget==0.9.3
@@ -28,7 +28,7 @@ requests==2.18.1
 singledispatch==3.4.0.3
 six==1.10.0
 sqlparse==0.2.3
-supervisor==3.3.2
+supervisor==3.3.3
 thehive4py==1.4.3
 tornado==4.5.1
 urllib3==1.21.1
