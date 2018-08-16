@@ -14,8 +14,8 @@ import datetime, os, json
 
 ASSET_TYPES = (
     ('ip', 'ip'),
-    # ('ip-range', 'ip-range'), # 192.168.1.0-256
-    # ('subnet', 'subnet'), # # 192.168.1.0/24
+    ('ip-range', 'ip-range'), # 192.168.1.0-256
+    ('ip-subnet', 'ip-subnet'), # # 192.168.1.0/24
     ('fqdn', 'fqdn'),
     ('domain', 'domain'),
     ('url', 'url'),

@@ -1,6 +1,16 @@
 New features/fixes in the latest update
 =====================================
 
+August 16, 2018
+---
+* FEATURE:
+  - Support IP Ranges and IP Subnets as asset types. It dynamically creates an asset group too. When a scan match an IP addr included in an IP range/subnet but unknown in the local db, an asset is dynamically created.
+* FIX:
+  - Scan details: pagineation issue
+* DOC:
+  - Add integration with Synk.io (checks for vulnerable dependencies)
+* MISC: None
+
 August 3, 2018
 ---
 * FEATURE: None

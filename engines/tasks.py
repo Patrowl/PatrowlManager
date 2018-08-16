@@ -8,9 +8,10 @@ from celery import shared_task
 from celery.task.control import revoke
 from .models import EngineInstance, Engine, EnginePolicyScope
 from findings.models import Finding, RawFinding
-from assets.models import Asset
+from assets.models import Asset, AssetGroup
 from scans.models import Scan, ScanDefinition
 from events.models import Event
+from common.utils import net
 import requests, json, time, datetime, random, uuid, hashlib, re, os
 from copy import deepcopy
 
@@ -155,10 +156,11 @@ def startscan_task(self, params):
     # -3- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES # test value
     scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
-    print("scan status: {}".format(scan_status))
+    #print("scan status before insane looping: {}".format(scan_status))
 
     while not scan_status in ['FINISHED', 'READY'] and retries > 0:
-        if scan_status in ['SCANNING', 'PAUSING']:
+        #print "## scan_status:", scan_status
+        if scan_status in ['STARTED', 'SCANNING', 'PAUSING', 'STOPING']:
             retries = NB_MAX_RETRIES
         else:
             Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - bad scanner status: {} (retries left={}).".format(self.request.id, scan_status, retries),
@@ -423,11 +425,44 @@ def _get_scan_status(engine, scan_id):
         if resp.status_code == 200:
             scan_status = json.loads(resp.text)['status'].strip().upper()
         else:
-            scan_status = "error"
+            scan_status = "ERROR"
     except requests.exceptions.RequestException:
-        scan_status = "error"
+        scan_status = "ERROR"
 
     return scan_status
+
+
+def _create_asset_on_import(asset_value, scan, asset_type = 'ip'):
+    Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}'.".format(asset_value), type="DEBUG", severity="INFO", scan=scan)
+
+    # Search parent asset
+    parent_asset = None
+    for pa in scan.assets.filter(type__in=['ip-subnet', 'ip-range']):
+        if net.is_ip_in_ipset(ip=asset_value, ipset=pa.value):
+            parent_asset = pa
+            break
+    if parent_asset == None: return False
+
+    # Create the new asset ...
+    asset_args = {
+        'value': asset_value,
+        'name': "{} (from '{}')".format(asset_value, parent_asset.name),
+        'type': asset_type,
+        'criticity': parent_asset.criticity,
+        'description': "Asset dynamically created. Imported desc: {}".format(parent_asset.description),
+        'owner': parent_asset.owner
+    }
+    asset = Asset(**asset_args)
+    asset.save()
+    scan.assets.add(asset)
+
+    # Then the asset to every related asset groups
+    for ag in AssetGroup.objects.filter(assets__type__in=['ip-subnet', 'ip-range']):
+        for aga in ag.assets.all():
+            if net.is_ip_in_ipset(ip=asset_value, ipset=aga.value):
+                ag.assets.add(asset) ; ag.save()
+                ag.calc_risk_grade() ; ag.save()
+    return asset
 
 
 def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=None):
@@ -437,7 +472,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         scan_id = scan.id
     else:
         Event.objects.create(message="[EngineTasks/_import_findings()/direct] Importing findings manually.", type="DEBUG", severity="INFO")
-        #scan_id = "direct"
         scan_id = 0
         #scan = {"id": "direct", "owner": 1, "engine_type": "todo"}
     #print "findings:", findings
@@ -457,12 +491,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
         for addr in list(finding['target']['addr']):
             asset = Asset.objects.filter(value=addr).first()
-            if asset:
-                assets.append(asset)
-        if len(assets) == 0:
-            Event.objects.create(message="[EngineTasks/_import_findings()] asset not found: {}.".format(finding['target']['addr']), type="ERROR", severity="ERROR", scan=scan)
-            #return False
-            continue
+            if asset == None:
+                asset = _create_asset_on_import(asset_value=addr, scan=scan)
+            assets.append(asset)
+            if not scan.assets.filter(value=asset.value):
+                scan.assets.add(asset)
 
         # Prepare metadata fields
         risk_info = {}
