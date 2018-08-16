@@ -1,5 +1,7 @@
 ![](https://github.com/Patrowl/PatrowlDocs/blob/master/images/logos/logo-patrowl-light.png)
-[![Known Vulnerabilities](https://snyk.io/test/github/Patrowl/PatrowlManager/badge.svg)?targetFile=requirements.txt](https://snyk.io/test/github/Patrowl/PatrowlManager)
+
+
+[![Known Vulnerabilities](https://snyk.io/test/github/Patrowl/PatrowlManager/badge.svg)](https://snyk.io/test/github/Patrowl/PatrowlManager)
 
 
 [![Join the chat at https://gitter.im/Patrowl/Support](https://badges.gitter.im/Patrowl/Support.png)](https://gitter.im/Patrowl/Support)
