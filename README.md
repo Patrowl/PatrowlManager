@@ -2,6 +2,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/Patrowl/PatrowlManager/badge.svg)?targetFile=requirements.txt](https://snyk.io/test/github/Patrowl/PatrowlManager)
 
 
+
 [![Join the chat at https://gitter.im/Patrowl/Support](https://badges.gitter.im/Patrowl/Support.png)](https://gitter.im/Patrowl/Support)
 
 # **PatrOwl**
