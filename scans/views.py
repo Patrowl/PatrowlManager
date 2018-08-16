@@ -176,7 +176,7 @@ def detail_scan_view(request, scan_id):
         scan_findings = paginator_findings.page(paginator_findings.num_pages)
 
     # Pagination of events
-    scan_events = scan.event_set.all()
+    scan_events = scan.event_set.all().order_by('-id')
     paginator_events = Paginator(scan_events, 50)
     page_event = request.GET.get('p_events')
     try:

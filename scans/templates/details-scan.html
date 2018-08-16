@@ -134,7 +134,7 @@ function toggle(source, element) {
               </tr>
             </thead>
             <tbody>
-            {% for asset in assets %}
+            {% for asset in assets|sort_by:"criticity,value" %}
             <tr>
             <!-- <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}?raw=true'> -->
               <td>{{ asset.value|truncatechars:35 }}</td>
@@ -666,7 +666,7 @@ function toggle(source, element) {
   // Goto page
   var gotopage = function gotopage(page_num, target = "events") {
     new_hash = "";
-    if (target == "scan_events") {
+    if (target == "events") {
       url.searchParams.set("p_events", page_num);
       new_hash = "#events";
     } else if (target == "findings") {

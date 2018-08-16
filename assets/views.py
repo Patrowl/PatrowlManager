@@ -330,10 +330,29 @@ def add_asset_view(request):
                 'criticity': form.cleaned_data['criticity'],
                 'description': form.cleaned_data['description'],
                 'owner': request.user,
-                #'status': form.cleaned_data['status'],
             }
             asset = Asset(**asset_args)
             asset.save()
+
+            if asset.type in ['ip-range', 'ip-subnet']:
+                # Create an asset group dynamically
+                assetgroup_args = {
+                    'name': "{} assets".format(asset.name),
+                    'criticity': asset.criticity,
+                    'description': "Asset dynamically created. Imported desc: {}".format(asset.description),
+                    'owner': request.user
+                }
+                asset_group = AssetGroup(**assetgroup_args)
+                asset_group.save()
+
+                # Add the asset to the new group
+                asset_group.assets.add(asset)
+                asset_group.save()
+
+                # Caculate the risk grade
+                asset_group.calc_risk_grade()
+                asset_group.save()
+
             messages.success(request, 'Creation submission successful')
 
             return redirect('list_assets_view')
