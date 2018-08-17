@@ -85,7 +85,7 @@ class Scan(models.Model):
     title           = models.CharField(max_length=256)
     status          = models.CharField(max_length=20)
     engine          = models.ForeignKey(EngineInstance, null=True, blank=True, on_delete=models.SET_NULL)
-    engine_type     = models.ForeignKey(Engine,null=True,  on_delete=models.SET_NULL)
+    engine_type     = models.ForeignKey(Engine,null=True, on_delete=models.SET_NULL)
     engine_policy   = models.ForeignKey(EnginePolicy, null=True, on_delete=models.SET_NULL)
     owner           = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     summary         = JSONField(null=True, blank=True)

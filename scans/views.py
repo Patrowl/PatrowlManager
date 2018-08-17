@@ -17,11 +17,10 @@ from engines.tasks import startscan_task, start_periodic_scan_task, stopscan_tas
 from findings.models import RawFinding, Finding
 from assets.models import Asset, AssetGroup
 
-import uuid, random, datetime, json, copy, os, tempfile, zipfile, time
+import uuid, random, datetime, json, copy, os, tempfile, zipfile, time, csv
 from datetime import datetime, timedelta
 from pytz import timezone
-import xmlrpclib
-import shlex
+import xmlrpclib, shlex
 
 
 @csrf_exempt
@@ -366,6 +365,38 @@ def get_scan_report_json(request, scan_id):
     response = HttpResponse(wrapper, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename=report_'+os.path.basename(filename)
     response['Content-Length'] = os.path.getsize(filename)
+
+    return response
+
+def get_scan_report_csv(request, scan_id):
+    scan = get_object_or_404(Scan, id=scan_id)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=report_{}.csv'.format(scan_id)
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'asset_value', 'asset_type',
+        'engine_type', 'engine_name',
+        'scan_title', 'scan_policy',
+        'finding_id', 'finding_type', 'finding_status', 'finding_tags',
+        'finding_severity', 'finding_description', 'finding_solution', 'finding_hash',
+        'finding_creation_date', 'finding_risk_info', 'finding_cvss',
+        'finding_links'
+        ])
+    for finding in RawFinding.objects.filter(scan=scan).order_by('asset__name', 'severity', 'title'):
+        if 'links' in finding.risk_info.keys():
+            finding_links = ", ".join(finding.risk_info['links'])
+        else:
+            finding_links = None
+        writer.writerow([
+            finding.asset.value, finding.asset.type,
+            scan.engine_type.name, scan.engine.name,
+            scan.title, scan.engine_policy.name,
+            finding.id, finding.type, finding.status, ','.join(finding.tags),
+            finding.severity, finding.description, finding.solution, finding.hash,
+            finding.created_at, finding.risk_info, finding.risk_info['cvss_base_score'],
+            finding_links
+        ])
 
     return response
 

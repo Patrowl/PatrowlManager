@@ -21,7 +21,9 @@ urlpatterns = [
     url(r'^stop/(?P<scan_id>[0-9]+)$', views.stop_scan, name='stop_scan'),
     # ex: /scans/report/json/33
     url(r'^report/json/(?P<scan_id>[0-9]+)$', views.get_scan_report_json, name='get_scan_report_json'),
-    # ex: /scans/report/json/33
+    # ex: /scans/report/csv/33
+    url(r'^report/csv/(?P<scan_id>[0-9]+)$', views.get_scan_report_csv, name='get_scan_report_csv'),
+    # ex: /scans/report/html/33
     url(r'^report/html/(?P<scan_id>[0-9]+)$', views.get_scan_report_html, name='get_scan_report_html'),
     # ex: /scans/reportzip/33
     url(r'^reportzip/(?P<scan_id>[0-9]+)$', views.send_scan_reportzip, name='send_scan_reportzip'),

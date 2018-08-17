@@ -33,7 +33,7 @@ class RawFinding(models.Model):
     hash        = models.CharField(max_length=256)
     confidence  = models.CharField(max_length=10)
     severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)  # low, medium, high
-    severity_num= models.IntegerField(default=1, blank=True, null=True)  # low, medium, high
+    severity_num= models.IntegerField(default=1, blank=True, null=True)
     scopes      = models.ManyToManyField(EnginePolicyScope, blank=True)
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)
@@ -140,8 +140,6 @@ class Finding(models.Model):
 
     class Meta:
         db_table = 'findings'
-        # ordering = ['-severity']
-        #ordering = ['-severity']
 
     def __str__(self):
         return "{}/{}".format(self.id, self.title)
@@ -172,7 +170,6 @@ class Finding(models.Model):
             rules = Rule.objects.filter(enabled=True, scope='finding')
         else:
             rules = Rule.objects.filter(enabled=True, scope='finding', trigger=trigger)
-        #print rules
         nb_matches = 0
         for rule in rules:
             kwargs = {
@@ -180,7 +177,6 @@ class Finding(models.Model):
                 rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
             }
             if Finding.objects.filter(**kwargs):
-                #print "rule '{}' matches".format(rule.title)
                 nb_matches += 1
                 rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset)
         return nb_matches

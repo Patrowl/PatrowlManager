@@ -432,6 +432,7 @@ function toggle(source, element) {
         <dt>Elaspsed:</dt><dd>{{ scan.finished_at|get_time_diff:scan.started_at }}</dd>
         <dt>Reports:</dt><dd>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/json/{{ scan.id }}'">json</button>
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/csv/{{ scan.id }}'">csv</button>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/html/{{ scan.id }}'">html</button>
           <button type="button" class="btn btn-default btn-xs" onclick="location.href='#'">raw</button>
         </dd>

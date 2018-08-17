@@ -127,6 +127,7 @@ function toggle(source, element) {
 
   <a href="#" class="btn-compare-selected">// Compare findings</a><br/>
   <a href="/findings/add">+ Add a new finding manually</a><br/>
+  <a class="text-default btn-export-selected" href="#">% Export selected findings (CSV)</a><br/>
   <a class="text-warning btn-ack" href="#">* Ack selected findings</a><br/>
   <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a>
 	<br/><br/>
@@ -429,9 +430,8 @@ function toggle(source, element) {
     $("button.btn-delete-finding").on('click', function (e) {
       csrf_token = $("div#delete-finding").attr('csrf-token');
       finding_id = $("div#delete-finding").attr('finding-id');
-      delete_finding_url = "/findings/delete/"+finding_id;
       var request = $.ajax({
-        url: delete_finding_url,
+        url: "/findings/delete/"+finding_id,
         method: "POST",
         data: "csrfmiddlewaretoken="+csrf_token,
         success: function(){
@@ -449,11 +449,9 @@ function toggle(source, element) {
           findings_to_delete.push(this.value)
         }
       })
-
       if (findings_to_delete.length != 0){
-        delete_url="/findings/delete"
         var request = $.ajax({
-          url: delete_url,
+          url: "/findings/delete",
           method: "POST",
           data: JSON.stringify(findings_to_delete),
           contentType: "application/json"
@@ -461,6 +459,30 @@ function toggle(source, element) {
         request.done(function(response){
           if (response.status == 'success'){location.reload()}
         });
+      }
+    });
+
+    // Export selected findings
+    $("a.btn-export-selected").on('click', function(eventObject) {
+      findings_to_export = [];
+      $("input[name='finding']").each(function(cbx){
+        if (this.checked) {
+          findings_to_export.push(this.value)
+        }
+      })
+      if (findings_to_export.length != 0){
+        var request = $.ajax({
+					headers: {
+				    Accept: "text/csv; charset=utf-8"
+				  },
+          url: "/findings/export",
+          method: "POST",
+          data: JSON.stringify(findings_to_export),
+          contentType: "application/json"
+        });
+        // request.done(function(response){
+        //   if (response.status == 'success'){location.reload()}
+        // });
       }
     });
 
@@ -475,9 +497,8 @@ function toggle(source, element) {
 
       if (findings_to_ack.length != 0){
         console.log("ack");
-        ack_url="/findings/status"
         var request = $.ajax({
-          url: ack_url,
+          url: "/findings/status",
           method: "POST",
           data: JSON.stringify(findings_to_ack),
           contentType: "application/json"

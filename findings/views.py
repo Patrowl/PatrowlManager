@@ -13,7 +13,7 @@ from scans.models import Scan, ScanDefinition
 from events.models import Event
 from rules.models import Rule
 from engines.tasks import importfindings_task
-import json, os, time, collections
+import json, os, time, collections, csv
 from datetime import date, datetime
 from uuid import UUID
 
@@ -270,6 +270,46 @@ def delete_findings(request):
 
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
+
+@csrf_exempt #not secure!!!
+def export_findings_csv(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error'})
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=export_findings.csv'
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'asset_value', 'asset_type',
+        'engine_type', 'engine_name',
+        'scan_title', 'scan_policy',
+        'finding_id', 'finding_type', 'finding_status', 'finding_tags',
+        'finding_severity', 'finding_description', 'finding_solution', 'finding_hash',
+        'finding_creation_date', 'finding_risk_info', 'finding_cvss',
+        'finding_links'
+        ])
+
+    findings = json.loads(request.body)
+    for finding_id in findings:
+        finding = Finding.objects.get(id=finding_id)
+        if 'links' in finding.risk_info.keys():
+            finding_links = ", ".join(finding.risk_info['links'])
+        else:
+            finding_links = None
+
+        writer.writerow([
+            finding.asset.value, finding.asset.type,
+            finding.scan.engine_type.name, finding.scan.engine.name,
+            finding.scan.title, finding.scan.engine_policy.name,
+            finding.id, finding.type, finding.status, ','.join(finding.tags),
+            finding.severity, finding.description, finding.solution, finding.hash,
+            finding.created_at, finding.risk_info, finding.risk_info['cvss_base_score'],
+            finding_links
+        ])
+
+    return response
+
+
 @csrf_exempt #not secure!!!
 def delete_rawfindings(request):
     if request.method != 'POST':
@@ -491,7 +531,7 @@ def export_finding_api(request, finding_id):
         finding = get_object_or_404(Finding, id=finding_id)
         prefix = ""
     export_format = request.GET.get("format", None)
-    if not export_format or export_format not in ['json', 'html', 'stix', 'pdf']:
+    if not export_format or export_format not in ['json', 'html', 'stix', 'pdf', 'csv']:
         return JsonResponse({"status": "error", "reason": "bad format"}, json_dumps_params={'indent': 2})
 
     res = {}
@@ -500,8 +540,9 @@ def export_finding_api(request, finding_id):
         res = model_to_dict(finding, exclude="scopes")
         res.update({"scopes": list(finding.scopes.values())})
         response = HttpResponse(json.dumps(res, default=json_serial), content_type='application/json')
-        response['Content-Disposition'] = 'attachment; filename=finding-{}{}.{}'.format(prefix, finding.id, export_format)
+        response['Content-Disposition'] = 'attachment; filename=export_finding_{}{}.json'.format(prefix, finding.id)
         return response
+
     elif export_format == 'stix':
         res = {
             "type": "vulnerability",
@@ -510,11 +551,41 @@ def export_finding_api(request, finding_id):
             "id": "patrowl-{}{}".format(prefix, finding.id)
         }
         response = HttpResponse(json.dumps(res, default=json_serial), content_type='application/json')
-        response['Content-Disposition'] = 'attachment; filename=finding-{}{}.{}'.format(prefix, finding.id, 'stix.json')
+        response['Content-Disposition'] = 'attachment; filename=export_finding_{}{}.stix.json'.format(prefix, finding.id)
         return response
 
     elif export_format == 'html':
         return render(request, 'report-finding.html', {'finding': finding})
+
+    elif export_format == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=export_finding_{}{}.csv'.format(prefix, finding.id)
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow([
+            'asset_value', 'asset_type',
+            'engine_type', 'engine_name',
+            'scan_title', 'scan_policy',
+            'finding_id', 'finding_type', 'finding_status', 'finding_tags',
+            'finding_severity', 'finding_description', 'finding_solution', 'finding_hash',
+            'finding_creation_date', 'finding_risk_info', 'finding_cvss',
+            'finding_links'
+            ])
+        if 'links' in finding.risk_info.keys():
+            finding_links = ", ".join(finding.risk_info['links'])
+        else:
+            finding_links = None
+        writer.writerow([
+            finding.asset.value, finding.asset.type,
+            finding.scan.engine_type.name, finding.scan.engine.name,
+            finding.scan.title, finding.scan.engine_policy.name,
+            finding.id, finding.type, finding.status, ','.join(finding.tags),
+            finding.severity, finding.description, finding.solution, finding.hash,
+            finding.created_at, finding.risk_info, finding.risk_info['cvss_base_score'],
+            finding_links
+        ])
+
+        return response
+
 
 
 def json_serial(obj):

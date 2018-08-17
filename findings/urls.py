@@ -34,6 +34,8 @@ urlpatterns = [
     url(r'^status$', views.change_findings_status, name='change_findings_status'),
     # ex: /findings/rstatus (POST params)
     url(r'^rstatus$', views.change_rawfindings_status, name='change_rawfindings_status'),
+    # ex: /findings/export (POST params)
+    url(r'^export$', views.export_findings_csv, name='export_findings_csv'),
     # ex: /findings/api/v1/stats
     url(r'^api/v1/stats$', views.get_findings_stats, name='get_findings_stats'),
     # ex: /findings/api/v1/gen_alerts/2
@@ -44,7 +46,7 @@ urlpatterns = [
     url(r'^api/v1/alert/(?P<finding_id>[0-9]+)$', views.send_finding_alerts, name='send_finding_alerts'),
     # ex: /findings/api/v1/update?severity=high
     url(r'^api/v1/update/(?P<finding_id>[0-9]+)$', views.update_finding_api, name='update_finding_api'),
-    # ex: /findings/8/export?format=html
+    # ex: /findings/8/export?format=html|csv
     url(r'^api/v1/export/(?P<finding_id>[0-9]+)$', views.export_finding_api, name='export_finding_api'),
     # ex: /findings/8
     url(r'^(?P<finding_id>[0-9]+)$', views.get_finding, name='get_finding'),
