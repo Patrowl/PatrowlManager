@@ -26,7 +26,6 @@ div.tile div { font-size: large; }
 div.tile-high { border-color: red; }
 div.tile-medium { border-color: orange; }
 div.tile-low { border-color: #efe636; }
-/* div.tile-low { border-color: #3498db; } */
 div.tile-info { border-color: lightgrey; }
 
 div.risk-grade { font-size: xx-large; padding: 10px; border-radius: 5px; }
@@ -104,7 +103,6 @@ div.risk-trends {
         <dd>
           <a href="/assets/report/json/{{ asset.id }}">json</a> -
           <a href="/assets/report/html/{{ asset.id }}">html</a> - pdf - raw
-          <!-- <a href="/assets/report/pdf/{{ asset.id }}">pdf</a> -->
         </dd>
       </dl>
     </div><!-- End of first col -->
@@ -114,7 +112,6 @@ div.risk-trends {
         <b>Findings Stats </b><span class="glyphicon glyphicon-stats"></span>
       </div>
       <div class="row finding-stats">
-        <!-- <div class="col-md-3 tile" style="outline: 1px solid red;"> -->
         <div class="col-md-3">
           <div class="tile tile-high">
       		    <div>High:</div><span class="label label-danger">{{findings_stats.high}}</span>
@@ -227,7 +224,6 @@ div.risk-trends {
   </ul>
   <div class="tab-content">
     <div id="findings_div" class="tab-pane fade in active">
-      <!-- <h4>Findings</h4> -->
       <div class="dropdown">
         <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
           Actions
@@ -292,7 +288,6 @@ div.risk-trends {
       </table>
     </div>
     <div id="remediations_div" class="tab-pane fade">
-      <!-- <h5>Remediations</h5> -->
       <table class="table table-hover" id="table" data-toggle="table">
         <thead>
           <tr>
@@ -335,12 +330,10 @@ div.risk-trends {
       </table>
     </div>
     <div id="scans_div" class="tab-pane fade">
-      <!-- <h4>Scans</h4> -->
       <h5>Scan definitions [<a href="/scans/defs/add?asset_id={{asset.id}}">+ add new</a>]</h5>
       <table class="table table-hover" id="table" data-toggle="table">
         <thead>
           <tr>
-            <!-- <th><input type="checkbox" onClick="toggle(this)" /></th> -->
             <th>Title</th>
             <th># Scans</th>
             <th>Type</th>
@@ -353,7 +346,6 @@ div.risk-trends {
         <tbody>
           {% for scan_def in scan_defs %}
           <tr>
-            <!-- <td><input type="checkbox" class="radio" name="scan_defs" value="{{ scan_def.id }}"/></td> -->
             <td><a href="/scans/defs/details/{{ scan_def.id }}" class="text-primary">{{ scan_def.title }}</a></td>
             <td>{{ scan_def.scan_set_count }}</td>
             <td>{{ scan_def.scan_type }}</td>
@@ -398,7 +390,6 @@ div.risk-trends {
       <table class="table table-hover" id="table" data-toggle="table">
         <thead>
           <tr>
-            <!-- <th data-field="cb"><input type="checkbox" onClick="toggle(this)" /></th> -->
             <th data-field="title">Title</th>
             <th data-field="status">Status</th>
             <th data-field="progress" style="width:20%">Progress</th>
@@ -409,7 +400,6 @@ div.risk-trends {
         <tbody>
           {% for scan in scans %}
             <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
-              <!-- <td><input type="checkbox" class="radio" name="scan" value="{{ scan.id }}"/></td> -->
               <td>[{{ scan.engine_type_name }}] {{ scan.title }}</td>
               {% if scan.status == "started" %}
               <td class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:orange" title="Started"></span></td>
@@ -456,15 +446,6 @@ div.risk-trends {
               <td>
                 <button type="button" class="btn btn-default btn-xs" title="Details" onclick="location.href='/scans/details/{{ scan.id }}'">
                   details</button>
-                <!-- {% if scan.status == "enqueued" or scan.status == "started" %}
-                <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
-                  <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
-                {% else %}
-                <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/report/html/{{ scan.id }}'">
-                  <span class="glyphicon glyphicon-share"></span></button>
-                {% endif %}
-                <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_definition__id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
-                  Run </button> -->
                 <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
                   scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
                   <span class="glyphicon glyphicon-remove"></button>
@@ -716,7 +697,6 @@ div.risk-trends {
       </div>
 
       <!-- Modal Body -->
-      <!-- <div class="modal-body"> -->
       <div class="modal-body">
         <div id="asset-tags" csrf-token="{{ csrf_token }}">
           <!-- Content -->
@@ -1056,7 +1036,6 @@ div.risk-trends {
           dataType: "json",
           success: function( data ) {
             var re = $.ui.autocomplete.escapeRegex(req.term);
-            //var matcher = new RegExp( "^" + re, "i" ); //Start with
             var matcher = new RegExp(re, "i" ); //Start with
             response($.grep(data, function(item){return matcher.test(item.value || item.label || item);}) );
             }

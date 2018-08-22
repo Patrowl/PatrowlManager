@@ -8,9 +8,9 @@ def is_valid_subnet(subnet):
     return True
 
 
-def is_valid_ip_range(range):
-    if range.count('-') == 1:
-        last_digits = range.split('.')[:3][0]
+def is_valid_ip_range(iprange):
+    if iprange.count('-') == 1:
+        last_digits = iprange.split('.')[:3][0]
         if last_digits.isdigit() and int(last_digits) in range(0, 254):
             return True
     return False

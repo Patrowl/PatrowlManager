@@ -601,4 +601,14 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "http://whois.domaintools.com/%asset%",
         "datatypes": ["domain", "ip"]
     },
+    {
+        "name": "Shodan.io",
+        "link": "https://www.shodan.io/host/%asset%",
+        "datatypes": ["ip"]
+    },
+    {
+        "name": "Shodan.io (Search)",
+        "link": "https://www.shodan.io/search?query=%asset%",
+        "datatypes": ["ip", "domain"]
+    },
     ]
