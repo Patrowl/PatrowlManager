@@ -88,8 +88,16 @@ def detail_scan_view(request, scan_id):
     if search_filters:
         parsed_filters = shlex.shlex(search_filters)
         parsed_filters.whitespace_split = True
-        parsed_filters.commenters = ''
+        parsed_filters.quotes = '"'
+        parsed_filters.wordchars += '\''
+        #parsed_filters.commenters = ''
+        #parsed_filters.quotes = '\'\"'
         for fil in parsed_filters:
+            print "fil:", fil
+            if fil.startswith("\""):
+                fil = fil.lstrip('"')
+                fil = fil.rstrip('"')
+            print "fil:", fil
             if fil.startswith("assets:") or fil.startswith("a:") or fil.startswith("assets.value:") or fil.startswith("a.value:"):
                 assets_filters.update({"value__icontains": fil.split(':')[1]})
             elif fil.startswith("asset.criticity:") or fil.startswith("a.criticity:"):
@@ -105,6 +113,7 @@ def detail_scan_view(request, scan_id):
             else:
                 assets_filters.update({"value__icontains": fil})
 
+    print "findings_filters:", findings_filters
 
     # Search assets related to the scan
     if assets_filters == {}:

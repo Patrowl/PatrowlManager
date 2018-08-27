@@ -40,9 +40,6 @@ def create_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance, status='ACTIVE', bio="n/a", department="n/a")
         Event.objects.create(message="[User] New user created (id={}): {}".format(instance.id, instance),
                              type="CREATE", severity="DEBUG")
-    # else: # modified @todo: login
-    #     Event.objects.create(message="[User] User '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-    #                          type="UPDATE", severity="DEBUG")
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):

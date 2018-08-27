@@ -61,7 +61,7 @@ function toggle(source, element) {
 
 <ul class="breadcrumb">
   <li><a href="/findings/list">findings</a></li>
-  <li class="active">list</li>
+  <li class="active">list ({{ nb_findings }} results)</li>
 </ul>
 
 <div class="container-fluid">
@@ -81,7 +81,6 @@ function toggle(source, element) {
         <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'finding')" /></th>
         <th data-field="asset_value">Asset</th>
         <th data-field="title">Title</th>
-        <!-- <th data-field="type">Type</th> -->
         <th data-field="severity">Severity</th>
         <th data-field="status">Status</th>
         <th data-field="engine_type">From</th>
@@ -95,7 +94,6 @@ function toggle(source, element) {
       <td><input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/></td>
       <td>{{ finding.asset_name|truncatechars:60 }}</td>
       <td>{{ finding.title|truncatechars:60 }}</td>
-      <!-- <td>{{ finding.type }}</td> -->
       {% if finding.severity == 'critical' or finding.severity == 'high' %}
       <td><span class="label label-danger">{{ finding.severity }}</span></td>
       {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
@@ -387,7 +385,6 @@ function toggle(source, element) {
 
 		// Apply filters
 		$('button.btn-save-filters').on('click', function (e){
-			//console.log($('#finding-filter-form'));
 			filter_findings_url = "/findings/list?";
 			if ($('input#filter_asset_value_input').val() != "") {
 				filter_findings_url+="&_asset_value="+$('#filter_asset_value_input').val();
@@ -409,7 +406,6 @@ function toggle(source, element) {
 				filter_findings_url+="&_reference="+$('#filter_finding_ref_input').val();
 				filter_findings_url+="&_reference_cond="+$('#filter_finding_ref_condition').val();
 			}
-
 
       window.location = filter_findings_url;
 		})
@@ -479,10 +475,15 @@ function toggle(source, element) {
           method: "POST",
           data: JSON.stringify(findings_to_export),
           contentType: "application/json"
-        });
-        // request.done(function(response){
-        //   if (response.status == 'success'){location.reload()}
-        // });
+        }).done(function(response){
+					var blob = new Blob([response], { type: 'text/csv' });
+	        var link = document.createElement('a');
+	        link.href = window.URL.createObjectURL(blob);
+	        link.download = "findings_export.csv";
+	        document.body.appendChild(link);
+	        link.click();
+	        document.body.removeChild(link);
+				});
       }
     });
 
@@ -496,7 +497,6 @@ function toggle(source, element) {
       });
 
       if (findings_to_ack.length != 0){
-        console.log("ack");
         var request = $.ajax({
           url: "/findings/status",
           method: "POST",
