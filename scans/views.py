@@ -198,7 +198,6 @@ def detail_scan_view(request, scan_id):
         'assets': assets,
         'assetgroups': assetgroups,
         'other_assets': other_assets,
-        # 'findings': raw_findings,
         'findings': scan_findings,
         'findings_stats': findings_stats,
         'scan_events': scan_events})
