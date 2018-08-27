@@ -92,6 +92,8 @@ def list_findings_view(request):
     findings = Finding.objects.filter(**filters).exclude(**excludes).order_by(
              'asset_name', 'severity', 'status', 'type')
 
+    nb_findings = findings.count()
+
     # Pagination findings
     nb_rows = request.GET.get('n', 50)
     findings_paginator = Paginator(findings, nb_rows)
@@ -103,7 +105,8 @@ def list_findings_view(request):
     except EmptyPage:
         findings_p = findings_paginator.page(findings_paginator.num_pages)
 
-    return render(request, 'list-findings.html', {'findings': findings_p})
+    return render(request, 'list-findings.html', {
+        'findings': findings_p, 'nb_findings': nb_findings})
 
 
 def list_asset_findings_view(request, asset_name):
@@ -530,7 +533,7 @@ def export_finding_api(request, finding_id):
     else:
         finding = get_object_or_404(Finding, id=finding_id)
         prefix = ""
-    export_format = request.GET.get("format", None)
+    export_format = request.GET.get("format", 'csv')
     if not export_format or export_format not in ['json', 'html', 'stix', 'pdf', 'csv']:
         return JsonResponse({"status": "error", "reason": "bad format"}, json_dumps_params={'indent': 2})
 

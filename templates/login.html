@@ -23,9 +23,8 @@
                 </div>
                 <div class="panel-body">
                     <form method="post" action="{% url 'login' %}">
-                        {% csrf_token %}
-
                         <p class="bs-component">
+                          {% csrf_token %}
                             <table>
                                 <tr>
                                     <td>{{ form.username.label_tag }}</td>
