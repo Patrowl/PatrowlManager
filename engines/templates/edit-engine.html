@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<ul class="breadcrumb">
+  <li><a href="/engines/list">engines</a></li>
+  <li class="active">edit engine</li>
+</ul>
+
 <div class="container">
   <form action="/engines/types/edit/{{ engine_id }}" method="post" class="form-horizontal">
     <legend>Edit an engine type</legend>

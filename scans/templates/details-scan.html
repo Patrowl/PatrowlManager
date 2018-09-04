@@ -420,8 +420,10 @@ function toggle(source, element) {
         <dt>Status:</dt><dd>
           {% if scan.status == "finished" %}
             <span class="label label-success">Finished</span>
+            <a href="/scans/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
           {% elif scan.status == "error" %}
             <span class="label label-danger">Error</span>
+            <a href="/scans/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
           {% else %}
             <span class="label label-warning">{{ scan.status|capfirst }}</span>
           {% endif %}
@@ -707,6 +709,7 @@ function toggle(source, element) {
       }
     });
   });
+
 
   // Export finding
   $('button.btn-export-finding').on('click', function(e){

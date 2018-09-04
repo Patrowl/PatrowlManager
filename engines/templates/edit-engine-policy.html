@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<ul class="breadcrumb">
+  <li><a href="/engines/list">engines</a></li>
+  <li><a href="/engines/policies/list">policies</a></li>
+  <li class="active">edit engine policy</li>
+</ul>
+
 <div class="container">
   <form action="/engines/policies/edit/{{ policy_id }}" method="post" class="form-horizontal" enctype="multipart/form-data">
     <legend>Edit an engine policy</legend>

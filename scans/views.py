@@ -383,24 +383,20 @@ def get_scan_report_csv(request, scan_id):
         'asset_value', 'asset_type',
         'engine_type', 'engine_name',
         'scan_title', 'scan_policy',
-        'finding_id', 'finding_type', 'finding_status', 'finding_tags',
+        'finding_id', 'finding_title', 'finding_type', 'finding_status', 'finding_tags',
         'finding_severity', 'finding_description', 'finding_solution', 'finding_hash',
         'finding_creation_date', 'finding_risk_info', 'finding_cvss',
         'finding_links'
         ])
     for finding in RawFinding.objects.filter(scan=scan).order_by('asset__name', 'severity', 'title'):
-        if 'links' in finding.risk_info.keys():
-            finding_links = ", ".join(finding.risk_info['links'])
-        else:
-            finding_links = None
         writer.writerow([
             finding.asset.value, finding.asset.type,
             scan.engine_type.name, scan.engine.name,
             scan.title, scan.engine_policy.name,
-            finding.id, finding.type, finding.status, ','.join(finding.tags),
+            finding.id, finding.title, finding.type, finding.status, ','.join(finding.tags),
             finding.severity, finding.description, finding.solution, finding.hash,
             finding.created_at, finding.risk_info, finding.risk_info['cvss_base_score'],
-            finding_links
+            ", ".join(finding.links)
         ])
 
     return response

@@ -84,5 +84,7 @@ def ref_url(ref, typeref): # typeref[, url]
             cwe_id = ref
         return "https://cwe.mitre.org/data/definitions/{}.html".format(cwe_id)
 
+    if typeref == "CPE":
+        return "https://nvd.nist.gov/vuln/search/results?adv_search=true&cpe={}".format(ref)
 
     return "#"
