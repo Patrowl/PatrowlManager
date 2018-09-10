@@ -59,15 +59,15 @@
                   <dt>Created at</dt><dd>{{user.date_joined}}</dd>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-warning btn-xs" data-dismiss="modal" onclick="location.href='/users/edit/{{ user.id }}'">Edit</button>
+                <button type="button" class="btn btn-warning btn-xs" data-dismiss="modal" onclick="location.href='/admin/auth/user/{{ user.id }}/change/'">Edit</button>
                 <button type="button" class="btn btn-default btn-xs" data-dismiss="modal">Close</button>
               </div>
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/users/edit/{{ user.id }}'">
+        <button type="button" class="btn btn-default btn-xs" onclick="location.href='/admin/auth/user/{{ user.id }}/change/'">
           <span class="glyphicon glyphicon-edit"></span></button>
-        <button type="button" class="btn btn-danger btn-xs">
+        <button type="button" class="btn btn-danger btn-xs" onclick="location.href='/admin/auth/user/{{ user.id }}/delete/'">
           <span class="glyphicon glyphicon-remove"></span></button>
       </td>
     </tr>

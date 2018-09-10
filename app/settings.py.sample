@@ -6,6 +6,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '***Here goes the fucking secret. Think about changing this default value***'
 CSRF_COOKIE_SECURE = True
+CSRF_USE_SESSIONS = True
+
 #SESSION_COOKIE_SECURE = True # Only if HTTPS is enabled
 SESSION_COOKIE_HTTPONLY = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -16,9 +18,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_SSL_REDIRECT = False # Dev/test environment
 #SECURE_SSL_REDIRECT = True # Production environment, if HTTPS is enabled
 X_FRAME_OPTIONS = 'DENY'
-
-DEBUG = True    # Dev/test environment
-#DEBUG = False  # Production environment
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True    # Dev/test environment

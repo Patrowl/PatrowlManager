@@ -1,18 +1,19 @@
-#from django.shortcuts import render
-from django.contrib.auth import login, authenticate
+from django.contrib import messages
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as login_d
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from django.contrib import messages
+
 from rest_framework import viewsets
 from users.serializers import UserSerializer
-
+from users.forms import LoginForm
 from assets.models import Asset, AssetGroup
 from findings.models import Finding
 from scans.models import Scan, ScanCampaign, ScanDefinition
 from engines.models import Engine, EnginePolicy, EngineInstance
-
 from reportings.views import homepage_dashboard_view
 
 
@@ -85,7 +86,26 @@ def home(request):
     #      })
     return redirect(homepage_dashboard_view)
 
+@csrf_exempt
+def login(request):
+    default_form = LoginForm()
+    if request.method == "POST":
+        form = LoginForm(request, data=request.POST)
+        user = authenticate(request, username=form.data["username"], password=form.data["password"])
+        if user is not None:
+            if user.is_active:
+                login_d(request, user)
+                return redirect('homepage_dashboard_view')
+            else:
+                return render(request, 'login.html', {'form': default_form})
+        else:
+            return render(request, 'login.html', {'form': default_form})
+    else:
+        return render(request, 'login.html', {'form': default_form})
+
+@csrf_exempt
 def signup(request):
+    print "prout"
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -93,8 +113,7 @@ def signup(request):
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
-            login(request, user)
-            # return redirect('home')
+            django.contrib.auth.login(request, user)
             return redirect('homepage_dashboard_view')
     else:
         form = UserCreationForm()
@@ -110,7 +129,7 @@ def list_users_view(request):
     users = User.objects.all()
     return render(request, 'list-users.html', {'users': users})
 
-
+@csrf_exempt
 def add_user_view(request):
     form = None
 

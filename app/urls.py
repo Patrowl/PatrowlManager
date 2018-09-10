@@ -23,10 +23,7 @@ urlpatterns = [
     url(r'^search', include('search.urls')),
     url(r'^', include('users.urls'), name='home'),
 
-    #url(r'^login/$', auth_views.login, kwargs={'template_name': 'login.html'}, name='login'),
-    url(r'^login$', auth_views.login, {
-        'template_name': 'login.html',
-        'authentication_form': LoginForm}, name='login'),
+    url(r'^login$', user_views.login, name='login'),
     url(r'^logout$', auth_views.logout, {'next_page': '/login'}, name='logout'),
     url(r'^signup$', user_views.signup, name='signup'),
 
