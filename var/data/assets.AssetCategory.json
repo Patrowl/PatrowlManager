@@ -214,5 +214,14 @@
       "value": "HP-UX",
       "comments": "n/a"
     }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 25,
+    "fields": {
+      "parent": 1,
+      "value": "Custom",
+      "comments": "n/a"
+    }
   }
 ]

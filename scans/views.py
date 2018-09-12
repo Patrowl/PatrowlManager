@@ -109,8 +109,9 @@ def detail_scan_view(request, scan_id):
                 findings_filters.update({"severity__icontains": fil.split(':')[1]})
             else:
                 assets_filters.update({"value__icontains": fil})
+                findings_filters.update({"title__icontains": fil})
 
-    print "findings_filters:", findings_filters
+    #print "findings_filters:", findings_filters
 
     # Search assets related to the scan
     if assets_filters == {}:

@@ -35,10 +35,11 @@ class AssetBulkForm(forms.Form):
 class AssetGroupForm(forms.ModelForm):
     class Meta:
         model = AssetGroup
-        fields = ['id', 'name', 'description', 'criticity', 'assets']
+        fields = ['id', 'name', 'description', 'criticity', 'assets', 'categories']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
+            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm'}),
         }
 
     criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))

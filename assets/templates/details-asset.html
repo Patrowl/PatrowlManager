@@ -521,7 +521,7 @@ div.risk-trends {
 
     </div>
     <div id="owners_div" class="tab-pane fade">
-      <h4>Owners</h4>
+      <h4>Owners [<a href="/assets/owners/add">+ add new</a>]</h4>
       {% for owner in asset.assetowner_set.all %}
       <dl class="dl-horizontal">
         <dt>Name</dt>
@@ -577,10 +577,10 @@ div.risk-trends {
   <ul class="messages">
       {% for message in messages %}
       <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-      <div class="alert alert-dismissible alert-success fade in">
+      <!-- <div class="alert alert-dismissible alert-success fade in">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
-      </div>
+      </div> -->
       {% endfor %}
   </ul>
   {% endif %}

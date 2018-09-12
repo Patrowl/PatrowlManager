@@ -6,15 +6,14 @@ from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Value, CharField, Case, When, Q, F, Count
 
-
 from wsgiref.util import FileWrapper
 
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.shortcuts import render, redirect, render_to_response, get_object_or_404
-
 from django.views.decorators.csrf import csrf_exempt
+
 from rest_framework.parsers import JSONParser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -317,12 +316,6 @@ def add_asset_view(request):
     elif request.method == 'POST':
         form = AssetForm(request.POST)
         if form.is_valid():
-
-            # check if the value is already stored
-            # if form.cleaned_data['value'] in [a['value'] for a in Asset.objects.filter(owner__id=request.user.id).only({"value"})]:
-            #     messages.error(request, 'Asset already saved, import another one or cancel')
-            #     return redirect('add_asset_view')
-
             asset_args = {
                 'value': form.cleaned_data['value'],
                 'name': form.cleaned_data['name'],
@@ -332,6 +325,11 @@ def add_asset_view(request):
                 'owner': request.user,
             }
             asset = Asset(**asset_args)
+            asset.save()
+
+            # Add categories
+            for cat in form.data['categories']:
+                asset.categories.add(cat)
             asset.save()
 
             if asset.type in ['ip-range', 'ip-subnet']:
@@ -354,8 +352,8 @@ def add_asset_view(request):
                 asset_group.save()
 
             messages.success(request, 'Creation submission successful')
-
             return redirect('list_assets_view')
+
     return render(request, 'add-asset.html', {'form': form })
 
 
@@ -391,9 +389,9 @@ def delete_asset_view(request, asset_id):
 
     if request.method == 'POST':
         asset.delete()
-
         messages.success(request, 'Asset successfully deleted!')
         return redirect('list_assets_view')
+
     return render(request, 'delete-asset.html', {'asset': asset})
 
 
@@ -418,6 +416,8 @@ def get_asset_tags_api(request):
 def add_asset_tags(asset, new_value):
     new_tag = AssetCategory.objects.filter(value__iexact=new_value).first()
     if not new_tag:
+        if not AssetCategory.objects.filter(value="Custom").first():
+            AssetCategory.objects.create(value="Custom", comments="custom tags")
         custom_tags = AssetCategory.objects.get(value="Custom")
         new_tag = custom_tags.add_child(value=new_value)
 
@@ -448,6 +448,7 @@ def add_asset_tags_api(request, asset_id):
         asset = get_object_or_404(Asset, id=asset_id)
         new_tag = add_asset_tags(asset, request.POST.getlist('input-search-tags')[0])
         asset.categories.add(new_tag)
+        asset.save()
         messages.success(request, 'Tag successfully added!')
 
     return redirect('detail_asset_view', asset_id=asset_id)
@@ -514,8 +515,13 @@ def add_asset_group_view(request):
 
             for asset_id in form.data.getlist('assets'):
                 asset_group.assets.add(Asset.objects.get(id=asset_id))
-
             asset_group.save()
+
+            # Add categories
+            for cat in form.data['categories']:
+                asset_group.categories.add(cat)
+            asset_group.save()
+
             asset_group.calc_risk_grade()
             asset_group.save()
             messages.success(request, 'Creation submission successful')
@@ -593,10 +599,10 @@ def bulkadd_asset_view(request):
 
                 # Manage tags (categories)
                 #@todo
-                if line[5] and line[5] != "":
-                    print line[5]
-                    for tag in line[5].split(","):
-                        print tag
+                # if line[5] and line[5] != "":
+                #     print line[5]
+                #     for tag in line[5].split(","):
+                #         print tag
 
                 # Add groups
                 if line[6] and line[6] != "":
