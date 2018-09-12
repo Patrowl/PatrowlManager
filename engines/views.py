@@ -286,7 +286,7 @@ def export_policy(request, policy_id):
     if request.method == 'GET':
         policy = get_object_or_404(EnginePolicy, id=policy_id)
         response = JsonResponse({ "policies": [policy.as_dict()]})
-        response['Content-Disposition'] = 'attachment; filename=enginnepolicy_'+str(policy.id)+'.json'
+        response['Content-Disposition'] = 'attachment; filename=enginepolicy_'+str(policy.id)+'.json'
         return response
     else:
         return redirect('list_policies_view')
@@ -304,7 +304,7 @@ def export_policies(request):
         return redirect('list_policies_view')
 
     response = JsonResponse({ "policies": [policy.as_dict() for policy in policies]})
-    response['Content-Disposition'] = 'attachment; filename=enginnepolicies_'+str(int(time.time() * 1000))+'.json'
+    response['Content-Disposition'] = 'attachment; filename=enginepolicies_'+str(int(time.time() * 1000))+'.json'
     return response
 
 def import_policies_view(request):

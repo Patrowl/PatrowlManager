@@ -514,7 +514,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             if finding['severity'] == "high": cvss_base_score = 7.5
             if finding['severity'] == "medium": cvss_base_score = 5.0
             if finding['severity'] == "low": cvss_base_score = 4.0
-            if finding['severity'] == "info": cvss_base_score = 0.0
+            #if finding['severity'] == "info": cvss_base_score = 0.0
             risk_info.update({"cvss_base_score": cvss_base_score})
         else:
             # ensure it's a float
