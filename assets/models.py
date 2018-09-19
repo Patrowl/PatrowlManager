@@ -611,4 +611,24 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://www.shodan.io/search?query=%asset%",
         "datatypes": ["ip", "domain"]
     },
+    {
+        "name": "ThreatCrowd",
+        "link": "https://www.threatcrowd.org/domain.php?domain=%asset%",
+        "datatypes": ["domain"]
+    },
+    {
+        "name": "ThreatCrowd (API)",
+        "link": "https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=%asset%",
+        "datatypes": ["domain"]
+    },
+    {
+        "name": "ThreatCrowd",
+        "link": "https://www.threatcrowd.org/ip.php?ip=%asset%",
+        "datatypes": ["ip"]
+    },
+    {
+        "name": "ThreatCrowd (API)",
+        "link": "https://www.threatcrowd.org/searchApi/v2/ip/report/?ip=%asset%",
+        "datatypes": ["ip"]
+    },
     ]

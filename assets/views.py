@@ -582,7 +582,7 @@ def bulkadd_asset_view(request):
             for line in records:
                 # Add assets
                 if Asset.objects.filter(value=line[0]).count() > 0:
-                    print "{} already added".format(line[0])
+                    #print "{} already added".format(line[0])
                     continue
 
                 asset_args = {
@@ -597,19 +597,12 @@ def bulkadd_asset_view(request):
                 asset = Asset(**asset_args)
                 asset.save()
 
-                # Manage tags (categories)
-                #@todo
-                # if line[5] and line[5] != "":
-                #     print line[5]
-                #     for tag in line[5].split(","):
-                #         print tag
-
                 # Add groups
-                if line[6] and line[6] != "":
-                    ag = AssetGroup.objects.filter(name=str(line[6])).first()
+                if len(line) >= 6 and line[5] != "":
+                    ag = AssetGroup.objects.filter(name=str(line[5])).first()
                     if ag is None: # Create new asset group
                         asset_args = {
-                            'name': line[6],
+                            'name': line[5],
                             'criticity': "low",
                             'description': "Created automatically on asset upload.",
                             'owner': request.user
@@ -618,6 +611,13 @@ def bulkadd_asset_view(request):
                         ag.save()
                     # add the asset to the group
                     ag.assets.add(asset)
+
+                # Manage tags (categories)
+                #@todo
+                # if len(line) >= 7 and line[6] != ":
+                #     print line[5]
+                #     for tag in line[5].split(","):
+                #         print tag
 
             messages.success(request, 'Creation submission successful')
 
@@ -732,18 +732,14 @@ def detail_asset_view(request, asset_id):
         'scan_defs': scan_defs,
         'investigation_links': investigation_links,
         'engines_stats': engines_stats,
-        #'asset_scopes': engine_scopes
         'asset_scopes': sorted(engine_scopes.iteritems(), key=lambda (x, y): y['priority'])
-        #'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda (x, y): y['priority'])
         })
 
 
 def detail_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
     assets = asset_group.assets.all()
-    # findings = Finding.objects.filter(asset__in=assets).order_by('asset','severity', 'type', 'title')
-    findings = Finding.objects.filter(asset__in=assets).annotate(
-        severity_numm=Case(
+    findings = Finding.objects.filter(asset__in=assets).annotate(severity_numm=Case(
             When(severity="high", then=Value("1")),
             When(severity="medium", then=Value("2")),
             When(severity="low", then=Value("3")),
@@ -753,7 +749,10 @@ def detail_asset_group_view(request, assetgroup_id):
 
     asset_scopes = {}
     for scope in EnginePolicyScope.objects.all():
-        asset_scopes.update({scope.name: {'priority': scope.priority, 'id': scope.id, 'total':0, 'high':0, 'medium':0, 'low':0, 'info':0}})
+        asset_scopes.update({
+            scope.name: {
+            'priority': scope.priority, 'id': scope.id, 'total':0,
+            'high':0, 'medium':0, 'low':0, 'info':0}})
 
     findings_stats = {'total': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
     engines_stats = {}

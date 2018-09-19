@@ -114,7 +114,7 @@
 
         running_scans = response.running_scans;
         if (running_scans == 1) {$('span.running-scans').append('&nbsp;-&nbsp;1 scan running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
-        if (running_scans > 1) {$('span.running-scans').append('&nbsp;-&nbsp;' + running_scans+' scan(s) running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
+        if (running_scans > 1) {$('span.running-scans').append('&nbsp;-&nbsp;' + running_scans+' scans running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
       });
     }
     setInterval(function() {
