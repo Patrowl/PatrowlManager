@@ -23,7 +23,6 @@
     	}
 
     	html, body {
-    		/*font-family: helvetica, arial, sans-serif;*/
     		font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
     		width: 100%;
     		color: #263645;
@@ -44,8 +43,6 @@
     		padding: 0 14px 14px 14px;
     		background: #fff;
     		border-top: #e08e0b solid 8px;
-    		/*border-top: #18bc9c solid 8px;*/
-    		/*border-top: #425363 solid 7px;*/
     		box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
     		margin-bottom: 20px;
     		border-radius: 0 0 5px 5px;
@@ -63,8 +60,6 @@
 
     	h2.classtitle {
     		color: #e08e0b;
-    		/*color: #18bc9c;*/
-    		/*color: #00a5b5;*/
     		font-weight: normal;
     		font-size: 22px;
     		margin: 0;
@@ -102,7 +97,6 @@
     	}
 
     	h1.classchapter {
-    		/*background: #425363;*/
     		background: #2C3E50;
     		color: #fff;
     		font-weight: bold;
@@ -178,7 +172,6 @@
     	}
 
     	h2.classsection, h2.classsection0, h2.classsection1, h2.classsection2, h2.classsection3, h2.classsection4 {
-    		/*background: #053958;*/
     		background: #95a5a6;
     		color: #fff;
     		font-weight: bold;
@@ -189,7 +182,6 @@
     	}
 
     	.classcell4, h2.classsection4 {
-    		/*background-color: #d43f3a;*/
     		background-color: #e43725;
     	}
 
@@ -420,7 +412,6 @@
                   </table>
                   <h1 xmlns="" class="classchapter" id="id_scan_info">Scan Information</h1>
                   <h2 xmlns="" class="classh1 " style="vertical-align: middle;">Description</h2>
-                  <!-- <h2 xmlns="" class="classh1 " style="vertical-align: middle;">Scan Information</h2> -->
                   <table xmlns="" width="100%">
                     <tr>
                       <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Title:</span></td>
@@ -533,8 +524,6 @@
                     </h2>
                   </span>
                   <div xmlns="" id="ptag-{{ finding.id }}" style="display: none;">
-                    <!-- <h2 class="classh1 " style="vertical-align: middle;">Synopsis</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.title }}</span> -->
                     <h2 class="classh1 " style="vertical-align: middle;">Description</h2>
                     <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.description|linebreaks }}</span>
 
@@ -593,12 +582,11 @@
       </tr>
     </table>
 
-    <!-- <div id="copyright">
+    <div id="copyright">
      This is a report from the
-      <a xmlns="" href="http://patrowl.io/" target="_blank">PatrOwl Vulnerability Scanner</a>
-     .<br xmlns="">
-     PatrOwl is published by GreenLock Advisory, 216 Rue de la Croix-Nivert, 75015 Paris, France<br xmlns="">
-     © 2017 GreenLock Advisory. All rights reserved.
-   </div> -->
+      <a xmlns="" href="https://patrowl.io/" target="_blank">PatrOwl</a>, an Open Source, Free and Scalable Security Operations Orchestration Platform.<br xmlns="">
+     PatrOwl is published by GreenLock Advisory<br xmlns="">
+     © 2018 PatrOwl. All rights reserved.
+   </div>
   </body>
 </html>

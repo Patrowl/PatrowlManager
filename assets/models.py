@@ -567,6 +567,26 @@ ASSET_INVESTIGATION_LINKS = [
         "datatypes": ["domain"]
     },
     {
+        "name": "Cymon",
+        "link": "https://cymon.io/domain/%asset%",
+        "datatypes": ["domain"]
+    },
+    {
+        "name": "Cymon",
+        "link": "https://cymon.io/%asset%",
+        "datatypes": ["ip"]
+    },
+    {
+        "name": "HerdProtect",
+        "link": "http://www.herdprotect.com/ip-address-%asset%.aspx",
+        "datatypes": ["ip"]
+    },
+    {
+        "name": "HerdProtect",
+        "link": "http://www.herdprotect.com/domain-%asset%.aspx",
+        "datatypes": ["domain"]
+    },
+    {
         "name": "Quttera",
         "link": "https://quttera.com/sitescan/%asset%",
         "datatypes": ["domain"]
@@ -602,6 +622,16 @@ ASSET_INVESTIGATION_LINKS = [
         "datatypes": ["domain", "ip"]
     },
     {
+        "name": "Security Trails",
+        "link": "https://securitytrails.com/domain/%asset%/dns",
+        "datatypes": ["domain"]
+    },
+    {
+        "name": "Security Trails",
+        "link": "https://securitytrails.com/list/ip/%asset%",
+        "datatypes": ["ip"]
+    },
+    {
         "name": "Shodan.io",
         "link": "https://www.shodan.io/host/%asset%",
         "datatypes": ["ip"]
@@ -610,6 +640,11 @@ ASSET_INVESTIGATION_LINKS = [
         "name": "Shodan.io (Search)",
         "link": "https://www.shodan.io/search?query=%asset%",
         "datatypes": ["ip", "domain"]
+    },
+    {
+        "name": "Talos Reputation (Cisco)",
+        "link": "https://talosintelligence.com/reputation_center/lookup?search=%asset%",
+        "datatypes": ["ip", "fqdn", "domain"]
     },
     {
         "name": "ThreatCrowd",
@@ -630,5 +665,15 @@ ASSET_INVESTIGATION_LINKS = [
         "name": "ThreatCrowd (API)",
         "link": "https://www.threatcrowd.org/searchApi/v2/ip/report/?ip=%asset%",
         "datatypes": ["ip"]
+    },
+    {
+        "name": "Threat Miner",
+        "link": "https://www.threatminer.org/host.php?q=%asset%",
+        "datatypes": ["ip"]
+    },
+    {
+        "name": "Threat Miner",
+        "link": "https://www.threatminer.org/domain.php?q=%asset%",
+        "datatypes": ["domain"]
     },
     ]
