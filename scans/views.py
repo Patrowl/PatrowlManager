@@ -58,13 +58,13 @@ def _update_celerybeat():
         if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['RUNNING', 'RESTARTING']:
             server.supervisor.stopProcess("celery-beat")
     except:
-        print "error ", server.supervisor.getProcessInfo("celery-beat")['statename']
+        print ("error ", server.supervisor.getProcessInfo("celery-beat")['statename'])
 
     try:
         if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['FATAL', 'SHUTDOWN', 'STOPPED'] :
             server.supervisor.startProcess("celery-beat", False)
     except:
-        print "error:", server.supervisor.getProcessInfo("celery-beat")['statename']
+        print ("error:", server.supervisor.getProcessInfo("celery-beat")['statename'])
 
     return server.supervisor.getProcessInfo("celery-beat")['statename']
 
@@ -110,8 +110,6 @@ def detail_scan_view(request, scan_id):
             else:
                 assets_filters.update({"value__icontains": fil})
                 findings_filters.update({"title__icontains": fil})
-
-    #print "findings_filters:", findings_filters
 
     # Search assets related to the scan
     if assets_filters == {}:
@@ -407,7 +405,6 @@ def send_scan_reportzip(request, scan_id):
     scan = get_object_or_404(Scan, id=scan_id)
 
     filename = str(scan.report_filepath) # Select your file here.
-    print filename
     temp = tempfile.TemporaryFile()
     archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
     # for index in range(10):
@@ -640,13 +637,11 @@ def add_scan_def_view(request):
             scan_definition.save()
 
             assets_list = []
-            #print "form.data.getlist('assets_list'):", form.data.getlist('assets_list')
             for asset_id in form.data.getlist('assets_list'):
                 asset = Asset.objects.get(id=asset_id)
                 scan_definition.assets_list.add(asset)
                 assets_list.append(asset.value)
 
-            #print "form.data.getlist('assetgroups_list'):", form.data.getlist('assetgroups_list')
             assetgroups_list = []
             for assetgroup_id in form.data.getlist('assetgroups_list'):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
@@ -656,7 +651,6 @@ def add_scan_def_view(request):
 
             # Todo: check if no asset or asset group is defined
             messages.success(request, 'Creation submission successful')
-
 
             # Todo: check if the engine instance id is set (dedicated scanner)
             parameters = {

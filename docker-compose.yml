@@ -1,0 +1,61 @@
+version: '3.6'
+services:
+
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: patrowl_rabbitmq
+    ports:
+      - '5672:5672'
+    #env_file: secrets.env
+
+  db:
+    # image: postgres:latest
+    image: postgres:10.1-alpine
+    container_name: patrowl_postgres
+    environment:
+      - POSTGRES_DB=PATROWL_DB_USER
+      - POSTGRES_PASSWORD=PATROWL_DB_PASSWD_TO_CHANGE
+    ports:
+      - '5432:5432'
+    expose:
+      - "5432"
+    #env_file: secrets.env
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data/
+
+  nginx:
+    image: nginx:latest
+    container_name: patrowl_nginx
+    ports:
+      - "18000:18000"
+    # volumes_from:
+    #   - web
+    depends_on:
+      - web
+    #env_file: secrets.env
+
+  web:
+    container_name: patrowl_django
+    build: .
+    command: python manage.py migrate --noinput
+    environment:
+      - DB_PORT_5432_TCP_HOST=db
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./src:/src
+    expose:
+      - "18000"
+    links:
+      - db
+      - rabbitmq
+    #env_file: secrets.env
+
+
+  start_dependencies:
+    image: dadarek/wait-for-dependencies
+    depends_on:
+      - db
+      - rabbitmq
+    command: db:5432 rabbitmq:5672

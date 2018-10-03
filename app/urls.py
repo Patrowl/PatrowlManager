@@ -3,6 +3,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
+# from django.contrib.auth import logout as v_logout
 from users.forms import LoginForm
 from users import views as user_views
 
@@ -28,6 +29,7 @@ urlpatterns = [
 
     url(r'^login$', user_views.login, name='login'),
     url(r'^logout$', auth_views.logout, {'next_page': '/login'}, name='logout'),
+    # url(r'^logout$', v_logout, {'next_page': '/login'}, name='logout'),
     url(r'^signup$', user_views.signup, name='signup'),
 
     url(r'^admin/jsi18n/', i18n_javascript),
@@ -43,6 +45,4 @@ if settings.DEBUG:
         url(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
 
-# from django.conf.urls.static import static
-# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()

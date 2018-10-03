@@ -24,7 +24,7 @@ meld3==1.0.2
 netaddr==0.7.19
 psycopg2-binary==2.7.5
 python-magic==0.4.15
-python-magic-bin==0.4.14
+#python-magic-bin==0.4.14
 python-memcached==1.59
 pytz==2018.3
 requests==2.18.1

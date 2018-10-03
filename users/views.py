@@ -105,7 +105,6 @@ def login(request):
 
 @csrf_exempt
 def signup(request):
-    print "prout"
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
