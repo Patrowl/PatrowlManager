@@ -29,7 +29,7 @@ from engines.models import EnginePolicyScope
 from events.models import Event
 from scans.models import Scan, ScanDefinition
 
-import uuid, json, ast, csv, os, mimetypes, datetime, urllib
+import uuid, json, ast, csv, os, mimetypes, datetime, urllib, copy
 
 
 def get_assets_stats(request):
@@ -705,11 +705,11 @@ def detail_asset_view(request, asset_id):
 
     # Investigation links
     investigation_links = []
-    for i in ASSET_INVESTIGATION_LINKS:
+    DEFAULT_LINKS = copy.deepcopy(ASSET_INVESTIGATION_LINKS)
+    for i in DEFAULT_LINKS:
         if asset.type in i["datatypes"]:
             i["link"] = i["link"].replace("%asset%", asset.value)
             investigation_links.append(i)
-
 
     # Calculate automatically risk grade
     asset.calc_risk_grade()

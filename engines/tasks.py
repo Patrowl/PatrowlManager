@@ -21,7 +21,7 @@ PROXIES = settings.PROXIES
 
 @shared_task(bind=True)
 def refresh_engines_status_task(self):
-    print "task: starting refresh_engines_status_task !"
+    print ("task: starting refresh_engines_status_task !")
     for engine in EngineInstance.objects.filter(enabled=True):
         #print engine
         try:
@@ -433,15 +433,23 @@ def _get_scan_status(engine, scan_id):
 
 
 def _create_asset_on_import(asset_value, scan, asset_type = 'ip'):
-    Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}'.".format(asset_value), type="DEBUG", severity="INFO", scan=scan)
+    Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}/{}'.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan)
+
+    # create assets if data_type is ip-subnet or ip-range
+    assets = scan.assets.filter(type__in=['ip-subnet', 'ip-range'])
+    if assets.count() == 0:
+        Event.objects.create(message="[EngineTasks/_create_asset_on_import()] asset '{}/{}' not created.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan, description="Not an ip-subnet or ip-range")
+        return False
 
     # Search parent asset
     parent_asset = None
-    for pa in scan.assets.filter(type__in=['ip-subnet', 'ip-range']):
+    for pa in assets:
         if net.is_ip_in_ipset(ip=asset_value, ipset=pa.value):
             parent_asset = pa
             break
-    if parent_asset == None: return False
+    if parent_asset == None:
+        Event.objects.create(message="[EngineTasks/_create_asset_on_import()] asset '{}/{}' not created.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan, description="No parent asset found")
+        return False
 
     # Create the new asset ...
     asset_args = {
@@ -456,12 +464,13 @@ def _create_asset_on_import(asset_value, scan, asset_type = 'ip'):
     asset.save()
     scan.assets.add(asset)
 
-    # Then the asset to every related asset groups
+    # Then add the asset to every related asset groups
     for ag in AssetGroup.objects.filter(assets__type__in=['ip-subnet', 'ip-range']):
         for aga in ag.assets.all():
             if net.is_ip_in_ipset(ip=asset_value, ipset=aga.value):
                 ag.assets.add(asset) ; ag.save()
                 ag.calc_risk_grade() ; ag.save()
+
     return asset
 
 
@@ -473,28 +482,18 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     else:
         Event.objects.create(message="[EngineTasks/_import_findings()/direct] Importing findings manually.", type="DEBUG", severity="INFO")
         scan_id = 0
-        #scan = {"id": "direct", "owner": 1, "engine_type": "todo"}
-    #print "findings:", findings
-    # scan_summary = {
-    #     "total": 0,
-    #     "info": 0,
-    #     "low": 0,
-    #     "medium": 0,
-    #     "high": 0,
-    # }
-    # nb_new = 0
-    # nb_missing = 0
-    #print "findings", findings
+
     for finding in findings:
         # get the hostnames received and check if they are known in the user' assets
         assets = []
 
         for addr in list(finding['target']['addr']):
             asset = Asset.objects.filter(value=addr).first()
-            if asset == None:
+            if asset == None: # asset unknown by the manager
                 asset = _create_asset_on_import(asset_value=addr, scan=scan)
-            assets.append(asset)
-            if not scan.assets.filter(value=asset.value):
+            if asset:
+                assets.append(asset)
+            if asset and not scan.assets.filter(value=asset.value):
                 scan.assets.add(asset)
 
         # Prepare metadata fields

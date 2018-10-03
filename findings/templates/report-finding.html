@@ -399,7 +399,13 @@
                   <h1 xmlns="" class="classchapter" id="id_finding_info">Finding Information</h1>
                   <div xmlns="" id="ptag-{{ finding.id }}">
                     <h2 class="classh1 " style="vertical-align: middle;">Description</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.description|linebreaks }}</span>
+                    <table width="100%">
+                      <tr>
+                        <td width="100%" valign="top" class="classcell">
+                          <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.description|linebreaks }}</span>
+                        </td>
+                      </tr>
+                    </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">More information</h2>
                     <table width="100%">
@@ -413,7 +419,13 @@
                     </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">Solution</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.solution|linebreaks }}</span>
+                    <table width="100%">
+                      <tr>
+                        <td width="100%" valign="top" class="classcell">
+                          <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.solution|linebreaks }}</span>
+                        </td>
+                      </tr>
+                    </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">Risk Evaluation</h2>
                     <table width="100%">
@@ -431,19 +443,32 @@
                     </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">Finding ID</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">
-                      {% if not finding.vuln_refs %}
-                        n/a.
-                      {% else %}
-                        {% for key, value in finding.vuln_refs.items %}
-                          {{ key }}: {{ value }}<br/>
-                        {% endfor %}
-                      {% endif %}
-                    </span>
+                    <table width="100%">
+                      <tr>
+                        <td width="100%" valign="top" class="classcell">
+                          <span class="classtext" style="color: #263645; font-weight: normal;">
+                            {% if not finding.vuln_refs %}
+                              n/a.
+                            {% else %}
+                              {% for key, value in finding.vuln_refs.items %}
+                                {{ key }}: {{ value }}<br/>
+                              {% endfor %}
+                            {% endif %}
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+
                     <h2 class="classh1 " style="vertical-align: middle;">Tags</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">
-                      {{ finding.tags | join:", " }}
-                    </span>
+                    <table width="100%">
+                      <tr>
+                        <td width="100%" valign="top" class="classcell">
+                          <span class="classtext" style="color: #263645; font-weight: normal;">
+                            {{ finding.tags | join:", " }}
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
                   </div>
                 </div>
               </td>
@@ -453,12 +478,12 @@
       </tr>
     </table>
 
-    <!-- <div id="copyright">
+    <div id="copyright">
      This is a report from the
-      <a xmlns="" href="http://patrowl.io/" target="_blank">PatrOwl Vulnerability Scanner</a>
+      <a xmlns="" href="https://www.patrowl.io/" target="_blank">PatrOwl SecOps automation and orchestration platform</a>
      .<br xmlns="">
-     PatrOwl is published by GreenLock Advisory, 216 Rue de la Croix-Nivert, 75015 Paris, France<br xmlns="">
-     © 2017 GreenLock Advisory. All rights reserved.
-   </div> -->
+     PatrOwl is published by GreenLock Advisory<br xmlns="">
+     © 2018 GreenLock Advisory. All rights reserved.
+   </div>
   </body>
 </html>
