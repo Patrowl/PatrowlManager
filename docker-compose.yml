@@ -13,12 +13,15 @@ services:
     image: postgres:10.1-alpine
     container_name: patrowl_postgres
     environment:
-      - POSTGRES_DB=PATROWL_DB_USER
-      - POSTGRES_PASSWORD=PATROWL_DB_PASSWD_TO_CHANGE
+      - POSTGRES_DB="patrowl_db"
+      - POSTGRES_USER="PATROWL_DB_USER"
+      - POSTGRES_PASSWORD="PATROWL_DB_PASSWD_TO_CHANGE"
     ports:
       - '5432:5432'
     expose:
       - "5432"
+    volumes: 
+      - ./var/db/create_user_and_db.sql:/docker-entrypoint-initdb.d/create_user_and_db.sql
     #env_file: secrets.env
     # volumes:
     #   - postgres_data:/var/lib/postgresql/data/
