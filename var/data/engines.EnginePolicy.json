@@ -1,2 +1,237 @@
-/Users/nicolas/Documents/Projets/Patrowl/tmp
-[{"model": "engines.enginepolicy", "pk": 1, "fields": {"engine": 1, "owner": 1, "name": "List open ports (TCP/53,56,80,443,8080)", "default": false, "description": "List open ports (TCP/53,56,80,443,8080)", "options": "{\"no_dns\":1,\"ports\":[\"53\",\"56\",\"80\",\"443\"],\"detect_service_version\":0,\"no_ping\":0}", "file": "", "status": "", "is_default": false, "created_at": "2017-07-09T18:42:42.963", "updated_at": "2017-07-09T18:42:42.976", "scopes": [1]}}, {"model": "engines.enginepolicy", "pk": 2, "fields": {"engine": 3, "owner": 1, "name": "XSS Vulnerability scan", "default": false, "description": "XSS Vulnerability scan", "options": "{\"audit\":{\"parameter_values\":true,\"ui_forms\":true,\"links\":true,\"exclude_vector_patterns\":[],\"with_both_http_methods\":false,\"cookies\":false,\"ui_inputs\":true,\"forms\":true,\"headers\":false,\"jsons\":true,\"link_templates\":[],\"xmls\":true,\"include_vector_patterns\":[]},\"max_timeout\":3600,\"http\":{\"request_redirect_limit\":5,\"request_concurrency\":30,\"user_agent\":\"Arachni/v2.0dev-FullScan\",\"request_queue_size\":1000},\"no_fingerprinting\":true,\"browser_cluster\":{\"ignore_images\":true,\"worker_time_to_live\":100,\"job_timeout\":10,\"pool_size\":12},\"scope\":{\"auto_redundant_paths\":10,\"include_subdomains\":false,\"exclude_binaries\":false,\"https_only\":false,\"exclude_file_extensions\":[\"pdf\",\"css\",\"ico\",\"jpg\",\"svg\",\"png\",\"gif\",\"jpeg\"]},\"input\":{\"values\":{},\"without_defaults\":true,\"force\":false},\"checks\":[\"xss\",\"xss_dom\",\"xss_dom_script_context\",\"xss_event\",\"xss_path\",\"xss_script_context\",\"xss_tag\",\"xxe\"]}", "file": "", "status": "", "is_default": false, "created_at": "2017-07-16T10:52:51.633", "updated_at": "2017-07-16T10:52:51.646", "scopes": [2]}}, {"model": "engines.enginepolicy", "pk": 3, "fields": {"engine": 5, "owner": 1, "name": "Get Whois (summary)", "default": false, "description": "Get Whois data (summary)", "options": "{\"max_timeout\":3600,\"do_dns_resolve\":false,\"do_advanced_whois\":false,\"do_reverse_dns\":false,\"do_subdomains_resolve\":false,\"do_subdomain_bruteforce\":false,\"do_subdomain_enum\":false,\"do_whois\":true}", "file": "", "status": "", "is_default": false, "created_at": "2018-08-02T14:32:21.475", "updated_at": "2018-08-02T14:32:21.486", "scopes": [3]}}, {"model": "engines.enginepolicy", "pk": 5, "fields": {"engine": 5, "owner": 1, "name": "Get Whois (advanced)", "default": false, "description": "Get Whois data (full)", "options": "{\"max_timeout\":3600,\"do_dns_resolve\":false,\"do_advanced_whois\":true,\"do_reverse_dns\":false,\"do_subdomains_resolve\":false,\"do_subdomain_bruteforce\":false,\"do_subdomain_enum\":false,\"do_whois\":false}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-03T08:23:17.506", "updated_at": "2018-08-03T08:23:51.235", "scopes": [3]}}, {"model": "engines.enginepolicy", "pk": 6, "fields": {"engine": 1, "owner": 1, "name": "Detect Windows OS", "default": false, "description": "Detect Windows OS", "options": "{\"no_dns\":1,\"ports\":[\"135\",\"445\",\"3389\"],\"no_ping\":0,\"detect_os\":1}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-16T14:29:42.035", "updated_at": "2018-08-16T16:29:48.605", "scopes": [1, 2]}}, {"model": "engines.enginepolicy", "pk": 7, "fields": {"engine": 1, "owner": 1, "name": "Detect Windows OS (script)", "default": false, "description": "Detect Windows OS", "options": "{\"detect_os\":1,\"no_dns\":1,\"ports\":[\"135\",\"445\",\"3389\"],\"no_ping\":0,\"script\":\"smb-os-discovery.nse\"}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-21T22:35:26.854", "updated_at": "2018-08-21T22:35:49.539", "scopes": [1, 2]}}, {"model": "engines.enginepolicy", "pk": 8, "fields": {"engine": 1, "owner": 1, "name": "Detect Windows OS (script) (vulners)", "default": false, "description": "Detect Windows OS", "options": "{\"script\":\"libs/vulners.nse\",\"no_dns\":1,\"ports\":[\"135\",\"80\",\"53\",\"443\",\"25\",\"445\",\"3389\"],\"no_ping\":0,\"detect_os\":1}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-21T23:06:58.543", "updated_at": "2018-08-21T23:10:36.297", "scopes": [1, 2]}}, {"model": "engines.enginepolicy", "pk": 9, "fields": {"engine": 1, "owner": 1, "name": "Vulners Scan", "default": false, "description": "Vulners Scan (nmap script)", "options": "{\"show_open_ports\":1,\"detect_service_version\":1,\"script\":\"libs/vulners.nse\"}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-22T08:33:31.039", "updated_at": "2018-10-03T11:10:25.093", "scopes": [1, 2, 3, 4, 5]}}, {"model": "engines.enginepolicy", "pk": 10, "fields": {"engine": 1, "owner": 1, "name": "Vulners Scan (advanced)", "default": false, "description": "Vulners Scan (advanced)", "options": "{\"script_args\":\"newtargets\",\"script_output_fields\":[\"coucou\",\"gnagna\"],\"show_open_ports\":1,\"detect_service_version\":1,\"script\":\"libs/vulners.nse\"}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-27T14:39:46.852", "updated_at": "2018-09-10T19:29:14.895", "scopes": [1, 2, 3, 4, 5]}}, {"model": "engines.enginepolicy", "pk": 11, "fields": {"engine": 1, "owner": 1, "name": "Get NetBios info", "default": false, "description": "Get NetBios info", "options": "{\"script_output_fields\":[\"os\",\"server\",\"domain\",\"gnagna\"],\"show_open_ports\":1,\"ports\":[\"445\"],\"detect_service_version\":1,\"script\":\"libs/smb-domain-info.nse\"}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-27T17:12:51.347", "updated_at": "2018-08-27T17:38:20.218", "scopes": [1, 2]}}, {"model": "engines.enginepolicy", "pk": 12, "fields": {"engine": 7, "owner": 1, "name": "Check URL black-lists", "default": false, "description": "Check URL black-lists", "options": "{}", "file": "", "status": "", "is_default": false, "created_at": "2018-09-27T13:06:49.223", "updated_at": "2018-09-27T13:06:49.238", "scopes": [4, 6]}}, {"model": "engines.enginepolicy", "pk": 13, "fields": {"engine": 9, "owner": 1, "name": "Scan external JS dependencies (Retire.js)", "default": false, "description": "Scan external JS dependencies (Retire.js)", "options": "{\"repo_type\":\"git\",\"scan_js\":true}", "file": "", "status": "", "is_default": false, "created_at": "2018-10-03T09:47:57.502", "updated_at": "2018-10-03T09:47:57.513", "scopes": [4]}}, {"model": "engines.enginepolicy", "pk": 15, "fields": {"engine": 8, "owner": 1, "name": "Cortex Abuse_Finder and MaxMind", "default": false, "description": "Cortex Abuse_Finder and MaxMind", "options": "{\"display_failures\":false,\"max_timeout\":3600,\"get_artifacts\":false,\"summary\":true,\"use_analyzers\":[\"Abuse_Finder_2_0\",\"MaxMind_GeoIP_3_0\"],\"all_datatype_analyzers\":false,\"meta_analyzers \":[\"passivedns\",\"osint\",\"threats\",\"reputation\",\"ssl\"]}", "file": "", "status": "", "is_default": false, "created_at": "2018-10-03T13:58:59.250", "updated_at": "2018-10-03T13:58:59.265", "scopes": [6, 8]}}, {"model": "engines.enginepolicy", "pk": 16, "fields": {"engine": 4, "owner": 1, "name": "Detect malware from VT", "default": false, "description": "Check VT status from IP, domain and URL", "options": "{\"do_scan_url\":true,\"max_timeout\":3600,\"do_scan_domain\":true,\"do_scan_ip\":true}", "file": "", "status": "", "is_default": false, "created_at": "2018-10-03T15:27:10.916", "updated_at": "2018-10-03T15:27:10.940", "scopes": [3, 4, 6, 7]}}]
+[{
+    "model": "engines.enginepolicy",
+    "pk": 1,
+    "fields": {
+      "engine": 1,
+      "owner": 1,
+      "name": "List open ports (TCP/53,56,80,443,8080)",
+      "default": false,
+      "description": "List open ports (TCP/53,56,80,443,8080)",
+      "options": "{\"no_dns\":1,\"ports\":[\"53\",\"56\",\"80\",\"443\"],\"detect_service_version\":0,\"no_ping\":0}",
+      "file": "",
+      "status": "",
+      "is_default": false,
+      "created_at": "2017-07-09T18:42:42.963",
+      "updated_at": "2017-07-09T18:42:42.976",
+      "scopes": [1]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 2,
+    "fields": {
+      "engine": 3,
+      "owner": 1,
+      "name": "XSS Vulnerability scan",
+      "default": false,
+      "description": "XSS Vulnerability scan",
+      "options": "{\"audit\":{\"parameter_values\":true,\"ui_forms\":true,\"links\":true,\"exclude_vector_patterns\":[],\"with_both_http_methods\":false,\"cookies\":false,\"ui_inputs\":true,\"forms\":true,\"headers\":false,\"jsons\":true,\"link_templates\":[],\"xmls\":true,\"include_vector_patterns\":[]},\"max_timeout\":3600,\"http\":{\"request_redirect_limit\":5,\"request_concurrency\":30,\"user_agent\":\"Arachni/v2.0dev-FullScan\",\"request_queue_size\":1000},\"no_fingerprinting\":true,\"browser_cluster\":{\"ignore_images\":true,\"worker_time_to_live\":100,\"job_timeout\":10,\"pool_size\":12},\"scope\":{\"auto_redundant_paths\":10,\"include_subdomains\":false,\"exclude_binaries\":false,\"https_only\":false,\"exclude_file_extensions\":[\"pdf\",\"css\",\"ico\",\"jpg\",\"svg\",\"png\",\"gif\",\"jpeg\"]},\"input\":{\"values\":{},\"without_defaults\":true,\"force\":false},\"checks\":[\"xss\",\"xss_dom\",\"xss_dom_script_context\",\"xss_event\",\"xss_path\",\"xss_script_context\",\"xss_tag\",\"xxe\"]}",
+      "file": "",
+      "status": "",
+      "is_default": false,
+      "created_at": "2017-07-16T10:52:51.633",
+      "updated_at": "2017-07-16T10:52:51.646",
+      "scopes": [2]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 3,
+    "fields": {
+      "engine": 5,
+      "owner": 1,
+      "name": "Get Whois (summary)",
+      "default": false,
+      "description": "Get Whois data (summary)",
+      "options": "{\"max_timeout\":3600,\"do_dns_resolve\":false,\"do_advanced_whois\":false,\"do_reverse_dns\":false,\"do_subdomains_resolve\":false,\"do_subdomain_bruteforce\":false,\"do_subdomain_enum\":false,\"do_whois\":true}",
+      "file": "",
+      "status": "",
+      "is_default": false,
+      "created_at": "2018-08-02T14:32:21.475",
+      "updated_at": "2018-08-02T14:32:21.486",
+      "scopes": [3]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 5,
+    "fields": {
+      "engine": 5,
+      "owner": 1,
+      "name": "Get Whois (advanced)",
+      "default": false,
+      "description": "Get Whois data (full)",
+      "options": "{\"max_timeout\":3600,\"do_dns_resolve\":false,\"do_advanced_whois\":true,\"do_reverse_dns\":false,\"do_subdomains_resolve\":false,\"do_subdomain_bruteforce\":false,\"do_subdomain_enum\":false,\"do_whois\":false}",
+      "file": "",
+      "status": "active",
+      "is_default": false,
+      "created_at": "2018-08-03T08:23:17.506",
+      "updated_at": "2018-08-03T08:23:51.235",
+      "scopes": [3]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 6,
+    "fields": {
+      "engine": 1,
+      "owner": 1,
+      "name": "Detect Windows OS",
+      "default": false,
+      "description": "Detect Windows OS",
+      "options": "{\"no_dns\":1,\"ports\":[\"135\",\"445\",\"3389\"],\"no_ping\":0,\"detect_os\":1}",
+      "file": "",
+      "status": "active",
+      "is_default": false,
+      "created_at": "2018-08-16T14:29:42.035",
+      "updated_at": "2018-08-16T16:29:48.605",
+      "scopes": [1, 2]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 7,
+    "fields": {
+      "engine": 1,
+      "owner": 1,
+      "name": "Detect Windows OS (script)",
+      "default": false,
+      "description": "Detect Windows OS",
+      "options": "{\"detect_os\":1,\"no_dns\":1,\"ports\":[\"135\",\"445\",\"3389\"],\"no_ping\":0,\"script\":\"smb-os-discovery.nse\"}",
+      "file": "",
+      "status": "active",
+      "is_default": false,
+      "created_at": "2018-08-21T22:35:26.854",
+      "updated_at": "2018-08-21T22:35:49.539",
+      "scopes": [1, 2]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 8,
+    "fields": {
+      "engine": 1,
+      "owner": 1,
+      "name": "Detect Windows OS (script) (vulners)",
+      "default": false,
+      "description": "Detect Windows OS",
+      "options": "{\"script\":\"libs/vulners.nse\",\"no_dns\":1,\"ports\":[\"135\",\"80\",\"53\",\"443\",\"25\",\"445\",\"3389\"],\"no_ping\":0,\"detect_os\":1}",
+      "file": "",
+      "status": "active",
+      "is_default": false,
+      "created_at": "2018-08-21T23:06:58.543",
+      "updated_at": "2018-08-21T23:10:36.297",
+      "scopes": [1, 2]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 9,
+    "fields": {
+      "engine": 1,
+      "owner": 1,
+      "name": "Vulners Scan",
+      "default": false,
+      "description": "Vulners Scan (nmap script)",
+      "options": "{\"show_open_ports\":1,\"detect_service_version\":1,\"script\":\"libs/vulners.nse\"}",
+      "file": "",
+      "status": "active",
+      "is_default": false,
+      "created_at": "2018-08-22T08:33:31.039",
+      "updated_at": "2018-10-03T11:10:25.093",
+      "scopes": [1, 2, 3, 4, 5]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 10,
+    "fields": {
+      "engine": 1,
+      "owner": 1,
+      "name": "Vulners Scan (advanced)",
+      "default": false,
+      "description": "Vulners Scan (advanced)",
+      "options": "{\"script_args\":\"newtargets\",\"script_output_fields\":[\"coucou\",\"gnagna\"],\"show_open_ports\":1,\"detect_service_version\":1,\"script\":\"libs/vulners.nse\"}",
+      "file": "",
+      "status": "active",
+      "is_default": false,
+      "created_at": "2018-08-27T14:39:46.852",
+      "updated_at": "2018-09-10T19:29:14.895",
+      "scopes": [1, 2, 3, 4, 5]
+    }
+  }, {
+    "model": "engines.enginepolicy",
+    "pk": 11,
+    "fields": {
+      "engine": 1,
+      "owner": 1,
+      "name": "Get NetBios info",
+      "default": false,
+      "description": "Get NetBios info",
+      "options": "{\"script_output_fields\": [\"os\",\"server\",\"domain\",\"gnagna\"],\"show_open_ports\":1,\"ports\":[\"445\"],\"detect_service_version\":1,\"script\":\"libs/smb-domain-info.nse\"}", "file": "", "status": "active", "is_default": false, "created_at": "2018-08-27T17:12:51.347", "updated_at": "2018-08-27T17:38:20.218", "scopes": [1, 2]
+      }
+    },
+    {
+      "model": "engines.enginepolicy",
+      "pk": 12,
+      "fields": {
+        "engine": 7,
+        "owner": 1,
+        "name": "Check URL black-lists",
+        "default": false,
+        "description": "Check URL black-lists",
+        "options": "{}",
+        "file": "",
+        "status": "",
+        "is_default": false,
+        "created_at": "2018-09-27T13:06:49.223",
+        "updated_at": "2018-09-27T13:06:49.238",
+        "scopes": [4, 6]
+      }
+    },
+    {
+      "model": "engines.enginepolicy",
+      "pk": 13,
+      "fields": {
+        "engine": 9,
+        "owner": 1,
+        "name": "Scan external JS dependencies (Retire.js)",
+        "default": false,
+        "description": "Scan external JS dependencies (Retire.js)",
+        "options": "{\"repo_type\":\"git\",\"scan_js\":true}",
+        "file": "",
+        "status": "",
+        "is_default": false,
+        "created_at": "2018-10-03T09:47:57.502",
+        "updated_at": "2018-10-03T09:47:57.513",
+        "scopes": [4]
+      }
+    },
+    {
+      "model": "engines.enginepolicy",
+      "pk": 15,
+      "fields": {
+        "engine": 8,
+        "owner": 1,
+        "name": "Cortex Abuse_Finder and MaxMind",
+        "default": false,
+        "description": "Cortex Abuse_Finder and MaxMind",
+        "options": "{\"display_failures\":false,\"max_timeout\":3600,\"get_artifacts\":false,\"summary\":true,\"use_analyzers\":[\"Abuse_Finder_2_0\",\"MaxMind_GeoIP_3_0\"],\"all_datatype_analyzers\":false,\"meta_analyzers \":[\"passivedns\",\"osint\",\"threats\",\"reputation\",\"ssl\"]}",
+        "file": "",
+        "status": "",
+        "is_default": false,
+        "created_at": "2018-10-03T13:58:59.250",
+        "updated_at": "2018-10-03T13:58:59.265",
+        "scopes": [6, 8]
+      }
+    },
+    {
+      "model": "engines.enginepolicy",
+      "pk": 16,
+      "fields": {
+        "engine": 4,
+        "owner": 1,
+        "name": "Detect malware from VT",
+        "default": false,
+        "description": "Check VT status from IP, domain and URL",
+        "options": "{\"do_scan_url\":true,\"max_timeout\":3600,\"do_scan_domain\":true,\"do_scan_ip\":true}",
+        "file": "",
+        "status": "",
+        "is_default": false,
+        "created_at": "2018-10-03T15:27:10.916",
+        "updated_at": "2018-10-03T15:27:10.940",
+        "scopes": [3, 4, 6, 7]
+      }
+    }]

@@ -1,0 +1,10 @@
+.DS_Store
+app/settings.py
+var/log/*.log
+var/log/*.log.[0-9]*
+var/tmp/*.pid
+**/migrations/[0-9]*.py
+media/*
+*.pyc
+__pycache__
+env

@@ -17,11 +17,11 @@ SECURE_HSTS_SECONDS = 3600 # 1 hour (for testing only, otherwise, set 31536000)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_SSL_REDIRECT = False # Dev/test environment
 #SECURE_SSL_REDIRECT = True # Production environment, if HTTPS is enabled
-X_FRAME_OPTIONS = 'DENY'
+#X_FRAME_OPTIONS = 'DENY'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True    # Dev/test environment
-#DEBUG = False  # Production environment
+#DEBUG = os.environ.get('DEBUG', True)    # Dev/test environment
+DEBUG = os.environ.get('DEBUG', False)   # Production environment
 
 ALLOWED_HOSTS = ['*'] # /!\ Not safe for production environment
 
@@ -83,6 +83,7 @@ LOGIN_REQUIRED_URLS_EXCEPTIONS = (
     r'/logout(.*)$',
     r'/home$',
     r'/signup$',
+    r'/static/(.*)$',
 )
 
 LOGIN_URL = '/login'
@@ -121,7 +122,7 @@ DATABASES = {
         'NAME': os.environ.get('DB_ENV_DB', 'patrowl_db'),
         'USER': os.environ.get('DB_ENV_POSTGRES_USER', 'PATROWL_DB_USER'),
         'PASSWORD': os.environ.get('DB_ENV_POSTGRES_PASSWORD', 'PATROWL_DB_PASSWD_TO_CHANGE'),
-        'HOST': os.environ.get('DB_PORT_5432_TCP_ADDR', 'localhost'),
+        'HOST': os.environ.get('DB_PORT_5432_TCP_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT_5432_TCP_PORT', ''),
     }
 }
@@ -153,8 +154,8 @@ USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
@@ -170,7 +171,7 @@ if RABBIT_HOSTNAME.startswith('tcp://'):
     RABBIT_HOSTNAME = RABBIT_HOSTNAME.split('//')[1]
 
 BROKER_URL = os.environ.get('BROKER_URL', '')
-if not BROKER_URL:
+if BROKER_URL == "":
     BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}/'.format(
         user=os.environ.get('RABBIT_ENV_USER', 'guest'),
         password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'guest'),

@@ -112,7 +112,7 @@ def signup(request):
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
-            django.contrib.auth.login(request, user)
+            login_d(request, user)
             return redirect('homepage_dashboard_view')
     else:
         form = UserCreationForm()

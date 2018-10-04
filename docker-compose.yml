@@ -4,61 +4,59 @@ services:
   rabbitmq:
     image: rabbitmq:latest
     container_name: patrowl_rabbitmq
+    environment:
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="-rabbit log_levels [{connection,error}]"
     ports:
       - '5672:5672'
-    #env_file: secrets.env
 
   db:
     # image: postgres:latest
     image: postgres:10.1-alpine
     container_name: patrowl_postgres
     environment:
-      - POSTGRES_DB="patrowl_db"
-      - POSTGRES_USER="PATROWL_DB_USER"
-      - POSTGRES_PASSWORD="PATROWL_DB_PASSWD_TO_CHANGE"
+      - POSTGRES_DB=patrowl_db
+      - POSTGRES_USER=PATROWL_DB_USER
+      - POSTGRES_PASSWORD=PATROWL_DB_PASSWD_TO_CHANGE
     ports:
       - '5432:5432'
-    expose:
-      - "5432"
-    volumes: 
-      - ./var/db/create_user_and_db.sql:/docker-entrypoint-initdb.d/create_user_and_db.sql
-    #env_file: secrets.env
+    volumes:
+      - ./var/db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     # volumes:
     #   - postgres_data:/var/lib/postgresql/data/
-
-  nginx:
-    image: nginx:latest
-    container_name: patrowl_nginx
-    ports:
-      - "18000:18000"
-    # volumes_from:
-    #   - web
-    depends_on:
-      - web
-    #env_file: secrets.env
+  #
+  # nginx:
+  #   image: nginx:latest
+  #   restart: always
+  #   container_name: patrowl_nginx
+  #   ports:
+  #     - "18000:18000"
+  #   links:
+  #     - web:web
+  #   volumes:
+  #     - ./:/opt/patrowl-manager/
+  #     - ./nginx_docker.conf:/etc/nginx/conf.d/default.conf
 
   web:
     container_name: patrowl_django
     build: .
-    command: python manage.py migrate --noinput
     environment:
       - DB_PORT_5432_TCP_HOST=db
+      - DEBUG=True
+      - RABBIT_PORT_5672_TCP=rabbitmq:5672
     depends_on:
       - db
       - rabbitmq
-    volumes:
-      - ./src:/src
-    expose:
-      - "18000"
+    # volumes:
+    #   - ./:/opt/patrowl-manager/
+    ports:
+      - "0.0.0.0:8001:8001"
     links:
       - db
       - rabbitmq
-    #env_file: secrets.env
 
-
-  start_dependencies:
-    image: dadarek/wait-for-dependencies
-    depends_on:
-      - db
-      - rabbitmq
-    command: db:5432 rabbitmq:5672
+  # start_dependencies:
+  #   image: dadarek/wait-for-dependencies
+  #   depends_on:
+  #     - db
+  #     - rabbitmq
+  #   command: db:5432 rabbitmq:5672

@@ -1,17 +1,35 @@
 #!/bin/bash
 
-# Collect static filesdd
-# echo "Collect static files"
-# python manage.py collectstatic --noinput
+source env/bin/activate
+
+# Collect static files
+echo "[+] Collect static files"
+python manage.py collectstatic --noinput
 
 # Apply database migrations
-echo "Make database migrations"
+echo "[+] Make database migrations"
 python manage.py makemigrations
 
 # Apply database migrations
-echo "Apply database migrations"
+echo "[+] Apply database migrations"
 python manage.py migrate
 
+# Create the default admin user
+echo "[+] Create the default admin user"
+echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@dev.patrowl.io', 'Bonjour1!')" | python manage.py shell
+
+# Populate the db with default data
+echo "[+] Populate the db with default data"
+python manage.py loaddata var/data/assets.AssetCategory.json
+python manage.py loaddata var/data/engines.Engine.json
+python manage.py loaddata var/data/engines.EnginePolicyScope.json
+python manage.py loaddata var/data/engines.EnginePolicy.json
+
+# Start Supervisord (Celery workers)
+echo "[+] Start Supervisord (Celery workers)"
+supervisord -c var/etc/supervisord.conf
+
 # Start server
-# echo "Starting server"
-# python manage.py runserver 0.0.0.0:8000
+echo "[+] Starting server"
+#python manage.py runserver 0.0.0.0:8001
+gunicorn -b :8001 app.wsgi:application
