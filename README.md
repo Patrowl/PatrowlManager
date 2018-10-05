@@ -3,7 +3,9 @@
 [![Join the chat at https://gitter.im/Patrowl/Support](https://badges.gitter.im/Patrowl/Support.png)](https://gitter.im/Patrowl/Support)
 [![Known Vulnerabilities](https://snyk.io/test/github/Patrowl/PatrowlManager/badge.svg)](https://snyk.io/test/github/Patrowl/PatrowlManager)
 ![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=patrowl-manager&metric=alert_status)
-[![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlManager)
+
+[![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlManager) on master 
+[![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=develop)](https://travis-ci.com/Patrowl/PatrowlManager) on develop
 
 # **PatrOwl**
 [PatrOwl](https://www.patrowl.io/) is a scalable, free and open-source solution for orchestrating Security Operations.  
@@ -36,9 +38,3 @@ If you need to contact the project team, send an email to <getsupport@patrowl.io
 
 # Copyright
 Copyright (C) 2018 Nicolas MATTIOCCO  ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
-
-# Travis build status
-- Branch 'master':
-[![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlManager)
-- Branch 'develop':
-[![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=develop)](https://travis-ci.com/Patrowl/PatrowlManager)
