@@ -1,16 +1,15 @@
-version: '3.6'
+version: '3.7'
 services:
 
   rabbitmq:
     image: rabbitmq:latest
     container_name: patrowl_rabbitmq
     environment:
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="-rabbit log_levels [{connection,error}]"
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error}]
     ports:
       - '5672:5672'
 
   db:
-    # image: postgres:latest
     image: postgres:10.1-alpine
     container_name: patrowl_postgres
     environment:
@@ -23,18 +22,6 @@ services:
       - ./var/db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     # volumes:
     #   - postgres_data:/var/lib/postgresql/data/
-  #
-  # nginx:
-  #   image: nginx:latest
-  #   restart: always
-  #   container_name: patrowl_nginx
-  #   ports:
-  #     - "18000:18000"
-  #   links:
-  #     - web:web
-  #   volumes:
-  #     - ./:/opt/patrowl-manager/
-  #     - ./nginx_docker.conf:/etc/nginx/conf.d/default.conf
 
   web:
     container_name: patrowl_django
@@ -46,17 +33,19 @@ services:
     depends_on:
       - db
       - rabbitmq
-    # volumes:
-    #   - ./:/opt/patrowl-manager/
     ports:
       - "0.0.0.0:8001:8001"
     links:
       - db
       - rabbitmq
 
-  # start_dependencies:
-  #   image: dadarek/wait-for-dependencies
-  #   depends_on:
-  #     - db
-  #     - rabbitmq
-  #   command: db:5432 rabbitmq:5672
+  nginx:
+    image: nginx:latest
+    container_name: patrowl_nginx
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/opt/patrowl-manager/
+      - ./nginx_docker.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
