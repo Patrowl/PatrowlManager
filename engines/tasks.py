@@ -50,6 +50,9 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
     min_level = level_to_value.get(min_level, 0)
 
     if engine == 'nessus':
+
+        summary = {"info": 0, "medium": 0, "missing": 0, "high": 0, "critical": 0, "low": 0, "new": 0, "total": 0}
+
         Event.objects.create(message='[EngineTasks/importfindings_task()] engine: nessus', type="INFO", severity="INFO")
         try:
             import cElementTree as ET
@@ -86,8 +89,10 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                                     scan=scan, 
                                     description="No ip address for asset {} found".format(asset.get('name'))
                                 )
+                                summary['missing'] += 1
                                 continue
                             if 'pluginName' in report_item.attrib:
+                                summary['total'] += 1
                                 finding = {
                                             "target": {
                                                 "addr": [asset.get('host-ip', asset.get('name'))]
@@ -110,8 +115,10 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                                         }
                                 if int(report_item.attrib['severity']) < min_level:
                                     # if below min level descard finding
+                                    summary['missing'] += 1
                                     continue
                                 finding['severity'] = value_to_level.get(int(report_item.attrib['severity']), 'info')
+                                summary[finding['severity']] += 1
 
                                 for param in report_item:
                                     if param.tag == 'vuln_publication_date':
@@ -169,7 +176,9 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                          type="ERROR", severity="ERROR")
             return False
         try:
-            _import_findings(findings=data, scan=Scan.objects.filter(title='test').first())
+            scan = Scan.objects.create(title='nessus_' + datetime.date.today().isoformat(), status='finished', summary=summary)
+            scan.save()
+            _import_findings(findings=data, scan=scan)
         except Exception as e:
             Event.objects.create(message="[EngineTasks/importfindings_task()] Error importing findings.", description="{}".format(e.message),
                          type="ERROR", severity="ERROR")

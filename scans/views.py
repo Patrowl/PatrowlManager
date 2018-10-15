@@ -322,7 +322,7 @@ def get_scan_report_html(request, scan_id):
 
     #{asset1: [{finding1}, {finding2}]}
     findings_tmp = list()
-    for sev in ["high", "medium", "low", "info"]:
+    for sev in ["high", "medium", "low", "info", "critical"]:
         tmp = RawFinding.objects.filter(scan=scan, severity=sev).order_by('type')
         if tmp.count() > 0: findings_tmp += tmp
 
@@ -340,6 +340,7 @@ def get_scan_report_html(request, scan_id):
         "medium": findings.filter(severity='medium').count(),
         "low": findings.filter(severity='low').count(),
         "info": findings.filter(severity='info').count(),
+        "critical": findings.filter(severity='critical').count()
     }
 
     for asset in scan.assets.all():
