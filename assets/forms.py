@@ -4,6 +4,33 @@ from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES
 
 assets = []
 
+
+def get_child_dict_recursive(elem):
+    if not elem.is_leaf_node():
+        children = AssetCategory.objects.filter(parent=elem)
+        child_dict = dict()
+        for child in children:
+            child_dict[child.id] = get_child_dict_recursive(child)
+        return child_dict
+    return elem.value
+
+
+def recursive_dict_to_tuple(dict_obj):
+    items = list()
+    if isinstance(dict_obj, dict):
+        for dict_obj_key,dict_item in dict_obj.items():
+            tuple_item = tuple()
+            if isinstance(dict_item, dict):
+                tuple_item = tuple(((key, recursive_dict_to_tuple(value)) for key,value in dict_item.items()))
+                tuple_item = ((dict_obj_key, dict_obj_key), ) + tuple_item
+                items.append((dict_obj_key, tuple_item))
+            else:
+                items.append((dict_item, dict_item))
+    else:
+        return dict_obj
+    return tuple(items)
+
+
 class AssetForm(forms.ModelForm):
     class Meta:
         model = Asset
@@ -13,7 +40,7 @@ class AssetForm(forms.ModelForm):
             'value': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
-            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm'})
+            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '10'})
         }
 
     type = forms.CharField(widget=forms.Select(choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'}))
@@ -21,6 +48,13 @@ class AssetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AssetForm, self).__init__(*args, **kwargs)
+
+        roots = AssetCategory.objects.filter(parent=None)
+        tree = dict()
+        for root in roots:
+            tree[root.value] = get_child_dict_recursive(root)
+
+        self.fields['categories'].widget.choices = recursive_dict_to_tuple(tree)
 
         # disable the value update (/!\ still bypassable)
         if self.initial != {} and 'value' in self.initial.keys():
