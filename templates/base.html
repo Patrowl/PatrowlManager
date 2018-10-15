@@ -41,6 +41,10 @@
   <!-- Font Awesome -->
   <script src="{% static 'js/fontawesome-all.min.js' %}"></script>
 
+  <!-- Tagsinput -->
+  <script src="{% static 'js/bootstrap-tagsinput.min.js' %}"></script>
+  <link href="{% static 'css/bootstrap-tagsinput.css' %}" rel="stylesheet">
+
   <!-- Admin -->
   <script type="text/javascript" src="/admin/jsi18n/"></script>
   <script type="text/javascript" src="/static/admin/js/core.js"></script>
@@ -204,6 +208,10 @@
       background-color: #efe636;
     }
 
+    .label-success {
+      background-color: green;
+    }
+
     .form-control-xs-feedback {
       position: absolute;
       top: -3px;
@@ -226,6 +234,10 @@
       line-height: 33px;
       text-align: center;
       /* pointer-events: none; */
+    }
+
+    span.tag.label-info {
+      background-color: #3498db;
     }
 
   </style>
@@ -275,6 +287,7 @@
           <ul class="dropdown-menu" role="menu">
             <li><a href="/findings/list">List</a></li>
             <li><a href="/findings/import">Manual import</a></li>
+            <li><a href="/findings/add">+ Add finding</a></li>
             <!-- <li><a href="/findings/export">Export</a></li> -->
           </ul>
         </li>

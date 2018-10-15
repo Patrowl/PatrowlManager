@@ -40,21 +40,153 @@ def refresh_engines_status_task(self):
 
 
 @shared_task(bind=True)
-def importfindings_task(self, report_filename, owner_id):
-    Event.objects.create(message="[EngineTasks/importfindings_task/{}] Task started.".format(self.request.id),
+def importfindings_task(self, report_filename, owner_id, engine, min_level):
+    Event.objects.create(message="[EngineTasks/importfindings_task/{}] Task started with engine {}.".format(self.request.id, engine),
                  type="INFO", severity="INFO")
 
-    with open(report_filename) as data_file:
-        data = json.load(data_file)
+    level_to_value = {'info': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
+    value_to_level = {v: k for k, v in level_to_value.iteritems()}
 
-    try:
-        _import_findings(findings=data['issues'], scan=None)
-    except Exception as e:
-        Event.objects.create(message="[EngineTasks/importfindings_task()] Error importing findings.", description="{}".format(e.message),
-                     type="ERROR", severity="ERROR")
-        # print (e.__doc__)
-        # print (e.message)
-        return False
+    min_level = level_to_value.get(min_level, 0)
+
+    if engine == 'nessus':
+        Event.objects.create(message='[EngineTasks/importfindings_task()] engine: nessus', type="INFO", severity="INFO")
+        try:
+            import cElementTree as ET
+        except ImportError:
+            try:
+                # Python 2.5 need to import a different module
+                import xml.etree.cElementTree as ET
+            except ImportError:
+                Event.objects.create(message="[EngineTasks/importfindings_task()] Unable to import xml parser.", type="ERROR", severity="ERROR")
+                return False
+        # parse nessus file
+        data = list()
+        try:
+            dom = ET.parse(open(report_filename, "r"))
+            root = dom.getroot()
+        except Exception as e:
+            Event.objects.create(message="[EngineTasks/importfindings_task()] Unable to open and parse report file.", description="{}".format(e.message),
+                         type="ERROR", severity="ERROR")
+            return False
+        try:
+            for block in root:
+                if block.tag == 'Report':
+                    for report_host in block:
+                        asset = dict()
+                        asset['name'] = report_host.attrib['name']
+                        for report_item in report_host:
+                            if report_item.tag == 'HostProperties':
+                                for tag in report_item:
+                                    asset[tag.attrib['name']] = tag.text
+                            if not net.is_valid_ip(asset.get('host-ip', asset.get('name'))):
+                                Event.objects.create(
+                                    message="[EngineTasks/importfindings_task()] finding not added.", 
+                                    type="DEBUG", severity="INFO", 
+                                    scan=scan, 
+                                    description="No ip address for asset {} found".format(asset.get('name'))
+                                )
+                                continue
+                            if 'pluginName' in report_item.attrib:
+                                finding = {
+                                            "target": {
+                                                "addr": [asset.get('host-ip', asset.get('name'))]
+                                            },
+                                            "metadata": {
+                                                "risk": {
+                                                    "cvss_base_score": "0.0"
+                                                },
+                                                "vuln_refs": {},
+                                                "links": list(),
+                                                "tags": list()
+                                            },
+                                            "title": report_item.attrib['pluginName'],
+                                            "type": "Vuln",
+                                            "confidence": "3",
+                                            "severity": "info",
+                                            "description": "n/a",
+                                            "solution": "n/a",
+                                            "raw": None
+                                        }
+                                if int(report_item.attrib['severity']) < min_level:
+                                    # if below min level descard finding
+                                    continue
+                                finding['severity'] = value_to_level.get(int(report_item.attrib['severity']), 'info')
+
+                                for param in report_item:
+                                    if param.tag == 'vuln_publication_date':
+                                        finding['metadata']['vuln_publication_date'] = param.text
+
+                                    if param.tag == 'solution':
+                                        finding['solution'] = param.text
+                                    if param.tag == 'description':
+                                        finding['description'] = param.text
+
+                                    if param.tag == 'cvss_vector':
+                                        finding['metadata']['risk']['cvss_vector'] = param.text
+                                    if param.tag == 'cvss_base_score':
+                                        finding['metadata']['risk']['cvss_base_score'] = param.text
+
+                                    if param.tag == 'cvss_temporal_vector':
+                                        finding['metadata']['risk']['cvss_temporal_vector'] = param.text
+                                    if param.tag == 'cvss_temporal_score':
+                                        finding['metadata']['risk']['cvss_temporal_score'] = param.text
+
+                                    if param.tag == 'cvss3_vector':
+                                        finding['metadata']['risk']['cvss3_vector'] = param.text
+                                    if param.tag == 'cvss3_base_score':
+                                        finding['metadata']['risk']['cvss3_base_score'] = param.text
+
+                                    if param.tag == 'cvss3_temporal_vector':
+                                        finding['metadata']['risk']['cvss3_temporal_vector'] = param.text
+                                    if param.tag == 'cvss3_temporal_score':
+                                        finding['metadata']['risk']['cvss3_temporal_score'] = param.text
+
+                                    if param.tag == 'exploit_available':
+                                        finding['metadata']['risk']['exploit_available'] = param.text
+                                    if param.tag == 'exploitability_ease':
+                                        finding['metadata']['risk']['exploitability_ease'] = param.text
+                                    if param.tag == 'exploited_by_nessus':
+                                        finding['metadata']['risk']['exploited_by_nessus'] = param.text
+                                    if param.tag == 'patch_publication_date':
+                                        finding['metadata']['risk']['patch_publication_date'] = param.text
+
+                                    if param.tag == 'cve':
+                                        finding['metadata']['vuln_refs']['cve'] = param.text
+                                    if param.tag == 'bid':
+                                        finding['metadata']['vuln_refs']['bid'] = param.text
+                                    if param.tag == 'xref':
+                                        finding['metadata']['vuln_refs'][param.text.split(':')[0]] = param.text.split(':')[1]
+                                    if param.tag == 'see_also':
+                                        for link in param.text.split('\n'):
+                                            finding['metadata']['links'].append(link)
+
+                                    if param.tag == 'plugin_output':
+                                        finding['raw'] = param.text
+                                data.append(finding)  
+        except Exception as e:
+            Event.objects.create(message="[EngineTasks/importfindings_task()] Error parsing nessus file.", description="{}".format(e.message),
+                         type="ERROR", severity="ERROR")
+            return False
+        try:
+            _import_findings(findings=data, scan=Scan.objects.filter(title='test').first())
+        except Exception as e:
+            Event.objects.create(message="[EngineTasks/importfindings_task()] Error importing findings.", description="{}".format(e.message),
+                         type="ERROR", severity="ERROR")
+            return False        
+    else:
+        # has to be json
+        with open(report_filename) as data_file:
+            data = json.load(data_file)
+
+        try:
+            _import_findings(findings=data['issues'], scan=Scan.objects.filter(title='test').first())
+        except Exception as e:
+            Event.objects.create(message="[EngineTasks/importfindings_task()] Error importing findings.", description="{}".format(e.message),
+                         type="ERROR", severity="ERROR")
+            #print (e.__doc__)
+            #print (e.message)
+            return False
 
     return True
 
@@ -436,29 +568,36 @@ def _create_asset_on_import(asset_value, scan, asset_type = 'ip'):
     Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}/{}'.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan)
 
     # create assets if data_type is ip-subnet or ip-range
-    assets = scan.assets.filter(type__in=['ip-subnet', 'ip-range'])
-    if assets.count() == 0:
-        Event.objects.create(message="[EngineTasks/_create_asset_on_import()] asset '{}/{}' not created.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan, description="Not an ip-subnet or ip-range")
-        return False
+    if scan and asset_type == 'ip':
+        assets = scan.assets.filter(type__in=['ip-subnet', 'ip-range'])
 
-    # Search parent asset
-    parent_asset = None
-    for pa in assets:
-        if net.is_ip_in_ipset(ip=asset_value, ipset=pa.value):
-            parent_asset = pa
-            break
-    if parent_asset == None:
-        Event.objects.create(message="[EngineTasks/_create_asset_on_import()] asset '{}/{}' not created.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan, description="No parent asset found")
-        return False
+        # Search parent asset
+        parent_asset = None
+        for pa in assets:
+            if net.is_ip_in_ipset(ip=asset_value, ipset=pa.value):
+                parent_asset = pa
+                break
+        if parent_asset:
+            name = "{} (from '{}')".format(asset_value, parent_asset.name)
+            criticity = parent.criticity
+            owner = parent_asset.owner
+        else:
+            name = asset_value
+            criticity = 'medium'
+            owner = User.objects.filter(username='root').first()
+    else:
+        name = asset_value
+        criticity = 'medium'
+        owner = User.objects.filter(username='root').first()
 
     # Create the new asset ...
     asset_args = {
         'value': asset_value,
-        'name': "{} (from '{}')".format(asset_value, parent_asset.name),
+        'name': name,
         'type': asset_type,
-        'criticity': parent_asset.criticity,
-        'description': "Asset dynamically created. Imported desc: {}".format(parent_asset.description),
-        'owner': parent_asset.owner
+        'criticity': criticity,
+        'description': "Asset dynamically created",
+        'owner': owner
     }
     asset = Asset(**asset_args)
     asset.save()
@@ -510,6 +649,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         # Update default values for risk.cvss_base_score and risk.vuln_publication_date if not set
         if not 'cvss_base_score' in risk_info.keys():
             cvss_base_score = 0.0
+            if finding['severity'] == 'critical': cvss_base_score = 9.0
             if finding['severity'] == "high": cvss_base_score = 7.5
             if finding['severity'] == "medium": cvss_base_score = 5.0
             if finding['severity'] == "low": cvss_base_score = 4.0

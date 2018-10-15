@@ -3,12 +3,25 @@
 
 <ul class="breadcrumb">
   <li><a href="/findings/list">findings</a></li>
-  <li class="active">import</li>
+  <li class="active">edit</li>
 </ul>
 
+<script type="text/javascript">
+  $(document).ready(function() {
+    tagsinput_input = $('div.bootstrap-tagsinput')
+    tagsinput_input.tagsinput('removeAll');
+    if "{{ finding.tags }}" != "None" {
+      tags = "{{ finding.tags }}".replace(/u&#39;/g, "").replace(/&#39;/g, "").replace('[', '').replace(']', '').split(',');
+      for (var i = 0; i < tags.length; i++) {
+        tagsinput_input.tagsinput('add', tags[i]);
+      }
+    }
+  })
+</script>
+
 <div class="container">
-  <form action="/findings/import" method="post" class="form-horizontal" enctype="multipart/form-data">
-    <legend>Import findings</legend>
+  <form action="/findings/edit/{{ finding.id }}" method="post" class="form-horizontal">
+    <legend>Edit finding</legend>
       {% csrf_token %}
       {% for field in form %}
           {% if field.errors %}
@@ -35,7 +48,7 @@
       {% endfor %}
       <div class="form-group submit-div">
         <div class="col-sm-4">
-          <input type="submit" class="btn btn-primary" value="Import Findings">
+          <input type="submit" class="btn btn-primary" value="Update Finding">
         </div>
         <div class="col-sm-4">
           <button class="btn btn-primary"><a href="/findings/list">Cancel</a></button>

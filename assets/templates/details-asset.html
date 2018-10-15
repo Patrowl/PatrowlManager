@@ -23,10 +23,11 @@ div.tile {
   text-align: center;
 }
 div.tile div { font-size: large; }
-div.tile-high { border-color: red; }
-div.tile-medium { border-color: orange; }
-div.tile-low { border-color: #efe636; }
-div.tile-info { border-color: lightgrey; }
+div.tile-critical { border-color: red; }
+div.tile-high { border-color: orange; }
+div.tile-medium { border-color: #efe636; }
+div.tile-low { border-color: green; }
+div.tile-info { border-color: blue; }
 
 div.risk-grade { font-size: xx-large; padding: 10px; border-radius: 5px; }
 div.risk-grade-A { background-color: limegreen; }
@@ -44,9 +45,10 @@ span.badge-risk-grade-E { background-color: orangered; }
 span.badge-risk-grade-F { background-color: red; }
 span.badge-risk-grade-- { background-color: lightgray; }
 
-.progress-bar-high { background-color: orangered; }
-.progress-bar-medium { background-color: orange; }
-.progress-bar-low { background-color: yellow; }
+.progress-bar-critical { background-color: red; }
+.progress-bar-high { background-color: orange; }
+.progress-bar-medium { background-color: #efe636; }
+.progress-bar-low { background-color: green; }
 
 div.risk-trends {
   border-top-color: lightgray;
@@ -68,7 +70,7 @@ div.risk-trends {
 
 <div class="container-fluid" asset-id="{{asset.id}}">
   <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-4">
       <dl class="dl-horizontal">
         <dt>Name</dt>
         <dd><b>{{ asset.name }}</b> ({{asset.type}})</dd>
@@ -89,11 +91,13 @@ div.risk-trends {
 
         <dt>Criticity</dt>
         {% if asset.criticity == 'low' %}
-        <dd><span class="label label-info">low</span></dd>
+        <dd><span class="label label-success">low</span></dd>
         {% elif asset.criticity == 'medium' %}
-        <dd><span class="label label-warning">medium</span></dd>
+        <dd><span class="label label-info">medium</span></dd>
         {% elif asset.criticity == 'high' %}
-        <dd><span class="label label-danger">high</span></dd>
+        <dd><span class="label label-warning">high</span></dd>
+        {% elif asset.criticity == 'critical' %}
+        <dd><span class="label label-danger">critical</span></dd>
         {% endif %}
 
         <dt>Created at</dt>
@@ -112,24 +116,29 @@ div.risk-trends {
         <b>Findings Stats </b><span class="glyphicon glyphicon-stats"></span>
       </div>
       <div class="row finding-stats">
-        <div class="col-md-3">
+        <div class="col-md-2">
+          <div class="tile tile-critical">
+              <div>Critical:</div><span class="label label-danger">{{findings_stats.critical}}</span>
+          </div>
+        </div>
+        <div class="col-md-2">
           <div class="tile tile-high">
-      		    <div>High:</div><span class="label label-danger">{{findings_stats.high}}</span>
+      		    <div>High:</div><span class="label label-warning">{{findings_stats.high}}</span>
           </div>
       	</div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <div class="tile tile-medium">
-      		    <div>Medium:</div><span class="label label-warning">{{findings_stats.medium}}</span>
+      		    <div>Medium:</div><span class="label label-info">{{findings_stats.medium}}</span>
           </div>
       	</div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <div class="tile tile-low">
-      		    <div>Low:</div><span class="label label-info">{{findings_stats.low}}</span>
+      		    <div>Low:</div><span class="label label-success">{{findings_stats.low}}</span>
           </div>
       	</div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <div class="tile tile-info">
-      		    <div>Info:</div><span class="label label-default">{{findings_stats.info}}</span>
+      		    <div>Info:</div><span class="label label-primary">{{findings_stats.info}}</span>
           </div>
       	</div>
       </div>
@@ -254,17 +263,17 @@ div.risk-trends {
             <td><input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/></td>
             <td>{{ finding.title }}</td>
             <td>{{ finding.type }}</td>
-            <td>
-              {% if finding.severity == 'critical' or finding.severity == 'high' %}
-              <span class="label label-danger">{{ finding.severity }}</span>
-              {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-              <span class="label label-warning">{{ finding.severity }}</span>
-              {% elif finding.severity == 'low' %}
-              <span class="label label-info">{{ finding.severity }}</span>
-              {% else %}
-              <span class="label label-default">{{ finding.severity }}</span>
-              {% endif %}
-            </td>
+            {% if finding.severity == 'critical' %}
+            <td><span class="label label-danger">{{ finding.severity }}</span></td>
+            {% elif finding.severity == 'high' %}
+            <td><span class="label label-warning">{{ finding.severity }}</span></td>
+            {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+            <td><span class="label label-info">{{ finding.severity }}</span></td>
+            {% elif finding.severity == 'low' %}
+            <td><span class="label label-success">{{ finding.severity }}</span></td>
+            {% else %}
+            <td><span class="label label-primary">{{ finding.severity }}</span></td>
+            {% endif %}
             {% if finding.status == 'new' %}
             <td class="text-danger">{{ finding.status }}</td>
             {% else %}

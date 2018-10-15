@@ -92,16 +92,18 @@ function toggle(source, element) {
     {% for finding in findings %}
     <tr class='dblclickable-row' data-href='/findings/details/{{ finding.id }}'>
       <td><input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/></td>
-      <td>{{ finding.asset_name|truncatechars:60 }}</td>
+      <td>{{ finding.asset.name|truncatechars:60 }}</td>
       <td>{{ finding.title|truncatechars:60 }}</td>
-      {% if finding.severity == 'critical' or finding.severity == 'high' %}
+      {% if finding.severity == 'critical' %}
       <td><span class="label label-danger">{{ finding.severity }}</span></td>
-      {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+      {% elif finding.severity == 'high' %}
       <td><span class="label label-warning">{{ finding.severity }}</span></td>
-      {% elif finding.severity == 'low' %}
+      {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
       <td><span class="label label-info">{{ finding.severity }}</span></td>
+      {% elif finding.severity == 'low' %}
+      <td><span class="label label-success">{{ finding.severity }}</span></td>
       {% else %}
-      <td><span class="label label-default">{{ finding.severity }}</span></td>
+      <td><span class="label label-primary">{{ finding.severity }}</span></td>
       {% endif %}
       {% if finding.status == 'new' %}
       <td class="text-danger">{{ finding.status }}</td>

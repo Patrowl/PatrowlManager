@@ -18,13 +18,17 @@ urlpatterns = [
     url(r'^delete/(?P<finding_id>[0-9]+)$', views.delete_finding_view, name='delete_finding_view'),
     # ex: /findings/details/8
     url(r'^details/(?P<finding_id>[0-9]+)$', views.details_finding_view, name='details_finding_view'),
+    # ex: /findings/edit/8
+    url(r'^edit/(?P<finding_id>[0-9]+)$', views.edit_finding_view, name='edit_finding_view'),
+    # ex: /findings/add
+    url(r'^add$', views.add_finding_view, name='add_finding_view'),
     # ex: /findings/compare
     url(r'^compare$', views.compare_rawfindings_view, name='compare_rawfindings_view'),
 
 
 
     ## JSON API
-    # ex: /findings/add
+    # ex: /findings/add (POST params)
     url(r'^add$', views.add_finding, name='add_finding'),
     # ex: /findings/delete (POST params)
     url(r'^delete$', views.delete_findings, name='delete_findings'),

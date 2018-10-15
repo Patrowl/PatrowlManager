@@ -18,7 +18,8 @@ FINDING_SEVERITIES = (
     ('info', 'info'),
     ('low', 'low'),
     ('medium', 'medium'),
-    ('high', 'high')
+    ('high', 'high'),
+    ('critical', 'critical')
 )
 
 
@@ -120,8 +121,8 @@ class Finding(models.Model):
     type        = models.CharField(max_length=50)
     hash        = models.CharField(max_length=256)
     confidence  = models.CharField(max_length=10)
-    severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)  # low, medium, high
-    severity_num= models.IntegerField(default=1, blank=True, null=True)  # low, medium, high
+    severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)  # info, low, medium, high, critical
+    severity_num= models.IntegerField(default=1, blank=True, null=True)  # info, low, medium, high, critical
     scopes      = models.ManyToManyField(EnginePolicyScope, blank=True)
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)
@@ -130,7 +131,7 @@ class Finding(models.Model):
     vuln_refs   = JSONField(null=True, blank=True)
     links       = JSONField(null=True, blank=True)
     tags        = JSONField(null=True, blank=True)
-    status      = models.CharField(max_length=10)
+    status      = models.CharField(max_length=10, default='new')
     engine_type = models.CharField(max_length=20)
     found_at    = models.DateTimeField(default=timezone.now)
     comments    = models.TextField(default="n/a", null=True, blank=True)

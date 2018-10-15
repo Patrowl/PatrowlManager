@@ -28,7 +28,8 @@ ASSET_TYPES = (
 ASSET_CRITICITIES = (
     ('low', 'low'),
     ('medium', 'medium'),
-    ('high', 'high')
+    ('high', 'high'),
+    ('critical', 'critical')
 )
 
 TLP_COLORS = (
