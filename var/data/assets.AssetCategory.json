@@ -28,6 +28,24 @@
   },
   {
     "model": "assets.assetcategory",
+    "pk": 26,
+    "fields": {
+      "parent": 3,
+      "value": "Windows XP",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 27,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Vista",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
     "pk": 4,
     "fields": {
       "parent": 3,
@@ -37,9 +55,27 @@
   },
   {
     "model": "assets.assetcategory",
-    "pk": 5,
+    "pk": 30,
     "fields": {
       "parent": 3,
+      "value": "Windows 10",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 31,
+    "fields": {
+      "parent": 3,
+      "value": "Windows Server",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 5,
+    "fields": {
+      "parent": 31,
       "value": "Windows Server 2003",
       "comments": "n/a"
     }
@@ -48,7 +84,7 @@
     "model": "assets.assetcategory",
     "pk": 6,
     "fields": {
-      "parent": 3,
+      "parent": 31,
       "value": "Windows Server 2008",
       "comments": "n/a"
     }
@@ -57,7 +93,7 @@
     "model": "assets.assetcategory",
     "pk": 7,
     "fields": {
-      "parent": 3,
+      "parent": 31,
       "value": "Windows Server 2008 R2",
       "comments": "n/a"
     }
@@ -66,7 +102,7 @@
     "model": "assets.assetcategory",
     "pk": 8,
     "fields": {
-      "parent": 3,
+      "parent": 31,
       "value": "Windows Server 2012",
       "comments": "n/a"
     }
@@ -75,7 +111,7 @@
     "model": "assets.assetcategory",
     "pk": 9,
     "fields": {
-      "parent": 3,
+      "parent": 31,
       "value": "Windows Server 2012 R2",
       "comments": "n/a"
     }
@@ -84,7 +120,7 @@
     "model": "assets.assetcategory",
     "pk": 10,
     "fields": {
-      "parent": 3,
+      "parent": 31,
       "value": "Windows Server 2016",
       "comments": "n/a"
     }
@@ -95,6 +131,24 @@
     "fields": {
       "parent": 2,
       "value": "Unix/Linux",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 28,
+    "fields": {
+      "parent": 11,
+      "value": "Debian",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 29,
+    "fields": {
+      "parent": 28,
+      "value": "Debian 8 (jessie)",
       "comments": "n/a"
     }
   },
@@ -212,6 +266,42 @@
     "fields": {
       "parent": 11,
       "value": "HP-UX",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 32,
+    "fields": {
+      "parent": 1,
+      "value": "Network",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 33,
+    "fields": {
+      "parent": 32,
+      "value": "Internal Network",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 34,
+    "fields": {
+      "parent": 32,
+      "value": "External Network",
+      "comments": "n/a"
+    }
+  },
+  {
+    "model": "assets.assetcategory",
+    "pk": 35,
+    "fields": {
+      "parent": 32,
+      "value": "DMZ",
       "comments": "n/a"
     }
   },

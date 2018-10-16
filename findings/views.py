@@ -66,7 +66,7 @@ def list_findings_view(request):
             excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
 
     # Filter by finding severity
-    if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high"]:
+    if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high", "critical"]:
         #filters.update({"severity": filter_by_severity})
         if filter_by_severity_cond == "exact":
             filters.update({"severity__{}".format(filter_by_severity_cond): filter_by_severity})

@@ -14,20 +14,6 @@ ul.ui-autocomplete {
   margin: 0;
   padding: 2px;
 }
-div.tile {
-  border-width: thin;
-  border-style: solid;
-  border-left-width: 1rem;
-  border-radius: 3px;
-  padding-bottom: 15px;
-  text-align: center;
-}
-div.tile div { font-size: large; }
-div.tile-high { border-color: red; }
-div.tile-medium { border-color: orange; }
-/* div.tile-low { border-color: #3498db; } */
-div.tile-low { border-color: #efe636; }
-div.tile-info { border-color: lightgrey; }
 
 span.badge-risk-grade-A { background-color: limegreen; }
 span.badge-risk-grade-B { background-color: yellowgreen; }
@@ -44,6 +30,21 @@ div.risk-grade-C { background-color: orange; }
 div.risk-grade-D { background-color: darkorange; }
 div.risk-grade-E { background-color: orangered; }
 div.risk-grade-F { background-color: red; }
+
+div.tile {
+  border-width: thin;
+  border-style: solid;
+  border-left-width: 1rem;
+  border-radius: 3px;
+  padding-bottom: 15px;
+  text-align: center;
+}
+div.tile div { font-size: large; }
+div.tile-critical { border-color: #cc0500; }
+div.tile-high { border-color: #df3d03; }
+div.tile-medium { border-color: #f9a009; }
+div.tile-low { border-color: #ffcb0d; }
+div.tile-info { border-color: #3498db; }
 
 div.risk-trends {
   border-top-color: lightgray;
@@ -65,7 +66,7 @@ div.risk-trends {
 
 <div class="container-fluid" asset-id="{{asset_group.id}}">
   <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-4">
       <dl class="dl-horizontal">
         <dt>Name</dt>
         <dd><b>{{ asset_group.name }}</b></dd>
@@ -83,11 +84,11 @@ div.risk-trends {
 
         <dt>Criticity</dt>
         {% if asset_group.criticity == 'low' %}
-        <dd><span class="label label-info">low</span></dd>
+        <dd><span class="label label-low">low</span></dd>
         {% elif asset_group.criticity == 'medium' %}
-        <dd><span class="label label-warning">medium</span></dd>
+        <dd><span class="label label-medium">medium</span></dd>
         {% elif asset_group.criticity == 'high' %}
-        <dd><span class="label label-danger">high</span></dd>
+        <dd><span class="label label-critical">high</span></dd>
         {% endif %}
 
         <dt>Created at</dt>
@@ -106,32 +107,36 @@ div.risk-trends {
       </dl>
     </div><!-- End of first col -->
 
-    <div class="col-md-5 tiles"> <!-- Second col -->
+    <div class="col-md-6 tiles"> <!-- Second col -->
       <div class="row">
         <b>Findings Stats </b><span class="glyphicon glyphicon-stats"></span>
       </div>
       <div class="row finding-stats">
-        <!-- <div class="col-md-3 tile" style="outline: 1px solid red;"> -->
-        <div class="col-md-3">
+        <div class="col-md-2">
+          <div class="tile tile-critical">
+              <div>Critical:</div><span class="label label-critical">{{findings_stats.critical}}</span>
+          </div>
+        </div>
+        <div class="col-md-2">
           <div class="tile tile-high">
-      		    <div>High:</div><span class="label label-danger">{{findings_stats.high}}</span>
+              <div>High:</div><span class="label label-high">{{findings_stats.high}}</span>
           </div>
-      	</div>
-        <div class="col-md-3">
+        </div>
+        <div class="col-md-2">
           <div class="tile tile-medium">
-      		    <div>Medium:</div><span class="label label-warning">{{findings_stats.medium}}</span>
+              <div>Medium:</div><span class="label label-medium">{{findings_stats.medium}}</span>
           </div>
-      	</div>
-        <div class="col-md-3">
+        </div>
+        <div class="col-md-2">
           <div class="tile tile-low">
-      		    <div>Low:</div><span class="label label-info">{{findings_stats.low}}</span>
+              <div>Low:</div><span class="label label-low">{{findings_stats.low}}</span>
           </div>
-      	</div>
-        <div class="col-md-3">
+        </div>
+        <div class="col-md-2">
           <div class="tile tile-info">
-      		    <div>Info:</div><span class="label label-default">{{findings_stats.info}}</span>
+              <div>Info:</div><span class="label label-info">{{findings_stats.info}}</span>
           </div>
-      	</div>
+        </div>
       </div>
       <div class="row">
         <div class="col-md-12">
@@ -195,13 +200,13 @@ div.risk-trends {
         {% for scope, counter in asset_scopes %}
           <a href="/findings/list?_scope={{ counter.id }}&_asset_group_id={{ asset_group.id }}" style="text-decoration:none;">
           {% if counter.high > 0 %}
-          <span class="label label-danger">{{ scope }}: {{ counter.high }}/{{ counter.total }}</span>
+          <span class="label label-critical">{{ scope }}: {{ counter.high }}/{{ counter.total }}</span>
           {% elif counter.medium > 0 %}
-          <span class="label label-warning">{{ scope }}: {{ counter.medium }}/{{ counter.total }}</span>
+          <span class="label label-medium">{{ scope }}: {{ counter.medium }}/{{ counter.total }}</span>
           {% elif counter.low > 0 %}
-          <span class="label label-info">{{ scope }}: {{ counter.low }}/{{ counter.total }}</span>
+          <span class="label label-low">{{ scope }}: {{ counter.low }}/{{ counter.total }}</span>
           {% else %}
-          <span class="label label-default">{{ scope }}: {{ counter.total }}</span>
+          <span class="label label-info">{{ scope }}: {{ counter.total }}</span>
           {% endif %}
           </a>
         {% endfor %}
@@ -247,30 +252,30 @@ div.risk-trends {
               {% if asset.risk_level.high == 0 %}
                 0
               {% else %}
-                <span class="label label-danger">{{ asset.risk_level.high }}</span>
+                <span class="label label-critical">{{ asset.risk_level.high }}</span>
               {% endif %}/
               {% if asset.risk_level.medium == 0 %}
                 0
               {% else %}
-                <span class="label label-warning">{{ asset.risk_level.medium }}</span>
+                <span class="label label-medium">{{ asset.risk_level.medium }}</span>
               {% endif %}/
               {% if asset.risk_level.low == 0 %}
                 0
               {% else %}
-                <span class="label label-info">{{ asset.risk_level.low }}</span>
+                <span class="label label-low">{{ asset.risk_level.low }}</span>
               {% endif %}/
               {% if asset.risk_level.info == 0 %}
                 0
               {% else %}
-                <span class="label label-primary">{{ asset.risk_level.info }}</span>
+                <span class="label label-info">{{ asset.risk_level.info }}</span>
               {% endif %}
             </td>
             {% if asset.criticity == 'low' %}
             <td><span class="label label-info">Low</span></td>
             {% elif asset.criticity == 'medium' %}
-            <td><span class="label label-warning">Medium</span></td>
+            <td><span class="label label-medium">Medium</span></td>
             {% elif asset.criticity == 'high' %}
-            <td><span class="label label-danger">High</span></td>
+            <td><span class="label label-critical">High</span></td>
             {% endif %}
             <td><span class="badge badge-risk-grade-{{ asset.get_risk_grade }}">{{ asset.get_risk_grade }}</span></td>
             <td>{{ asset.type }}</td>
@@ -323,16 +328,18 @@ div.risk-trends {
           <td>{{ finding.title }}</td>
           <td>{{ finding.type }}</td>
           <td>
-            {% if finding.severity == 'critical' or finding.severity == 'high' %}
-            <span class="label label-danger">{{ finding.severity }}</span>
+            {% if finding.severity == 'critical' %}
+            <span class="label label-critical">{{ finding.severity }}</span>
+            {% elif finding.severity == 'high' %}
+            <span class="label label-high">{{ finding.severity }}</span>
             {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-            <span class="label label-warning">{{ finding.severity }}</span>
+            <span class="label label-medium">{{ finding.severity }}</span>
             {% elif finding.severity == 'low' %}
-            <span class="label label-info">{{ finding.severity }}</span>
+            <span class="label label-low">{{ finding.severity }}</span>
             {% else %}
-            <span class="label label-default">{{ finding.severity }}</span>
+            <span class="label label-info">{{ finding.severity }}</span>
             {% endif %}
-          </td>
+            </td>
           {% if finding.status == 'new' %}
           <td class="text-danger">{{ finding.status }}</td>
           {% else %}
@@ -373,14 +380,16 @@ div.risk-trends {
           {% if finding.severity != "info" %}
           <tr>
             <td>
-              {% if finding.severity == 'critical' or finding.severity == 'high' %}
-              <span class="label label-danger">{{ finding.severity }}</span>
+              {% if finding.severity == 'critical' %}
+              <span class="label label-critical">{{ finding.severity }}</span>
+              {% elif finding.severity == 'high' %}
+              <span class="label label-high">{{ finding.severity }}</span>
               {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-              <span class="label label-warning">{{ finding.severity }}</span>
+              <span class="label label-medium">{{ finding.severity }}</span>
               {% elif finding.severity == 'low' %}
-              <span class="label label-info">{{ finding.severity }}</span>
+              <span class="label label-low">{{ finding.severity }}</span>
               {% else %}
-              <span class="label label-default">{{ finding.severity }}</span>
+              <span class="label label-info">{{ finding.severity }}</span>
               {% endif %}
             </td>
             <td>{{ finding.solution }}</td>
@@ -496,16 +505,19 @@ div.risk-trends {
               <td class="scan-progress">
                 <div class="progress" id="pb-{{ scan.id }}">
                   {% if scan.status == "finished" %}
-                  <div class="progress-bar progress-bar-striped progress-bar-high" role="progressbar" style="width:{{ scan.summary.high | perc:scan.summary.total }}%">
+                  <div class="progress-bar progress-bar progress-bar-critical" role="progressbar" style="width:{{ scan.summary.critical | perc:scan.summary.total }}%">
+                    {{ scan.summary.critical }}
+                  </div>
+                  <div class="progress-bar progress-bar progress-bar-high" role="progressbar" style="width:{{ scan.summary.high | perc:scan.summary.total }}%">
                     {{ scan.summary.high }}
                   </div>
-                  <div class="progress-bar progress-bar-striped progress-bar-medium" role="progressbar" style="width:{{ scan.summary.medium | perc:scan.summary.total }}%">
+                  <div class="progress-bar progress-barprogress-bar-medium" role="progressbar" style="width:{{ scan.summary.medium | perc:scan.summary.total }}%">
                     {{ scan.summary.medium }}
                   </div>
-                  <div class="progress-bar progress-bar-striped progress-bar-low" role="progressbar" style="width:{{ scan.summary.low | perc:scan.summary.total }}%">
+                  <div class="progress-bar progress-bar progress-bar-low" role="progressbar" style="width:{{ scan.summary.low | perc:scan.summary.total }}%">
                     {{ scan.summary.low }}
                   </div>
-                  <div class="progress-bar progress-bar-striped progress-bar-info" role="progressbar" style="width:{{ scan.summary.info | perc:scan.summary.total }}%">
+                  <div class="progress-bar progress-bar progress-bar-info" role="progressbar" style="width:{{ scan.summary.info | perc:scan.summary.total }}%">
                     {{ scan.summary.info }}
                   </div>
                   {% else %}

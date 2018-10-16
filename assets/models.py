@@ -23,13 +23,13 @@ ASSET_TYPES = (
     ('person', 'person'),
     ('organisation', 'organisation'),
     ('path', 'path'),
+    ('application', 'application'),
 )
 
 ASSET_CRITICITIES = (
     ('low', 'low'),
     ('medium', 'medium'),
     ('high', 'high'),
-    ('critical', 'critical')
 )
 
 TLP_COLORS = (
@@ -141,7 +141,7 @@ class Asset(models.Model):
     name        = models.CharField(max_length=256)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
-    risk_level  = JSONField(default=dict({ "info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-" }))
+    risk_level  = JSONField(default=dict({ "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0, "grade": "-" }))
     owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True, default="new")
@@ -173,17 +173,18 @@ class Asset(models.Model):
     def evaluate_risk(self):
         criticity_factor = 0
         if self.criticity == "low":
-            criticity_factor=1
+            criticity_factor = 1
         elif self.criticity == "medium":
-            criticity_factor=5
+            criticity_factor = 5
         elif self.criticity == "high":
-            criticity_factor=10
+            criticity_factor = 10
 
         risk_data={
             "info": 0,
             "low": 0,
             "medium": 0,
             "high": 0,
+            "critical": 0,
             "asset_criticity_level": self.criticity,
             "asset_criticity_factor": criticity_factor
         }
@@ -198,7 +199,7 @@ class Asset(models.Model):
 
 
     def calc_risk_grade(self, history = None):
-        risk_level = { "info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-" }
+        risk_level = { "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0, "grade": "-" }
 
         if not history:
             findings = self.finding_set.all()
@@ -211,19 +212,19 @@ class Asset(models.Model):
             risk_level['total'] = risk_level.get('total', 0) + 1
             risk_level[finding.severity] = risk_level.get(finding.severity, 0) + 1
 
-        if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
+        if risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"
-        elif risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0:
+        elif risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0:
             risk_level['grade'] = "A"
-        elif risk_level['high'] == 0 and risk_level['medium'] <= 1 and risk_level['low'] <= 5:
+        elif risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] <= 1 and risk_level['low'] <= 5:
             risk_level['grade'] = "B"
-        elif risk_level['high'] == 0 and risk_level['medium'] <= 5:
+        elif risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] <= 5:
             risk_level['grade'] = "C"
-        elif risk_level['high'] <= 1 and risk_level['medium'] <= 5:
+        elif risk_level['critical'] == 0 and risk_level['high'] <= 1 and risk_level['medium'] <= 5:
             risk_level['grade'] = "D"
-        elif risk_level['high'] <= 3:
+        elif risk_level['critical'] == 0 and risk_level['high'] <= 3:
             risk_level['grade'] = "E"
-        elif risk_level['high'] > 3:
+        elif risk_level['critical'] >= 1 or risk_level['high'] > 3:
             risk_level['grade'] = "F"
         else:
             risk_level['grade'] = "n/a"
