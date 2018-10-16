@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from celery import shared_task
 from celery.task.control import revoke
-from .models import EngineInstance, Engine, EnginePolicyScope
+from .models import EngineInstance, Engine, EnginePolicyScope, EnginePolicy
 from findings.models import Finding, RawFinding
 from assets.models import Asset, AssetGroup
 from scans.models import Scan, ScanDefinition
@@ -176,7 +176,22 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                          type="ERROR", severity="ERROR")
             return False
         try:
-            scan = Scan.objects.create(title='nessus_' + datetime.date.today().isoformat(), status='finished', summary=summary)
+            nessus_engine = Engine.objects.filter(name='NESSUS').first()
+            nessus_import_policy = EnginePolicy.objects.filter(id=17).first()
+            scan_definition = ScanDefinition.objects.filter(title='Nessus import').first()
+            if scan_definition is None:
+                scan_definition = ScanDefinition.objects.create(title='Nessus import',
+                                                                scan_type='single',
+                                                                description='Scan definition for nessus imports',
+                                                                engine_type=nessus_engine,
+                                                                engine_policy=nessus_import_policy)
+            scan = Scan.objects.create(title='nessus_' + datetime.date.today().isoformat(), 
+                                       status='finished', 
+                                       summary=summary, 
+                                       engine_type=nessus_engine,
+                                       engine_policy=nessus_import_policy,
+                                       owner=User.objects.filter(id=owner_id).first(),
+                                       scan_definition=scan_definition)
             scan.save()
             _import_findings(findings=data, scan=scan)
         except Exception as e:

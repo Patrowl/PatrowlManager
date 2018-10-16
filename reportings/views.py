@@ -61,13 +61,13 @@ def homepage_dashboard_view(request):
 
     # Asset grades repartition and TOP 10
     asset_grades_map = {
-        "A": {"critical": 0, "high": 0, "medium": 0, "low":0},
-        "B": {"critical": 0, "high": 0, "medium": 0, "low":0},
-        "C": {"critical": 0, "high": 0, "medium": 0, "low":0},
-        "D": {"critical": 0, "high": 0, "medium": 0, "low":0},
-        "E": {"critical": 0, "high": 0, "medium": 0, "low":0},
-        "F": {"critical": 0, "high": 0, "medium": 0, "low":0},
-        "-": {"critical": 0, "high": 0, "medium": 0, "low":0}
+        "A": {"high": 0, "medium": 0, "low":0},
+        "B": {"high": 0, "medium": 0, "low":0},
+        "C": {"high": 0, "medium": 0, "low":0},
+        "D": {"high": 0, "medium": 0, "low":0},
+        "E": {"high": 0, "medium": 0, "low":0},
+        "F": {"high": 0, "medium": 0, "low":0},
+        "-": {"high": 0, "medium": 0, "low":0}
     }
 
     assetgroup_grades_map = copy.deepcopy(asset_grades_map)
@@ -130,7 +130,7 @@ def homepage_dashboard_view(request):
         if finding.risk_info["cvss_base_score"] < 5.0: cvss_scores.update({'lte5': cvss_scores['lte5']+1})
         if finding.risk_info["cvss_base_score"] >= 5.0 and finding.risk_info["cvss_base_score"] <= 7.0: cvss_scores.update({'5to7': cvss_scores['5to7']+1})
         if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})
-        if finding.risk_info["cvss_base_score"] >= 9.0: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
+        if finding.risk_info["cvss_base_score"] >= 9.0 and finding.risk_info["cvss_base_score"] < 10: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
         if finding.risk_info["cvss_base_score"] == 10.0: cvss_scores.update({'eq10': cvss_scores['eq10']+1})
 
     return render(request, 'home-dashboard.html', {

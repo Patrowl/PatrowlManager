@@ -18,11 +18,6 @@ hr {
   margin-bottom: 10px;
 }
 
-.progress-bar-critical { background-color: red; }
-.progress-bar-high { background-color: orange; }
-.progress-bar-medium { background-color: yellow; }
-.progress-bar-low { background-color: green; }
-.progress-bar-info { background-color: blue; }
 .progress-bar-zero {
   background-color: lightgrey;
 }
@@ -133,13 +128,13 @@ function toggle(source, element) {
               <td>{{ asset.value|truncatechars:35 }}</td>
               <td>{{ asset.type }}</td>
               {% if asset.criticity == 'low' %}
-              <td><span class="label label-success">Low</span></td>
+              <td><span class="label label-low">Low</span></td>
               {% elif asset.criticity == 'medium' %}
-              <td><span class="label label-info">Medium</span></td>
+              <td><span class="label label-medium">Medium</span></td>
               {% elif asset.criticity == 'high' %}
-              <td><span class="label label-warning">High</span></td>
+              <td><span class="label label-high">High</span></td>
               {% elif asset.criticity == 'critical' %}
-              <td><span class="label label-danger">Critical</span></td>
+              <td><span class="label label-critical">Critical</span></td>
               {% endif %}
               <td class="scan-progress">
                 <div class="progress">
@@ -199,8 +194,6 @@ function toggle(source, element) {
               <td><span class="label label-info">Medium</span></td>
               {% elif assetgroup.criticity == 'high' %}
               <td><span class="label label-warning">High</span></td>
-              {% elif assetgroup.criticity == 'critical' %}
-              <td><span class="label label-danger">Critical</span></td>
               {% endif %}
               <td class="scan-progress">
                 <div class="progress">
@@ -271,15 +264,15 @@ function toggle(source, element) {
                 {% if finding.status == "new" %}<text class="text-danger">{{ finding.status }} <text>{% else %}{{ finding.status }} {% endif %}
               </td>
               {% if finding.severity == 'critical' %}
-              <td><span class="label label-danger">{{ finding.severity }}</span></td>
+              <td><span class="label label-critical">{{ finding.severity }}</span></td>
               {% elif finding.severity == 'high' %}
-              <td><span class="label label-warning">{{ finding.severity }}</span></td>
+              <td><span class="label label-high">{{ finding.severity }}</span></td>
               {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-              <td><span class="label label-info">{{ finding.severity }}</span></td>
+              <td><span class="label label-medium">{{ finding.severity }}</span></td>
               {% elif finding.severity == 'low' %}
-              <td><span class="label label-success">{{ finding.severity }}</span></td>
+              <td><span class="label label-low">{{ finding.severity }}</span></td>
               {% else %}
-              <td><span class="label label-primary">{{ finding.severity }}</span></td>
+              <td><span class="label label-info">{{ finding.severity }}</span></td>
               {% endif %}
               <td>
                 <div class="btn-group" role="group">
@@ -532,7 +525,7 @@ function toggle(source, element) {
           </tr>
           <tr>
             <td>a.criticity<br/>assets.criticity</td>
-            <td>Filter on asset criticity ('low', 'medium', 'high', 'critical').</td>
+            <td>Filter on asset criticity ('low', 'medium', 'high').</td>
             <td><i>a.criticity:low</i><br/><i>assets.criticity="high"</i></td>
           </tr>
           <tr>
@@ -638,11 +631,11 @@ function toggle(source, element) {
                 //resp["nb_critical"], resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"]
             ],
             backgroundColor: [
-                  "#FF0000",
-                  "#FF8000",
-                  "#FFFF00",
-                  "#00FF00",
-                  "#66D2FF"
+                  "#cc0500",
+                  "#df3d03",
+                  "#f9a009",
+                  "#ffcb0d",
+                  "#3498db"
             ],
         }],
         labels: ["Critical", "High", "Medium", "Low", "Info"]
@@ -661,7 +654,7 @@ function toggle(source, element) {
     config["data"]["datasets"][0]["data"] = new Array(resp["nb_critical"], resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
     ctx = $("#chart-findings-summary");
     ctx.attr('width', 100);
-    ctx.attr('height',100);
+    ctx.attr('height',130);
     window.myPie = new Chart(ctx, config);
   });
 

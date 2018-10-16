@@ -95,15 +95,15 @@ function toggle(source, element) {
       <td>{{ finding.asset.name|truncatechars:60 }}</td>
       <td>{{ finding.title|truncatechars:60 }}</td>
       {% if finding.severity == 'critical' %}
-      <td><span class="label label-danger">{{ finding.severity }}</span></td>
+      <td><span class="label label-critical">{{ finding.severity }}</span></td>
       {% elif finding.severity == 'high' %}
-      <td><span class="label label-warning">{{ finding.severity }}</span></td>
+      <td><span class="label label-high">{{ finding.severity }}</span></td>
       {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-      <td><span class="label label-info">{{ finding.severity }}</span></td>
+      <td><span class="label label-medium">{{ finding.severity }}</span></td>
       {% elif finding.severity == 'low' %}
-      <td><span class="label label-success">{{ finding.severity }}</span></td>
+      <td><span class="label label-low">{{ finding.severity }}</span></td>
       {% else %}
-      <td><span class="label label-primary">{{ finding.severity }}</span></td>
+      <td><span class="label label-info">{{ finding.severity }}</span></td>
       {% endif %}
       {% if finding.status == 'new' %}
       <td class="text-danger">{{ finding.status }}</td>
@@ -288,6 +288,7 @@ function toggle(source, element) {
 							<div class="col-sm-3">
 	              <select class="form-control input-sm" id="filter_finding_severity_selection">
 	                <option value="none" selected>-</option>
+	                <option value="critical">Critical</option>
 	                <option value="high">High</option>
 	                <option value="medium">Medium</option>
 	                <option value="low">Low</option>

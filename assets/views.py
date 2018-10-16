@@ -36,7 +36,6 @@ def get_assets_stats(request):
     assets = Asset.objects.all()
     data = {
         "nb_assets": assets.count(),
-        "nb_assets_critical": assets.filter(criticity="critical").count(),
         "nb_assets_high": assets.filter(criticity="high").count(),
         "nb_assets_medium": assets.filter(criticity="medium").count(),
         "nb_assets_low": assets.filter(criticity="low").count(),
@@ -226,7 +225,6 @@ def list_assets_view(request):
         Q(description__icontains=filter_opts)
         ).annotate(
             criticity_num=Case(
-                When(criticity="critical", then=Value("0")),
                 When(criticity="high", then=Value("1")),
                 When(criticity="medium", then=Value("2")),
                 When(criticity="low", then=Value("3")),
@@ -756,8 +754,7 @@ def detail_asset_group_view(request, assetgroup_id):
     for scope in EnginePolicyScope.objects.all():
         asset_scopes.update({
             scope.name: {
-            'priority': scope.priority, 'id': scope.id, 'total':0,
-            'critical': 0, 'high':0, 'medium':0, 'low':0, 'info':0}})
+            'priority': scope.priority, 'id': scope.id, 'total':0, 'critical': 0, 'high':0, 'medium':0, 'low':0, 'info':0}})
 
     findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
     engines_stats = {}

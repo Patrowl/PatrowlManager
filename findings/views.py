@@ -66,7 +66,7 @@ def list_findings_view(request):
             excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
 
     # Filter by finding severity
-    if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high"]:
+    if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high", "critical"]:
         #filters.update({"severity": filter_by_severity})
         if filter_by_severity_cond == "exact":
             filters.update({"severity__{}".format(filter_by_severity_cond): filter_by_severity})
@@ -476,11 +476,13 @@ def get_findings_stats(request):
         "nb_low": findings.filter(severity="low").count(),
         "nb_medium": findings.filter(severity="medium").count(),
         "nb_high": findings.filter(severity="high").count(),
+        "nb_critical": findings.filter(severity="critical").count(),
         "nb_new_findings": findings.filter(status="new").count(),
         "nb_new_info": findings.filter(status="new", severity="info").count(),
         "nb_new_low": findings.filter(status="new", severity="low").count(),
         "nb_new_medium": findings.filter(status="new", severity="medium").count(),
         "nb_new_high": findings.filter(status="new", severity="high").count(),
+        "nb_new_critical": findings.filter(status="new", severity="critical").count(),
     }
 
     return JsonResponse(data, json_dumps_params={'indent': 2})
