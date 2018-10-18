@@ -2,20 +2,18 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
 
-import datetime, os, json
+import datetime
+import os
 
 ASSET_TYPES = (
     ('ip', 'ip'),
-    ('ip-range', 'ip-range'), # 192.168.1.0-256
-    ('ip-subnet', 'ip-subnet'), # # 192.168.1.0/24
+    ('ip-range', 'ip-range'),       # 192.168.1.0-256
+    ('ip-subnet', 'ip-subnet'),     # 192.168.1.0/24
     ('fqdn', 'fqdn'),
     ('domain', 'domain'),
     ('url', 'url'),
@@ -303,7 +301,7 @@ class AssetGroup(models.Model):
         if self.criticity == "medium": criticity_factor=5
         if self.criticity == "high": criticity_factor=10
 
-        risk_data={
+        risk_data = {
             "info": 0,
             "low": 0,
             "medium": 0,
@@ -315,13 +313,13 @@ class AssetGroup(models.Model):
         # Todo: update each asset
         return None
 
-    def get_risk_grade(self, history = None): # history= nb days before
-        if history:
+    def get_risk_grade(self, history = None):
+        if history: # history= nb days before
             self.calc_risk_grade(history=history)
         return str(self.risk_level['grade'])
 
     def calc_risk_grade(self, history = None):
-        risk_level = { "info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-" }
+        risk_level = {"info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-"}
 
         findings = []
         if not history:
@@ -620,6 +618,11 @@ ASSET_INVESTIGATION_LINKS = [
         "name": "Whois",
         "link": "http://whois.domaintools.com/%asset%",
         "datatypes": ["domain", "ip"]
+    },
+    {
+        "name": "Security Headers",
+        "link": "https://securityheaders.com/?q=%asset%&followRedirects=on",
+        "datatypes": ["domain", "url"]
     },
     {
         "name": "Security Trails",
