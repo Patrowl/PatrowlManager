@@ -139,6 +139,9 @@ table tr td.scan-progress {
         <td class="scan-progress">
           <div class="progress" id="pb-{{ scan.id }}">
             {% if scan.status == "finished" %}
+            <div class="progress-bar progress-bar-striped progress-bar-critical" role="progressbar" style="width:{{ scan.summary.critical | perc:scan.summary.total }}%">
+              {{ scan.summary.critical }}
+            </div>
             <div class="progress-bar progress-bar-striped progress-bar-high" role="progressbar" style="width:{{ scan.summary.high | perc:scan.summary.total }}%">
               {{ scan.summary.high }}
             </div>

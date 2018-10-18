@@ -27,7 +27,7 @@ def perc(nb, total):
     if not str(nb).isdigit():
         return 0
     if total > 0:
-        return nb*100/total
+        return nb*100/float(total)
     else:
         return 0
 
