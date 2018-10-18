@@ -141,7 +141,7 @@ def detail_scan_view(request, scan_id):
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
     for a in assets:
-        summary_assets.update({a.value: {"info": 0, "low": 0, "medium":0, "high": 0, "total": 0}})
+        summary_assets.update({a.value: {"info": 0, "low": 0, "medium":0, "high": 0, "critical": 0, "total": 0}})
     for f in raw_findings.filter(asset__in=assets):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
@@ -151,7 +151,7 @@ def detail_scan_view(request, scan_id):
     # Generate summary info on asset groups (for progress bars)
     summary_assetgroups = {}
     for ag in assetgroups:
-        summary_assetgroups.update({ag.id: {"info": 0, "low": 0, "medium":0, "high": 0, "total": 0}})
+        summary_assetgroups.update({ag.id: {"info": 0, "low": 0, "medium":0, "high": 0, "critical": 0, "total": 0}})
         for f in raw_findings:
             if f.asset.value in ag.assets.all().values_list('value', flat=True):
                 summary_assetgroups[ag.id].update({
@@ -322,7 +322,7 @@ def get_scan_report_html(request, scan_id):
 
     #{asset1: [{finding1}, {finding2}]}
     findings_tmp = list()
-    for sev in ["high", "medium", "low", "info"]:
+    for sev in ["high", "medium", "low", "info", "critical"]:
         tmp = RawFinding.objects.filter(scan=scan, severity=sev).order_by('type')
         if tmp.count() > 0: findings_tmp += tmp
 
@@ -340,12 +340,14 @@ def get_scan_report_html(request, scan_id):
         "medium": findings.filter(severity='medium').count(),
         "low": findings.filter(severity='low').count(),
         "info": findings.filter(severity='info').count(),
+        "critical": findings.filter(severity='critical').count()
     }
 
     for asset in scan.assets.all():
         findings_stats.update({
             asset.value: {
                 "total": findings.filter(asset=asset).count(),
+                "critical": findings.filter(asset=asset, severity='critical').count(),
                 "high": findings.filter(asset=asset, severity='high').count(),
                 "medium": findings.filter(asset=asset, severity='medium').count(),
                 "low": findings.filter(asset=asset, severity='low').count(),

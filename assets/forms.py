@@ -4,6 +4,7 @@ from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES
 
 assets = []
 
+
 class AssetForm(forms.ModelForm):
     class Meta:
         model = Asset
@@ -13,7 +14,7 @@ class AssetForm(forms.ModelForm):
             'value': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
-            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm'})
+            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '10'})
         }
 
     type = forms.CharField(widget=forms.Select(choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'}))

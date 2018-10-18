@@ -18,20 +18,8 @@ hr {
   margin-bottom: 10px;
 }
 
-.progress-bar-high {
-  background-color: #E43725;
-}
-.progress-bar-medium {
-  background-color: #EE9336;
-}
-.progress-bar-low {
-  background-color: #FDC431;
-}
-.progress-bar-info {
-  background-color: #357ABD;
-}
 .progress-bar-zero {
-  background-color: #ecf0f1;
+  background-color: lightgrey;
 }
 table tr td.scan-progress {
   vertical-align: middle;
@@ -139,19 +127,22 @@ function toggle(source, element) {
             <!-- <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}?raw=true'> -->
               <td>{{ asset.value|truncatechars:35 }}</td>
               <td>{{ asset.type }}</td>
-              {% if asset.criticity == 'high' %}
-              <td><span class="label label-danger">high</span></td>
+              {% if asset.criticity == 'low' %}
+              <td><span class="label label-low">Low</span></td>
               {% elif asset.criticity == 'medium' %}
-              <td><span class="label label-warning">medium</span></td>
-              {% elif asset.criticity == 'low' %}
-              <td><span class="label label-info">low</span></td>
-              {% else %}
-              <td><span class="label label-default">{{ asset.criticity }}</span></td>
+              <td><span class="label label-medium">Medium</span></td>
+              {% elif asset.criticity == 'high' %}
+              <td><span class="label label-high">High</span></td>
+              {% elif asset.criticity == 'critical' %}
+              <td><span class="label label-critical">Critical</span></td>
               {% endif %}
               <td class="scan-progress">
                 <div class="progress">
                   {% with total_findings=summary_assets|keyvalue:asset.value|keyvalue:'total' %}
                   {% if scan.status == "finished" and total_findings > 0 %}
+                  <div class="progress-bar progress-bar-critical" role="progressbar" style="width:{{ summary_assets|keyvalue:asset.value|keyvalue:'critical' | perc:total_findings }}%">
+                    {{summary_assets|keyvalue:asset.value|keyvalue:"critical"}}
+                  </div>
                   <div class="progress-bar progress-bar-high" role="progressbar" style="width:{{ summary_assets|keyvalue:asset.value|keyvalue:'high' | perc:total_findings }}%">
                     {{summary_assets|keyvalue:asset.value|keyvalue:"high"}}
                   </div>
@@ -197,19 +188,20 @@ function toggle(source, element) {
             {% for assetgroup in assetgroups %}
             <tr>
               <td>{{ assetgroup.name }}</td>
-              {% if assetgroup.criticity == 'high' %}
-              <td><span class="label label-danger">high</span></td>
+              {% if assetgroup.criticity == 'low' %}
+              <td><span class="label label-success">Low</span></td>
               {% elif assetgroup.criticity == 'medium' %}
-              <td><span class="label label-warning">medium</span></td>
-              {% elif assetgroup.criticity == 'low' %}
-              <td><span class="label label-primary">low</span></td>
-              {% else %}
-              <td><span class="label label-default">{{ assetgroup.criticity }}</span></td>
+              <td><span class="label label-info">Medium</span></td>
+              {% elif assetgroup.criticity == 'high' %}
+              <td><span class="label label-warning">High</span></td>
               {% endif %}
               <td class="scan-progress">
                 <div class="progress">
                   {% with total_findings=summary_assetgroups|keyvalue:assetgroup.id|keyvalue:'total' %}
                   {% if scan.status == "finished" and total_findings > 0 %}
+                  <div class="progress-bar progress-bar-critical" role="progressbar" style="width:{{ summary_assetgroups|keyvalue:assetgroup.id|keyvalue:'critical' | perc:total_findings }}%">
+                    {{summary_assetgroups|keyvalue:assetgroup.id|keyvalue:"critical"}}
+                  </div>
                   <div class="progress-bar progress-bar-high" role="progressbar" style="width:{{ summary_assetgroups|keyvalue:assetgroup.id|keyvalue:'high' | perc:total_findings }}%">
                     {{summary_assetgroups|keyvalue:assetgroup.id|keyvalue:"high"}}
                   </div>
@@ -271,14 +263,16 @@ function toggle(source, element) {
               <td>
                 {% if finding.status == "new" %}<text class="text-danger">{{ finding.status }} <text>{% else %}{{ finding.status }} {% endif %}
               </td>
-              {% if finding.severity == 'critical' or finding.severity == 'high' %}
-              <td><span class="label label-danger">{{ finding.severity }}</span></td>
+              {% if finding.severity == 'critical' %}
+              <td><span class="label label-critical">{{ finding.severity }}</span></td>
+              {% elif finding.severity == 'high' %}
+              <td><span class="label label-high">{{ finding.severity }}</span></td>
               {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-              <td><span class="label label-warning">{{ finding.severity }}</span></td>
+              <td><span class="label label-medium">{{ finding.severity }}</span></td>
               {% elif finding.severity == 'low' %}
-              <td><span class="label label-info">{{ finding.severity }}</span></td>
+              <td><span class="label label-low">{{ finding.severity }}</span></td>
               {% else %}
-              <td><span class="label label-default">{{ finding.severity }}</span></td>
+              <td><span class="label label-info">{{ finding.severity }}</span></td>
               {% endif %}
               <td>
                 <div class="btn-group" role="group">
@@ -531,7 +525,7 @@ function toggle(source, element) {
           </tr>
           <tr>
             <td>a.criticity<br/>assets.criticity</td>
-            <td>Filter on asset criticity ('low', 'medium', 'high).</td>
+            <td>Filter on asset criticity ('low', 'medium', 'high').</td>
             <td><i>a.criticity:low</i><br/><i>assets.criticity="high"</i></td>
           </tr>
           <tr>
@@ -541,7 +535,7 @@ function toggle(source, element) {
           </tr>
           <tr>
             <td>f.severity<br/>findings.severity</td>
-            <td>Filter on finding severity ('low', 'medium', 'high).</td>
+            <td>Filter on finding severity ('low', 'medium', 'high', 'critical').</td>
             <td><i>a.severity:low</i><br/><i>findings.severity="high"</i></td>
           </tr>
           <tr>
@@ -582,6 +576,7 @@ function toggle(source, element) {
                 <option value='low'>Low</option>
                 <option value='medium'>Medium</option>
                 <option value='high'>High</option>
+                <option value='critical'>Critical</option>
               </select>
             </dd>
             <dt>Status:</dt>
@@ -632,17 +627,18 @@ function toggle(source, element) {
     data: {
         datasets: [{
             data: [
-                "10", "4", "2", "15"
-                //resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"]
+                "3", "10", "4", "2", "15"
+                //resp["nb_critical"], resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"]
             ],
             backgroundColor: [
-                "#FF0000", // High - RED
-                "#FF8000", // Medium - ORANGE
-                "#FFFF00", // Low - YELLOW
-                "#66D2FF"  // Info - BLUE
+                  "#cc0500",
+                  "#df3d03",
+                  "#f9a009",
+                  "#ffcb0d",
+                  "#3498db"
             ],
         }],
-        labels: ["High", "Medium", "Low", "Info"]
+        labels: ["Critical", "High", "Medium", "Low", "Info"]
     },
     options: {
       responsive: true,
@@ -655,10 +651,10 @@ function toggle(source, element) {
   };
   var xhr = $.get(getfindings_severities_url, function(resp) {
     config = jQuery.extend(true, {}, chart_fs_config);
-    config["data"]["datasets"][0]["data"] = new Array(resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
+    config["data"]["datasets"][0]["data"] = new Array(resp["nb_critical"], resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
     ctx = $("#chart-findings-summary");
     ctx.attr('width', 100);
-    ctx.attr('height',100);
+    ctx.attr('height',130);
     window.myPie = new Chart(ctx, config);
   });
 

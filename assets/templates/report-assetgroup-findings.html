@@ -181,25 +181,25 @@
     		margin-top: 10px;
     	}
 
-    	.classcell4, h2.classsection4 {
-    		background-color: #e43725;
-    	}
+    	.classcell5, h2.classsection5 {
+            background-color: #cc0500;
+        }
 
-    	.classcell3, h2.classsection3 {
-    		background-color: #ee9336;
-    	}
+        .classcell4, h2.classsection4 {
+            background-color: #df3d03;
+        }
 
-    	.classcell2, h2.classsection2 {
-    		background-color: #fdc431;
-    	}
+        .classcell3, h2.classsection3 {
+            background-color: #f9a009;
+        }
 
-    	.classcell1, h2.classsection1 {
-    		background-color: #4cae4c;
-    	}
+        .classcell2, h2.classsection2 {
+            background-color: #ffcb0d;
+        }
 
-    	.classcell0, h2.classsection0 {
-    		background-color: #357abd;
-    	}
+        .classcell1, h2.classsection1 {
+            background-color: #3498db;
+        }
 
 
     	#copyright {
@@ -513,14 +513,16 @@
                             <td width="5%" height="50%">
                               <table style="table-layout: fixed;" width="30px" height="15px" >
                                 <tr width="100%">
-                                  {% if finding.severity == 'high' %}
+                                  {% if finding.severity == 'critical' %}
+                                  <td width="100%" class="classcell5"></td>
+                                  {% elif finding.severity == 'high' %}
                                   <td width="100%" class="classcell4"></td>
                                   {% elif finding.severity == 'medium' %}
                                   <td width="100%" class="classcell3"></td>
                                   {% elif finding.severity == 'low' %}
                                   <td width="100%" class="classcell2"></td>
                                   {% elif finding.severity == 'info' %}
-                                  <td width="100%" class="classcell0"></td>
+                                  <td width="100%" class="classcell1"></td>
                                   {% endif %}
                                 </tr>
                               </table>

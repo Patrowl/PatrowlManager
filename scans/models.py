@@ -117,6 +117,7 @@ class Scan(models.Model):
         raw_findings = self.rawfinding_set.all()
         self.summary = {
             "total": raw_findings.count(),
+            "critical": raw_findings.filter(severity='critical').count(),
             "high":  raw_findings.filter(severity='high').count(),
             "medium":raw_findings.filter(severity='medium').count(),
             "low":   raw_findings.filter(severity='low').count(),

@@ -87,11 +87,6 @@ td.bg-grade-F-low, td.bg-grade-E-medium, td.bg-grade-D-high {background-color: r
 td.bg-grade-F-medium, td.bg-grade-E-high {background-color: darkred; color: white;}
 td.bg-grade-F-high {background-color: black; color: white;}
 
-.progress-bar-high { background-color: #E43725; }
-.progress-bar-medium { background-color: #EE9336; }
-.progress-bar-low { background-color: #FDC431; }
-.progress-bar-info { background-color: #357ABD; }
-
 </style>
 
 <div class="container-fluid">
@@ -163,9 +158,9 @@ td.bg-grade-F-high {background-color: black; color: white;}
              {% for grade, value in grades.items %}
            <tr>
              <td>{{ grade }}</td>
-             <td style="width: 25%;" class="bg-grade-{{grade}}-low" onclick="window.location='/assets/list?filter=criticity:low%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
-             <td style="width: 25%;" class="bg-grade-{{grade}}-medium" onclick="window.location='/assets/list?filter=criticity:medium%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
-             <td style="width: 25%;" class="bg-grade-{{grade}}-high" onclick="window.location='/assets/list?filter=criticity:high%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-low" onclick="window.location='/assets/list?filter=criticity:low%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-medium" onclick="window.location='/assets/list?filter=criticity:medium%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-high" onclick="window.location='/assets/list?filter=criticity:high%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
            </tr>
              {% endfor %}
            {% endfor %}
@@ -229,14 +224,16 @@ td.bg-grade-F-high {background-color: black; color: white;}
             <tbody>
               {% for finding in top_critical_findings %}
               <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}'>
-                {% if finding.severity == 'critical' or finding.severity == 'high' %}
-                <td><span class="label label-danger">{{ finding.severity }}</span></td>
+                {% if finding.severity == 'critical' %}
+                <td><span class="label label-critical">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'high' %}
+                <td><span class="label label-high">{{ finding.severity }}</span></td>
                 {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-                <td><span class="label label-warning">{{ finding.severity }}</span></td>
+                <td><span class="label label-medium">{{ finding.severity }}</span></td>
                 {% elif finding.severity == 'low' %}
-                <td><span class="label label-primary">{{ finding.severity }}</span></td>
+                <td><span class="label label-low">{{ finding.severity }}</span></td>
                 {% else %}
-                <td><span class="label label-default">{{ finding.severity }}</span></td>
+                <td><span class="label label-info">{{ finding.severity }}</span></td>
                 {% endif %}
                 <td>{{finding.title|truncatechars:40}}</td>
                 <td>{{finding.asset_name|truncatechars:30}}</td>
@@ -271,9 +268,9 @@ td.bg-grade-F-high {background-color: black; color: white;}
              {% for grade, value in grades.items %}
            <tr>
              <td>{{ grade }}</td>
-             <td style="width: 25%;" class="bg-grade-{{grade}}-low">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
-             <td style="width: 25%;" class="bg-grade-{{grade}}-medium">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
-             <td style="width: 25%;" class="bg-grade-{{grade}}-high">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-low">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-medium">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-high">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
            </tr>
              {% endfor %}
            {% endfor %}
@@ -331,6 +328,9 @@ td.bg-grade-F-high {background-color: black; color: white;}
                   <div class="progress" style="margin-bottom: 0;">
                     {% if scan.status == "finished" %}
                     {% with total=scan.summary|keyvalue:'total' %}
+                    <div class="progress-bar progress-bar progress-bar-critical" role="progressbar" style="width:{{ scan.summary|keyvalue:'critical' | perc:total }}%">
+                      {{scan.summary|keyvalue:"high"}}
+                    </div>
                     <div class="progress-bar progress-bar progress-bar-high" role="progressbar" style="width:{{ scan.summary|keyvalue:'high' | perc:total }}%">
                       {{scan.summary|keyvalue:"high"}}
                     </div>
@@ -383,7 +383,8 @@ td.bg-grade-F-high {background-color: black; color: white;}
           <dl class="dl-horizontal">
             <dt>#CVSS < 5.0: </dt><dd>{{cvss_scores.lte5}}</dd>
             <dt>#5.0 < CVSS < 7.0 : </dt><dd>{{cvss_scores.5to7}}</dd>
-            <dt>#CVSS > 7.0: </dt><dd>{{cvss_scores.gte7}}</dd>
+            <dt>#7.0 < CVSS < 9.0: </dt><dd>{{cvss_scores.gte7}}</dd>
+            <dt>#9.0 < CVSS < 10</dt><dd>{{cvss_scores.gte9}}</dd>
             <dt>#CVSS = 10: </dt><dd>{{cvss_scores.eq10}}</dd>
           </dl>
         </div>
@@ -423,13 +424,14 @@ td.bg-grade-F-high {background-color: black; color: white;}
       data: {
           datasets: [{
               backgroundColor: [
-                  "#FF0000",
-                  "#FF8000",
-                  "#FFFF00",
-                  "#66D2FF"
+                  "#cc0500",
+                  "#df3d03",
+                  "#f9a009",
+                  "#ffcb0d",
+                  "#3498db"
               ],
           }],
-          labels: ["High", "Medium", "Low", "Info"]
+          labels: ["Critical", "High", "Medium", "Low", "Info"]
       },
       options: {
         responsive: false,
@@ -444,6 +446,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
 
     //cfbc_config = jQuery.extend(true, {}, cfbc_config);
     cfbc_config["data"]["datasets"][0]["data"] = new Array(
+      {{global_stats.findings.critical}},
       {{global_stats.findings.high}},
       {{global_stats.findings.medium}},
       {{global_stats.findings.low}},
@@ -454,7 +457,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
     window.cfbc_pie_chart = new Chart(ctx_findings, cfbc_config);
 
     // Hide 'info' findings
-    window.cfbc_pie_chart.getDatasetMeta(0).data[3].hidden = true;
+    window.cfbc_pie_chart.getDatasetMeta(0).data[4].hidden = true;
     window.cfbc_pie_chart.update();
 
 

@@ -107,7 +107,7 @@ def get_asset_trends(request, asset_id):
     for i in range(0,nb_ticks):
         enddate = startdate - datetime.timedelta(days=i*delta)
         findings_stats = {
-            'total': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
+            'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
             'new': 0,
             'risk_grade': 'n/a',
             'date': str(enddate.date())}
@@ -636,6 +636,7 @@ def detail_asset_view(request, asset_id):
     asset = get_object_or_404(Asset, id=asset_id)
     findings = Finding.objects.filter(asset=asset).annotate(
         severity_numm=Case(
+            When(severity="critical", then=Value("0")),
             When(severity="high", then=Value("1")),
             When(severity="medium", then=Value("2")),
             When(severity="low", then=Value("3")),
@@ -646,14 +647,14 @@ def detail_asset_view(request, asset_id):
             scope_list=ArrayAgg('scopes__name')
         ).order_by('severity_numm', 'type', 'updated_at')
 
-    findings_stats = {'total': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0, 'cvss_gte_7': 0}
+    findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0, 'cvss_gte_7': 0}
     engines_stats = {}
     references = {}
 
     engine_scopes = {}
     for engine_scope in EnginePolicyScope.objects.all():
         engine_scopes.update({
-            engine_scope.name: {'priority': engine_scope.priority, 'id': engine_scope.id, 'total': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0}
+            engine_scope.name: {'priority': engine_scope.priority, 'id': engine_scope.id, 'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0}
         })
 
     for finding in findings:
@@ -741,6 +742,7 @@ def detail_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
     assets = asset_group.assets.all()
     findings = Finding.objects.filter(asset__in=assets).annotate(severity_numm=Case(
+            When(severity="critical", then=Value("0")),
             When(severity="high", then=Value("1")),
             When(severity="medium", then=Value("2")),
             When(severity="low", then=Value("3")),
@@ -752,10 +754,9 @@ def detail_asset_group_view(request, assetgroup_id):
     for scope in EnginePolicyScope.objects.all():
         asset_scopes.update({
             scope.name: {
-            'priority': scope.priority, 'id': scope.id, 'total':0,
-            'high':0, 'medium':0, 'low':0, 'info':0}})
+            'priority': scope.priority, 'id': scope.id, 'total':0, 'critical': 0, 'high':0, 'medium':0, 'low':0, 'info':0}})
 
-    findings_stats = {'total': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
+    findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
     engines_stats = {}
 
     for finding in findings:
@@ -821,7 +822,7 @@ def get_asset_report_html(request, asset_id):
     findings_stats = {}
 
     # @todo: invert loops
-    for sev in ["high", "medium", "low", "info"]:
+    for sev in ["critical", "high", "medium", "low", "info"]:
         tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
         if tmp.count() > 0: findings_tmp += tmp
         findings_stats.update({sev: tmp.count()})
@@ -840,7 +841,7 @@ def get_asset_report_json(request, asset_id):
     findings_stats = {}
 
     # @todo: invert loops
-    for sev in ["high", "medium", "low", "info"]:
+    for sev in ["critical", "high", "medium", "low", "info"]:
         tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
         findings_stats.update({sev: tmp.count()})
         if tmp.count() > 0:

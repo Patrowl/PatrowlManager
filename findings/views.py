@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Finding, RawFinding
-from .forms import ImportFindingsForm
+from .forms import ImportFindingsForm, FindingForm
 from assets.models import Asset
 from scans.models import Scan, ScanDefinition
 from events.models import Event
@@ -66,7 +66,7 @@ def list_findings_view(request):
             excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
 
     # Filter by finding severity
-    if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high"]:
+    if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high", "critical"]:
         #filters.update({"severity": filter_by_severity})
         if filter_by_severity_cond == "exact":
             filters.update({"severity__{}".format(filter_by_severity_cond): filter_by_severity})
@@ -150,15 +150,13 @@ def import_findings_view(request):
             user_report_dir = settings.MEDIA_ROOT + "/imports/"+str(request.user.id)+"/"
             if not os.path.exists(user_report_dir):
                 os.makedirs(user_report_dir)
-
-            filename = user_report_dir+"import_" + str(request.user.id) + "_" + str(int(time.time() * 1000)) + ".json"
+            filename = user_report_dir+"import_" + str(request.user.id) + "_" + str(int(time.time() * 1000)) + "." + form.cleaned_data['engine']
             with open(filename, 'wb+') as destination:
                 for chunk in request.FILES['file'].chunks():
                     destination.write(chunk)
-
             # enqueue the import processing
             resp = importfindings_task.apply_async(
-                args=[filename, request.user.id],
+                args=[filename, request.user.id, form.cleaned_data['engine'], form.cleaned_data['min_level']],
                 queue='default',
                 routing_key='default',
                 retry=False
@@ -226,6 +224,75 @@ def list_findings(request):
         findings_list.append(model_to_dict(f))
 
     return JsonResponse(findings_list, json_dumps_params={'indent': 2}, safe=False)
+
+
+def edit_finding_view(request, finding_id):
+    form = None
+    finding = get_object_or_404(Finding, id=finding_id)
+    form = FindingForm()
+    if request.method == 'GET':
+        form = FindingForm(instance=finding)
+    elif request.method == 'POST':
+        form = FindingForm(request.POST, instance=finding)
+
+        if form.is_valid():
+            finding.title = form.cleaned_data['title']
+            finding.description = form.cleaned_data['description']
+            finding.confidence = form.cleaned_data['confidence']
+            finding.type = form.cleaned_data['type']
+            finding.severity = form.cleaned_data['severity']
+            finding.solution = form.cleaned_data['solution']
+            finding.risk_info = form.cleaned_data['risk_info']
+            finding.vuln_refs = form.cleaned_data['vuln_refs']
+            finding.links = form.cleaned_data['links']
+            finding.tags = form.cleaned_data['tags'].split(',')
+            finding.status = form.cleaned_data['status']
+            finding.owner = form.cleaned_data['owner']
+            finding.asset = form.cleaned_data['asset']
+            finding.asset_name = form.cleaned_data['asset'].value,
+            finding.scan = form.cleaned_data['scan']
+            
+            finding.save()
+            messages.success(request, 'Update submission successful')
+            return redirect('list_findings_view')
+
+    return render(request, 'edit-finding.html', {'form': form, 'finding': finding})
+
+
+def add_finding_view(request):
+    form = None
+
+    form = FindingForm()
+    if request.method == 'GET':
+        form = FindingForm()
+    elif request.method == 'POST':
+        form = FindingForm(request.POST)
+
+        if form.is_valid():
+            finding_args = {
+                'title': form.cleaned_data['title'],
+                'description': form.cleaned_data['description'],
+                'confidence': form.cleaned_data['confidence'],
+                'type': form.cleaned_data['type'],
+                'severity': form.cleaned_data['severity'],
+                'solution': form.cleaned_data['solution'],
+                'risk_info': form.cleaned_data['risk_info'],
+                'vuln_refs': form.cleaned_data['vuln_refs'],
+                'links': form.cleaned_data['links'],
+                'tags': str(json.dumps(form.cleaned_data['tags'].split(','))),
+                'status': form.cleaned_data['status'],
+                'owner': form.cleaned_data['owner'],
+                'asset': form.cleaned_data['asset'],
+                'asset_name': form.cleaned_data['asset'].value,
+                'scan': form.cleaned_data['scan']
+            }
+
+            finding = Finding(**finding_args)
+            finding.save()
+            messages.success(request, 'Creation submission successful')
+            return redirect('list_findings_view')
+
+    return render(request, 'add-finding.html', {'form': form})
 
 
 def add_finding(request):
@@ -409,11 +476,13 @@ def get_findings_stats(request):
         "nb_low": findings.filter(severity="low").count(),
         "nb_medium": findings.filter(severity="medium").count(),
         "nb_high": findings.filter(severity="high").count(),
+        "nb_critical": findings.filter(severity="critical").count(),
         "nb_new_findings": findings.filter(status="new").count(),
         "nb_new_info": findings.filter(status="new", severity="info").count(),
         "nb_new_low": findings.filter(status="new", severity="low").count(),
         "nb_new_medium": findings.filter(status="new", severity="medium").count(),
         "nb_new_high": findings.filter(status="new", severity="high").count(),
+        "nb_new_critical": findings.filter(status="new", severity="critical").count(),
     }
 
     return JsonResponse(data, json_dumps_params={'indent': 2})

@@ -2,18 +2,31 @@ from netaddr import IPNetwork, IPAddress, iter_iprange
 from netaddr.core import AddrFormatError
 
 
+def is_valid_ip(ip):
+    try:
+        IPAddress(ip)
+    except (TypeError, ValueError, AddrFormatError):
+        return False
+    return True
+
+
 def is_valid_subnet(subnet):
+    try:
+        IPNetwork(subnet)
+    except (TypeError, ValueError, AddrFormatError):
+        return False
     if "/" not in subnet:
         return False
     return True
 
 
 def is_valid_ip_range(iprange):
-    if iprange.count('-') == 1:
-        last_digits = iprange.split('.')[:3][0]
-        if last_digits.isdigit() and int(last_digits) in range(0, 254):
-            return True
-    return False
+    if iprange.count('-') != 1:
+        return False
+    if not iprange.split('-')[1].isdigit() or int(iprange.split('-')[1]) in range(0, 255):
+        return False
+    ip = iprange.split('-')
+    return is_valid_ip(ip)
 
 
 def is_ipaddr_in_subnet(ip, subnet):

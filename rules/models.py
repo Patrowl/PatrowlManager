@@ -25,7 +25,7 @@ RULE_SCOPE_ATTRIBUTES = {
         'name':         {"type": "text"},
         'type':         {"type": "list", "values": ['ip', 'domain', 'url']},
         'description':  {"type": "text"},
-        'criticity':    {"type": "list", "values": ['low', 'medium', 'high']}
+        'criticity':    {"type": "list", "values": ['low', 'medium', 'high', 'critical']}
         },
     "finding": {
         'title':        {"type": "text"},
@@ -33,7 +33,7 @@ RULE_SCOPE_ATTRIBUTES = {
         'type':         {"type": "text"},
         'hash':         {"type": "text"},
         'solution':     {"type": "text"},
-        'severity':     {"type": "list", "values": ['info', 'low', 'medium', 'high']},
+        'severity':     {"type": "list", "values": ['info', 'low', 'medium', 'high', 'critical']},
         'status':       {"type": "list", "values": ['new', 'ack']},
         #'tags':         {"type": "in_list"},
         },
@@ -173,6 +173,7 @@ def send_thehive_message(rule, message, asset, description):
     if asset.criticity == "low": tlp = 1
     elif asset.criticity == "medium": tlp = 2
     elif asset.criticity == "high": tlp = 3
+    elif asset.criticity == "critical": tlp = 3
 
     if asset:
         artifacts = [ AlertArtifact(dataType=asset.type, data=asset.value) ]

@@ -2,7 +2,7 @@
   <head>
     {% load patrowl_tags %}
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
-    <title>PatrOwl Scan Report</title>
+    <title>PatrOwl Asset Report</title>
     <style type="text/css" media="all">
     	UL.ulist {padding: 0 10px; line-height:25px; margin-bottom:0px; margin-top:0px;};
     	LI.list  {padding: 0 10px; line-height:25px; margin-bottom:0px; margin-top:0px; list-style: disc;}
@@ -181,24 +181,24 @@
     		margin-top: 10px;
     	}
 
+        .classcell5, h2.classsection5 {
+            background-color: #cc0500;
+        }
+
     	.classcell4, h2.classsection4 {
-    		background-color: #e43725;
+    		background-color: #df3d03;
     	}
 
     	.classcell3, h2.classsection3 {
-    		background-color: #ee9336;
+    		background-color: #f9a009;
     	}
 
     	.classcell2, h2.classsection2 {
-    		background-color: #fdc431;
+    		background-color: #ffcb0d;
     	}
 
     	.classcell1, h2.classsection1 {
-    		background-color: #4cae4c;
-    	}
-
-    	.classcell0, h2.classsection0 {
-    		background-color: #357abd;
+    		background-color: #3498db;
     	}
 
 
@@ -429,18 +429,20 @@
                   <h2 xmlns="" class="classh1 " style="vertical-align: middle;">Results Summary</h2>
                   <table xmlns="" width="100%">
                     <tr>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">High</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Medium</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Low</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Info</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Total</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Critical</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">High</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Medium</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Low</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Info</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Total</span></td>
                     </tr>
                     <tr>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #d43f3a; font-weight: normal;">{{ findings_stats.high }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #ee9336; font-weight: normal;">{{ findings_stats.medium }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #fdc431; font-weight: normal;">{{ findings_stats.low }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #357abd; font-weight: normal;">{{ findings_stats.info }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">{{ findings_stats.total }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #e43725; font-weight: normal;">{{ findings_stats.critical }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #ee9336; font-weight: normal;">{{ findings_stats.high }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #fdc431; font-weight: normal;">{{ findings_stats.medium }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #4cae4c; font-weight: normal;">{{ findings_stats.low }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #357abd; font-weight: normal;">{{ findings_stats.info }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">{{ findings_stats.total }}</span></td>
                     </tr>
                   </table>
 
@@ -454,14 +456,16 @@
                             <td width="5%" height="50%">
                               <table style="table-layout: fixed;" width="30px" height="15px" >
                                 <tr width="100%">
-                                  {% if finding.severity == 'high' %}
+                                  {% if finding.severity == 'critical' %}
+                                  <td width="100%" class="classcell5"></td>
+                                  {% elif finding.severity == 'high' %}
                                   <td width="100%" class="classcell4"></td>
                                   {% elif finding.severity == 'medium' %}
                                   <td width="100%" class="classcell3"></td>
                                   {% elif finding.severity == 'low' %}
                                   <td width="100%" class="classcell2"></td>
                                   {% elif finding.severity == 'info' %}
-                                  <td width="100%" class="classcell0"></td>
+                                  <td width="100%" class="classcell1"></td>
                                   {% endif %}
                                 </tr>
                               </table>
