@@ -1,7 +1,6 @@
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.forms.models import model_to_dict
-from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
@@ -13,14 +12,16 @@ from scans.models import Scan, ScanDefinition
 from events.models import Event
 from rules.models import Rule
 from engines.tasks import importfindings_task
-import json, os, time, collections, csv
+import json
+import os
+import time
+import collections
+import csv
 from datetime import date, datetime
 from uuid import UUID
 
 
-
 def list_findings_view(request):
-    #findings = None
     filter_by_asset = request.GET.get('_asset_value', None)
     filter_by_asset_cond = request.GET.get('_asset_value_cond', None)
     filter_by_title = request.GET.get('_title', None)
@@ -29,18 +30,18 @@ def list_findings_view(request):
     filter_by_type_cond = request.GET.get('_type_cond', None)
     filter_by_severity = request.GET.get('_severity', None)
     filter_by_severity_cond = request.GET.get('_severity_cond', None)
-    filter_by_startdate = request.GET.get('_startdate', None)
-    filter_by_enddate = request.GET.get('_enddate', None)
+    # filter_by_startdate = request.GET.get('_startdate', None)
+    # filter_by_enddate = request.GET.get('_enddate', None)
     filter_by_status = request.GET.get('_status', None)
     filter_by_asset_id = request.GET.get('_asset_id', None)
     filter_by_asset_group_id = request.GET.get('_asset_group_id', None)
     filter_by_asset_group_name = request.GET.get('_asset_group_name', None)
     filter_by_engine = request.GET.get('_engine', None)
     filter_by_type = request.GET.get('_type', None)
-    filter_by_asset_tags = request.GET.get('_tags', None)
+    # filter_by_asset_tags = request.GET.get('_tags', None)
     filter_by_scope = request.GET.get('_scope', None)
     filter_by_reference = request.GET.get('_reference', None)
-    filter_by_reference_cond = request.GET.get('_reference_cond', None)
+    # filter_by_reference_cond = request.GET.get('_reference_cond', None)
 
     filters = {}
     excludes = {}
@@ -67,7 +68,6 @@ def list_findings_view(request):
 
     # Filter by finding severity
     if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high", "critical"]:
-        #filters.update({"severity": filter_by_severity})
         if filter_by_severity_cond == "exact":
             filters.update({"severity__{}".format(filter_by_severity_cond): filter_by_severity})
         elif filter_by_asset_cond == "not_exact":
@@ -123,7 +123,6 @@ def list_asset_findings_view(request, asset_name):
     findings = Finding.objects.filter(**filters).order_by(
              'asset_name', 'severity', 'status', 'type')
 
-
     return render(request, 'list-findings.html', {'findings': findings})
 
 
@@ -155,7 +154,7 @@ def import_findings_view(request):
                 for chunk in request.FILES['file'].chunks():
                     destination.write(chunk)
             # enqueue the import processing
-            resp = importfindings_task.apply_async(
+            importfindings_task.apply_async(
                 args=[filename, request.user.id, form.cleaned_data['engine'], form.cleaned_data['min_level']],
                 queue='default',
                 routing_key='default',
@@ -166,7 +165,7 @@ def import_findings_view(request):
         return redirect('list_findings_view')
     else:
         form = ImportFindingsForm()
-    return render(request, 'import-findings.html', {'form': form })
+    return render(request, 'import-findings.html', {'form': form})
 
 
 def details_finding_view(request, finding_id):
@@ -178,7 +177,7 @@ def details_finding_view(request, finding_id):
 
     finding = get_object_or_404(Finding, id=finding_id)
 
-    ## Inject tracking data
+    # Inject tracking data
     tracking_timeline = {}
     tracking_timeline.update({finding.created_at: {"level": "info", "message": "First identification in scan <a href='/scans/details/{}'>'{}'</a> ({}). Definition <a href='/scans/defs/details/{}'>here</a>".format(finding.scan.id, finding.scan, finding.scan.engine_type, finding.scan.scan_definition.id)}})
 
@@ -197,20 +196,14 @@ def details_finding_view(request, finding_id):
                     "message": "Identified in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
             break
         if finding_notfound:
-            #print "not found in {}".format(scan)
             tracking_timeline.update({scan.created_at: {
                 "level": "warning",
                 "message": "Not in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
-
-    #print collections.OrderedDict(sorted(tracking_timeline.items(), key=lambda t: t[0]))
-
-
 
     return render(request, 'details-finding.html', {
         'finding': finding,
         'raw': False,
         'tracking_timeline': collections.OrderedDict(sorted(tracking_timeline.items(), key=lambda t: t[0]))})
-        # 'tracking_timeline': tracking_timeline})
 
 
 def raw_finding(request, finding_id):
@@ -247,11 +240,7 @@ def edit_finding_view(request, finding_id):
             finding.links = form.cleaned_data['links']
             finding.tags = form.cleaned_data['tags'].split(',')
             finding.status = form.cleaned_data['status']
-            finding.owner = form.cleaned_data['owner']
-            finding.asset = form.cleaned_data['asset']
-            finding.asset_name = form.cleaned_data['asset'].value,
-            finding.scan = form.cleaned_data['scan']
-            
+
             finding.save()
             messages.success(request, 'Update submission successful')
             return redirect('list_findings_view')
@@ -281,7 +270,7 @@ def add_finding_view(request):
                 'links': form.cleaned_data['links'],
                 'tags': str(json.dumps(form.cleaned_data['tags'].split(','))),
                 'status': form.cleaned_data['status'],
-                'owner': form.cleaned_data['owner'],
+                # 'owner': form.cleaned_data['owner'],
                 'asset': form.cleaned_data['asset'],
                 'asset_name': form.cleaned_data['asset'].value,
                 'scan': form.cleaned_data['scan']
@@ -354,9 +343,9 @@ def export_findings_csv(request):
         'engine_type', 'engine_name',
         'scan_title', 'scan_policy',
         'finding_id', 'finding_type', 'finding_status', 'finding_tags',
-        'finding_severity', 'finding_description', 'finding_solution', 'finding_hash',
-        'finding_creation_date', 'finding_risk_info', 'finding_cvss',
-        'finding_links'
+        'finding_severity', 'finding_description', 'finding_solution',
+        'finding_hash', 'finding_creation_date', 'finding_risk_info',
+        'finding_cvss', 'finding_links'
         ])
 
     findings = json.loads(request.body)
@@ -372,8 +361,9 @@ def export_findings_csv(request):
             finding.scan.engine_type.name, finding.scan.engine.name,
             finding.scan.title, finding.scan.engine_policy.name,
             finding.id, finding.type, finding.status, ','.join(finding.tags),
-            finding.severity, finding.description, finding.solution, finding.hash,
-            finding.created_at, finding.risk_info, finding.risk_info['cvss_base_score'],
+            finding.severity, finding.description, finding.solution,
+            finding.hash, finding.created_at, finding.risk_info,
+            finding.risk_info['cvss_base_score'],
             finding_links
         ])
 
@@ -404,7 +394,8 @@ def change_findings_status(request):
     findings = json.loads(request.body)
     for finding in findings:
         f = Finding.objects.filter(id=finding['ack']).first()
-        f.status = "ack" ; f.save()
+        f.status = "ack"
+        f.save()
 
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
@@ -416,7 +407,8 @@ def change_rawfindings_status(request):
     findings = json.loads(request.body)
     for finding in findings:
         f = RawFinding.objects.filter(id=finding['ack']).first()
-        f.status = "ack" ; f.save()
+        f.status = "ack"
+        f.save()
 
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
@@ -433,19 +425,17 @@ def remove_finding(request, finding_id):
 
     return JsonResponse(res, json_dumps_params={'indent': 2})
 
+
 def update_finding(request, finding_id):
     res = {"page": "update_finding"}
     finding = Finding.objects.filter(finding_id=finding_id)[0]
 
-    fields = []
     allowed_fields = [f.name for f in Finding._meta.get_fields()]
     if request.method == 'GET':
         for field_key in request.GET.iterkeys():
             if field_key in allowed_fields:
                 setattr(finding, field_key, request.GET.get(field_key))
-            else:
-                #print("not allowed")
-                pass
+
     finding.save()
 
     # reevaluate related asset critity
@@ -458,11 +448,12 @@ def update_finding(request, finding_id):
 def get_findings_stats(request):
     scope = request.GET.get('scope', None)
     data = {}
-    if not scope: #All
+    if not scope:
         findings = Finding.objects.all()
     else:
         scan_id = request.GET.get('scan_id', None)
-        if not scan_id: return  JsonResponse({})
+        if not scan_id:
+            return JsonResponse({})
         if scope == "scan_def":
             scan_def = get_object_or_404(ScanDefinition, id=scan_id)
             findings = RawFinding.objects.filter(scan__scan_definition_id=scan_id)
@@ -542,7 +533,7 @@ def update_finding_comments(request, finding_id):
         return JsonResponse({"status": "error", "reason": "invalid finding id"})
 
     new_comments = request.POST.get("comments", None)
-    if new_comments == None:
+    if new_comments is None:
         return JsonResponse({"status": "error", "reason": "invalid parameter"})
 
     if request.POST.get("raw", None) and request.POST.get("raw") == "true":
@@ -563,7 +554,6 @@ def update_finding_api(request, finding_id):
     else:
         finding = get_object_or_404(Finding, id=finding_id)
 
-    fields = []
     allowed_fields = [f.name for f in Finding._meta.get_fields()]
     if request.method == 'GET':
         for field_key in request.GET.iterkeys():
@@ -589,7 +579,6 @@ def update_finding_api(request, finding_id):
                     ), type="UPDATE", severity="INFO", finding=finding)
                     setattr(finding, field_key, request.GET.get(field_key))
 
-    #finding.asset.calc_risk_grade()
     finding.save()
 
     return JsonResponse({"status": "success"}, json_dumps_params={'indent': 2})
@@ -608,10 +597,11 @@ def export_finding_api(request, finding_id):
 
     res = {}
     if export_format == 'json':
-        #print model_to_dict(finding)
         res = model_to_dict(finding, exclude="scopes")
         res.update({"scopes": list(finding.scopes.values())})
-        response = HttpResponse(json.dumps(res, default=json_serial), content_type='application/json')
+        response = HttpResponse(
+            json.dumps(res, default=json_serial),
+            content_type='application/json')
         response['Content-Disposition'] = 'attachment; filename=export_finding_{}{}.json'.format(prefix, finding.id)
         return response
 
@@ -622,7 +612,9 @@ def export_finding_api(request, finding_id):
             "description": finding.description,
             "id": "patrowl-{}{}".format(prefix, finding.id)
         }
-        response = HttpResponse(json.dumps(res, default=json_serial), content_type='application/json')
+        response = HttpResponse(
+            json.dumps(res, default=json_serial),
+            content_type='application/json')
         response['Content-Disposition'] = 'attachment; filename=export_finding_{}{}.stix.json'.format(prefix, finding.id)
         return response
 
@@ -638,9 +630,9 @@ def export_finding_api(request, finding_id):
             'engine_type', 'engine_name',
             'scan_title', 'scan_policy',
             'finding_id', 'finding_type', 'finding_status', 'finding_tags',
-            'finding_severity', 'finding_description', 'finding_solution', 'finding_hash',
-            'finding_creation_date', 'finding_risk_info', 'finding_cvss',
-            'finding_links'
+            'finding_severity', 'finding_description', 'finding_solution',
+            'finding_hash', 'finding_creation_date', 'finding_risk_info',
+            'finding_cvss', 'finding_links'
             ])
         if 'links' in finding.risk_info.keys():
             finding_links = ", ".join(finding.risk_info['links'])
@@ -651,21 +643,19 @@ def export_finding_api(request, finding_id):
             finding.scan.engine_type.name, finding.scan.engine.name,
             finding.scan.title, finding.scan.engine_policy.name,
             finding.id, finding.type, finding.status, ','.join(finding.tags),
-            finding.severity, finding.description, finding.solution, finding.hash,
-            finding.created_at, finding.risk_info, finding.risk_info['cvss_base_score'],
-            finding_links
+            finding.severity, finding.description, finding.solution,
+            finding.hash, finding.created_at, finding.risk_info,
+            finding.risk_info['cvss_base_score'], finding_links
         ])
 
         return response
 
 
-
 def json_serial(obj):
-    """JSON serializer for objects not serializable by default json code"""
-
+    """JSON serializer for objects not serializable by default json code."""
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
     if isinstance(obj, UUID):
         # if the obj is uuid, we simply return the value of uuid
         return obj.hex
-    raise TypeError ("Type %s not serializable" % type(obj))
+    raise TypeError("Type %s not serializable" % type(obj))

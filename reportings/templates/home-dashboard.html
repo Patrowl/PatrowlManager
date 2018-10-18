@@ -329,7 +329,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
                     {% if scan.status == "finished" %}
                     {% with total=scan.summary|keyvalue:'total' %}
                     <div class="progress-bar progress-bar progress-bar-critical" role="progressbar" style="width:{{ scan.summary|keyvalue:'critical' | perc:total }}%">
-                      {{scan.summary|keyvalue:"high"}}
+                      {{scan.summary|keyvalue:"critical"}}
                     </div>
                     <div class="progress-bar progress-bar progress-bar-high" role="progressbar" style="width:{{ scan.summary|keyvalue:'high' | perc:total }}%">
                       {{scan.summary|keyvalue:"high"}}

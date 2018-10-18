@@ -29,7 +29,7 @@ def homepage_dashboard_view(request):
         "scans": {
             "defined": ScanDefinition.objects.all().count(),
             "performed": Scan.objects.all().count(),
-            "active_periodic": ScanDefinition.objects.filter(enabled=True,scan_type='periodic').count(),
+            "active_periodic": ScanDefinition.objects.filter(enabled=True, scan_type='periodic').count(),
         },
         "engines": {
             "total": EngineInstance.objects.all().count(),
@@ -61,13 +61,13 @@ def homepage_dashboard_view(request):
 
     # Asset grades repartition and TOP 10
     asset_grades_map = {
-        "A": {"high": 0, "medium": 0, "low":0},
-        "B": {"high": 0, "medium": 0, "low":0},
-        "C": {"high": 0, "medium": 0, "low":0},
-        "D": {"high": 0, "medium": 0, "low":0},
-        "E": {"high": 0, "medium": 0, "low":0},
-        "F": {"high": 0, "medium": 0, "low":0},
-        "-": {"high": 0, "medium": 0, "low":0}
+        "A": {"high": 0, "medium": 0, "low": 0},
+        "B": {"high": 0, "medium": 0, "low": 0},
+        "C": {"high": 0, "medium": 0, "low": 0},
+        "D": {"high": 0, "medium": 0, "low": 0},
+        "E": {"high": 0, "medium": 0, "low": 0},
+        "F": {"high": 0, "medium": 0, "low": 0},
+        "-": {"high": 0, "medium": 0, "low": 0}
     }
 
     assetgroup_grades_map = copy.deepcopy(asset_grades_map)

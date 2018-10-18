@@ -199,8 +199,10 @@ div.risk-trends {
       <p>
         {% for scope, counter in asset_scopes %}
           <a href="/findings/list?_scope={{ counter.id }}&_asset_group_id={{ asset_group.id }}" style="text-decoration:none;">
-          {% if counter.high > 0 %}
-          <span class="label label-critical">{{ scope }}: {{ counter.high }}/{{ counter.total }}</span>
+          {% if counter.critical > 0 %}
+          <span class="label label-critical">{{ scope }}: {{ counter.critical }}/{{ counter.total }}</span>
+          {% elif counter.high > 0 %}
+          <span class="label label-high">{{ scope }}: {{ counter.high }}/{{ counter.total }}</span>
           {% elif counter.medium > 0 %}
           <span class="label label-medium">{{ scope }}: {{ counter.medium }}/{{ counter.total }}</span>
           {% elif counter.low > 0 %}
@@ -249,25 +251,30 @@ div.risk-trends {
             <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
             <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value }})</a></td>
             <td>
-              {% if asset.risk_level.high == 0 %}
-                0
+              {% if asset.risk_level.critical > 0 %}
+                <span class="label label-critical">{{ asset.risk_level.critical }}</span>
               {% else %}
-                <span class="label label-critical">{{ asset.risk_level.high }}</span>
+                0
               {% endif %}/
-              {% if asset.risk_level.medium == 0 %}
-                0
+              {% if asset.risk_level.high > 0 %}
+                <span class="label label-high">{{ asset.risk_level.high }}</span>
               {% else %}
+                0
+              {% endif %}/
+              {% if asset.risk_level.medium > 0 %}
                 <span class="label label-medium">{{ asset.risk_level.medium }}</span>
-              {% endif %}/
-              {% if asset.risk_level.low == 0 %}
-                0
               {% else %}
+                0
+              {% endif %}/
+              {% if asset.risk_level.low > 0 %}
                 <span class="label label-low">{{ asset.risk_level.low }}</span>
-              {% endif %}/
-              {% if asset.risk_level.info == 0 %}
-                0
               {% else %}
+                0
+              {% endif %}/
+              {% if asset.risk_level.info > 0 %}
                 <span class="label label-info">{{ asset.risk_level.info }}</span>
+              {% else %}
+                0
               {% endif %}
             </td>
             {% if asset.criticity == 'low' %}
@@ -595,6 +602,7 @@ div.risk-trends {
             <thead>
               <tr>
                 <th>Scopes</th>
+                <th>Critical</th>
                 <th>High</th>
                 <th>Medium</th>
                 <th>Low</th>
@@ -607,28 +615,35 @@ div.risk-trends {
               <tr>
                 <td>{{scope}}</td>
                 <td class="col-md-1 ct">
+                  {% if counter.critical > 0 %}
+                  <span class="label label-critical">{{counter.critical}}</span>
+                  {% else %}
+                  {{counter.critical}}
+                  {% endif %}
+                </td>
+                <td class="col-md-1 ct">
                   {% if counter.high > 0 %}
-                  <span class="label label-danger">{{counter.high}}</span>
+                  <span class="label label-high">{{counter.high}}</span>
                   {% else %}
                   {{counter.high}}
                   {% endif %}
                 </td>
                 <td class="col-md-1 ct">
                   {% if counter.medium > 0 %}
-                  <span class="label label-warning">{{counter.medium}}</span>
+                  <span class="label label-medium">{{counter.medium}}</span>
                   {% else %}
                   {{counter.medium}}
                   {% endif %}
                 </td>
                 <td class="col-md-1 ct">
                   {% if counter.low > 0 %}
-                  <span class="label label-info">{{counter.low}}</span>
+                  <span class="label label-low">{{counter.low}}</span>
                   {% else %}
                   {{counter.low}}
                   {% endif %}
                 </td>
                 <td class="col-md-1 ct">{% if counter.info > 0 %}
-                  <span class="label label-default">{{counter.info}}</span>
+                  <span class="label label-info">{{counter.info}}</span>
                   {% else %}
                   {{counter.info}}
                   {% endif %}
@@ -792,7 +807,6 @@ div.risk-trends {
         url: del_url,
         method: "POST",
         data: "tag_id="+tag_id+"&csrfmiddlewaretoken="+csrf_token,
-        //contentType: "application/json"
         success: function(data, textStatus, xhr){
           location.reload();
         }
@@ -807,7 +821,6 @@ div.risk-trends {
           dataType: "json",
           success: function( data ) {
             var re = $.ui.autocomplete.escapeRegex(req.term);
-            //var matcher = new RegExp( "^" + re, "i" ); //Start with
             var matcher = new RegExp(re, "i" ); //Start with
             response($.grep(data, function(item){return matcher.test(item.value || item.label || item);}) );
             }
