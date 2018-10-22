@@ -38,7 +38,7 @@ If you need to contact the project team, send an email to <getsupport@patrowl.io
 Copyright (C) 2018 Nicolas MATTIOCCO  ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
 
 # Travis build status
-- Branch 'master':
-[![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlManager)
-- Branch 'develop':
-[![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=develop)](https://travis-ci.com/Patrowl/PatrowlManager)
+| Branch  | Status  |
+|---|---|
+| master | [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlEngines) |
+| develop | [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=develop)](https://travis-ci.com/Patrowl/PatrowlEngines) |
