@@ -20,6 +20,7 @@ def homepage_dashboard_view(request):
         "findings": {
             "total": findings.count(),
             "new": findings.filter(status='new').count(),
+            "critical": findings.filter(severity='critical').count(),
             "high": findings.filter(severity='high').count(),
             "medium": findings.filter(severity='medium').count(),
             "low": findings.filter(severity='low').count(),
@@ -28,7 +29,7 @@ def homepage_dashboard_view(request):
         "scans": {
             "defined": ScanDefinition.objects.all().count(),
             "performed": Scan.objects.all().count(),
-            "active_periodic": ScanDefinition.objects.filter(enabled=True,scan_type='periodic').count(),
+            "active_periodic": ScanDefinition.objects.filter(enabled=True, scan_type='periodic').count(),
         },
         "engines": {
             "total": EngineInstance.objects.all().count(),
@@ -60,13 +61,13 @@ def homepage_dashboard_view(request):
 
     # Asset grades repartition and TOP 10
     asset_grades_map = {
-        "A": {"high": 0, "medium": 0, "low":0},
-        "B": {"high": 0, "medium": 0, "low":0},
-        "C": {"high": 0, "medium": 0, "low":0},
-        "D": {"high": 0, "medium": 0, "low":0},
-        "E": {"high": 0, "medium": 0, "low":0},
-        "F": {"high": 0, "medium": 0, "low":0},
-        "-": {"high": 0, "medium": 0, "low":0}
+        "A": {"high": 0, "medium": 0, "low": 0},
+        "B": {"high": 0, "medium": 0, "low": 0},
+        "C": {"high": 0, "medium": 0, "low": 0},
+        "D": {"high": 0, "medium": 0, "low": 0},
+        "E": {"high": 0, "medium": 0, "low": 0},
+        "F": {"high": 0, "medium": 0, "low": 0},
+        "-": {"high": 0, "medium": 0, "low": 0}
     }
 
     assetgroup_grades_map = copy.deepcopy(asset_grades_map)
@@ -109,8 +110,11 @@ def homepage_dashboard_view(request):
     # Critical findings
     top_critical_findings = []
     MAX_CF = 6
-    for finding in findings.filter(severity="high"):
+    for finding in findings.filter(severity="critical"):
         if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
+    if len(top_critical_findings) <= MAX_CF:
+        for finding in findings.filter(severity="high"):
+            if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
         for finding in findings.filter(severity="medium"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
@@ -121,11 +125,12 @@ def homepage_dashboard_view(request):
         for finding in findings.filter(severity="info"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
 
-    cvss_scores = {'lte5': 0, '5to7': 0, 'gte7': 0, 'eq10': 0}
+    cvss_scores = {'lte5': 0, '5to7': 0, 'gte7': 0, 'gte9': 0, 'eq10': 0}
     for finding in findings:
         if finding.risk_info["cvss_base_score"] < 5.0: cvss_scores.update({'lte5': cvss_scores['lte5']+1})
         if finding.risk_info["cvss_base_score"] >= 5.0 and finding.risk_info["cvss_base_score"] <= 7.0: cvss_scores.update({'5to7': cvss_scores['5to7']+1})
         if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})
+        if finding.risk_info["cvss_base_score"] >= 9.0 and finding.risk_info["cvss_base_score"] < 10: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
         if finding.risk_info["cvss_base_score"] == 10.0: cvss_scores.update({'eq10': cvss_scores['eq10']+1})
 
     return render(request, 'home-dashboard.html', {

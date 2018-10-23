@@ -15,6 +15,9 @@ else
   echo -e "supervisord stopped. Starting supervisord."
   supervisord -c var/etc/supervisord.conf
 fi
-#python manage.py makemigrations && python manage.py migrate && python manage.py runserver_plus 0.0.0.0:8000
-gunicorn app.wsgi:application -b :8000
+python manage.py makemigrations && \
+python manage.py migrate && \
+python manage.py collectstatic --noinput && \
+gunicorn app.wsgi:application -b :8000 --timeout 300
+
 deactivate

@@ -91,25 +91,34 @@
         <td>{{ scan.id }}</td>
         <td>{{ scan.updated_at | date:"Y/m/d-H:m:s.u" }}</td>
         <td>
-          {% if scan.summary.high == 0 %}
-            0
+          {% if scan.summary.critical > 0 %}
+          <span class="label label-danger">{{ scan.summary.critical }}</span>
           {% else %}
-            <span class="label label-danger">{{ scan.summary.high }}</span>
+          0
           {% endif %}/
-          {% if scan.summary.medium == 0 %}
-            0
+
+          {% if scan.summary.high > 0 %}
+          <span class="label label-warning">{{ scan.summary.high }}</span>
           {% else %}
-            <span class="label label-warning">{{ scan.summary.medium }}</span>
+          0
           {% endif %}/
-          {% if scan.summary.low == 0 %}
-            0
+
+          {% if scan.summary.medium > 0 %}
+          <span class="label label-info">{{ scan.summary.medium }}</span>
           {% else %}
-            <span class="label label-info">{{ scan.summary.low }}</span>
+          0
           {% endif %}/
-          {% if scan.summary.info == 0 %}
-            0
+
+          {% if scan.summary.low > 0 %}
+          <span class="label label-success">{{ scan.summary.low }}</span>
           {% else %}
-            <span class="label label-primary">{{ scan.summary.info }}</span>
+          0
+          {% endif %}/
+
+          {% if scan.summary.info > 0 %}
+          <span class="label label-primary">{{ scan.summary.info }}</span>
+          {% else %}
+          0
           {% endif %}
           (<text class="text-success">+{{ scan.summary.new }}</text>/<text class="text-warning">-{{ scan.summary.missing }}</text>)
         </td>
@@ -297,6 +306,7 @@ function print_chart(num_records=20){
   data_datasets_low = [];
   data_datasets_medium = [];
   data_datasets_high = [];
+  data_datasets_critical = [];
   data_datasets_new = [];
 
   xhr = $.get(findingsByScanDef_url, function(resp) {
@@ -309,6 +319,7 @@ function print_chart(num_records=20){
         data_datasets_low.push(resp[i]["summary"]["low"]);
         data_datasets_medium.push(resp[i]["summary"]["medium"]);
         data_datasets_high.push(resp[i]["summary"]["high"]);
+        data_datasets_critical.push(resp[i]["summary"]["critical"]);
         data_datasets_new.push(resp[i]["summary"]["new"]);
       } else {
         data_datasets_total.push(0);
@@ -316,6 +327,7 @@ function print_chart(num_records=20){
         data_datasets_low.push(0);
         data_datasets_medium.push(0);
         data_datasets_high.push(0);
+        data_datasets_critical.push(0);
         data_datasets_new.push(0);
       }
     };
@@ -401,22 +413,27 @@ function print_chart(num_records=20){
       {
         "label": "Info",
         "data": data_datasets_info,
-        "fill": false, "lineTension": 0.1, "backgroundColor": "#66D2FF"
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#3498db"
       },
       {
         "label": "Low",
         "data": data_datasets_low,
-        "fill": false, "lineTension": 0.1, "backgroundColor": "#FFFF00"
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#ffcb0d"
       },
       {
         "label": "Medium",
         "data": data_datasets_medium,
-        "fill": false, "lineTension": 0.1, "backgroundColor": "#FF8000"
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#f9a009"
       },
       {
         "label": "High",
         "data": data_datasets_high,
-        "fill": false, "lineTension": 0.1, "backgroundColor": "#FF0000"
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#df3d03"
+      },
+      {
+        "label": "Critical",
+        "data": data_datasets_critical,
+        "fill": false, "lineTension": 0.1, "backgroundColor": "#cc0500"
       }
     );
 
@@ -430,7 +447,6 @@ function print_chart(num_records=20){
         var chartData = activePoints[0]['_chart'].config.data;
         var idx = activePoints[0]['_index'];
         var label = chartData.labels[idx];
-        //var value = chartData.datasets[0].data[idx];
         window.location = "/scans/details/"+label;
       }
     };

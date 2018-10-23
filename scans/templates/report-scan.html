@@ -448,18 +448,20 @@
                   <h2 xmlns="" class="classh1 " style="vertical-align: middle;">Results Summary</h2>
                   <table xmlns="" width="100%">
                     <tr>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">High</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Medium</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Low</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Info</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Total</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Critical</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">High</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Medium</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Low</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Info</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Total</span></td>
                     </tr>
                     <tr>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #d43f3a; font-weight: normal;">{{ findings_stats.high }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #ee9336; font-weight: normal;">{{ findings_stats.medium }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #fdc431; font-weight: normal;">{{ findings_stats.low }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #357abd; font-weight: normal;">{{ findings_stats.info }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">{{ findings_stats.total }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #cc0500; font-weight: normal;">{{ findings_stats.critical }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #df3d03; font-weight: normal;">{{ findings_stats.high }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #f9a009; font-weight: normal;">{{ findings_stats.medium }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #ffcb0d; font-weight: normal;">{{ findings_stats.low }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #3498db; font-weight: normal;">{{ findings_stats.info }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">{{ findings_stats.total }}</span></td>
                     </tr>
                   </table>
 
@@ -477,19 +479,21 @@
                   <h2 xmlns="" class="classh1 " style="vertical-align: middle;">Results Summary</h2>
                   <table xmlns="" width="100%">
                     <tr>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">High</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Medium</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Low</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Info</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Total</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Critical</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">High</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Medium</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Low</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Info</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">Total</span></td>
                     </tr>
                     <tr>
                       {% with asset_stats=findings_stats|keyvalue:asset %}
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #e43725; font-weight: normal;">{{ asset_stats.high }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #ee9336; font-weight: normal;">{{ asset_stats.medium }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #fdc431; font-weight: normal;">{{ asset_stats.low }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #357abd; font-weight: normal;">{{ asset_stats.info }}</span></td>
-                      <td width="20%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">{{ asset_stats.total }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #cc0500; font-weight: normal;">{{ asset_stats.critical }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #df3d03; font-weight: normal;">{{ asset_stats.high }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #f9a009; font-weight: normal;">{{ asset_stats.medium }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #ffcb0d; font-weight: normal;">{{ asset_stats.low }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #3498db; font-weight: normal;">{{ asset_stats.info }}</span></td>
+                      <td width="16%" valign="top" class="classcell"><span class="classtext" style="color: #263645; font-weight: normal;">{{ asset_stats.total }}</span></td>
                       {% endwith %}
                     </tr>
                   </table>
@@ -504,8 +508,10 @@
                             <td width="5%" height="50%">
                               <table style="table-layout: fixed;" width="30px" height="15px" >
                                 <tr width="100%">
-                                  {% if finding.severity == 'high' %}
+                                  {% if finding.severity == 'critical' %}
                                   <td width="100%" class="classcell4"></td>
+                                  {% elif finding.severity == 'high' %}
+                                  <td width="100%" class="classcell3"></td>
                                   {% elif finding.severity == 'medium' %}
                                   <td width="100%" class="classcell3"></td>
                                   {% elif finding.severity == 'low' %}
@@ -525,12 +531,16 @@
                   </span>
                   <div xmlns="" id="ptag-{{ finding.id }}" style="display: none;">
                     <h2 class="classh1 " style="vertical-align: middle;">Description</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.description|linebreaks }}</span>
+                    <table width="100%">
+                      <tr><td width="100%" valign="top" class="classcell">
+                        <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.description|linebreaks }}</span>
+                      </td></tr>
+                    </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">More information</h2>
                     <table width="100%">
                       {% if not finding.links %}
-                        <p>No links.</p>
+                        <tr><td width="100%" valign="top" class="classcell"><p>No links.</p></td></tr>
                       {% else %}
                         {% for link in finding.links %}
                         <tr><td width="100%" valign="top" class="classcell"><a href="{{link}}" target="_blank">{{link|linebreaks}}</a></td></tr>
@@ -539,7 +549,11 @@
                     </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">Solution</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.solution|linebreaks }}</span>
+                    <table width="100%">
+                      <tr><td width="100%" valign="top" class="classcell">
+                        <span class="classtext" style="color: #263645; font-weight: normal;">{{ finding.solution|linebreaks }}</span>
+                      </td></tr>
+                    </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">Risk Evaluation</h2>
                     <table width="100%">
@@ -557,19 +571,29 @@
                     </table>
 
                     <h2 class="classh1 " style="vertical-align: middle;">Finding ID</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">
-                      {% if not finding.vuln_refs %}
-                        n/a.
-                      {% else %}
-                        {% for key, value in finding.vuln_refs.items %}
-                          {{ key }}: {{ value }}<br/>
-                        {% endfor %}
-                      {% endif %}
-                    </span>
+                    <table width="100%">
+                      <tr><td width="100%" valign="top" class="classcell">
+                        <span class="classtext" style="color: #263645; font-weight: normal;">
+                          {% if not finding.vuln_refs %}
+                            n/a.
+                          {% else %}
+                            {% for key, value in finding.vuln_refs.items %}
+                              {{ key }}: {{ value }}<br/>
+                            {% endfor %}
+                          {% endif %}
+                        </span>
+                      </td></tr>
+                    </table>
                     <h2 class="classh1 " style="vertical-align: middle;">Tags</h2>
-                    <span class="classtext" style="color: #263645; font-weight: normal;">
-                      {{ finding.tags | join:", " }}
-                    </span>
+                    <table width="100%">
+                      <tr><td width="100%" valign="top" class="classcell">
+                        <span class="classtext" style="color: #263645; font-weight: normal;">
+                          {{ finding.tags | join:", " }}
+                        </span>
+                      </td></tr>
+                    </table>
+
+                    <hr/>
                   </div>
 
                   {% endfor %} <!-- End of 'for finding in findings|dictsort:"severity"|dictsort:"type"' -->

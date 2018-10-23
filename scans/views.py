@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import model_to_dict
-from django.db.models import Count, F, Q#, Min, Sum, Avg
+from django.db.models import Count, F, Q
 from django.views.decorators.csrf import csrf_exempt
 from django_celery_beat.models import PeriodicTask, IntervalSchedule, PeriodicTasks
 
@@ -20,7 +20,8 @@ from assets.models import Asset, AssetGroup
 import uuid, random, datetime, json, copy, os, tempfile, zipfile, time, csv
 from datetime import datetime, timedelta
 from pytz import timezone
-import xmlrpclib, shlex
+import xmlrpclib
+import shlex
 
 
 @csrf_exempt
@@ -141,7 +142,7 @@ def detail_scan_view(request, scan_id):
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
     for a in assets:
-        summary_assets.update({a.value: {"info": 0, "low": 0, "medium":0, "high": 0, "total": 0}})
+        summary_assets.update({a.value: {"info": 0, "low": 0, "medium":0, "high": 0, "critical": 0, "total": 0}})
     for f in raw_findings.filter(asset__in=assets):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
@@ -151,7 +152,7 @@ def detail_scan_view(request, scan_id):
     # Generate summary info on asset groups (for progress bars)
     summary_assetgroups = {}
     for ag in assetgroups:
-        summary_assetgroups.update({ag.id: {"info": 0, "low": 0, "medium":0, "high": 0, "total": 0}})
+        summary_assetgroups.update({ag.id: {"info": 0, "low": 0, "medium":0, "high": 0, "critical": 0, "total": 0}})
         for f in raw_findings:
             if f.asset.value in ag.assets.all().values_list('value', flat=True):
                 summary_assetgroups[ag.id].update({
@@ -213,7 +214,7 @@ def list_scans_view(request):
         scans = paginator.page(1)
     except EmptyPage:
         scans = paginator.page(paginator.num_pages)
-    return render(request, 'list-scans-performed.html', { 'scans': scans })
+    return render(request, 'list-scans-performed.html', {'scans': scans})
 
 
 def get_scans_stats(request):
@@ -231,7 +232,8 @@ def get_scans_stats(request):
     elif scope == "scan_def":
         scan_id = request.GET.get('scan_id', None)
         num_records = request.GET.get('num_records', 10)
-        if not scan_id: return  JsonResponse({})
+        if not scan_id:
+            return JsonResponse({})
         scan_def = get_object_or_404(ScanDefinition, id=scan_id)
         scans = reversed(Scan.objects.filter(scan_definition=scan_id).values('id', 'created_at', 'summary').order_by('-created_at')[:num_records])
         data = list(scans)
@@ -282,7 +284,7 @@ def get_scans_by_date(request):
     else:
         return HttpResponse(status=400)
 
-    if not scope in scopes:
+    if scope not in scopes:
         return HttpResponse(status=400)
 
     if scope == "hour":
@@ -322,16 +324,18 @@ def get_scan_report_html(request, scan_id):
 
     #{asset1: [{finding1}, {finding2}]}
     findings_tmp = list()
-    for sev in ["high", "medium", "low", "info"]:
+    for sev in ["high", "medium", "low", "info", "critical"]:
         tmp = RawFinding.objects.filter(scan=scan, severity=sev).order_by('type')
-        if tmp.count() > 0: findings_tmp += tmp
+        if tmp.count() > 0:
+            findings_tmp += tmp
 
     findings_by_asset = dict()
     for asset in scan.assets.all():
         findings_by_asset_tmp = list()
-        for sev in ["high", "medium", "low", "info"]:
+        for sev in ["critical", "high", "medium", "low", "info"]:
             tmp = RawFinding.objects.filter(scan=scan, asset=asset, severity=sev).order_by('type')
-            if tmp.count() > 0: findings_by_asset_tmp += tmp
+            if tmp.count() > 0:
+                findings_by_asset_tmp += tmp
         findings_by_asset.update({asset.value: findings_by_asset_tmp})
 
     findings_stats = {
@@ -340,12 +344,14 @@ def get_scan_report_html(request, scan_id):
         "medium": findings.filter(severity='medium').count(),
         "low": findings.filter(severity='low').count(),
         "info": findings.filter(severity='info').count(),
+        "critical": findings.filter(severity='critical').count()
     }
 
     for asset in scan.assets.all():
         findings_stats.update({
             asset.value: {
                 "total": findings.filter(asset=asset).count(),
+                "critical": findings.filter(asset=asset, severity='critical').count(),
                 "high": findings.filter(asset=asset, severity='high').count(),
                 "medium": findings.filter(asset=asset, severity='medium').count(),
                 "low": findings.filter(asset=asset, severity='low').count(),
@@ -358,10 +364,11 @@ def get_scan_report_html(request, scan_id):
         'findings': findings_by_asset,
         'findings_stats': findings_stats})
 
+
 def get_scan_report_json(request, scan_id):
     scan = get_object_or_404(Scan, id=scan_id)
 
-    filename = str(scan.report_filepath) # Select your file here.
+    filename = str(scan.report_filepath)
     if not os.path.isfile(filename):
         return HttpResponse(status=404)
 
@@ -382,29 +389,30 @@ def get_scan_report_csv(request, scan_id):
         'asset_value', 'asset_type',
         'engine_type', 'engine_name',
         'scan_title', 'scan_policy',
-        'finding_id', 'finding_title', 'finding_type', 'finding_status', 'finding_tags',
-        'finding_severity', 'finding_description', 'finding_solution', 'finding_hash',
-        'finding_creation_date', 'finding_risk_info', 'finding_cvss',
-        'finding_links'
+        'finding_id', 'finding_title', 'finding_type', 'finding_status',
+        'finding_tags', 'finding_severity', 'finding_description',
+        'finding_solution', 'finding_hash', 'finding_creation_date',
+        'finding_risk_info', 'finding_cvss', 'finding_links'
         ])
     for finding in RawFinding.objects.filter(scan=scan).order_by('asset__name', 'severity', 'title'):
         writer.writerow([
             finding.asset.value, finding.asset.type,
             scan.engine_type.name, scan.engine.name,
             scan.title, scan.engine_policy.name,
-            finding.id, finding.title, finding.type, finding.status, ','.join(finding.tags),
-            finding.severity, finding.description, finding.solution, finding.hash,
-            finding.created_at, finding.risk_info, finding.risk_info['cvss_base_score'],
+            finding.id, finding.title, finding.type, finding.status,
+            ','.join(finding.tags), finding.severity, finding.description,
+            finding.solution, finding.hash, finding.created_at,
+            finding.risk_info, finding.risk_info['cvss_base_score'],
             ", ".join(finding.links)
         ])
 
     return response
 
-# todo: to update
+
 def send_scan_reportzip(request, scan_id):
     scan = get_object_or_404(Scan, id=scan_id)
 
-    filename = str(scan.report_filepath) # Select your file here.
+    filename = str(scan.report_filepath)
     temp = tempfile.TemporaryFile()
     archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
     # for index in range(10):
@@ -425,7 +433,6 @@ def delete_scan_view(request, scan_id):
     if request.method == 'POST':
         scan.delete()
         messages.success(request, 'Scan successfully deleted!')
-        #return redirect('list_scans_view')
         return redirect('list_scan_def_view')
     return render(request, 'delete-scan.html', {'scan': scan})
 
@@ -441,8 +448,10 @@ def list_scan_campaigns(request):
 
 
 def list_scan_campaigns_view(request):
-    scan_campaigns = ScanCampaign.objects.filter(owner_id=request.user.id).order_by('-updated_at')
-    return render(request, 'list-scan-campaigns.html', { 'scan_campaigns': scan_campaigns })
+    scan_campaigns = ScanCampaign.objects.filter(
+        owner_id=request.user.id).order_by('-updated_at')
+    return render(request, 'list-scan-campaigns.html',
+        {'scan_campaigns': scan_campaigns})
 
 
 # @csrf_exempt
@@ -825,7 +834,6 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         else:
             engine = None
 
-
     scan = Scan.objects.create(
         scan_definition=scan_def,
         title=scan_def.title,
@@ -833,15 +841,13 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         engine=engine,
         engine_type=scan_def.engine_type,
         engine_policy=scan_def.engine_policy,
-        owner=User.objects.get(id=owner_id),
-        #started_at=datetime.datetime.now()
+        owner=User.objects.get(id=owner_id)
     )
     scan.save()
 
     assets_list = []
     for asset in scan_def.assets_list.all():
         scan.assets.add(asset)
-        #assets_list.append(asset.value)
         assets_list.append({
             "id": asset.id,
             "value": asset.value.strip(),
@@ -861,8 +867,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
 
     if not engine:
         scan.status = "error"
-        scan.started_at=datetime.now() #todo: check timezone
-        scan.finished_at=datetime.now() #todo: check timezone
+        scan.started_at = datetime.now()  # todo: check timezone
+        scan.finished_at = datetime.now()  # todo: check timezone
         scan.save()
         return False
 
@@ -898,15 +904,16 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     return scan
 
 
-## Compare scans
 def compare_scans_view(request):
     scan_a_id = request.GET.get("scan_a_id", None)
     scan_b_id = request.GET.get("scan_b_id", None)
     scan_a = get_object_or_404(Scan, id=scan_a_id)
     scan_b = get_object_or_404(Scan, id=scan_b_id)
 
-    scan_a_missing_findings = scan_b.rawfinding_set.all().exclude(hash__in=scan_a.rawfinding_set.values_list('hash'))
-    scan_b_missing_findings = scan_a.rawfinding_set.all().exclude(hash__in=scan_b.rawfinding_set.values_list('hash'))
+    scan_a_missing_findings = scan_b.rawfinding_set.all().exclude(
+        hash__in=scan_a.rawfinding_set.values_list('hash'))
+    scan_b_missing_findings = scan_a.rawfinding_set.all().exclude(
+        hash__in=scan_b.rawfinding_set.values_list('hash'))
 
     return render(request, 'compare-scans.html', {
         'scan_a': scan_a,

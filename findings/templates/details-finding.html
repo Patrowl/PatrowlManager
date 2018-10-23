@@ -8,7 +8,6 @@
   /* font-size: small; */
 }
 .dl-horizontal dt {
-  width: auto;
   text-align: left;
   /* font-weight: 100; */
   font-weight: 600;
@@ -27,7 +26,7 @@ hr {
 </ul>
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sm-9"> <!-- left column -->
+    <div class="col-sm-8"> <!-- left column -->
 
       <div id="menu_tabs" class="container-fluid">
         <ul class="nav nav-tabs" id="menu_tabs_ul">
@@ -41,7 +40,20 @@ hr {
           <div id="summary_div" class="tab-pane fade in active">
             <br/>
             <div class="row">
-              <b><span class="label label-default">{{ finding.severity }}</span> {{ finding.title }}</b>
+              <b>
+                {% if finding.severity == 'critical' %}
+                <span class="label label-critical">{{ finding.severity }}</span>
+                {% elif finding.severity == 'high' %}
+                <span class="label label-high">{{ finding.severity }}</span>
+                {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+                <span class="label label-medium">{{ finding.severity }}</span>
+                {% elif finding.severity == 'low' %}
+                <span class="label label-low">{{ finding.severity }}</span>
+                {% else %}
+                <span class="label label-info">{{ finding.severity }}</span>
+                {% endif %} 
+                {{ finding.title }}
+              </b>
             </div>
             <div class="row">
               <p>
@@ -64,7 +76,7 @@ hr {
                   No links.
                 {% else %}
                   {% for link in finding.links %}
-                    <a href="{{link}}"> {{link}}</a><br/>
+                    <a target="_blank" href="{{link}}"> {{link}}</a><br/>
                   {% endfor %}
                 {% endif %}
               <p>
@@ -99,7 +111,7 @@ hr {
 
     </div>
 
-    <div class="col-sm-3">
+    <div class="col-sm-4">
       <b>Actions</b>
       <hr class="my-1">
       <div class="generate-alerts">
@@ -107,8 +119,7 @@ hr {
         <i class="alerts_summary"></i>
       </div>
       <div class="change-finding-status">
-        <button class="btn btn-default btn-xs btn-change-finding-infos"
-          data-toggle="modal" data-target="#modal-change-finding-infos" style="width: 100%;">Update info</button>
+        <a href="/findings/edit/{{ finding.id }}"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
       </div>
       <div class="export-finding btn-group" style="width: 100%;">
         <a href="#" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" style="width: 100%;">Export <span class="caret pull"></span></a>
@@ -128,14 +139,16 @@ hr {
       <dl class="dl-horizontal">
         <dt>ID:</dt><dd>{{ finding.id }}</dd>
         <dt>Severity:</dt><dd>
-          {% if finding.severity == 'critical' or finding.severity == 'high' %}
-          <span class="label label-danger">{{ finding.severity }}</span>
+          {% if finding.severity == 'critical' %}
+          <td><span class="label label-critical">{{ finding.severity }}</span></td>
+          {% elif finding.severity == 'high' %}
+          <td><span class="label label-high">{{ finding.severity }}</span></td>
           {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-          <span class="label label-warning">{{ finding.severity }}</span>
+          <td><span class="label label-medium">{{ finding.severity }}</span></td>
           {% elif finding.severity == 'low' %}
-          <span class="label label-primary">{{ finding.severity }}</span>
+          <td><span class="label label-low">{{ finding.severity }}</span></td>
           {% else %}
-          <span class="label label-default">{{ finding.severity }}</span>
+          <td><span class="label label-info">{{ finding.severity }}</span></td>
           {% endif %}
         </dd>
         <dt>Status:</dt><dd>
@@ -164,7 +177,7 @@ hr {
             No Tags.
           {% else %}
             {% for tag in finding.tags %}
-              <span class="label label-success">{{ tag|lower }}</span>
+              <span class="label label-primary">{{ tag|lower }}</span>
             {% endfor %}
           {% endif %}
         </dd>
@@ -175,15 +188,29 @@ hr {
       <b>Risk infos</b>
       <hr class="my-1">
       <dl class="dl-horizontal">
+        {% if "cvss3_base_score" in finding.risk_info.keys %}
+        <dt>CVSSv3 Base Score:</dt><dd>{{ finding.risk_info.cvss3_base_score }}</dd>
+        {% endif %}
+        {% if "cvss3_vector" in finding.risk_info.keys %}
+        <dt>CVSSv3 Vector:</dt><dd>{{ finding.risk_info.cvss3_vector }}</dd>
+        {% endif %}
+        {% if "cvss_base_score" in finding.risk_info.keys %}
+        <dt>CVSSv2 Base Score:</dt><dd>{{ finding.risk_info.cvss_base_score }}</dd>
+        {% endif %}
+        {% if "cvss_vector" in finding.risk_info.keys %}
+        <dt>CVSSv2 Vector:</dt><dd>{{ finding.risk_info.cvss_vector }}</dd>
+        {% endif %}
+        {% if "vuln_publication_date" in finding.risk_info.keys %}
+        <dt>Publication date:</dt><dd>{{ finding.risk_info.vuln_publication_date }}</dd>
+        {% endif %}
+
+        {% with "cvss3_base_score cvss3_vector cvss_base_score cvss_vector vuln_publication_date" as list %}
         {% for key, value in finding.risk_info.items %}
-        {% if key == "cvss_base_score" %}
-        <dt>CVSS Score:</dt><dd>{{ value }}</dd>
-        {% elif key == "vuln_publication_date" %}
-        <dt>Publication date:</dt><dd>{{ value }}</dd>
-        {% else %}
-        <dt>{{ key }}:</dt><dd>{{ value }}</dd>
+        {% if key not in list.split %}
+        <dt>{{ key }}</dt><dd>{{ value }}</dd>
         {% endif %}
         {% endfor %}
+        {% endwith %}
       </dl>
       {% endif %}
 
@@ -191,18 +218,48 @@ hr {
       <b>References</b>
       <hr class="my-1">
       <dl class="dl-horizontal">
+        {% if "cve" in finding.vuln_refs.keys %}
+        <dt>CVE:</dt>
+        <dd>
+          {% if finding.vuln_refs.cve|get_class == "list" %}
+            {% for v in finding.vuln_refs.cve %}
+              <a target="_blank" href="https://nvd.nist.gov/vuln/detail/{{v}}">{{v}}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          {% else %}
+            <a target="_blank" href="https://nvd.nist.gov/vuln/detail/{{finding.vuln_refs.cve}}">{{finding.vuln_refs.cve}}</a>
+          {% endif %}
+        </dd>
+        {% endif %}
+
+        {% if "bid" in finding.vuln_refs.keys %}
+        <dt>Bugtraq ID:</dt>
+        <dd>
+          {% if finding.vuln_refs.bid|get_class == "list" %}
+            {% for v in finding.vuln_refs.bid %}
+              <a target="_blank" href="https://www.securityfocus.com/bid/{{v}}">{{v}}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          {% else %}
+            <a target="_blank" href="https://www.securityfocus.com/bid/{{finding.vuln_refs.bid}}">{{finding.vuln_refs.bid}}</a>
+          {% endif %}
+        </dd>
+        {% endif %}
+
+        {% with "cve bid" as list %}
         {% for key, values in finding.vuln_refs.items %}
+          {% if key not in list.split %}
           <dt>{{ key }}:</dt>
           <dd>
             {% if values|get_class == "list" %}
               {% for v in values %}
-                <a href="{{v|ref_url:key}}">{{v}}</a>
+                <a href="{{v|ref_url:key}}">{{v}}</a>{% if not forloop.last %}, {% endif %}
               {% endfor %}
             {% else %}
               <a href="{{values|ref_url:key}}">{{values}}</a>
             {% endif %}
           </dd>
+          {% endif %}
         {% endfor %}
+        {% endwith %}
       </dl>
       {% endif %}
     </div>
@@ -219,11 +276,11 @@ hr {
   {% endif %}
 </div>
 
-<!-- Change finding status modal -->
+<!-- Change finding status modal 
 <div class="modal fade" id="modal-change-finding-infos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <!-- Modal Header -->
+      
       <div class="modal-header bg-primary">
         <button type="button" class="close" data-dismiss="modal">
           <span aria-hidden="true">&times;</span>
@@ -232,10 +289,10 @@ hr {
         <h4 class="modal-title" id="myModalLabel">Update finding infos</h4>
       </div>
 
-      <!-- Modal Body -->
+      
       <div class="modal-body">
         <div id="change-finding-infos" csrf-token="{{ csrf_token }}">
-          <!-- Content -->
+          
           <dl class="dl-horizontal">
             <dt>Severity:</dt>
             <dd>
@@ -268,7 +325,7 @@ hr {
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 <script>
 
@@ -317,7 +374,7 @@ hr {
   });
 
   // Update info
-  $('button.btn-update-finding').on('click', function(e){
+  /*$('button.btn-update-finding').on('click', function(e){
     finding_id = "{{finding.id}}";
     update_url = "/findings/api/v1/update/"+finding_id+"?severity="+$('#chg_severity').val()+"&status="+$('#chg_status').val()
     if (qs('raw') == "true") {
@@ -331,7 +388,7 @@ hr {
         location.reload();
       }
     });
-  });
+  });*/
 
   // Export finding
   $('div.export-finding ul li a').on('click', function(e){
