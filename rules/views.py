@@ -1,22 +1,37 @@
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+# -*- coding: utf-8 -*-
+"""Views for alerting rules."""
+
+from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
-from django.forms.models import model_to_dict
 from settings.models import Setting
-from .models import Rule, RULE_SCOPES, RULE_SCOPE_ATTRIBUTES, RULE_TARGETS, RULE_TRIGGERS, RULE_CONDITIONS, RULE_SEVERITIES
-import json, requests
+from .models import Rule, RULE_SCOPES, RULE_SCOPE_ATTRIBUTES, RULE_TARGETS
+from .models import RULE_TRIGGERS, RULE_CONDITIONS, RULE_SEVERITIES
+import json
+import requests
+
 
 def list_rules_api(request):
-    rules = Rule.objects.all()
+    """API: List alerting rules."""
+    # rules = Rule.objects.all()
 
     return JsonResponse('todo')
 
 
 def list_rules_view(request):
+    """View: List alerting rules.
 
+    **Context**
+
+    ``Rule``
+        An instance of :model:`rules.models.Rule`.
+
+    **Template:**
+
+    :template:`rules/templates/list-rules.html`
+    """
     form_options = {
         "rule_scopes": RULE_SCOPES,
         "rule_scope_attributes": json.dumps(RULE_SCOPE_ATTRIBUTES),
@@ -25,7 +40,7 @@ def list_rules_view(request):
         "rule_triggers": RULE_TRIGGERS,
         "rule_severities": RULE_SEVERITIES,
     }
-    rules_list =  Rule.objects.all().order_by('-created_at')
+    rules_list = Rule.objects.all().order_by('-created_at')
 
     paginator = Paginator(rules_list, 10)
     page = request.GET.get('page')
@@ -35,26 +50,34 @@ def list_rules_view(request):
         rules = paginator.page(1)
     except EmptyPage:
         rules = paginator.page(paginator.num_pages)
-    return render(request, 'list-rules.html', { 'rules': rules, 'form_options': form_options })
+    return render(request, 'list-rules.html', {
+        'rules': rules, 'form_options': form_options})
 
 
-@csrf_exempt # not secure
+@csrf_exempt  # not secure
 def delete_rules_api(request):
+    """API: Delete alerting rules."""
     if not request.method == 'POST':
-        return JsonResponse({'status': 'error'}, json_dumps_params={'indent': 2}, status=403)
+        return JsonResponse(
+            {'status': 'error'}, json_dumps_params={'indent': 2}, status=403)
 
     rules_to_delete = json.loads(request.body)
     rule = get_object_or_404(Rule, id=rules_to_delete[0])
     rule.delete()
     messages.success(request, 'Rule successfully deleted')
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse(
+        {'status': 'success'},
+        json_dumps_params={'indent': 2}
+    )
 
 
-@csrf_exempt # not secure
+@csrf_exempt  # not secure
 def add_rule_api(request):
+    """API: Add an alerting rule."""
     if not request.method == 'POST':
-        return JsonResponse({'status': 'error'}, json_dumps_params={'indent': 2}, status=403)
+        return JsonResponse(
+            {'status': 'error'}, json_dumps_params={'indent': 2}, status=403)
 
     params = json.loads(request.body)
     new_rule_args = {
@@ -69,21 +92,22 @@ def add_rule_api(request):
     }
     new_rule = Rule.objects.create(**new_rule_args)
     new_rule.save()
-
-    messages.success(request, 'Creation submission successful')
+    messages.success(request, 'Rule successfuly added')
 
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
-@csrf_exempt # not secure
+@csrf_exempt  # not secure
 def toggle_rule_status_api(request, rule_id):
+    """API: Change status of an alerting rule."""
     rule = get_object_or_404(Rule, id=rule_id)
     rule.enabled = not rule.enabled
     rule.save()
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
-def duplicate_rule_api (request, rule_id):
+def duplicate_rule_api(request, rule_id):
+    """API: Duplicate an alerting rule."""
     new_rule = get_object_or_404(Rule, id=rule_id)
     new_rule.title = new_rule.title + " (copy)"
     new_rule.pk = None
@@ -91,9 +115,13 @@ def duplicate_rule_api (request, rule_id):
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
-def send_slack_message_api(request): #test purposes
+def send_slack_message_api(request):  # test purposes
+    """API: Send a Slack message."""
     slack_url = get_object_or_404(Setting, key="alerts.endpoint.slack.webhook")
     alert_message = "[Alert] This is a test message"
 
-    requests.post(slack_url.value, data=json.dumps({'text': alert_message}), headers={'content-type': 'application/json'})
+    requests.post(
+        slack_url.value,
+        data=json.dumps({'text': alert_message}),
+        headers={'content-type': 'application/json'})
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})

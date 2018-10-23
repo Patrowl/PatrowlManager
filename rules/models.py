@@ -8,7 +8,9 @@ from events.models import Event
 from settings.models import Setting
 from django_celery_beat.models import PeriodicTask
 
-import json, requests, uuid
+import json
+import requests
+import uuid
 from thehive4py.api import TheHiveApi
 from thehive4py.models import Alert, AlertArtifact
 
@@ -25,7 +27,7 @@ RULE_SCOPE_ATTRIBUTES = {
         'name':         {"type": "text"},
         'type':         {"type": "list", "values": ['ip', 'domain', 'url']},
         'description':  {"type": "text"},
-        'criticity':    {"type": "list", "values": ['low', 'medium', 'high', 'critical']}
+        'criticity':    {"type": "list", "values": ['low', 'medium', 'high']}
         },
     "finding": {
         'title':        {"type": "text"},
@@ -35,7 +37,7 @@ RULE_SCOPE_ATTRIBUTES = {
         'solution':     {"type": "text"},
         'severity':     {"type": "list", "values": ['info', 'low', 'medium', 'high', 'critical']},
         'status':       {"type": "list", "values": ['new', 'ack']},
-        #'tags':         {"type": "in_list"},
+        # 'tags':         {"type": "in_list"},
         },
     "scan": {
         'status': {"type": "text"},
@@ -46,7 +48,7 @@ RULE_TARGETS = (
     ('event',   'Patrowl event'),
     ('logfile', 'To logfile'),
     ('email',   'Send email'),
-    ('thehive', 'To TheHive'),
+    ('thehive', 'To TheHive (event'),
     ('splunk',  'To Splunk'),
     ('slack',   'To Slack'),
 )
@@ -54,7 +56,7 @@ RULE_TARGETS = (
 RULE_TRIGGERS = (
     ('ondemand', 'On-demand'),
     ('auto',     'Auto'),
-    ('periodic', 'Periodic'), #frequency ?
+    ('periodic', 'Periodic'),  # frequency ?
 )
 
 RULE_CONDITIONS = {
@@ -70,7 +72,7 @@ RULE_CONDITIONS = {
         "__lt":  "less than",
         "__lte": "less than/equal to",
     },
-    'list': None, #see values
+    'list': None,  # see values
 }
 
 RULE_SEVERITIES = (
@@ -153,9 +155,13 @@ def send_slack_message(rule, message):
     slack_url = Setting.objects.get(key="alerts.endpoint.slack.webhook")
     alert_message = "[Alert][Rule={}]{}".format(rule.title, message)
     try:
-        requests.post(slack_url.value, data=json.dumps({'text': alert_message}), headers={'content-type': 'application/json'})
-    except:
-        pass
+        requests.post(
+            slack_url.value,
+            data=json.dumps({'text': alert_message}),
+            headers={'content-type': 'application/json'})
+    except Exception:
+        Event.objects.create(message="[Rule] Send slack message failed (id={})".format(rule.id),
+                     type="ERROR", severity="ERROR", description=alert_message)
 
 
 def send_thehive_message(rule, message, asset, description):
@@ -166,36 +172,48 @@ def send_thehive_message(rule, message, asset, description):
     api = TheHiveApi(thehive_url.value, thehive_apikey.value)
     sourceRef = str(uuid.uuid4())[0:6]
     rule_severity = 0
-    if rule.severity == "Low": rule_severity = 1
-    elif rule.severity == "Medium": rule_severity = 2
-    elif rule.severity == "High": rule_severity = 3
+    if rule.severity == "Low":
+        rule_severity = 1
+    elif rule.severity == "Medium":
+        rule_severity = 2
+    elif rule.severity == "High":
+        rule_severity = 3
+
     tlp = 0
-    if asset.criticity == "low": tlp = 1
-    elif asset.criticity == "medium": tlp = 2
-    elif asset.criticity == "high": tlp = 3
-    elif asset.criticity == "critical": tlp = 3
+    if asset.criticity == "low":
+        tlp = 1
+    elif asset.criticity == "medium":
+        tlp = 2
+    elif asset.criticity == "high":
+        tlp = 3
 
     if asset:
-        artifacts = [ AlertArtifact(dataType=asset.type, data=asset.value) ]
+        artifacts = [AlertArtifact(dataType=asset.type, data=asset.value)]
         try:
-            alert = Alert(title=alert_message,
-                tlp=tlp,
-                severity=rule_severity,
-                tags=['PatrOwl'],
-                description=description,
-                type='external',
-                source='patrowl',
-                sourceRef=sourceRef,
-                artifacts=artifacts)
+            alert = Alert(
+                        title=alert_message,
+                        tlp=tlp,
+                        severity=rule_severity,
+                        tags=['PatrOwl'],
+                        description=description,
+                        type='external',
+                        source='patrowl',
+                        sourceRef=sourceRef,
+                        artifacts=artifacts)
 
             response = api.create_alert(alert)
 
             if response.status_code == 201:
                 alert_id = response.json()['id']
-                #todo: track theHive alerts
+                # todo: track theHive alerts
             else:
-                Event.objects.create(message="[Rule][send_thehive_message()] Unable to send alert to TheHive with message ='{}'".format(message),
-                    type="ERROR", severity="ERROR")
-        except:
-            Event.objects.create(message="[Rule][send_thehive_message()] Unable to send alert to TheHive with message ='{}'".format(message),
+                Event.objects.create(
+                    message="[Rule][send_thehive_message()] Unable to send "
+                    "alert to TheHive with message ='{}'".format(message),
+                    type="ERROR", severity="ERROR"
+                )
+        except Exception:
+            Event.objects.create(
+                message="[Rule][send_thehive_message()] Unable to send alert "
+                "to TheHive with message ='{}'".format(message),
                 type="ERROR", severity="ERROR")
