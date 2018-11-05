@@ -40,5 +40,5 @@ Copyright (C) 2018 Nicolas MATTIOCCO  ([@MaKyOtOx](https://twitter.com/MaKyOtOx)
 # Travis build status
 | Branch  | Status  |
 |---|---|
-| master | [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlEngines) |
-| develop | [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=develop)](https://travis-ci.com/Patrowl/PatrowlEngines) |
+| master | [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlManager) |
+| develop | [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=develop)](https://travis-ci.com/Patrowl/PatrowlManager) |

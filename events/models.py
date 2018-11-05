@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 from app.settings import LOGGING_LEVEL
-#from scans.models import Scan
 
 SEVERITY_LEVELS = (
     ('INFO',    'INFO'),
@@ -10,7 +9,7 @@ SEVERITY_LEVELS = (
     ('DEBUG',   'DEBUG')
 )
 
-EVENT_TYPES =(
+EVENT_TYPES = (
     ('CREATE', 'CREATE'),
     ('UPDATE', 'UPDATE'),
     ('DELETE', 'DELETE'),
@@ -19,6 +18,7 @@ EVENT_TYPES =(
     ('ALERT', 'ALERT'),
     ('UNSPECIFIED', 'UNSPECIFIED'),
 )
+
 
 class Event(models.Model):
     message = models.CharField(max_length=250)

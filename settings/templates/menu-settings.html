@@ -17,6 +17,11 @@
   cursor: pointer;
 }
 
+.pagination>li>a, .pagination>li>span {
+  padding: 2px 7px;
+  font-size: 12px;
+}
+
 </style>
 
 <ul class="breadcrumb">
@@ -89,7 +94,7 @@
     </div>
     <div id="events" class="tab-pane fade">
       <h3>Events Management</h3>
-      <table id="dt_events" class="display" cellspacing="0" width="100%">
+      <!-- <table id="dt_events" class="display" cellspacing="0" width="100%">
         <thead>
           <tr>
             <th>Id</th>
@@ -110,12 +115,80 @@
              <th>Actions</th>
            </tr>
        </tfoot>
+      </table> -->
+
+      <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+        <thead>
+          <tr>
+            <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'event')" /></th>
+            <th data-field="id">Id</th>
+            <th data-field="severity">Severity</th>
+            <th data-field="message">Message</th>
+            <th data-field="type">Type</th>
+            <th data-field="timestamp">Timestamp</th>
+            <th data-field="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for event in events %}
+        <tr>
+          <td><input type="checkbox" class="radio" name="event" value="{{ event.id }}"/></td>
+          <td>{{ event.id }}</td>
+          <td>{{ event.severity }}</td>
+          <td>{{ event.message }}</td>
+          <td>{{ event.type }}</td>
+          <td>{{ event.created_at|smartdate }}</td>
+          <td>
+            <button type="button" class="btn btn-default btn-xs">
+              <span class="glyphicon glyphicon-eye-open"></span></button>
+            <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-event"
+               event-id="{{ event.id }}" event-message="{{ event.message }}">
+               <span class="glyphicon glyphicon-remove"></span></button>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
       </table>
+
+      <!-- Pagination -->
+      <div style="display: inline-flex;">
+        <ul class="pagination pagination-xs">
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage(1, 'events');">&laquo;&laquo;</a>
+          </li>
+          {% if events_page_info.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href= "#" onclick="gotopage({{ events_page_info.previous_page_number }}, 'events');">&laquo;</a>
+          </li>
+          {% endif %}
+          <li class="page-item">
+            <input type="text" class="input-xs">{{ pn }}</input>
+          </li>
+          {% if events.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage({{ events_page_info.next_page_number }}, 'events');">&raquo;</a>
+          </li>
+          {% endif %}
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage('{{ events_page_info.end_cursor }}', 'events');">&raquo;&raquo;</a>
+          </li>
+        </ul>
+        <div style="margin: 21px;">
+          <select id="nb_rows_per_page" >
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="200">200</option>
+          </select>
+          events per page
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- Delete event modal -->
+<!-- Delete setting modal -->
 <div class="modal fade" id="modal-delete-setting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -176,58 +249,82 @@
 
 <script>
 
+  // Goto selected #tab when page loads
+  var hash = window.location.hash;
+  hash && $('ul.nav a[href="' + hash + '"]').tab('show');
+
+  // Set the url variable
+  current_url = window.location.href;
+  url = new URL(current_url);
+
+  var gotopage = function gotopage(page_num, target = "events") {
+    new_hash = "";
+    if (target == "events") {
+      url.searchParams.set("p_events", page_num);
+      new_hash = "#events";
+    }
+    window.location = url.search+new_hash;
+  };
+
 
   $(document).ready(function() {
+    _nb_rows = url.searchParams.get("n");
+    if (typeof _nb_rows === "undefined") {
 
-    EventTable = $('#dt_events').DataTable({
-      // "processing": true,
-      // "retrieve": true,
-      //"serverSide": true,
-      "ajax": {
-        "url": "/events/",
-        "dataType": "json",
-        "type": "GET"
-      },
-      "data": [],
-      rowCallback: function (row, data) {},
-      "columns": [
-        { "data": "id" },
-        { "data": "severity" },
-        { "data": "message" },
-        { "data": "type" },
-        { "data": "created_at" }
-      ],
-      "aoColumnDefs":[{
-        "aTargets":[5],
-        "mData": "id",
-        "mRender": function (data, type, full) {
-            return '<button type="button" event-id="'+data+'" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-event"><span class="glyphicon glyphicon-remove"></span></button>';
-        }
-      }],
-      "order": [[ 0, 'desc' ]],
-      initComplete: function () {
-        this.api().columns().every( function () {
-          if (this.index() == 1 || this.index() == 3){
-            var column = this;
-            var select = $('<select><option value=""></option></select>')
-                .appendTo( $(column.footer()).empty() )
-                .on( 'change', function () {
-                    var val = $.fn.dataTable.util.escapeRegex(
-                        $(this).val()
-                    );
+    } else {
+      $('#nb_rows_per_page option:eq('+_nb_rows+')').prop('selected', true);
+    }
 
-                    column
-                        .search( val ? '^'+val+'$' : '', true, false )
-                        .draw();
-                } );
-
-            column.data().unique().sort().each( function ( d, j ) {
-                select.append( '<option value="'+d+'">'+d+'</option>' )
-            } );
-          }
-        } );
-      }
+    $('#nb_rows_per_page').change(function(e){
+      nb_rows = e.target.value;
+      url.searchParams.set("n", nb_rows);
+      window.location = url.search+"#events";
     });
+
+    // EventTable = $('#dt_events').DataTable({
+    //   "ajax": {
+    //     "url": "/events/list",
+    //     "dataType": "json",
+    //     "type": "GET"
+    //   },
+    //   "data": [],
+    //   rowCallback: function (row, data) {},
+    //   "columns": [
+    //     { "data": "id" },
+    //     { "data": "severity" },
+    //     { "data": "message" },
+    //     { "data": "type" },
+    //     { "data": "created_at" }
+    //   ],
+    //   "aoColumnDefs":[{
+    //     "aTargets":[5],
+    //     "mData": "id",
+    //     "mRender": function (data, type, full) {
+    //         return '<button type="button" event-id="'+data+'" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-event"><span class="glyphicon glyphicon-remove"></span></button>';
+    //     }
+    //   }],
+    //   "order": [[ 0, 'desc' ]],
+    //   initComplete: function () {
+    //     this.api().columns().every( function () {
+    //       if (this.index() == 1 || this.index() == 3){
+    //         var column = this;
+    //         var select = $('<select><option value=""></option></select>')
+    //             .appendTo( $(column.footer()).empty() )
+    //             .on( 'change', function () {
+    //                 var val = $.fn.dataTable.util.escapeRegex(
+    //                     $(this).val()
+    //                 );
+    //                 column
+    //                     .search( val ? '^'+val+'$' : '', true, false )
+    //                     .draw();
+    //             } );
+    //         column.data().unique().sort().each( function ( d, j ) {
+    //             select.append( '<option value="'+d+'">'+d+'</option>' )
+    //         } );
+    //       }
+    //     } );
+    //   }
+    // });
   });
 
   // $('li a[href="#events"]').on("click", function (e) {

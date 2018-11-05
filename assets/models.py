@@ -2,7 +2,6 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
-
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
@@ -37,9 +36,8 @@ TLP_COLORS = (
     ('white', 'white'),
 )
 
-# Tags
+
 class AssetCategory(models.Model):
-    # parent   = models.ForeignKey('self', null=True, blank=None, default=None, related_name='children')#, on_delete=models.CASCADE, db_constraint=False)
     parent   = models.ForeignKey('self', null=True, blank=None, default=None, related_name='children', on_delete=models.CASCADE)#, db_constraint=False)
     value    = models.CharField(max_length=256)
     comments = models.CharField(max_length=256, null=True, blank=None, default="n/a")
@@ -53,18 +51,19 @@ class AssetCategory(models.Model):
         return "{}".format(self.value)
 
     def get_root(self):
-        if self.parent == None: return self
+        if self.parent is None: return self
         r = None
         for p in AssetCategory.objects.filter(children=self):
             _p = p.get_root()
-            if _p.parent == None:
+            if _p.parent is None:
                 r = _p
         return r
 
     def get_all_parents(self):
         # todo: optimize with filter on p.parent only
         r = []
-        if not self.parent: return None # root
+        if not self.parent:
+            return None  # root
         r.append(self.parent)
 
         for p in AssetCategory.objects.filter(children=self):
@@ -90,7 +89,7 @@ class AssetCategory(models.Model):
 
     def is_child_node(self):
         # has parent
-        return self.parent != None
+        return self.parent is not None
 
     def is_leaf_node(self):
         # no children
@@ -98,7 +97,7 @@ class AssetCategory(models.Model):
 
     def is_root_node(self):
         # no parent
-        return self.parent == None
+        return self.parent is None
 
     def add_child(self, value, comments=None):
         return AssetCategory.objects.create(parent=self, value=value, comments=comments)
@@ -139,7 +138,7 @@ class Asset(models.Model):
     name        = models.CharField(max_length=256)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
-    risk_level  = JSONField(default=dict({ "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0, "grade": "-" }))
+    risk_level  = JSONField(default=dict({"info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0, "grade": "-"}))
     owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True, default="new")
@@ -190,14 +189,14 @@ class Asset(models.Model):
         return risk_data
 
 
-    def get_risk_grade(self, history = None): # history= nb days before
+    def get_risk_grade(self, history=None): # history= nb days before
         if history:
             self.calc_risk_grade(history=history)
         return str(self.risk_level['grade'])
 
 
-    def calc_risk_grade(self, history = None):
-        risk_level = { "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0, "grade": "-" }
+    def calc_risk_grade(self, history=None):
+        risk_level = {"info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0, "grade": "-"}
 
         if not history:
             findings = self.finding_set.all()
@@ -274,7 +273,7 @@ class AssetGroup(models.Model):
     assets      = models.ManyToManyField(Asset)
     name        = models.CharField(max_length=256, unique=True)
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='None', max_length=10)
-    risk_level  = JSONField(default=dict({ "info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-" }))
+    risk_level  = JSONField(default=dict({"info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-"}))
     owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True)
@@ -286,7 +285,7 @@ class AssetGroup(models.Model):
         db_table = 'asset_groups'
 
     def __str__(self):
-        return "{}/{}".format(self.id,self.name)
+        return "{}/{}".format(self.id, self.name)
 
     def save(self, *args, **kwargs):
         # update the 'updated_at' entry on each update except on creation
@@ -315,12 +314,12 @@ class AssetGroup(models.Model):
         # Todo: update each asset
         return None
 
-    def get_risk_grade(self, history = None):
+    def get_risk_grade(self, history=None):
         if history: # history= nb days before
             self.calc_risk_grade(history=history)
         return str(self.risk_level['grade'])
 
-    def calc_risk_grade(self, history = None):
+    def calc_risk_grade(self, history=None):
         risk_level = {"info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-"}
 
         findings = []
@@ -519,6 +518,7 @@ class AssetOwner(models.Model):
 
         return super(AssetOwner, self).delete(*args, **kwargs)
 
+
 @receiver(post_save, sender=AssetOwner)
 def assetowner_create_update_log(sender, **kwargs):
     if kwargs['created']:
@@ -528,11 +528,11 @@ def assetowner_create_update_log(sender, **kwargs):
         Event.objects.create(message="[AssetOwner] Asset owner '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
 
+
 @receiver(post_delete, sender=AssetOwner)
 def assetowner_delete_log(sender, **kwargs):
     Event.objects.create(message="[AssetOwner] Asset owner '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
-
 
 
 ASSET_INVESTIGATION_LINKS = [
@@ -600,6 +600,16 @@ ASSET_INVESTIGATION_LINKS = [
         "name": "URLVoid",
         "link": "http://www.urlvoid.com/scan/%asset%",
         "datatypes": ["url"]
+    },
+    {
+        "name": "Netcraft",
+        "link": "https://toolbar.netcraft.com/site_report?url=%asset%",
+        "datatypes": ["url", "ip"]
+    },
+    {
+        "name": "Netcraft",
+        "link": "https://searchdns.netcraft.com/?host=%asset%",
+        "datatypes": ["domain"]
     },
     {
         "name": "VirusTotal",

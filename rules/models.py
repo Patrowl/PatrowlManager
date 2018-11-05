@@ -81,6 +81,7 @@ RULE_SEVERITIES = (
     ('High', 'High'),
 )
 
+
 class Rule(models.Model):
     title            = models.CharField(max_length=256)
     comments         = models.CharField(max_length=256, default='n/a')
@@ -165,6 +166,7 @@ def send_slack_message(rule, message):
 
 
 def send_thehive_message(rule, message, asset, description):
+    print("send_thehive_message:", rule, message, asset, description)
     thehive_url = Setting.objects.get(key="alerts.endpoint.thehive.url")
     thehive_apikey = Setting.objects.get(key="alerts.endpoint.thehive.apikey")
     alert_message = "[Alert][Rule={}]{}".format(rule.title, message)
@@ -194,7 +196,7 @@ def send_thehive_message(rule, message, asset, description):
                         title=alert_message,
                         tlp=tlp,
                         severity=rule_severity,
-                        tags=['PatrOwl'],
+                        tags=['src:PatrOwl'],
                         description=description,
                         type='external',
                         source='patrowl',

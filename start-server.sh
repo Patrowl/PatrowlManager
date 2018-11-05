@@ -18,6 +18,6 @@ fi
 python manage.py makemigrations && \
 python manage.py migrate && \
 python manage.py collectstatic --noinput && \
-gunicorn app.wsgi:application -b :8000 --timeout 300
+gunicorn app.wsgi:application -b :8000 --timeout 300 --access-logfile -
 
 deactivate

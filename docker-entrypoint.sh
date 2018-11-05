@@ -31,5 +31,4 @@ supervisord -c var/etc/supervisord.conf
 
 # Start server
 echo "[+] Starting server"
-#python manage.py runserver 0.0.0.0:8001
-gunicorn -b :8001 app.wsgi:application
+gunicorn -b 0.0.0.0:8003 app.wsgi:application --timeout 120 --graceful-timeout 60
