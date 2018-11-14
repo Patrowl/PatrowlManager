@@ -119,11 +119,14 @@ class Rule(models.Model):
         elif self.target == 'thehive':
             send_thehive_message(self, message, asset, description)
         elif self.target == 'event':
-            Event.objects.create(message="[Alert][Rule={}]{}".format(self.title, message), type="ALERT", severity="INFO")
+            Event.objects.create(
+                message="[Alert][Rule={}]{}".format(self.title, message),
+                type="ALERT", severity="INFO")
 
         self.nb_matches += 1
         print (self.nb_matches)
         self.save()
+
 
 @receiver(post_save, sender=Rule)
 def rule_create_update_log(sender, **kwargs):
@@ -133,6 +136,7 @@ def rule_create_update_log(sender, **kwargs):
     else:
         Event.objects.create(message="[Rule] Rule '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
+
 
 @receiver(post_delete, sender=Rule)
 def rule_delete_log(sender, **kwargs):

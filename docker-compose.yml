@@ -1,9 +1,9 @@
-version: '3.3'
+version: '3'
 services:
 
   rabbitmq:
     image: rabbitmq:latest
-    container_name: patrowl_rabbitmq
+    container_name: patrowl-rabbitmq
     environment:
       - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error}]
     expose:
@@ -11,7 +11,7 @@ services:
 
   db:
     image: postgres:10.1-alpine
-    container_name: patrowl_postgres
+    container_name: patrowl-postgres
     environment:
       - POSTGRES_DB=patrowl_db
       - POSTGRES_USER=PATROWL_DB_USER
@@ -24,9 +24,9 @@ services:
     #   - postgres_data:/var/lib/postgresql/data/
 
   web:
-    container_name: patrowl_django
+    container_name: patrowl-django
     build: .
-    image: patrowl-manager-community-edition:latest
+    image: patrowl/patrowl-manager-community-edition:latest
     environment:
       - DB_PORT_5432_TCP_HOST=db
       - DEBUG=True
@@ -44,7 +44,7 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: patrowl_nginx
+    container_name: patrowl-nginx
     ports:
       - "8083:8083"
     volumes:
