@@ -1,18 +1,17 @@
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib import messages
-#from django.core import serializers
 from django.core.files import File
 from django.shortcuts import render, redirect, get_object_or_404
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
-from django_celery_beat.models import PeriodicTask, IntervalSchedule, PeriodicTasks
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from .models import Engine, EngineInstance, EnginePolicy, EnginePolicyScope
-from .tasks import refresh_engines_status_task
+from .tasks import refresh_engines_status_task, get_engine_status_task
 from .forms import EnginePolicyForm, EngineInstanceForm, EngineForm, EnginePolicyImportForm
 from scans.models import Scan
 from scans.views import _update_celerybeat
-import os, requests, json, uuid, random, time, base64
+import os, requests, json, time, base64
 
 
 def list_engines(request):
@@ -24,7 +23,7 @@ def list_engines(request):
             "description": getattr(engine, 'description'),
             "created_at": getattr(engine, 'created_at'),
             "updated_at": getattr(engine, 'updated_at')
-        })
+       })
     return JsonResponse(list_engines, safe=False)
 
 
@@ -38,7 +37,7 @@ def list_instances_by_id(request, engine_id):
             "api_url": getattr(instance, 'api_url'),
             "created_at": getattr(instance, 'created_at'),
             "updated_at": getattr(instance, 'updated_at')
-        })
+       })
     return JsonResponse(list_instances, safe=False)
 
 
@@ -52,7 +51,7 @@ def list_instances_by_name(request, engine_name):
             "api_url": getattr(instance, 'api_url'),
             "created_at": getattr(instance, 'created_at'),
             "updated_at": getattr(instance, 'updated_at')
-        })
+       })
     return JsonResponse(list_instances, safe=False)
 
 
@@ -69,22 +68,25 @@ def get_engine_status(request, engine_id):
     res = {}
     inst = get_object_or_404(EngineInstance, id=engine_id)
 
-    try:
-        resp = requests.get(url=str(inst.api_url)+"status", verify=False)
-
-        if resp.status_code == 200:
-            engine_status = json.loads(resp.text)['status'].strip().upper()
-            res.update({"id": engine_id, "status": engine_status})
-            inst.status = engine_status
-            #print("INFO: New available Engine Instance: {}".format(inst))
-        else:
-            inst.status = "STOPPED"
-    except requests.exceptions.RequestException:
-        inst.status = "ERROR"
-        res.update({"id": engine_id, "status": "error"})
-
-    inst.save()
+    # try:
+    #     resp = requests.get(url=str(inst.api_url)+"status", verify=False)
+    #
+    #     if resp.status_code == 200:
+    #         engine_status = json.loads(resp.text)['status'].strip().upper()
+    #         res.update({"id": engine_id, "status": engine_status})
+    #         inst.status = engine_status
+    #         #print("INFO: New available Engine Instance: {}".format(inst))
+    #     else:
+    #         inst.status = "STOPPED"
+    # except requests.exceptions.RequestException:
+    #     inst.status = "ERROR"
+    #     res.update({"id": engine_id, "status": "error"})
+    #
+    # inst.save()
+    get_engine_status_task.apply_async(
+        args=[inst.id], queue='default', retry=False)
     return JsonResponse(res)
+
 
 #Todo: to review
 def get_engine_info(request, engine_id):
@@ -169,7 +171,7 @@ def list_engines_api(requests):
             "enabled": engine.enabled,
             "version": engine.version,
             "type": engine.engine.name
-            })
+           })
     running_scans = Scan.objects.filter(status__in=["enqueued", "started"]).count()
     return JsonResponse({"engines": engines, "running_scans": running_scans}, safe=False)
 
@@ -196,19 +198,19 @@ def add_engine_view(request):
                 'engine': form.cleaned_data['engine'],
                 'name': form.cleaned_data['name'],
                 'api_url': form.cleaned_data['api_url'],
-                'enabled': form.cleaned_data['enabled'] == True,
+                'enabled': form.cleaned_data['enabled'] is True,
                 'authentication_method': form.cleaned_data['authentication_method'],
                 'api_key': form.cleaned_data['api_key'],
                 'username': form.cleaned_data['username'],
                 'password': form.cleaned_data['password'],
-            }
+           }
 
             engine = EngineInstance(**engine_args)
             engine.save()
             messages.success(request, 'Creation submission successful')
             return redirect('list_engines_view')
 
-    return render(request, 'add-scan-engine.html', {'form': form })
+    return render(request, 'add-scan-engine.html', {'form': form})
 
 
 def delete_engine_view(request, engine_id):
@@ -265,7 +267,7 @@ def edit_engine_view(request, engine_id):
             engine.engine = form.cleaned_data['engine']
             engine.name = form.cleaned_data['name']
             engine.api_url = form.cleaned_data['api_url']
-            engine.enabled = form.cleaned_data['enabled'] == True
+            engine.enabled = form.cleaned_data['enabled'] is True
             engine.authentication_method = form.cleaned_data['authentication_method']
             engine.api_key = form.cleaned_data['api_key']
             engine.username = form.cleaned_data['username']
@@ -274,18 +276,18 @@ def edit_engine_view(request, engine_id):
             messages.success(request, 'Update submission successful')
             return redirect('list_engines_view')
 
-    return render(request, 'edit-scan-engine.html', {'form': form, 'engine_id': engine.id })
+    return render(request, 'edit-scan-engine.html', {'form': form, 'engine_id': engine.id})
 
 
 def list_policies_view(request):
     policies = EnginePolicy.objects.all().order_by("engine__name", "name")
-    return render(request, 'list-engine-policies.html', {'policies': policies })
+    return render(request, 'list-engine-policies.html', {'policies': policies})
 
 
 def export_policy(request, policy_id):
     if request.method == 'GET':
         policy = get_object_or_404(EnginePolicy, id=policy_id)
-        response = JsonResponse({ "policies": [policy.as_dict()]})
+        response = JsonResponse({"policies": [policy.as_dict()]})
         response['Content-Disposition'] = 'attachment; filename=enginepolicy_'+str(policy.id)+'.json'
         return response
     else:
@@ -347,7 +349,8 @@ def import_policies_view(request):
                         messages.error(request, 'Error: policy "{}" defines an unknown engine scope ("{}").'.format(policy['name'], scope))
                         has_error = True
                         continue
-                if has_error: continue
+                if has_error:
+                    continue
 
                 # check if policy_name exists
                 if EnginePolicy.objects.filter(name__iexact=policy['name']):
@@ -389,7 +392,7 @@ def import_policies_view(request):
                 messages.success(request, 'policy "{}" successfully imported.'.format(policy["name"]))
             return redirect('list_policies_view')
 
-    return render(request, 'import-engine-policies.html', {'form': form })
+    return render(request, 'import-engine-policies.html', {'form': form})
 
 
 def add_policy_view(request):
@@ -418,7 +421,7 @@ def add_policy_view(request):
             messages.success(request, 'Creation submission successful')
             return HttpResponseRedirect('list')
 
-    return render(request, 'add-engine-policy.html', {'form': form })
+    return render(request, 'add-engine-policy.html', {'form': form})
 
 
 def delete_policy_view(request, policy_id):
@@ -486,7 +489,7 @@ def duplicate_policy_view(request, policy_id):
         'file': policy.file,
         'status': policy.status,
         'is_default': policy.is_default,
-    }
+   }
 
     new_policy = EnginePolicy(**policy_args)
     new_policy.save()
@@ -522,14 +525,14 @@ def add_engine_types_view(request):
                 'name': form.cleaned_data['name'],
                 'description': form.cleaned_data['description'],
                 'allowed_asset_types': form.data.getlist('allowed_asset_types'),
-            }
+           }
 
             engine = Engine(**engine_args)
             engine.save()
             messages.success(request, 'Creation submission successful')
             return redirect('list_engine_types_view')
 
-    return render(request, 'add-engine.html', {'form': form })
+    return render(request, 'add-engine.html', {'form': form})
 
 
 def edit_engine_type_view(request, engine_id):
@@ -539,7 +542,7 @@ def edit_engine_type_view(request, engine_id):
     if request.method == 'GET':
         form = EngineForm(instance=engine, initial={
             'allowed_asset_types': eval(engine.allowed_asset_types)
-        })
+       })
     elif request.method == 'POST':
         form = EngineForm(request.POST, instance=engine)
         if form.is_valid():

@@ -4,7 +4,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '***Here goes the fucking secret. Think about changing this default value***'
+SECRET_KEY = os.environ.get('SECRET_KEY', '*** omg this is the secret !***')
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = True
 
@@ -26,11 +26,11 @@ DEBUG = os.environ.get('DEBUG', False)   # Production environment
 ALLOWED_HOSTS = ['*'] # /!\ Not safe for production environment
 
 #LOGGING_LEVEL = "INFO,WARNING,ERROR,DEBUG"
-LOGGING_LEVEL = "WARNING,ERROR"
+LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'WARNING,ERROR')
 
 PROXIES = {
-    "http": None,
-    "https": None
+    "http": os.environ.get('PATROWL_PROXY_HTTP', None),
+    "https": os.environ.get('PATROWL_PROXY_HTTPS', None)
 }
 
 INTERNAL_IPS = ALLOWED_HOSTS
@@ -192,11 +192,11 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Paris'
 
 # Email settings
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'test@gmail.com'
-EMAIL_HOST_PASSWORD = 'test'
-EMAIL_PORT = 587
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', True)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'test@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'test')
+EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
 
 # Monitoring APIs
 SUPERVISORD_API_URL = 'http://localhost:9001/RPC2'

@@ -18,12 +18,17 @@ NB_MAX_RETRIES = 5
 SLEEP_RETRY = 5
 PROXIES = settings.PROXIES
 
+
 @shared_task(bind=True)
 def refresh_engines_status_task(self):
     print ("task: starting refresh_engines_status_task !")
     for engine in EngineInstance.objects.filter(enabled=True):
         try:
-            resp = requests.get(url=str(engine.api_url)+"status", verify=False, timeout=5, proxies=PROXIES)
+            resp = requests.get(
+                url=str(engine.api_url)+"status",
+                verify=False,
+                timeout=5,
+                proxies=PROXIES)
 
             if resp.status_code == 200:
                 engine.status = json.loads(resp.text)['status'].strip().upper()
@@ -34,6 +39,28 @@ def refresh_engines_status_task(self):
 
         engine.save()
 
+    return True
+
+
+@shared_task(bind=True)
+def get_engine_status_task(self, engine_id):
+    print ("task: starting get_engine_status_task !")
+    for engine in EngineInstance.objects.filter(id=engine_id):
+        try:
+            resp = requests.get(
+                url=str(engine.api_url)+"status",
+                verify=False,
+                timeout=5,
+                proxies=PROXIES)
+
+            if resp.status_code == 200:
+                engine.status = json.loads(resp.text)['status'].strip().upper()
+            else:
+                engine.status = "ERROR"
+        except requests.exceptions.RequestException:
+            engine.status = "ERROR"
+
+        engine.save()
     return True
 
 
@@ -278,7 +305,6 @@ def startscan_task(self, params):
         scan.finished_at = timezone.now()
         scan.save()
         return False
-
 
     Event.objects.create(message="[EngineTasks/startscan_task/{}] Engine '{}' has been selected.".format(self.request.id, engine_inst.name),
                  type="INFO", severity="INFO", scan=scan)

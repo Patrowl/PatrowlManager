@@ -1,5 +1,4 @@
 from django.conf.urls import url
-from django.contrib import admin
 from . import views
 
 
@@ -72,11 +71,4 @@ urlpatterns = [
 
     # ex: /engines/api/v1/list
     url(r'^api/v1/list$', views.list_engines_api, name='list_engines_api'),
-
-    # ex: /engines/nmap/startscan
-    #url(r'^(?P<engine_name>[a-zA-Z]+)/startscan$', views.startscan_by_engine_name, name='startscan_by_engine_name'),
-    # ex: /engines/1/statuslong
-    #url(r'^(?P<engine_id>[0-9]+)/statuslong$', views.get_engine_status_long, name='get_engine_status_long'),
-    # ex: /engines/1/periodic
-    #url(r'^(?P<engine_id>[0-9]+)/periodic$', views.set_periodic_scan, name='set_periodic_scan'),
 ]
