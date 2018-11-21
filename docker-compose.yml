@@ -38,6 +38,9 @@ services:
     #   - "0.0.0.0:8003:8003"
     expose:
       - "8003"
+    volumes:
+      - ./staticfiles:/opt/patrowl-manager/staticfiles
+      - ./media:/opt/patrowl-manager/media
     links:
       - db
       - rabbitmq
@@ -48,7 +51,9 @@ services:
     ports:
       - "8083:8083"
     volumes:
-      - ./:/opt/patrowl-manager/
+      - ./staticfiles:/opt/patrowl-manager/staticfiles
+      - ./media:/opt/patrowl-manager/media
+      - ./var/log:/opt/patrowl-manager/var/log
       - ./nginx_docker.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - web
