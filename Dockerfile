@@ -16,6 +16,6 @@ RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 RUN virtualenv env
 RUN /bin/bash -c "source env/bin/activate && pip install -r requirements.txt && deactivate"
 
-EXPOSE 8001
+EXPOSE 8003
 ENTRYPOINT ["/opt/patrowl-manager/docker-entrypoint.sh"]
 CMD ["run"]
