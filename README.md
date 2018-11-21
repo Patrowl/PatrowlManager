@@ -30,18 +30,28 @@ Information, news and updates are regularly posted on [Patrowl.io Twitter accoun
 Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/master/support/code_of_conduct.md). We welcome your contributions. Please feel free to fork the code, play with it, make some patches and send us pull requests via [issues](https://github.com/Patrowl/PatrowlManager/issues).
 
 # Roadmap
-[ ] Support django-health-check
-[ ] Support cache
-[ ] Beautify scan creation and edition forms
-[ ] Optimize performances
+- [ ] API Documentation
+- [ ] Transform all API calls to async tasks (limit Nginx 504 timeouts)
+- [ ] Beautify scan creation and edition forms
+- [ ] Enhance finding states management
+- [ ] Enhance user management
+- [ ] Support scan campaigns (multiple scan definition)
+- [ ] Support django-health-check
+- [ ] Support cache
+- [ ] Optimize global performances
+- [ ] Refactor static files (remove unused ?)
+- [ ] Continuous Docker image deployment (Travis stage)
 
 # Support
 Please [open an issue on GitHub](https://github.com/Patrowl/PatrowlManager/issues) if you'd like to report a bug or request a feature. We are also available on [Gitter](https://gitter.im/Patrowl/Support) to help you out.
 
 If you need to contact the project team, send an email to <getsupport@patrowl.io>.
 
+# Commercial Services
+Looking for advanced support, training, integration, custom developments, dual-licensing ? Contact us at getsupport@patrowl.io
+
 # Copyright
-Copyright (C) 2018 Nicolas MATTIOCCO  ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
+Copyright (C) 2018 Nicolas MATTIOCCO ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
 
 # Travis build status
 | Branch  | Status  |

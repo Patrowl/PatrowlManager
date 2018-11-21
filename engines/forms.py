@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from django import forms
-from .models import EnginePolicy, Engine, EngineInstance, EnginePolicyScope
+from .models import EnginePolicy, Engine, EngineInstance
 from assets.models import ASSET_TYPES
 
 
@@ -19,11 +21,13 @@ class EnginePolicyForm(forms.ModelForm):
         #scopes = forms.ModelMultipleChoiceField(queryset=EnginePolicyScope.objects.all(), widget=forms.CheckboxSelectMultiple(), required=False)
         is_default = forms.BooleanField(widget=forms.CheckboxInput(), initial=False, required=False)
 
+
 class EnginePolicyImportForm(forms.Form):
     class Meta:
         fields = ['file']
 
     file = forms.FileField()
+
 
 engines = []
 class EngineInstanceForm(forms.ModelForm):
@@ -60,7 +64,6 @@ class EngineForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm'}),
         }
-
 
     def __init__(self, *args, **kwargs):
         super(EngineForm, self).__init__(*args, **kwargs)

@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
-from django.db.models import Value, CharField, Case, When, Q, F, Count
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
@@ -11,7 +12,9 @@ from scans.models import Scan
 from rules.models import Rule
 from engines.models import EnginePolicyScope
 
-import uuid, datetime, hashlib
+import uuid
+import datetime
+import hashlib
 
 
 FINDING_SEVERITIES = (

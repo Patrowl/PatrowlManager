@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import absolute_import
 from django.conf import settings
 from django.utils import timezone
@@ -11,7 +13,7 @@ from assets.models import Asset, AssetGroup
 from scans.models import Scan, ScanDefinition
 from events.models import Event
 from common.utils import net
-import requests, json, time, datetime, random, uuid, hashlib, re, os
+import requests, json, time, datetime, random, uuid, hashlib, os
 from copy import deepcopy
 
 NB_MAX_RETRIES = 5
@@ -233,8 +235,6 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
         except Exception as e:
             Event.objects.create(message="[EngineTasks/importfindings_task()] Error importing findings.", description="{}".format(e.message),
                          type="ERROR", severity="ERROR")
-            #print (e.__doc__)
-            #print (e.message)
             return False
 
     return True
@@ -314,7 +314,7 @@ def startscan_task(self, params):
     # -1- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES
     while _get_engine_status(engine=engine_inst) != "READY" and retries > 0:
-        print("--waiting scanner ready: {}".format(_get_engine_status(engine=engine_inst)))
+        # print("--waiting scanner ready: {}".format(_get_engine_status(engine=engine_inst)))
         time.sleep(1)
         retries -= 1
 
@@ -349,14 +349,11 @@ def startscan_task(self, params):
                      description=json.loads(resp.text)['status'], type="ERROR", severity="ERROR", scan=scan)
         return False
 
-
     # -3- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES # test value
     scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
-    #print("scan status before insane looping: {}".format(scan_status))
 
     while not scan_status in ['FINISHED', 'READY'] and retries > 0:
-        #print "## scan_status:", scan_status
         if scan_status in ['STARTED', 'SCANNING', 'PAUSING', 'STOPING']:
             retries = NB_MAX_RETRIES
         else:
@@ -381,7 +378,6 @@ def startscan_task(self, params):
     Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - findings are now available: {}.".format(self.request.id, str(engine_inst.api_url)+"getfindings/"+str(scan.id)),
                          type="DEBUG", severity="INFO", scan=scan)
 
-
     #Todo: change to wait the report becomes available
     time.sleep(5) # wait the scan process finish to write the report
 
@@ -395,12 +391,12 @@ def startscan_task(self, params):
             Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in 'getfindings' call (request_status_code={}, engine_error={}). Task aborted.".format(self.request.id, resp.status_code, json.loads(resp.text)['reason']),
                 type="ERROR", severity="ERROR", scan=scan)
             return False
-    except:
+    except Exception as e:
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
         Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in 'getfindings' call (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
-            type="ERROR", severity="ERROR", scan=scan)
+            type="ERROR", severity="ERROR", scan=scan, description="{}".format(e.message))
         return False
 
 
@@ -453,19 +449,19 @@ def startscan_task(self, params):
 
 @shared_task(bind=True)
 def start_periodic_scan_task(self, params):
-    Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Task started.".format(self.request.id),
-                 type="INFO", severity="INFO", scan=scan)
-
     scan_def = ScanDefinition.objects.get(id=params['scan_definition_id'])
+    Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Task started.".format(self.request.id),
+                 type="INFO", severity="INFO")
+
     engine_inst = None
     # select an instance of the scanner
-    if scan_def.engine: #dedicated scanner
+    if scan_def.engine:
         engine_inst = scan_def.engine
         if engine_inst.status != "READY" or engine_inst.enabled is False:
             Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - Engine '{}' not available (status: {}, enabled: {}). Task aborted.".format(self.request.id, engine_inst.name, engine_inst.status, engine_inst.enabled), type="ERROR", severity="ERROR", scan=scan_def)
             engine_inst = None
     else:
-        engine_inst = random.choice(EngineInstance.objects.filter(engine__name=scan_def.engine_type.name, status="READY", enabled=True))
+        engine_inst = random.choice(EngineInstance.objects.filter(engine__name=str(scan_def.engine_type.name).upper(), status="READY", enabled=True))
 
     # -0- create the Scan entry in db
     scan = Scan.objects.create(
@@ -480,6 +476,8 @@ def start_periodic_scan_task(self, params):
         task_id=uuid.UUID(str(self.request.id))
     )
     scan.save()
+    Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Scan created.".format(self.request.id),
+                 type="INFO", severity="INFO", scan=scan)
 
     # check if the selected engine instance is available
     if not engine_inst:
@@ -512,7 +510,7 @@ def start_periodic_scan_task(self, params):
         print("ERROR: start_periodicscan_task/beforescan - max_retries ({}) reached.".format(retries))
         return False
 
-    # -2- call the engin REST API /start
+    # -2- call the engine REST API /startscan
     try:
         resp = requests.post(
             url=str(engine_inst.api_url)+"startscan",
@@ -535,13 +533,13 @@ def start_periodic_scan_task(self, params):
     scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
     print("status: {}".format(scan_status))
 
-    while not scan_status in ['READY', 'FINISHED'] and retries > 0:
+    while scan_status not in ['READY', 'FINISHED'] and retries > 0:
         if scan_status in ['SCANNING', 'PAUSING']:
             retries = NB_MAX_RETRIES
         else:
             print("bad scanner status: {} (retries left={})".format(scan_status, retries))
             retries -= 1
-        #print("--waiting scan finished: {}".format(_get_engine_status(params)))
+        # print("--waiting scan finished: {}".format(_get_engine_status(params)))
         time.sleep(SLEEP_RETRY)
         scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
         print("status: {}".format(scan_status))
@@ -550,12 +548,8 @@ def start_periodic_scan_task(self, params):
         print("ERROR: startscan_task/scaninprogress - max_retries ({}) reached.".format(retries))
         return False
 
-    print("@@@@@@@ The scan report is now available: {}".format(str(engine_inst.api_url)+"getreport/"+str(scan.id)))
-    print("@@@@@@@ The findings are now available: {}".format(str(engine_inst.api_url)+"getfindings/"+str(scan.id)))
-
-    #Todo: change to wait the report becomes available
-    time.sleep(5) # wait the scan process finish to write the report
-
+    # Todo: change to wait the report becomes available
+    time.sleep(5)  # wait the scan process finish to write the report
 
     # -4- get the results
     try:

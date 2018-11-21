@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -5,7 +7,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
 from app.settings import MEDIA_ROOT
-import jsonfield, datetime, os, base64
+import jsonfield, os, base64
 
 ENGINE_INSTANCE_STATUS = ['STOPPED', 'READY', 'WORKING', 'ERROR']
 API_AUTH_METHODS = (

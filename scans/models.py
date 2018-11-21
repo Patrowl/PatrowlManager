@@ -9,7 +9,7 @@ from assets.models import Asset, AssetGroup
 from engines.models import Engine, EnginePolicy, EngineInstance
 
 from django_celery_beat.models import PeriodicTask
-import uuid, datetime, os
+import os
 
 SCAN_STATUS = ('created', 'started', 'done', 'error', 'trashed')
 
@@ -18,7 +18,6 @@ PERIOD_CHOICES = (
     ('hours', 'Hours'),
     ('minutes', 'Minutes'),
     ('seconds', 'Seconds'),
-    #('microseconds', 'Microseconds'),
 )
 
 SCAN_TYPES = (
@@ -62,6 +61,7 @@ class ScanDefinition(models.Model):
             self.updated_at = timezone.now()
         return super(ScanDefinition, self).save(*args, **kwargs)
 
+
 @receiver(post_save, sender=ScanDefinition)
 def scandef_create_update_log(sender, **kwargs):
     if kwargs['created']:
@@ -70,6 +70,7 @@ def scandef_create_update_log(sender, **kwargs):
     else:
         Event.objects.create(message="[ScanDefinition] Scan definition '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
+
 
 @receiver(post_delete, sender=ScanDefinition)
 def scandef_delete_log(sender, **kwargs):
@@ -128,6 +129,7 @@ class Scan(models.Model):
 
         return self.summary
 
+
 @receiver(post_save, sender=Scan)
 def scan_create_update_log(sender, **kwargs):
     if kwargs['created']:
@@ -137,10 +139,12 @@ def scan_create_update_log(sender, **kwargs):
         Event.objects.create(message="[Scan] Scan '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
 
+
 @receiver(post_delete, sender=Scan)
 def scan_delete_log(sender, **kwargs):
     Event.objects.create(message="[Scan] Scan '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
+
 
 class ScanCampaign(models.Model):
     scan_def_list   = models.ManyToManyField(ScanDefinition)
@@ -168,6 +172,7 @@ class ScanCampaign(models.Model):
             self.updated_at = timezone.now()
         return super(ScanCampaign, self).save(*args, **kwargs)
 
+
 @receiver(post_save, sender=ScanCampaign)
 def scancampaign_create_update_log(sender, **kwargs):
     if kwargs['created']:
@@ -176,6 +181,7 @@ def scancampaign_create_update_log(sender, **kwargs):
     else:
         Event.objects.create(message="[ScanCampaign] Scan campaign '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
+
 
 @receiver(post_delete, sender=ScanCampaign)
 def scancampaign_delete_log(sender, **kwargs):

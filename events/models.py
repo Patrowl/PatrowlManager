@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from django.utils import timezone
 from app.settings import LOGGING_LEVEL

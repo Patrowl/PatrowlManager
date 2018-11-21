@@ -1,5 +1,6 @@
-import re
+# -*- coding: utf-8 -*-
 
+import re
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 
@@ -25,6 +26,7 @@ class RequireLoginMiddleware(object):
     LOGIN_REQUIRED_URLS_EXCEPTIONS is, conversely, where you explicitly
     define any exceptions (like login and logout URLs).
     """
+
     def __init__(self, get_response=None):
         self.required = tuple(
             re.compile(url) for url in settings.LOGIN_REQUIRED_URLS
@@ -33,7 +35,6 @@ class RequireLoginMiddleware(object):
             re.compile(url) for url in settings.LOGIN_REQUIRED_URLS_EXCEPTIONS
         )
         self.get_response = get_response
-
 
     def __call__(self, request):
         response = self.get_response(request)

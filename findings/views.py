@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.forms.models import model_to_dict

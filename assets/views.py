@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.http import JsonResponse, HttpResponse
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_str
@@ -10,7 +12,7 @@ from wsgiref.util import FileWrapper
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.shortcuts import render, redirect, render_to_response, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.parsers import JSONParser
@@ -26,8 +28,15 @@ from findings.models import Finding
 from engines.models import EnginePolicyScope
 from events.models import Event
 from scans.models import Scan, ScanDefinition
+from common.utils import encoding
 
-import uuid, json, ast, csv, os, mimetypes, datetime, urllib, copy
+import json
+import csv
+import os
+import mimetypes
+import datetime
+import urllib
+import copy
 
 
 def get_assets_stats(request):
@@ -74,6 +83,7 @@ def get_asset_details_api(request, asset_name):
     for scan in asset.scan_set.all()[:10]:
         scan_dict = model_to_dict(scan, fields=[field.name for field in scan._meta.fields])
         scans.append(scan_dict)
+
     response.update({
         "last10scans": scans
     })
@@ -84,11 +94,11 @@ def get_asset_details_api(request, asset_name):
 def get_asset_trends(request, asset_id):
     asset = get_object_or_404(Asset, id=asset_id)
     data = []
-    ticks_by_period = {'week': 7, 'month': 30, 'trimester': 120, 'year': 365 }
-    grade_levels = { 'A': 6, 'B': 5, 'C': 4, 'D': 3, 'E': 2, 'F': 1, 'n/a': 0 }
+    ticks_by_period = {'week': 7, 'month': 30, 'trimester': 120, 'year': 365}
+    grade_levels = {'A': 6, 'B': 5, 'C': 4, 'D': 3, 'E': 2, 'F': 1, 'n/a': 0}
 
     # period = x-axis
-    period = request.GET.get('period_by', None)    # 'days', 'weeks', 'months', 'year'
+    period = request.GET.get('period_by', None)
     if period not in ticks_by_period.keys():
         period = 7
     else:
@@ -99,13 +109,13 @@ def get_asset_trends(request, asset_id):
         delta = period // nb_ticks
     else:
         delta = 1
-    #print "period", period, ", delta:", delta, ", nb_ticks:", nb_ticks
 
     startdate = datetime.datetime.today()
-    for i in range(0,nb_ticks):
+    for i in range(0, nb_ticks):
         enddate = startdate - datetime.timedelta(days=i*delta)
         findings_stats = {
-            'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
+            'total': 0,
+            'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
             'new': 0,
             'risk_grade': 'n/a',
             'date': str(enddate.date())}
@@ -129,19 +139,19 @@ def list_assets_api(request):
     q = request.GET.get("q", None)
     if q:
         assets = list(Asset.objects.filter(value__icontains=q)
-                      .annotate(format=Value("asset",output_field=CharField()))
+                      .annotate(format=Value("asset", output_field=CharField()))
                       .values('id', 'value', 'format'))
         assetgroups = list(AssetGroup.objects.filter(name__icontains=q)
                        .extra(select={'value': 'name'})
-                       .annotate(format=Value("assetgroup",output_field=CharField()))
+                       .annotate(format=Value("assetgroup", output_field=CharField()))
                        .values('id', 'value', 'format'))
     else:
         assets = list(Asset.objects
-                      .annotate(format=Value("asset",output_field=CharField()))
+                      .annotate(format=Value("asset", output_field=CharField()))
                       .values('id', 'value', 'format'))
         assetgroups = list(AssetGroup.objects
                            .extra(select={'value': 'name'})
-                           .annotate(format=Value("assetgroup",output_field=CharField()))
+                           .annotate(format=Value("assetgroup", output_field=CharField()))
                            .values('id', 'value', 'format'))
     return JsonResponse(assets + assetgroups, safe=False)
 
@@ -149,7 +159,6 @@ def list_assets_api(request):
 @api_view(['GET', 'POST'])
 @csrf_exempt
 def list_assets(request):
-    #res = {"page": "list_assets"}
     if request.method == 'GET':
         assets = Asset.objects.all()
         ser = AssetSerializer(assets, many=True)
@@ -200,8 +209,8 @@ def list_assets_view(request):
     # Check Filtering options
     filter_options = request.GET.get("filter", "")
 
-    #Todo: filter on fields
-    allowed_filter_fields = ["id", "name", "criticity", "type", "score"] #score
+    # Todo: filter on fields
+    allowed_filter_fields = ["id", "name", "criticity", "type", "score"]
     filter_criterias = filter_options.split(" ")
     filter_fields = {}
     filter_opts = ""
@@ -218,8 +227,8 @@ def list_assets_view(request):
 
     # Query
     assets_list = Asset.objects.filter(**filter_fields).filter(
-        Q(value__icontains=filter_opts)|
-        Q(name__icontains=filter_opts)|
+        Q(value__icontains=filter_opts) |
+        Q(name__icontains=filter_opts) |
         Q(description__icontains=filter_opts)
         ).annotate(
             criticity_num=Case(
@@ -241,7 +250,7 @@ def list_assets_view(request):
     except EmptyPage:
         assets = assets_paginator.page(assets_paginator.num_pages)
 
-    ## List asset groups
+    # List asset groups
     asset_groups = []
     for asset_group in AssetGroup.objects.all():
         ag = model_to_dict(asset_group)
@@ -265,7 +274,7 @@ def refresh_all_asset_grade_api(request):
     return redirect('list_assets_view')
 
 
-def refresh_asset_grade_api(request, asset_id = None):
+def refresh_asset_grade_api(request, asset_id=None):
     if asset_id:
         asset = get_object_or_404(Asset, id=asset_id)
         asset.calc_risk_grade()
@@ -285,6 +294,7 @@ def refresh_assetgroup_grade_api(request, assetgroup_id=None):
         for assetgroup in AssetGroup.objects.all():
             assetgroup.calc_risk_grade()
     return JsonResponse({"status": "success"}, safe=False)
+
 
 def export_assets(request, assetgroup_id=None):
     response = HttpResponse(content_type='text/csv')
@@ -315,7 +325,7 @@ def add_asset_view(request):
         form = AssetForm(request.POST)
         if form.is_valid():
             asset_args = {
-                'value': form.cleaned_data['value'],
+                'value': encoding.unicode_escape(form.cleaned_data['value']),
                 'name': form.cleaned_data['name'],
                 'type': form.cleaned_data['type'],
                 'criticity': form.cleaned_data['criticity'],
@@ -352,7 +362,7 @@ def add_asset_view(request):
             messages.success(request, 'Creation submission successful')
             return redirect('list_assets_view')
 
-    return render(request, 'add-asset.html', {'form': form })
+    return render(request, 'add-asset.html', {'form': form})
 
 
 def edit_asset_view(request, asset_id):
@@ -364,7 +374,7 @@ def edit_asset_view(request, asset_id):
     elif request.method == 'POST':
         form = AssetForm(request.POST, instance=asset)
         if form.is_valid():
-            asset.value = form.cleaned_data['value']
+            asset.value = form.cleaned_data['value'].encode('utf-8')
             asset.name = form.cleaned_data['name']
             asset.type = form.cleaned_data['type']
             asset.description = form.cleaned_data['description']
@@ -382,6 +392,7 @@ def edit_asset_view(request, asset_id):
 
     return render(request, 'edit-asset.html', {'form': form, 'asset': asset})
 
+
 def delete_asset_view(request, asset_id):
     asset = get_object_or_404(Asset, id=asset_id)
 
@@ -393,7 +404,7 @@ def delete_asset_view(request, asset_id):
     return render(request, 'delete-asset.html', {'asset': asset})
 
 
-@csrf_exempt #not secure!!!
+@csrf_exempt  # not secure!!!
 def delete_assets(request):
     if request.method != 'POST':
         return JsonResponse({'status': 'error'})
@@ -422,7 +433,7 @@ def add_asset_tags(asset, new_value):
         Event.objects.create(message="[AssetCategory/add_asset_tags()] New AssetCategory created: '{}' with id: {}.".format(new_value, new_tag.id),
                      type="INFO", severity="INFO")
 
-    if not new_tag in asset.categories.all(): # Not already set
+    if new_tag not in asset.categories.all():  # Not already set
         # Check if futures parents has been already selected. If True: delete them
         cats = list(asset.categories.all().values_list('value', flat=True))
         if new_tag.get_all_parents():
@@ -433,7 +444,8 @@ def add_asset_tags(asset, new_value):
         if intersec_par:
             asset.categories.remove(AssetCategory.objects.get(value=list(intersec_par)[0]))
 
-        # Check if current tags are not children of the new tag. If True: delete them
+        # Check if current tags are not children of the new tag.
+        # If True: delete them
         chis = [t.value for t in new_tag.get_children()]
         for c in set(chis).intersection(cats):
             asset.categories.remove(AssetCategory.objects.get(value=c))
@@ -473,7 +485,7 @@ def delete_asset_tags_api(request, asset_id):
 
     if request.method == 'POST':
         asset = get_object_or_404(Asset, id=asset_id)
-        asset.categories.remove(tag) # @todo: check error cases
+        asset.categories.remove(tag)  # @todo: check error cases
 
     return redirect('detail_asset_view', asset_id=asset_id)
 
@@ -489,7 +501,7 @@ def delete_asset_group_tags_api(request, assetgroup_id):
 
     if request.method == 'POST':
         assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
-        assetgroup.categories.remove(tag) # @todo: check error cases
+        assetgroup.categories.remove(tag)  # @todo: check error cases
 
     return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
 
@@ -525,7 +537,7 @@ def add_asset_group_view(request):
             messages.success(request, 'Creation submission successful')
 
             return redirect('list_assets_view')
-    return render(request, 'add-asset-group.html', {'form': form })
+    return render(request, 'add-asset-group.html', {'form': form})
 
 
 def edit_asset_group_view(request, assetgroup_id):
@@ -598,7 +610,7 @@ def bulkadd_asset_view(request):
                 # Add groups
                 if len(line) >= 6 and line[5] != "":
                     ag = AssetGroup.objects.filter(name=str(line[5])).first()
-                    if ag is None: # Create new asset group
+                    if ag is None:  # Create new asset group
                         asset_args = {
                             'name': line[5],
                             'criticity': "low",
@@ -623,7 +635,7 @@ def bulkadd_asset_view(request):
     return render(request, 'add-assets-bulk.html', {'form': form })
 
 
-#todo: change to asset_id
+# todo: change to asset_id
 def evaluate_asset_risk_view(request, asset_name):
     asset = get_object_or_404(Asset, value=asset_name)
     data = asset.evaluate_risk()
@@ -714,11 +726,11 @@ def detail_asset_view(request, asset_id):
     asset.calc_risk_grade()
     asset_risk_grade = {
         'now': asset.get_risk_grade(),
-        'day_ago': asset.get_risk_grade(history = 1),
-        'week_ago': asset.get_risk_grade(history = 7),
-        'month_ago': asset.get_risk_grade(history = 30),
-        'year_ago': asset.get_risk_grade(history = 365)
-        }
+        'day_ago': asset.get_risk_grade(history=1),
+        'week_ago': asset.get_risk_grade(history=7),
+        'month_ago': asset.get_risk_grade(history=30),
+        'year_ago': asset.get_risk_grade(history=365)
+    }
 
     return render(request, 'details-asset.html', {
         'asset': asset,
@@ -765,7 +777,7 @@ def detail_asset_group_view(request, assetgroup_id):
         if finding.status == 'ack':
             findings_stats['ack'] = findings_stats.get('ack', 0) + 1
         for fs in finding.scope_list:
-            if fs != None:
+            if fs is not None:
                 c = asset_scopes[fs]
                 asset_scopes[fs].update({'total': c['total']+1, finding.severity: c[finding.severity]+1})
 
@@ -784,8 +796,8 @@ def detail_asset_group_view(request, assetgroup_id):
         'defined': len(scan_defs),
         'periodic': scan_defs.filter(scan_type='periodic').count(),
         'ondemand': scan_defs.filter(scan_type='single').count(),
-        'running': scan_defs.filter(status='started').count(), #bug: a regrouper par assets
-        }
+        'running': scan_defs.filter(status='started').count() #bug: a regrouper par assets
+    }
 
     # calculate automatically risk grade
     #asset_group.calc_risk_grade()
@@ -795,7 +807,7 @@ def detail_asset_group_view(request, assetgroup_id):
         # 'week_ago': asset_group.get_risk_grade(history = 7),
         # 'month_ago': asset_group.get_risk_grade(history = 30),
         # 'year_ago': asset_group.get_risk_grade(history = 365)
-        }
+    }
 
     return render(request, 'details-asset-group.html', {
         'asset_group': asset_group,
@@ -868,12 +880,12 @@ def list_asset_owners_view(request):
     owners = []
     for owner in AssetOwner.objects.all():
         tmp_owner = model_to_dict(owner)
-        tmp_owner["nb_assets"]      = owner.assets.all().count()
-        tmp_owner["nb_contacts"]    = owner.contacts.all().count()
-        tmp_owner["nb_documents"]   = owner.documents.all().count()
+        tmp_owner["nb_assets"] = owner.assets.all().count()
+        tmp_owner["nb_contacts"] = owner.contacts.all().count()
+        tmp_owner["nb_documents"] = owner.documents.all().count()
         owners.append(tmp_owner)
 
-    return render(request, 'list-asset-owners.html', { 'owners': owners })
+    return render(request, 'list-asset-owners.html', {'owners': owners})
 
 
 def add_asset_owner_view(request):
@@ -883,7 +895,8 @@ def add_asset_owner_view(request):
     elif request.method == 'POST':
         form = AssetOwnerForm(request.POST)
 
-        if form.errors: print (form.errors)
+        if form.errors:
+            print (form.errors)
 
         if form.is_valid():
             owner_args = {
@@ -914,7 +927,7 @@ def delete_asset_owner_view(request, asset_owner_id):
 
 def details_asset_owner_view(request, asset_owner_id):
     owner = model_to_dict(get_object_or_404(AssetOwner, id=asset_owner_id))
-    return render(request, 'details-asset-owner.html', { 'owner': owner})
+    return render(request, 'details-asset-owner.html', {'owner': owner})
 
 
 def add_asset_owner_document(request, asset_owner_id):
@@ -964,7 +977,7 @@ def get_asset_owner_doc(request, asset_owner_doc_id):
 
     file_wrapper = FileWrapper(file(fp, 'rb'))
     file_mimetype = mimetypes.guess_type(fp)
-    response = HttpResponse(file_wrapper, content_type=file_mimetype )
+    response = HttpResponse(file_wrapper, content_type=file_mimetype)
     response['X-Sendfile'] = fp
     response['Content-Length'] = os.stat(fp).st_size
     response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(fn)

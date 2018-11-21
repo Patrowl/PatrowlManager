@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """View and API definitions for Settings."""
 
 from django.shortcuts import render, get_object_or_404
@@ -5,8 +6,6 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
 from .models import Setting
 from events.models import Event
 
@@ -24,10 +23,8 @@ def show_settings_menu(request):
     users = User.objects.all()
     settings = Setting.objects.all().order_by("key")
     events_list = Event.objects.all()
-    # events_list = Event.objects.all().order_by("-id")
 
     nb_rows = int(request.GET.get('n', 16))
-    # events_paginator = CursorPaginator(events_list, ordering=('id',))
     events_paginator = CursorPaginator(events_list, ordering=['id'])
     page_events = request.GET.get('p_events', 1)
     if type(page_events) == 'unicode' and not page_events.isnumeric():
@@ -40,10 +37,7 @@ def show_settings_menu(request):
         after = base64.b64encode("0")
 
     events = events_paginator.page(first=nb_rows, after=after)
-    #events = events_paginator.page(first=nb_rows, before=after)
-
     has_previous = after is not None and base64.b64decode(after) > "0"
-
     previous_decoded_cursor = "1"
     if after is not None and base64.b64decode(after) > "0":
         previous_decoded_cursor = page_events - 1

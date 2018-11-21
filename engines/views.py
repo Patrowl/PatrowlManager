@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib import messages

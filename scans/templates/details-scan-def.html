@@ -46,8 +46,18 @@
           scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}"
           data-toggle="modal" data-target="#modal-run-scan">Run</button>
         {% endif %}
-        <!-- Todo: for perdiodic scans, add buttons for enabling/disabling the scan -->
       </dd>
+      {% if scan_def.scan_type == "periodic" %}
+      <dt>Scan status</dt>
+      <dd>
+        {% if scan_def.enabled == True %}
+        <span class="label label-success">Enabled</span>
+        {% else %}
+        <span class="label label-warning">Disabled</span>
+        {% endif %}
+      </dd>
+      <!-- Todo: for perdiodic scans, add buttons for enabling/disabling the scan -->
+      {% endif %}
     </dl>
   </div>
   <select id="chart-selection">
@@ -161,7 +171,6 @@
       {% endfor %}
     </tbody>
   </table>
-  <!-- <button type="button" class="btn btn-default btn-xs" onclick="location.href='/scans/defs/list'">Cancel</button> -->
 
   {% if messages %}
   <ul class="messages">

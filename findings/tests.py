@@ -1,7 +1,6 @@
+# -*- coding: utf-8 -*-
+
 from django.test import TestCase, Client
-from django.utils import timezone
-from .models import Finding
-import json
 
 class FindingTestCase(TestCase):
     #fixtures = ['tmp/db.json']

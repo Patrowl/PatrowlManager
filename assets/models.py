@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -51,7 +53,8 @@ class AssetCategory(models.Model):
         return "{}".format(self.value)
 
     def get_root(self):
-        if self.parent is None: return self
+        if self.parent is None:
+            return self
         r = None
         for p in AssetCategory.objects.filter(children=self):
             _p = p.get_root()
@@ -118,6 +121,7 @@ class AssetCategory(models.Model):
             r.extend(c.show_children(level=level+1))
         return r
 
+
 @receiver(post_save, sender=AssetCategory)
 def assetcat_create_update_log(sender, **kwargs):
     if kwargs['created']:
@@ -127,6 +131,7 @@ def assetcat_create_update_log(sender, **kwargs):
         Event.objects.create(message="[AssetCategory] Asset category '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
 
+
 @receiver(post_delete, sender=AssetCategory)
 def assetcat_delete_log(sender, **kwargs):
     Event.objects.create(message="[AssetCategory] Asset category '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
@@ -134,6 +139,8 @@ def assetcat_delete_log(sender, **kwargs):
 
 
 class Asset(models.Model):
+    """Class definition of Asset."""
+
     value       = models.CharField(max_length=256, unique=True)
     name        = models.CharField(max_length=256)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
@@ -147,6 +154,8 @@ class Asset(models.Model):
     updated_at  = models.DateTimeField(default=timezone.now)
 
     class Meta:
+        """Metadata: DB name."""
+
         db_table = 'assets'
 
     def __str__(self):
@@ -176,7 +185,7 @@ class Asset(models.Model):
         elif self.criticity == "high":
             criticity_factor = 10
 
-        risk_data={
+        risk_data = {
             "info": 0,
             "low": 0,
             "medium": 0,
@@ -188,15 +197,15 @@ class Asset(models.Model):
 
         return risk_data
 
-
-    def get_risk_grade(self, history=None): # history= nb days before
+    def get_risk_grade(self, history=None):  # history= nb days before
         if history:
             self.calc_risk_grade(history=history)
         return str(self.risk_level['grade'])
 
-
     def calc_risk_grade(self, history=None):
-        risk_level = {"info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0, "grade": "-"}
+        risk_level = {
+            "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
+            "total": 0, "grade": "-"}
 
         if not history:
             findings = self.finding_set.all()
@@ -240,13 +249,20 @@ class Asset(models.Model):
         if force_calc:
             self.calc_risk_grade()
         risk_score = 0
-        if self.risk_level['grade'] == "A": risk_score = 100
-        elif self.risk_level['grade'] == "B": risk_score = 200
-        elif self.risk_level['grade'] == "C": risk_score = 300
-        elif self.risk_level['grade'] == "D": risk_score = 400
-        elif self.risk_level['grade'] == "E": risk_score = 500
-        elif self.risk_level['grade'] == "F": risk_score = 600
-        else: risk_score = 0
+        if self.risk_level['grade'] == "A":
+            risk_score = 100
+        elif self.risk_level['grade'] == "B":
+            risk_score = 200
+        elif self.risk_level['grade'] == "C":
+            risk_score = 300
+        elif self.risk_level['grade'] == "D":
+            risk_score = 400
+        elif self.risk_level['grade'] == "E":
+            risk_score = 500
+        elif self.risk_level['grade'] == "F":
+            risk_score = 600
+        else:
+            risk_score = 0
 
         risk_score = risk_score + (self.risk_level['low'] * 1)
         risk_score = risk_score + (self.risk_level['medium'] * 3)
@@ -298,29 +314,25 @@ class AssetGroup(models.Model):
 
     def evaluate_risk(self):
         criticity_factor = 0
-        if self.criticity == "low": criticity_factor=1
-        if self.criticity == "medium": criticity_factor=5
-        if self.criticity == "high": criticity_factor=10
-
-        risk_data = {
-            "info": 0,
-            "low": 0,
-            "medium": 0,
-            "high": 0,
-            "asset_criticity_level": self.criticity,
-            "asset_criticity_factor": criticity_factor
-        }
+        if self.criticity == "low":
+            criticity_factor = 1
+        if self.criticity == "medium":
+            criticity_factor = 5
+        if self.criticity == "high":
+            criticity_factor = 10
 
         # Todo: update each asset
         return None
 
     def get_risk_grade(self, history=None):
-        if history: # history= nb days before
+        if history:  # history= nb days before
             self.calc_risk_grade(history=history)
         return str(self.risk_level['grade'])
 
     def calc_risk_grade(self, history=None):
-        risk_level = {"info": 0, "low": 0, "medium": 0, "high": 0, "total": 0, "grade": "-"}
+        risk_level = {
+            "info": 0, "low": 0, "medium": 0, "high": 0,
+            "total": 0, "grade": "-"}
 
         findings = []
         if not history:
@@ -364,13 +376,20 @@ class AssetGroup(models.Model):
         if force_calc:
             self.calc_risk_grade()
         risk_score = 0
-        if self.risk_level['grade'] == "A": risk_score = 100
-        elif self.risk_level['grade'] == "B": risk_score = 200
-        elif self.risk_level['grade'] == "C": risk_score = 300
-        elif self.risk_level['grade'] == "D": risk_score = 400
-        elif self.risk_level['grade'] == "E": risk_score = 500
-        elif self.risk_level['grade'] == "F": risk_score = 600
-        else: risk_score = 0
+        if self.risk_level['grade'] == "A":
+            risk_score = 100
+        elif self.risk_level['grade'] == "B":
+            risk_score = 200
+        elif self.risk_level['grade'] == "C":
+            risk_score = 300
+        elif self.risk_level['grade'] == "D":
+            risk_score = 400
+        elif self.risk_level['grade'] == "E":
+            risk_score = 500
+        elif self.risk_level['grade'] == "F":
+            risk_score = 600
+        else:
+            risk_score = 0
 
         risk_score = risk_score + (self.risk_level['low'] * 1)
         risk_score = risk_score + (self.risk_level['medium'] * 3)
@@ -387,6 +406,7 @@ def assetgroup_create_update_log(sender, **kwargs):
     else:
         Event.objects.create(message="[AssetGroup] Asset Group '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
+
 
 @receiver(post_delete, sender=AssetGroup)
 def assetgroup_delete_log(sender, **kwargs):

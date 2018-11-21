@@ -1,17 +1,16 @@
+# -*- coding: utf-8 -*-
+
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
 # from django.contrib.auth import logout as v_logout
-from users.forms import LoginForm
 from users import views as user_views
 
 
-
-
 def i18n_javascript(request):
-  return admin.site.i18n_javascript(request)
+    return admin.site.i18n_javascript(request)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

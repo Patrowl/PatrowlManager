@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from rest_framework import serializers
 from .models import Asset
-from django.contrib.auth.models import User
 
 
 class AssetSerializer(serializers.Serializer):
@@ -15,7 +16,6 @@ class AssetSerializer(serializers.Serializer):
     status = serializers.CharField(required=False)
     created_at = serializers.DateTimeField(required=False)
     updated_at = serializers.DateTimeField(required=False)
-
 
     def create(self, validated_data):
         return Asset.objects.create(**validated_data)

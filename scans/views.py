@@ -1,23 +1,27 @@
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+# -*- coding: utf-8 -*-
+
+from django.http import JsonResponse, HttpResponse
 from wsgiref.util import FileWrapper
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import model_to_dict
-from django.db.models import Count, F, Q
+from django.db.models import Count, F
 from django.views.decorators.csrf import csrf_exempt
-from django_celery_beat.models import PeriodicTask, IntervalSchedule, PeriodicTasks
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 from app.settings import TIME_ZONE
-from .forms import ScanCampaignForm, ScanDefinitionForm
-from .models import Scan, ScanCampaign, ScanDefinition
+# from .forms import ScanCampaignForm, ScanDefinitionForm
+from .forms import ScanDefinitionForm
+# from .models import Scan, ScanCampaign, ScanDefinition
+from .models import Scan, ScanDefinition
 from engines.models import Engine, EnginePolicy, EngineInstance, EnginePolicyScope
-from engines.tasks import startscan_task, start_periodic_scan_task, stopscan_task
-from findings.models import RawFinding, Finding
+from engines.tasks import startscan_task, stopscan_task
+from findings.models import RawFinding
 from assets.models import Asset, AssetGroup
 
-import uuid, random, datetime, json, copy, os, tempfile, zipfile, time, csv
+import uuid, random, datetime, json, os, tempfile, zipfile, csv
 from datetime import datetime, timedelta
 from pytz import timezone
 import xmlrpclib
@@ -41,7 +45,7 @@ def stop_scan(request, scan_id):
     scan = get_object_or_404(Scan, id=scan_id)
     scan.status = "stopping"
     scan.save()
-    resp = stopscan_task.apply_async(
+    stopscan_task.apply_async(
         args=[scan.id],
         queue='scan-'+str(scan.engine_type).lower(),
         routing_key='scan.'+str(scan.engine_type).lower(),
@@ -58,22 +62,24 @@ def _update_celerybeat():
     try:
         if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['RUNNING', 'RESTARTING']:
             server.supervisor.stopProcess("celery-beat")
-    except:
+    except Exception:
         print ("error ", server.supervisor.getProcessInfo("celery-beat")['statename'])
 
     try:
-        if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['FATAL', 'SHUTDOWN', 'STOPPED'] :
+        if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['FATAL', 'SHUTDOWN', 'STOPPED']:
             server.supervisor.startProcess("celery-beat", False)
-    except:
+    except Exception:
         print ("error:", server.supervisor.getProcessInfo("celery-beat")['statename'])
 
     return server.supervisor.getProcessInfo("celery-beat")['statename']
 
+
 def _remove_prefix(text, prefix):
     return text[text.startswith(prefix) and len(prefix):]
 
+
 def detail_scan_view(request, scan_id):
-    #todo: optimize that shit
+    # todo: optimize that shit
     scan = get_object_or_404(Scan, id=scan_id)
     scan.update_sumary()
     scan.save()
@@ -84,7 +90,6 @@ def detail_scan_view(request, scan_id):
     parsed_filters = ""
     assets_filters = {}
     findings_filters = {}
-
 
     if search_filters:
         parsed_filters = shlex.shlex(search_filters)
@@ -142,17 +147,22 @@ def detail_scan_view(request, scan_id):
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
     for a in assets:
-        summary_assets.update({a.value: {"info": 0, "low": 0, "medium":0, "high": 0, "critical": 0, "total": 0}})
+        summary_assets.update({a.value: {"info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0}})
     for f in raw_findings.filter(asset__in=assets):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
             "total": summary_assets[f.asset_name]["total"] + 1
-            })
+           })
 
     # Generate summary info on asset groups (for progress bars)
     summary_assetgroups = {}
     for ag in assetgroups:
-        summary_assetgroups.update({ag.id: {"info": 0, "low": 0, "medium":0, "high": 0, "critical": 0, "total": 0}})
+        summary_assetgroups.update({
+            ag.id: {
+                "info": 0, "low": 0, "medium": 0,
+                "high": 0, "critical": 0, "total": 0
+            }
+        })
         for f in raw_findings:
             if f.asset.value in ag.assets.all().values_list('value', flat=True):
                 summary_assetgroups[ag.id].update({
@@ -161,13 +171,13 @@ def detail_scan_view(request, scan_id):
                 })
 
     # Generate findings stats
-    month_ago =  datetime.today()-timedelta(days=30)
+    month_ago = datetime.today()-timedelta(days=30)
     findings_stats = {
         "count": raw_findings.count(),
         "cvss_gte_70": raw_findings.filter(risk_info__cvss_base_score__gte=7.0).count(),
         "pubdate_30d": raw_findings.filter(risk_info__vuln_publication_date__lte=month_ago.strftime('%Y/%m/%d')).count(),
         "cvss_gte_70_pubdate_30d": raw_findings.filter(risk_info__cvss_base_score__gte=7.0, risk_info__vuln_publication_date__lte=month_ago.strftime('%Y/%m/%d')).count()
-        }
+       }
 
     # Pagination of findings
     scan_findings = raw_findings
@@ -204,7 +214,7 @@ def detail_scan_view(request, scan_id):
 
 
 def list_scans_view(request):
-    scan_list =  Scan.objects.all().order_by('-finished_at')
+    scan_list = Scan.objects.all().order_by('-finished_at')
 
     paginator = Paginator(scan_list, 10)
     page = request.GET.get('page')
@@ -228,13 +238,13 @@ def get_scans_stats(request):
             "nb_scans_performed": scans.count(),
             "nb_periodic_scans": scan_defs.filter(scan_type="periodic").count(),
             "nb_active_periodic_scans": scan_defs.filter(scan_type="periodic", enabled=True).count()
-        }
+       }
     elif scope == "scan_def":
         scan_id = request.GET.get('scan_id', None)
         num_records = request.GET.get('num_records', 10)
         if not scan_id:
             return JsonResponse({})
-        scan_def = get_object_or_404(ScanDefinition, id=scan_id)
+        # scan_def = get_object_or_404(ScanDefinition, id=scan_id)
         scans = reversed(Scan.objects.filter(scan_definition=scan_id).values('id', 'created_at', 'summary').order_by('-created_at')[:num_records])
         data = list(scans)
     elif scope == "scans":
@@ -249,7 +259,7 @@ def get_scans_heatmap(request):
     data = {}
 
     for scan in Scan.objects.all():
-        # expected format: {timestamp: value, timestamp2: value2 ... }
+        # expected format: {timestamp: value, timestamp2: value2 ...}
         data.update({scan.updated_at.strftime("%s"): 1})
     return JsonResponse(data)
 
@@ -265,10 +275,8 @@ def get_scans_by_period(request):
     if stop_date:
         stop_date = datetime.strptime(stop_date, '%Y-%m-%dT%H:%M:%fZ')
 
-    scans = Scan.objects.filter(updated_at__gte=start_date)
-    #scans = Scan.objects.filter(owner_id=request.user.id, updated_at__gte=start_date, updated_at__lte=stop_date)
-    for scan in scans:
-        # expected format: {timestamp: value, timestamp2: value2 ... }
+    for scan in Scan.objects.filter(updated_at__gte=start_date):
+        # expected format: {timestamp: value, timestamp2: value2 ...}
         data.update({scan.updated_at.strftime("%s"): 1})
     return JsonResponse(data)
 
@@ -298,7 +306,7 @@ def get_scans_by_date(request):
 
     scans = Scan.objects.filter(updated_at__gte=date, updated_at__lte=stop_date)
     for scan in scans:
-        # expected format: {timestamp: value, timestamp2: value2 ... }
+        # expected format: {timestamp: value, timestamp2: value2 ...}
         data.append({'scan_id': scan.id,
                      "status": scan.status,
                      "engine_type": scan.engine_type.name,
@@ -322,7 +330,6 @@ def get_scan_report_html(request, scan_id):
 
     findings = RawFinding.objects.filter(scan=scan.id)
 
-    #{asset1: [{finding1}, {finding2}]}
     findings_tmp = list()
     for sev in ["high", "medium", "low", "info", "critical"]:
         tmp = RawFinding.objects.filter(scan=scan, severity=sev).order_by('type')
@@ -345,7 +352,7 @@ def get_scan_report_html(request, scan_id):
         "low": findings.filter(severity='low').count(),
         "info": findings.filter(severity='info').count(),
         "critical": findings.filter(severity='critical').count()
-    }
+   }
 
     for asset in scan.assets.all():
         findings_stats.update({
@@ -356,8 +363,8 @@ def get_scan_report_html(request, scan_id):
                 "medium": findings.filter(asset=asset, severity='medium').count(),
                 "low": findings.filter(asset=asset, severity='low').count(),
                 "info": findings.filter(asset=asset, severity='info').count(),
-            }
-        })
+           }
+       })
 
     return render(request, 'report-scan.html', {
         'scan': tmp_scan,
@@ -394,6 +401,7 @@ def get_scan_report_csv(request, scan_id):
         'finding_solution', 'finding_hash', 'finding_creation_date',
         'finding_risk_info', 'finding_cvss', 'finding_links'
         ])
+
     for finding in RawFinding.objects.filter(scan=scan).order_by('asset__name', 'severity', 'title'):
         writer.writerow([
             finding.asset.value, finding.asset.type,
@@ -437,21 +445,20 @@ def delete_scan_view(request, scan_id):
     return render(request, 'delete-scan.html', {'scan': scan})
 
 
-### Scan campaigns
-def list_scan_campaigns(request):
-    scan_campaigns = []
-    for scan in ScanCampaign.objects.all():
-        tmp_scan = model_to_dict(scan, exclude=['assets_list', 'scans_list'])
-        tmp_scan['assets'] = list(scan['assets'])
-        scan_campaigns.append(tmp_scan)
-    return JsonResponse(scan_campaigns, safe=False)
+# def list_scan_campaigns(request):
+#     scan_campaigns = []
+#     for scan in ScanCampaign.objects.all():
+#         tmp_scan = model_to_dict(scan, exclude=['assets_list', 'scans_list'])
+#         tmp_scan['assets'] = list(scan['assets'])
+#         scan_campaigns.append(tmp_scan)
+#     return JsonResponse(scan_campaigns, safe=False)
 
 
-def list_scan_campaigns_view(request):
-    scan_campaigns = ScanCampaign.objects.filter(
-        owner_id=request.user.id).order_by('-updated_at')
-    return render(request, 'list-scan-campaigns.html',
-        {'scan_campaigns': scan_campaigns})
+# def list_scan_campaigns_view(request):
+#     scan_campaigns = ScanCampaign.objects.filter(
+#         owner_id=request.user.id).order_by('-updated_at')
+#     return render(request, 'list-scan-campaigns.html',
+#         {'scan_campaigns': scan_campaigns})
 
 
 # @csrf_exempt
@@ -466,101 +473,101 @@ def list_scan_campaigns_view(request):
 #     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
-def delete_scan_campaign_view(request, scan_campaign_id):
-    scan_campaign = ScanCampaign.objects.filter(scan_campaign_id=scan_campaign_id,owner_id=request.user.id).first()
-    if request.method == 'POST':
-        scan_campaign.delete()
-        messages.success(request, 'Scan Campaign successfully deleted!')
-        return redirect('list_scan_campaigns_view')
-    return render(request, 'delete-scan-campaign.html', {'scan_campaign': scan_campaign})
+# def delete_scan_campaign_view(request, scan_campaign_id):
+#     scan_campaign = ScanCampaign.objects.filter(scan_campaign_id=scan_campaign_id,owner_id=request.user.id).first()
+#     if request.method == 'POST':
+#         scan_campaign.delete()
+#         messages.success(request, 'Scan Campaign successfully deleted!')
+#         return redirect('list_scan_campaigns_view')
+#     return render(request, 'delete-scan-campaign.html', {'scan_campaign': scan_campaign})
 
 
-def add_scan_campaign_view(request):
-    form = None
-    if request.method == 'GET':
-        form = ScanCampaignForm(initial={'scan_campaign_id': uuid.uuid4(), 'owner_id': request.user.id})
-    elif request.method == 'POST':
-        form = ScanCampaignForm(request.POST)
-        if form.is_valid():
-            scan_campaign_args = {
-                'title':        form.cleaned_data['title'],
-                #'scan_type':    form.cleaned_data['scan_type'],
-                'owner_id':     request.user.id,
-                'status':       "created",
-                'scan_def_list': set(form.data.getlist('scan_def_list')),
-                'enabled':      form.cleaned_data['enabled'] == "True",
-                'scheduled_at': form.cleaned_data['scheduled_at']
-            }
-            scan_campaign = ScanCampaign(**scan_campaign_args)
-            scan_campaign.save()
-
-            messages.success(request, 'Creation submission successful')
-            return redirect('list_scan_campaigns_view')
-
-    return render(request, 'add-scan-campaign.html', {'form': form })
-
-
-def edit_scan_campaign_view(request, scan_campaign_id):
-    try:
-        scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
-    except ScanCampaign.DoesNotExist:
-        return HttpResponse(status=404)
-
-    form = None
-    if request.method == 'GET':
-        form = ScanCampaignForm(initial=scan_campaign)
-    elif request.method == 'POST':
-        form = ScanCampaignForm(request.POST)
-        if form.is_valid():
-            scan_campaign.title         = form.cleaned_data['title']
-            #scan_campaign.scan_type     = form.cleaned_data['scan_type']
-            scan_campaign.scheduled_at  = form.cleaned_data['scheduled_at']
-            scan_campaign.enabled       = form.cleaned_data['enabled'] == "True"
-            scan_campaign.scan_def_list = set(form.data.getlist('scan_def_list'))
-
-            scan_campaign.save()
-            messages.success(request, 'Update submission successful')
-            return redirect('list_scan_campaigns_view')
-
-    return render(request, 'edit-scan-campaign.html', {'form': form, 'scan_campaign_id': scan_campaign_id})
+# def add_scan_campaign_view(request):
+#     form = None
+#     if request.method == 'GET':
+#         form = ScanCampaignForm(initial={'scan_campaign_id': uuid.uuid4(), 'owner_id': request.user.id})
+#     elif request.method == 'POST':
+#         form = ScanCampaignForm(request.POST)
+#         if form.is_valid():
+#             scan_campaign_args = {
+#                 'title':        form.cleaned_data['title'],
+#                 #'scan_type':    form.cleaned_data['scan_type'],
+#                 'owner_id':     request.user.id,
+#                 'status':       "created",
+#                 'scan_def_list': set(form.data.getlist('scan_def_list')),
+#                 'enabled':      form.cleaned_data['enabled'] == "True",
+#                 'scheduled_at': form.cleaned_data['scheduled_at']
+#            }
+#             scan_campaign = ScanCampaign(**scan_campaign_args)
+#             scan_campaign.save()
+#
+#             messages.success(request, 'Creation submission successful')
+#             return redirect('list_scan_campaigns_view')
+#
+#     return render(request, 'add-scan-campaign.html', {'form': form})
 
 
-def run_scan_campaign(request, scan_campaign_id):
-    try:
-        scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
-    except ScanCampaign.DoesNotExist:
-        return HttpResponse(status=404)
+# def edit_scan_campaign_view(request, scan_campaign_id):
+#     try:
+#         scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
+#     except ScanCampaign.DoesNotExist:
+#         return HttpResponse(status=404)
+#
+#     form = None
+#     if request.method == 'GET':
+#         form = ScanCampaignForm(initial=scan_campaign)
+#     elif request.method == 'POST':
+#         form = ScanCampaignForm(request.POST)
+#         if form.is_valid():
+#             scan_campaign.title         = form.cleaned_data['title']
+#             #scan_campaign.scan_type     = form.cleaned_data['scan_type']
+#             scan_campaign.scheduled_at  = form.cleaned_data['scheduled_at']
+#             scan_campaign.enabled       = form.cleaned_data['enabled'] == "True"
+#             scan_campaign.scan_def_list = set(form.data.getlist('scan_def_list'))
+#
+#             scan_campaign.save()
+#             messages.success(request, 'Update submission successful')
+#             return redirect('list_scan_campaigns_view')
+#
+#     return render(request, 'edit-scan-campaign.html', {'form': form, 'scan_campaign_id': scan_campaign_id})
 
-    for scan_def_id in scan_campaign.scan_def_list:
-        if scan_campaign.scan_type == "single":
-            _run_scan(scan_def_id, request.user.id)
+#
+# def run_scan_campaign(request, scan_campaign_id):
+#     try:
+#         scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
+#     except ScanCampaign.DoesNotExist:
+#         return HttpResponse(status=404)
+#
+#     for scan_def_id in scan_campaign.scan_def_list:
+#         if scan_campaign.scan_type == "single":
+#             _run_scan(scan_def_id, request.user.id)
+#
+#     messages.success(request, 'Scans enqueued!')
+#     return redirect('list_scan_def_view')
 
-    messages.success(request, 'Scans enqueued!')
-    return redirect('list_scan_def_view')
 
-
-@csrf_exempt
-def toggle_scan_campaign_status(request, scan_campaign_id):
-    scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
-    scan_campaign.enabled = not scan_campaign.enabled
-    scan_campaign.save()
-
-    for scan_id in scan_campaign.scan_def_list:
-        scan = ScanDefinition.objects.get(scan_definition_id=scan_id, owner_id=request.user.id)
-        if scan.scan_type == 'periodic':
-            try:
-                periodic_task = PeriodicTask.objects.get(id=scan.periodic_task_id)
-                periodic_task.enabled = not periodic_task.enabled
-                periodic_task.last_run_at = None
-                periodic_task.save()
-            except PeriodicTask.DoesNotExist:
-                pass
-
-    ######  Todo: wait celery beat fix
-    _update_celerybeat()
-    ######LOL end
-
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+# @csrf_exempt
+# def toggle_scan_campaign_status(request, scan_campaign_id):
+#     scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
+#     scan_campaign.enabled = not scan_campaign.enabled
+#     scan_campaign.save()
+#
+#     for scan_id in scan_campaign.scan_def_list:
+#         scan = ScanDefinition.objects.get(scan_definition_id=scan_id, owner_id=request.user.id)
+#         if scan.scan_type == 'periodic':
+#             try:
+#                 periodic_task = PeriodicTask.objects.get(id=scan.periodic_task_id)
+#                 periodic_task.enabled = not periodic_task.enabled
+#                 periodic_task.last_run_at = None
+#                 periodic_task.save()
+#             except PeriodicTask.DoesNotExist:
+#                 pass
+#
+#     ######  Todo: wait celery beat fix
+#     _update_celerybeat()
+#     ######LOL end
+#
+#     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
 ## Scan Definitions
@@ -568,7 +575,7 @@ def list_scan_def_view(request):
     scans = Scan.objects.all()
     scan_defs = ScanDefinition.objects.all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
     return render(request, 'list-scan-definitions.html', {
-        'scan_defs': scan_defs, 'scans': scans })
+        'scan_defs': scan_defs, 'scans': scans})
 
 
 def delete_scan_def_view(request, scan_def_id):
@@ -578,10 +585,11 @@ def delete_scan_def_view(request, scan_def_id):
         if scan_definition.scan_type == "periodic":
             try:
                 periodic_task = scan_definition.periodic_task
-                periodic_task.enabled = False   # maybe useless
-                periodic_task.save()            # maybe useless
-                periodic_task.delete()
-                _update_celerybeat()
+                if periodic_task:
+                    periodic_task.enabled = False   # maybe useless
+                    periodic_task.save()            # maybe useless
+                    periodic_task.delete()
+                    _update_celerybeat()
             except PeriodicTask.DoesNotExist:
                 pass
         if scan_definition.scheduled_at is not None:
@@ -592,7 +600,7 @@ def delete_scan_def_view(request, scan_def_id):
 
         messages.success(request, 'Scan definition successfully deleted!')
         return redirect('list_scan_def_view')
-    return render(request, 'delete-scan-definition.html', {'scan_def': scan_definition })
+    return render(request, 'delete-scan-definition.html', {'scan_def': scan_definition})
 
 
 def add_scan_def_view(request):
@@ -607,7 +615,6 @@ def add_scan_def_view(request):
         scan_policies_json.append(p.as_dict())
 
     if request.method == 'GET' or ScanDefinitionForm(request.POST).errors:
-        #print "ScanDefinitionForm(request.POST):", ScanDefinitionForm(request.POST).errors
         if ScanDefinitionForm(request.POST).errors:
             print (ScanDefinitionForm(request.POST).errors)
         form = ScanDefinitionForm()
@@ -617,7 +624,6 @@ def add_scan_def_view(request):
 
         if form.is_valid():
             scan_definition = ScanDefinition()
-            # scan_definition.engine_policy = EnginePolicy.objects.get(id=form.cleaned_data['engine_policy_id'])
             scan_definition.engine_policy = form.cleaned_data['engine_policy']
             scan_definition.engine_type = scan_definition.engine_policy.engine
             scan_definition.scan_type = form.cleaned_data['scan_type']
@@ -627,16 +633,16 @@ def add_scan_def_view(request):
             scan_definition.status = "created"
             scan_definition.enabled = form.data['start_scan'] == "now"
             if form.cleaned_data['scan_type'] == 'periodic':
-                scan_definition.every  = int(form.cleaned_data['every'])
+                scan_definition.every = int(form.cleaned_data['every'])
                 scan_definition.period = form.cleaned_data['period']
 
             if form.data['start_scan'] == "scheduled":
                 try:
-                    if form.cleaned_data['scheduled_at'] > datetime.now(): # check if it's future ...
+                    if form.cleaned_data['scheduled_at'] > datetime.now():  # check if it's future ...
                         scan_definition.scheduled_at = timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at'])
                         # scan_definition.scheduled_at = form.cleaned_data['scheduled_at']
                         scan_definition.enabled = True
-                except:
+                except Exception:
                     scan_definition.scheduled_at = None
 
             if int(form.data['engine_id']) > 0:
@@ -649,13 +655,27 @@ def add_scan_def_view(request):
             for asset_id in form.data.getlist('assets_list'):
                 asset = Asset.objects.get(id=asset_id)
                 scan_definition.assets_list.add(asset)
-                assets_list.append(asset.value)
+                assets_list.append({
+                    "id": asset.id,
+                    "value": asset.value.strip(),
+                    "criticity": asset.criticity,
+                    "datatype": asset.type
+                })
 
-            assetgroups_list = []
+            # assetgroups_list = []
             for assetgroup_id in form.data.getlist('assetgroups_list'):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
-                scan_definition.assetgroups_list.add(assetgroup)
-                assetgroups_list.append(assetgroup.name)
+                # scan_definition.assetgroups_list.add(assetgroup)
+                # assetgroups_list.append(assetgroup.name)
+                for a in assetgroup.assets.all():
+                    scan_definition.assets_list.add(a)
+                    assets_list.append({
+                        "id": a.id,
+                        "value": a.value.strip(),
+                        "criticity": a.criticity,
+                        "datatype": a.type
+                    })
+
             scan_definition.save()
 
             # Todo: check if no asset or asset group is defined
@@ -665,16 +685,25 @@ def add_scan_def_view(request):
             parameters = {
                 "scan_params": {
                     "assets": assets_list,
-                    "assetgroups": assetgroups_list,
+                    # "assetgroups": assetgroups_list,
                     "options": scan_definition.engine_policy.options,
-                    #"scan_args": model_to_dict(scan_definition)
                 },
                 "scan_definition_id": str(scan_definition.id),
                 "engine_name": str(scan_definition.engine_type.name).lower(),
                 "owner_id": request.user.id,
             }
+            if form.data['engine_id'] != '' and int(form.data['engine_id']) > 0:
+                # todo: check if the engine is compliant with the scan policy
+                parameters.update({
+                    "engine_id": EngineInstance.objects.get(id=form.data['engine_id']).id
+                })
+                parameters.update({
+                    "scan_params": {
+                        "engine_id": EngineInstance.objects.get(id=form.data['engine_id']).id
+                    }
+                })
 
-            #todo: check if its a direct, a scheduled or a periodic task
+            # todo: check if its a direct, a scheduled or a periodic task
             if form.cleaned_data['scan_type'] == 'periodic':
                 schedule, created = IntervalSchedule.objects.get_or_create(
                     every=int(scan_definition.every),
@@ -691,12 +720,12 @@ def add_scan_def_view(request):
                     last_run_at=None,
                 )
 
-                periodic_task.enabled = False
+                periodic_task.enabled = True
                 periodic_task.save()
 
                 scan_definition.periodic_task = periodic_task
                 _update_celerybeat()
-            else: #Single later/now/scheduled
+            else:  # Single later/now/scheduled
                 if form.data['start_scan'] == "now":
                     # start the single scan now
                     _run_scan(scan_definition.id, request.user.id)
@@ -713,7 +742,7 @@ def add_scan_def_view(request):
         'scan_engines_json': scan_engines_json,
         'scan_cats': scan_cats,
         'scan_policies_json': json.dumps(scan_policies_json),
-        'scan_policies': scan_policies })
+        'scan_policies': scan_policies})
 
 
 def edit_scan_def_view(request, scan_def_id):
@@ -729,7 +758,7 @@ def edit_scan_def_view(request, scan_def_id):
             scan_definition.title = form.cleaned_data['title']
             scan_definition.status = "edited"
             scan_definition.description = form.cleaned_data['description']
-            scan_definition.enabled = form.cleaned_data['enabled'] == True
+            scan_definition.enabled = form.cleaned_data['enabled'] is True
             scan_definition.engine_policy = form.cleaned_data['engine_policy']
             scan_definition.engine_type = scan_definition.engine_policy.engine
             if len(form.data['engine']) > 0:
@@ -740,18 +769,33 @@ def edit_scan_def_view(request, scan_def_id):
 
             scan_definition.assets_list.clear()
             scan_definition.assetgroups_list.clear()
+            assets_list = []
             for asset_id in form.data.getlist('assets_list'):
                 asset = Asset.objects.get(id=asset_id)
                 scan_definition.assets_list.add(asset)
+                assets_list.append({
+                    "id": asset.id,
+                    "value": asset.value.strip(),
+                    "criticity": asset.criticity,
+                    "datatype": asset.type
+                })
             for assetgroup_id in form.data.getlist('assetgroups_list'):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
                 scan_definition.assetgroups_list.add(assetgroup)
+                for a in assetgroup.assets.all():
+                    scan_definition.assets_list.add(a)
+                    assets_list.append({
+                        "id": a.id,
+                        "value": a.value.strip(),
+                        "criticity": a.criticity,
+                        "datatype": a.type
+                    })
 
             if form.cleaned_data['scan_type'] == 'single':
                 scan_definition.every = None
                 scan_definition.period = None
 
-            if form.cleaned_data['scan_type'] == 'single' and form.cleaned_data['scan_type'] == 'periodic':
+            if form.cleaned_data['scan_type'] == 'periodic':
                 scan_definition.every = int(form.cleaned_data['every'])
                 scan_definition.period = form.cleaned_data['period']
 
@@ -760,9 +804,32 @@ def edit_scan_def_view(request, scan_def_id):
                     period=scan_definition.period,
                 )
 
+                parameters = {
+                    "scan_params": {
+                        "assets": assets_list,
+                        # "assetgroups": assetgroups_list,
+                        "options": scan_definition.engine_policy.options,
+                    },
+                    "scan_definition_id": str(scan_definition.id),
+                    "engine_name": str(scan_definition.engine_type.name).lower(),
+                    "owner_id": request.user.id,
+                }
+                if form.data['engine'] != '' and int(form.data['engine']) > 0:
+                    parameters.update({
+                        "engine_id": EngineInstance.objects.get(id=form.data['engine']).id,
+                        "scan_params": {
+                            "engine_id": EngineInstance.objects.get(id=form.data['engine']).id
+                        }
+                    })
+
+                # Remove the old PeriodicTask if exists
+                task_title = '[PO] {}@{}'.format(scan_definition.title, scan_definition.id)
+                PeriodicTask.objects.filter(name=task_title).delete()
+
+                # Create new one
                 periodic_task = PeriodicTask.objects.create(
                     interval=schedule,
-                    name='[PO] {}@{}'.format(scan_definition.title, scan_definition.id),
+                    name=task_title,
                     task='engines.tasks.start_periodic_scan_task',
                     args=json.dumps([parameters]),
                     #expires=datetime.utcnow() + timedelta(seconds=30),
@@ -771,7 +838,7 @@ def edit_scan_def_view(request, scan_def_id):
                     last_run_at=None,
                 )
 
-                periodic_task.enabled = False
+                periodic_task.enabled = True
                 periodic_task.save()
 
                 scan_definition.periodic_task = periodic_task
@@ -809,6 +876,7 @@ def detail_scan_def_view(request, scan_definition_id):
     scan_def = get_object_or_404(ScanDefinition, id=scan_definition_id)
     return render(request, 'details-scan-def.html', {
         'scan_def': scan_def})
+
 
 def run_scan_def(request, scan_def_id):
     scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
@@ -920,4 +988,4 @@ def compare_scans_view(request):
         'scan_b': scan_b,
         'scan_a_missing_findings': scan_a_missing_findings,
         'scan_b_missing_findings': scan_b_missing_findings
-        })
+    })

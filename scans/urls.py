@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
+
 from django.conf.urls import url
-from django.contrib import admin
 from . import views
 
 
@@ -28,11 +29,11 @@ urlpatterns = [
     # ex: /scans/reportzip/33
     url(r'^reportzip/(?P<scan_id>[0-9]+)$', views.send_scan_reportzip, name='send_scan_reportzip'),
     # ex: /scans/campaigns
-    url(r'^campaigns$', views.list_scan_campaigns, name='list_scan_campaigns'),
-    # ex: /scans/periodic/change_status/33
-    url(r'^campaigns/change_status/(?P<scan_campaign_id>[0-9]+)$', views.toggle_scan_campaign_status, name='toggle_scan_campaign_status'),
-    # ex: /scans/defs/delete/33
-    url(r'^campaigns/run/(?P<scan_campaign_id>[0-9]+)$', views.run_scan_campaign, name='run_scan_campaign'),
+    # url(r'^campaigns$', views.list_scan_campaigns, name='list_scan_campaigns'),
+    # # ex: /scans/periodic/change_status/33
+    # url(r'^campaigns/change_status/(?P<scan_campaign_id>[0-9]+)$', views.toggle_scan_campaign_status, name='toggle_scan_campaign_status'),
+    # # ex: /scans/defs/delete/33
+    # url(r'^campaigns/run/(?P<scan_campaign_id>[0-9]+)$', views.run_scan_campaign, name='run_scan_campaign'),
     # ex: /scans/defs/change_status/33
     url(r'^defs/change_status/(?P<scan_def_id>[0-9]+)$', views.toggle_scan_def_status, name='toggle_scan_def_status'),
     # ex: /scans/defs/delete/33
@@ -50,14 +51,14 @@ urlpatterns = [
     # url(r'^details/(?P<scan_id>[0-9]+)/findings/(?P<finding_id>[0-9]+)$', views.detail_scan_finding_view, name='detail_scan_finding_view'),
     # ex: /scans/compare?scan_a_id=2&scan_b_id=32
     url(r'^compare$', views.compare_scans_view, name='compare_scans_view'),
-    # ex: /scans/campaigns/list
-    url(r'^campaigns/list$', views.list_scan_campaigns_view, name='list_scan_campaigns_view'),
-    # ex: /scans/campaigns/delete/33
-    url(r'^campaigns/delete/(?P<scan_campaign_id>[0-9]+)$', views.delete_scan_campaign_view, name='delete_scan_campaign_view'),
-    # ex: /scans/campaigns/edit/33
-    url(r'^campaigns/edit/(?P<scan_campaign_id>[0-9]+)$', views.edit_scan_campaign_view, name='edit_scan_campaign_view'),
-    # ex: /scans/campaigns/add/33
-    url(r'^campaigns/add$', views.add_scan_campaign_view, name='add_scan_campaign_view'),
+    # # ex: /scans/campaigns/list
+    # url(r'^campaigns/list$', views.list_scan_campaigns_view, name='list_scan_campaigns_view'),
+    # # ex: /scans/campaigns/delete/33
+    # url(r'^campaigns/delete/(?P<scan_campaign_id>[0-9]+)$', views.delete_scan_campaign_view, name='delete_scan_campaign_view'),
+    # # ex: /scans/campaigns/edit/33
+    # url(r'^campaigns/edit/(?P<scan_campaign_id>[0-9]+)$', views.edit_scan_campaign_view, name='edit_scan_campaign_view'),
+    # # ex: /scans/campaigns/add/33
+    # url(r'^campaigns/add$', views.add_scan_campaign_view, name='add_scan_campaign_view'),
     # ex: /scans/defs/list
     url(r'^defs/list$', views.list_scan_def_view, name='list_scan_def_view'),
     # ex: /scans/defs/delete/33

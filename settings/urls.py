@@ -1,17 +1,13 @@
+# -*- coding: utf-8 -*-
+
 from django.conf.urls import url
-from django.contrib import admin
 from . import views
-import users.views as users_views
 
 
 urlpatterns = [
     ## WEB Views
     # ex: /settings/
     url(r'^$', views.show_settings_menu, name='show_settings_menu'),
-    # ex: /settings/users/
-    #url(r'^$', users_views.list_users_view, name='list_users_view'),
-    # ex: /settings/alerts
-    #url(r'^$', views.list_events, name='list_events'),
 
     ## API views
     # ex: /settings/api/v1/update

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """URL routes for alerting rules."""
 
 from django.conf.urls import url

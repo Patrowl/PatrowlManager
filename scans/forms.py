@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from django import forms
-from django.contrib.admin import widgets
-from .models import Scan, ScanCampaign, ScanDefinition
-from engines.models import Engine, EnginePolicy
+from .models import ScanCampaign, ScanDefinition
+from engines.models import EnginePolicy
 from assets.models import Asset, AssetGroup
 from datetimewidget.widgets import DateTimeWidget
 from datetime import datetime
@@ -16,7 +17,6 @@ PERIOD_CHOICES = (
     ('hours', 'Hours'),
     ('minutes', 'Minutes'),
     ('seconds', 'Seconds'),
-    #('microseconds', 'Microseconds'),
 )
 
 SCAN_TYPES = (
@@ -51,12 +51,12 @@ class ScanCampaignForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea,
             'enabled': forms.CheckboxInput(),
-            #'scheduled_at': DateTimeWidget(attrs={'id':"id_scheduled_at"}, options=dateTimeOptions, usel10n=True)
+            # 'scheduled_at': DateTimeWidget(attrs={'id':"id_scheduled_at"}, options=dateTimeOptions, usel10n=True)
         }
 
     scan_def_list = forms.CharField(label="Select scans")
-    #scan_type = forms.CharField(widget=forms.Select(choices=SCAN_TYPES))
-    #period = forms.CharField(widget=forms.Select(choices=PERIOD_CHOICES))
+    # scan_type = forms.CharField(widget=forms.Select(choices=SCAN_TYPES))
+    # period = forms.CharField(widget=forms.Select(choices=PERIOD_CHOICES))
     scheduled_at = forms.DateTimeField(required=False, widget=DateTimeWidget(attrs={'id':"id_scheduled_at"}, options=dateTimeOptions, usel10n=True))
 
     def __init__(self, *args, **kwargs):
@@ -77,19 +77,19 @@ class ScanDefinitionForm(forms.ModelForm):
         fields = ['scan_type', 'title', 'engine', 'engine_policy',
                   'description', 'every', 'period', 'enabled',
                   'scheduled_at', 'assetgroups_list', 'assets_list']
-        #exclude = ('scheduled_at',)
+        # exclude = ('scheduled_at',)
         widgets = {
-            #'scan_definition_id': forms.HiddenInput(),
-            #'owner_id': forms.HiddenInput(),
+            # 'scan_definition_id': forms.HiddenInput(),
+            # 'owner_id': forms.HiddenInput(),
             'title': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
             'enabled': forms.CheckboxInput(attrs={'checked': '', 'class': 'form-control form-control-sm'}),
             'scheduled_at': DateTimeWidget(attrs={'id': "id_scheduled_at", 'class': 'form-control form-control-sm'}, options=dateTimeOptions)
         }
 
-    #engine_type = forms.CharField(widget=forms.Select(choices=engines))
-    #engine_policy_id = forms.IntegerField(widget=forms.Select(choices=policies))
-    #period = forms.CharField(widget=forms.Select(choices=PERIOD_CHOICES))
+    # engine_type = forms.CharField(widget=forms.Select(choices=engines))
+    # engine_policy_id = forms.IntegerField(widget=forms.Select(choices=policies))
+    # period = forms.CharField(widget=forms.Select(choices=PERIOD_CHOICES))
     scan_type = forms.CharField(widget=forms.Select(choices=SCAN_TYPES, attrs={'class': 'form-control form-control-sm'}))
 
     def clean(self):
@@ -101,9 +101,9 @@ class ScanDefinitionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ScanDefinitionForm, self).__init__(*args, **kwargs)
 
-        #self.fields['scheduled_at'].widget = widgets.AdminSplitDateTime()
+        # self.fields['scheduled_at'].widget = widgets.AdminSplitDateTime()
 
-        #oid = None
+        # oid = None
         # if 'initial' in self.__dict__ and 'owner_id' in self.initial:
         #     oid = self.initial['owner_id']
 

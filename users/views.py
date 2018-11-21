@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as login_d
@@ -10,10 +12,6 @@ from django.shortcuts import render, redirect
 from rest_framework import viewsets
 from users.serializers import UserSerializer
 from users.forms import LoginForm
-from assets.models import Asset, AssetGroup
-from findings.models import Finding
-from scans.models import Scan, ScanCampaign, ScanDefinition
-from engines.models import Engine, EnginePolicy, EngineInstance
 from reportings.views import homepage_dashboard_view
 
 

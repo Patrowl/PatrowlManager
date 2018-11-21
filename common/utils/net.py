@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from netaddr import IPNetwork, IPAddress, iter_iprange
 from netaddr.core import AddrFormatError
 import re

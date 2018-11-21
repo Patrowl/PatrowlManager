@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from django import forms
-from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument, AssetCategory
+from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument
 from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES
 
 assets = []
@@ -91,7 +93,7 @@ class AssetOwnerContactForm(forms.ModelForm):
         widgets = {
             'comments': forms.Textarea
         }
-        priority = forms.CharField(widget=forms.Select(choices=((1,1), (2,2))))
+        priority = forms.CharField(widget=forms.Select(choices=((1, 1), (2, 2))))
 
     def __init__(self, *args, **kwargs):
         super(AssetOwnerContactForm, self).__init__(*args, **kwargs)

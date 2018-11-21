@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals
 
 from django.db import models
@@ -12,6 +14,7 @@ USER_STATUS = (
     ('ACTIVE', 'ACTIVE'),
     ('DISABLED', 'DISABLED'),
 )
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -29,7 +32,6 @@ class Profile(models.Model):
             self.updated_at = timezone.now()
         super(Profile, self).save(*args, **kwargs)
 
-
     def get_group(self):
         return self
 
@@ -41,9 +43,11 @@ def create_user_profile(sender, instance, created, **kwargs):
         Event.objects.create(message="[User] New user created (id={}): {}".format(instance.id, instance),
                              type="CREATE", severity="DEBUG")
 
+
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
 
 @receiver(post_delete, sender=User)
 def delete_user_profile(sender, **kwargs):
