@@ -28,9 +28,7 @@ def refresh_engines_status_task(self):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"status",
-                verify=False,
-                timeout=5,
-                proxies=PROXIES)
+                verify=False, timeout=5, proxies=PROXIES)
 
             if resp.status_code == 200:
                 engine.status = json.loads(resp.text)['status'].strip().upper()
@@ -51,9 +49,7 @@ def get_engine_status_task(self, engine_id):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"status",
-                verify=False,
-                timeout=5,
-                proxies=PROXIES)
+                verify=False, timeout=5, proxies=PROXIES)
 
             if resp.status_code == 200:
                 engine.status = json.loads(resp.text)['status'].strip().upper()

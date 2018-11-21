@@ -855,7 +855,10 @@ def get_asset_report_json(request, asset_id):
         tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
         findings_stats.update({sev: tmp.count()})
         if tmp.count() > 0:
-            findings_tmp.append([model_to_dict(f) for f in tmp])
+            for f in tmp:
+                tmp_f = model_to_dict(f, exclude=["scopes"])
+                tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
+                findings_tmp.append(tmp_f)
 
     asset_dict = model_to_dict(asset, exclude=["categories"])
     asset_tags = [tag.value for tag in asset.categories.all()]

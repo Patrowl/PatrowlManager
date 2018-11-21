@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.core.mail import send_mail
 from events.models import Event
 from settings.models import Setting
 from django_celery_beat.models import PeriodicTask
@@ -147,7 +148,6 @@ def rule_delete_log(sender, **kwargs):
 
 
 def send_email_message(rule, message, description):
-    from django.core.mail import send_mail
     contact_mail = Setting.objects.get(key="alerts.endpoint.email").value
     send_mail(
         '[Patrowl] New alert: '+message,
