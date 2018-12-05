@@ -30,11 +30,13 @@ class EnginePolicyImportForm(forms.Form):
 
 
 engines = []
+
+
 class EngineInstanceForm(forms.ModelForm):
     class Meta:
         model = EngineInstance
-        fields = ['engine', 'name', 'api_url', 'enabled', 'authentication_method',
-                  'api_key', 'username', 'password']
+        fields = ['engine', 'name', 'api_url', 'enabled',
+                  'authentication_method', 'api_key', 'username', 'password']
         widgets = {
             'enabled': forms.CheckboxInput(),
             'api_url': forms.URLInput(attrs={'class': 'form-control form-control-sm'}),

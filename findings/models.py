@@ -25,6 +25,16 @@ FINDING_SEVERITIES = (
     ('critical', 'critical')
 )
 
+FINDING_STATUS = (
+    ('new', 'New'),
+    ('ack', 'Acknowledged'),
+    ('mitigated', 'Mitigated'),
+    ('confirmed', 'Confirmed'),
+    ('patched', 'Patched'),
+    ('closed', 'Closed'),
+    ('false-positive', 'False-Positive')
+)
+
 
 class RawFinding(models.Model):
     asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
@@ -46,7 +56,7 @@ class RawFinding(models.Model):
     vuln_refs   = JSONField(null=True, blank=True)
     links       = JSONField(null=True, blank=True)
     tags        = JSONField(null=True, blank=True)
-    status      = models.CharField(max_length=10)
+    status      = models.CharField(choices=FINDING_STATUS, max_length=10)
     engine_type = models.CharField(max_length=20)
     found_at    = models.DateTimeField(null=True, blank=True)
     checked_at  = models.DateTimeField(null=True, blank=True)
@@ -85,7 +95,6 @@ class RawFinding(models.Model):
             rules = Rule.objects.filter(enabled=True, scope='finding')
         else:
             rules = Rule.objects.filter(enabled=True, scope='finding', trigger=trigger)
-        #print rules
         nb_matches = 0
         for rule in rules:
             kwargs = {
@@ -98,7 +107,7 @@ class RawFinding(models.Model):
                 rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset)
         return nb_matches
 
-#signals handlers
+
 @receiver(post_save, sender=RawFinding)
 def rawfinding_create_update_log(sender, **kwargs):
     if kwargs['created']:
@@ -108,10 +117,12 @@ def rawfinding_create_update_log(sender, **kwargs):
         Event.objects.create(message="[RawFinding] Raw finding '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
 
+
 @receiver(post_delete, sender=RawFinding)
 def rawfinding_delete_log(sender, **kwargs):
     Event.objects.create(message="[RawFinding] Raw finding '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
+
 
 class Finding(models.Model):
     raw_finding = models.ForeignKey(RawFinding, models.SET_NULL, blank=True, null=True)
@@ -134,7 +145,7 @@ class Finding(models.Model):
     vuln_refs   = JSONField(null=True, blank=True)
     links       = JSONField(null=True, blank=True)
     tags        = JSONField(null=True, blank=True)
-    status      = models.CharField(max_length=10, default='new')
+    status      = models.CharField(choices=FINDING_STATUS, max_length=10, default='new')
     engine_type = models.CharField(max_length=20)
     found_at    = models.DateTimeField(default=timezone.now)
     comments    = models.TextField(default="n/a", null=True, blank=True)
@@ -195,6 +206,7 @@ def finding_create_update_log(sender, **kwargs):
         kwargs['instance'].asset.calc_risk_grade()
         Event.objects.create(message="[Finding] Finding '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
+
 
 @receiver(post_delete, sender=Finding)
 def finding_delete_log(sender, **kwargs):

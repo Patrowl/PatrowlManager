@@ -74,7 +74,10 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
 
     if engine == 'nessus':
 
-        summary = {"info": 0, "medium": 0, "missing": 0, "high": 0, "critical": 0, "low": 0, "new": 0, "total": 0}
+        summary = {
+            "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
+            "missing": 0, "new": 0, "total": 0
+        }
 
         Event.objects.create(message='[EngineTasks/importfindings_task()] engine: nessus', type="INFO", severity="INFO")
         try:

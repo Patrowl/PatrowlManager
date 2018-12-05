@@ -13,7 +13,11 @@ from .tasks import refresh_engines_status_task, get_engine_status_task
 from .forms import EnginePolicyForm, EngineInstanceForm, EngineForm, EnginePolicyImportForm
 from scans.models import Scan
 from scans.views import _update_celerybeat
-import os, requests, json, time, base64
+import os
+import requests
+import json
+import time
+import base64
 
 
 def list_engines(request):
@@ -25,7 +29,7 @@ def list_engines(request):
             "description": getattr(engine, 'description'),
             "created_at": getattr(engine, 'created_at'),
             "updated_at": getattr(engine, 'updated_at')
-       })
+        })
     return JsonResponse(list_engines, safe=False)
 
 
@@ -39,7 +43,7 @@ def list_instances_by_id(request, engine_id):
             "api_url": getattr(instance, 'api_url'),
             "created_at": getattr(instance, 'created_at'),
             "updated_at": getattr(instance, 'updated_at')
-       })
+        })
     return JsonResponse(list_instances, safe=False)
 
 
@@ -53,7 +57,7 @@ def list_instances_by_name(request, engine_name):
             "api_url": getattr(instance, 'api_url'),
             "created_at": getattr(instance, 'created_at'),
             "updated_at": getattr(instance, 'updated_at')
-       })
+        })
     return JsonResponse(list_instances, safe=False)
 
 
@@ -136,19 +140,15 @@ def toggle_autorefresh_engine_status(request):
         )
         periodic_task.enabled = True
         periodic_task.save()
-        #PeriodicTasks.changed()
-        #print "#### A new periodic task has been created!!"
 
         _update_celerybeat()
         return JsonResponse({"autorefresh_task_status": True}, status=200)
     else:
-        #print "#### A periodic task has been found. Just disabling it!!"
         autorefresh_task = autorefresh_tasks.first()
         autorefresh_task.enabled = not autorefresh_task.enabled
         autorefresh_task.save()
 
         _update_celerybeat()
-        #PeriodicTasks.changed()
         return JsonResponse({"autorefresh_task_status": autorefresh_task.enabled}, status=200)
 
 
@@ -175,7 +175,11 @@ def list_engines_api(requests):
             "type": engine.engine.name
            })
     running_scans = Scan.objects.filter(status__in=["enqueued", "started"]).count()
-    return JsonResponse({"engines": engines, "running_scans": running_scans}, safe=False)
+    return JsonResponse(
+        {
+            "engines": engines,
+            "running_scans": running_scans
+        }, safe=False)
 
 
 @csrf_exempt
@@ -205,7 +209,7 @@ def add_engine_view(request):
                 'api_key': form.cleaned_data['api_key'],
                 'username': form.cleaned_data['username'],
                 'password': form.cleaned_data['password'],
-           }
+            }
 
             engine = EngineInstance(**engine_args)
             engine.save()
@@ -252,9 +256,13 @@ def info_engine_api(request, engine_id):
 
     nb_scans = Scan.objects.filter(engine=engine).count()
 
-    return JsonResponse({'engine': model_to_dict(engine), 'engine_infos': engine_infos,
-                 'nb_scans': nb_scans, 'current_scans': current_scans},
-                 json_dumps_params={'indent': 2})
+    return JsonResponse({
+        'engine': model_to_dict(engine),
+        'engine_infos': engine_infos,
+        'nb_scans': nb_scans,
+        'current_scans': current_scans},
+        json_dumps_params={'indent': 2}
+    )
 
 
 def edit_engine_view(request, engine_id):
@@ -307,9 +315,10 @@ def export_policies(request):
     else:
         return redirect('list_policies_view')
 
-    response = JsonResponse({ "policies": [policy.as_dict() for policy in policies]})
+    response = JsonResponse({"policies": [policy.as_dict() for policy in policies]})
     response['Content-Disposition'] = 'attachment; filename=enginepolicies_'+str(int(time.time() * 1000))+'.json'
     return response
+
 
 def import_policies_view(request):
     if request.method == 'GET':
@@ -330,7 +339,6 @@ def import_policies_view(request):
 
             destfile = open(policies_file).read()
             ep_fields = ['description', 'scope_names', 'name', 'engine_name', 'options', 'file']
-
 
             for policy in json.loads(destfile)['policies']:
                 # check if all keys are set
@@ -455,8 +463,8 @@ def edit_policy_view(request, policy_id):
             policy.name = form.cleaned_data['name']
             policy.description = form.cleaned_data['description']
             policy.scopes = form.cleaned_data['scopes']
-            policy.is_default = form.cleaned_data['is_default'] == True
-            policy.default = form.cleaned_data['is_default'] == True
+            policy.is_default = form.cleaned_data['is_default'] is True
+            policy.default = form.cleaned_data['is_default'] is True
             policy.status = "active"
             policy.options = form.cleaned_data['options']
 
@@ -490,8 +498,8 @@ def duplicate_policy_view(request, policy_id):
         'options': policy.options,
         'file': policy.file,
         'status': policy.status,
-        'is_default': policy.is_default,
-   }
+        'is_default': policy.is_default
+    }
 
     new_policy = EnginePolicy(**policy_args)
     new_policy.save()
@@ -526,8 +534,8 @@ def add_engine_types_view(request):
             engine_args = {
                 'name': form.cleaned_data['name'],
                 'description': form.cleaned_data['description'],
-                'allowed_asset_types': form.data.getlist('allowed_asset_types'),
-           }
+                'allowed_asset_types': form.data.getlist('allowed_asset_types')
+            }
 
             engine = Engine(**engine_args)
             engine.save()
@@ -544,7 +552,7 @@ def edit_engine_type_view(request, engine_id):
     if request.method == 'GET':
         form = EngineForm(instance=engine, initial={
             'allowed_asset_types': eval(engine.allowed_asset_types)
-       })
+        })
     elif request.method == 'POST':
         form = EngineForm(request.POST, instance=engine)
         if form.is_valid():
@@ -554,7 +562,10 @@ def edit_engine_type_view(request, engine_id):
             messages.success(request, 'Update submission successful')
             return redirect('list_engine_types_view')
 
-    return render(request, 'edit-engine.html', {'form': form, 'engine_id': engine.id})
+    return render(request, 'edit-engine.html', {
+        'form': form,
+        'engine_id': engine.id
+    })
 
 
 def delete_engine_type_view(request, engine_id):

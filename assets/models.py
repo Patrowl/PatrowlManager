@@ -141,7 +141,7 @@ def assetcat_delete_log(sender, **kwargs):
 class Asset(models.Model):
     """Class definition of Asset."""
 
-    value       = models.CharField(max_length=256, unique=True)
+    value       = models.CharField(max_length=256, unique=True, null=False)
     name        = models.CharField(max_length=256)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
@@ -159,21 +159,13 @@ class Asset(models.Model):
         db_table = 'assets'
 
     def __str__(self):
+        """Return Stringified class summary."""
         return "{}".format(self.value)
 
     def save(self, *args, **kwargs):
-        # update the 'updated_at' entry on each update except on creation
+        """Update the 'updated_at' field on each updates."""
         if not self._state.adding:
-            # Asset modification
-            # Event.objects.create(message="[Asset] Asset '{}' modified (id={})".format(self, self.id),
-            #              description="",
-            #              severity="DEBUG")
             self.updated_at = timezone.now()
-        # else:
-        #     # New asset
-        #     Event.objects.create(message="[Asset] New asset created (id={}): {}".format(self.id, self.value),
-        #                  description="",
-        #                  severity="DEBUG")
         return super(Asset, self).save(*args, **kwargs)
 
     def evaluate_risk(self):
@@ -280,10 +272,12 @@ def asset_create_update_log(sender, **kwargs):
         Event.objects.create(message="[Asset] Asset '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
 
+
 @receiver(post_delete, sender=Asset)
 def asset_delete_log(sender, **kwargs):
     Event.objects.create(message="[Asset] Asset '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
+
 
 class AssetGroup(models.Model):
     assets      = models.ManyToManyField(Asset)
@@ -481,6 +475,7 @@ class AssetOwnerDocument(models.Model):
         if os.path.exists(self.filepath):
             os.remove(self.filepath)
         return super(AssetOwnerDocument, self).delete(*args, **kwargs)
+
 
 @receiver(post_save, sender=AssetOwnerDocument)
 def assetownerdoc_create_update_log(sender, **kwargs):
