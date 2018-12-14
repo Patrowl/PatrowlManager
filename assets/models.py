@@ -472,7 +472,7 @@ class AssetOwnerDocument(models.Model):
 
     def delete(self, *args, **kwargs):
         # Delete related documents
-        if os.path.exists(self.filepath):
+        if self.filepath is not None and os.path.exists(self.filepath):
             os.remove(self.filepath)
         return super(AssetOwnerDocument, self).delete(*args, **kwargs)
 

@@ -28,14 +28,14 @@ function toggle(source, element) {
 </script>
 
 <ul class="breadcrumb">
-  <li><a href="/assets/list">assets</a></li>
+  <<li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li class="active">list</li>
 </ul>
 
 <div class="container-fluid">
 
-  <a href="/assets/export" class="text-warning">>> Export assets (CSV)</a><br/>
-  <a href="/assets/api/v1/refresh_all_grades" class="text-danger">>> Refresh all scores</a><br/>
+  <a href="{% url 'export_assets_api' %}" class="text-warning">>> Export assets (CSV)</a><br/>
+  <a href="{% url 'refresh_all_asset_grade_api' %}s" class="text-danger">>> Refresh all scores</a><br/>
 
   <div id="menu_tabs" class="container-fluid">
     <ul class="nav nav-tabs" id="menu_tabs_ul">
@@ -89,7 +89,6 @@ function toggle(source, element) {
             <tr>
               <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
               <th data-field="name"  onclick="sortby('name', 'assets');">Name</th>
-              <!-- <th data-field="value">Value</th> -->
               <th data-field="categories">Tags</th>
               <th data-field="criticity" onclick="sortby('criticity_num', 'assets');">Criticity</th>
               <th data-field="score" onclick="sortby('-risk_level', 'assets');">Score</th>

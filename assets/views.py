@@ -39,167 +39,13 @@ import urllib
 import copy
 
 
-def get_assets_stats(request):
-    assets = Asset.objects.all()
-    data = {
-        "nb_assets": assets.count(),
-        "nb_assets_high": assets.filter(criticity="high").count(),
-        "nb_assets_medium": assets.filter(criticity="medium").count(),
-        "nb_assets_low": assets.filter(criticity="low").count(),
-        "nb_assets_info": assets.filter(criticity="info").count(),
-    }
-    return JsonResponse(data, json_dumps_params={'indent': 2})
-
-
-@api_view(['GET'])
-@authentication_classes((SessionAuthentication, BasicAuthentication))
-@permission_classes((IsAuthenticated,))
-def get_asset_details_api(request, asset_name):
-    asset = get_object_or_404(Asset, value=asset_name)
-
-    # Asset details
-    response = model_to_dict(asset, fields=[field.name for field in asset._meta.fields])
-
-    # Related asset groups
-    asset_groups = []
-    for asset_group in asset.assetgroup_set.all():
-        asset_group_dict = model_to_dict(asset_group, fields=[field.name for field in asset_group._meta.fields])
-        asset_groups.append(asset_group_dict)
-    response.update({
-        "asset_groups": asset_groups
-    })
-
-    # Related findings
-    findings = []
-    for finding in asset.finding_set.all():
-        finding_dict = model_to_dict(finding, fields=[field.name for field in finding._meta.fields])
-        findings.append(finding_dict)
-    response.update({
-        "findings": findings
-    })
-
-    # Last 10 scans
-    scans = []
-    for scan in asset.scan_set.all()[:10]:
-        scan_dict = model_to_dict(scan, fields=[field.name for field in scan._meta.fields])
-        scans.append(scan_dict)
-
-    response.update({
-        "last10scans": scans
-    })
-
-    return JsonResponse(response, json_dumps_params={'indent': 2}, safe=False)
-
-
-def get_asset_trends(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
-    data = []
-    ticks_by_period = {'week': 7, 'month': 30, 'trimester': 120, 'year': 365}
-    grade_levels = {'A': 6, 'B': 5, 'C': 4, 'D': 3, 'E': 2, 'F': 1, 'n/a': 0}
-
-    # period = x-axis
-    period = request.GET.get('period_by', None)
-    if period not in ticks_by_period.keys():
-        period = 7
-    else:
-        period = ticks_by_period[period]
-
-    nb_ticks = int(request.GET.get('max_ticks', 15))
-    if nb_ticks < period:
-        delta = period // nb_ticks
-    else:
-        delta = 1
-
-    startdate = datetime.datetime.today()
-    for i in range(0, nb_ticks):
-        enddate = startdate - datetime.timedelta(days=i*delta)
-        findings_stats = {
-            'total': 0,
-            'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
-            'new': 0,
-            'risk_grade': 'n/a',
-            'date': str(enddate.date())}
-        for f in asset.finding_set.filter(created_at__lte=enddate):
-            findings_stats['total'] = findings_stats.get('total') + 1
-            findings_stats[f.severity] = findings_stats.get(f.severity) + 1
-            if f.status == 'new':
-                findings_stats['new'] = findings_stats.get('new') + 1
-
-        if findings_stats['total'] != 0:
-            findings_stats['risk_grade'] = grade_levels[asset.get_risk_grade(history=i)]
-            # findings_stats['risk_grade'] = grade_levels[asset.get_risk_grade(history=i)['grade']]
-        else:
-            findings_stats['risk_grade'] = 0
-        data.append(findings_stats)
-
-    return JsonResponse(data[::-1], json_dumps_params={'indent': 2}, safe=False)
-
-
-def list_assets_api(request):
-    q = request.GET.get("q", None)
-    if q:
-        assets = list(Asset.objects.filter(value__icontains=q)
-                      .annotate(format=Value("asset", output_field=CharField()))
-                      .values('id', 'value', 'format'))
-        assetgroups = list(AssetGroup.objects.filter(name__icontains=q)
-                       .extra(select={'value': 'name'})
-                       .annotate(format=Value("assetgroup", output_field=CharField()))
-                       .values('id', 'value', 'format'))
-    else:
-        assets = list(Asset.objects
-                      .annotate(format=Value("asset", output_field=CharField()))
-                      .values('id', 'value', 'format'))
-        assetgroups = list(AssetGroup.objects
-                           .extra(select={'value': 'name'})
-                           .annotate(format=Value("assetgroup", output_field=CharField()))
-                           .values('id', 'value', 'format'))
-    return JsonResponse(assets + assetgroups, safe=False)
-
-
-@api_view(['GET', 'POST'])
-@csrf_exempt
-def list_assets(request):
-    if request.method == 'GET':
-        assets = Asset.objects.all()
-        ser = AssetSerializer(assets, many=True)
-        return JsonResponse(ser.data, safe=False)
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        ser = AssetSerializer(data=data)
-        if ser.is_valid():
-            ser.save()
-            return JsonResponse(ser.data, status=201)
-        return JsonResponse(ser.errors, status=400)
-    else:
-        return JsonResponse({"status": "error"}, status=400)
-
-
-@api_view(['GET', 'PUT', 'DELETE'])
-@csrf_exempt
-def asset_details(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
-
-    if request.method == 'GET':
-        ser = AssetSerializer(asset)
-        return JsonResponse(ser.data, safe=False)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        ser = AssetSerializer(asset, data=data)
-        if ser.is_valid():
-            ser.save()
-            return JsonResponse(ser.data)
-        return JsonResponse(ser.errors, status=400)
-
-    elif request.method == 'DELETE':
-        asset.delete()
-        return HttpResponse(status=204)
-
-
 def list_assets_view(request):
     # Check sorting options
-    allowed_sort_options = ["id", "name", "criticity_num", "score", "type", "updated_at", "risk_level", "risk_level__grade",
-                            "-id", "-name", "-criticity_num", "-score", "-type", "-updated_at", "-risk_level", "-risk_level__grade"]
+    allowed_sort_options = ["id", "name", "criticity_num", "score", "type",
+                            "updated_at", "risk_level", "risk_level__grade",
+                            "-id", "-name", "-criticity_num", "-score",
+                            "-type", "-updated_at", "-risk_level",
+                            "-risk_level__grade"]
     sort_options = request.GET.get("sort", "-updated_at")
     sort_options_valid = []
     for s in sort_options.split(","):
@@ -263,57 +109,10 @@ def list_assets_view(request):
         ag["risk_grade"] = asset_group.get_risk_grade()
         asset_groups.append(ag)
 
-    return render(request, 'list-assets.html', {'assets': assets, 'asset_groups': asset_groups})
-
-
-def refresh_all_asset_grade_api(request):
-    for asset in Asset.objects.all():
-        asset.calc_risk_grade()
-    for assetgroup in AssetGroup.objects.all():
-        assetgroup.calc_risk_grade()
-    return redirect('list_assets_view')
-
-
-def refresh_asset_grade_api(request, asset_id=None):
-    if asset_id:
-        asset = get_object_or_404(Asset, id=asset_id)
-        asset.calc_risk_grade()
-    else:
-        # update all
-        for asset in Asset.objects.all():
-            asset.calc_risk_grade()
-    return redirect('list_assets_view')
-
-
-def refresh_assetgroup_grade_api(request, assetgroup_id=None):
-    if assetgroup_id:
-        assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
-        assetgroup_id.calc_risk_grade()
-    else:
-        # update all
-        for assetgroup in AssetGroup.objects.all():
-            assetgroup.calc_risk_grade()
-    return JsonResponse({"status": "success"}, safe=False)
-
-
-def export_assets(request, assetgroup_id=None):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
-    writer = csv.writer(response, delimiter=';')
-
-    assets = []
-    if assetgroup_id:
-        asset_group = AssetGroup.objects.get(id=assetgroup_id)
-        for asset in asset_group.assets.all():
-            assets.append(asset)
-    else:
-        # assets = Asset.objects.filter(owner_id=request.user.id)
-        assets = Asset.objects.all()
-
-    writer.writerow(['asset_value', 'asset_name', 'asset_type', 'asset_description', 'asset_criticity', 'asset_tags'])
-    for asset in assets:
-        writer.writerow([smart_str(asset.value), asset.name, asset.type, smart_str(asset.description), asset.criticity, ",".join([a.value for a in asset.categories.all()])])
-    return response
+    return render(
+        request,
+        'list-assets.html',
+        {'assets': assets, 'asset_groups': asset_groups})
 
 
 def add_asset_view(request):
@@ -402,108 +201,6 @@ def delete_asset_view(request, asset_id):
         return redirect('list_assets_view')
 
     return render(request, 'delete-asset.html', {'asset': asset})
-
-
-@csrf_exempt  # not secure!!!
-def delete_assets(request):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error'})
-
-    assets = json.loads(request.body)
-    for asset_id in assets:
-        a = Asset.objects.get(id=asset_id)
-        a.delete()
-
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
-
-
-def get_asset_tags_api(request):
-    tags = AssetCategory.objects.values_list('value', flat=True)
-    return JsonResponse(list(tags), safe=False)
-
-
-def add_asset_tags(asset, new_value):
-    new_tag = AssetCategory.objects.filter(value__iexact=new_value).first()
-    if not new_tag:
-        if not AssetCategory.objects.filter(value="Custom").first():
-            AssetCategory.objects.create(value="Custom", comments="custom tags")
-        custom_tags = AssetCategory.objects.get(value="Custom")
-        new_tag = custom_tags.add_child(value=new_value)
-
-        Event.objects.create(message="[AssetCategory/add_asset_tags()] New AssetCategory created: '{}' with id: {}.".format(new_value, new_tag.id),
-                     type="INFO", severity="INFO")
-
-    if new_tag not in asset.categories.all():  # Not already set
-        # Check if futures parents has been already selected. If True: delete them
-        cats = list(asset.categories.all().values_list('value', flat=True))
-        if new_tag.get_all_parents():
-            pars = [t.value for t in new_tag.get_all_parents()]
-        else:
-            pars = []
-        intersec_par = set(pars).intersection(cats)
-        if intersec_par:
-            asset.categories.remove(AssetCategory.objects.get(value=list(intersec_par)[0]))
-
-        # Check if current tags are not children of the new tag.
-        # If True: delete them
-        chis = [t.value for t in new_tag.get_children()]
-        for c in set(chis).intersection(cats):
-            asset.categories.remove(AssetCategory.objects.get(value=c))
-
-    return new_tag
-
-
-def add_asset_tags_api(request, asset_id):
-    if request.method == 'POST':
-        asset = get_object_or_404(Asset, id=asset_id)
-        new_tag = add_asset_tags(asset, request.POST.getlist('input-search-tags')[0])
-        asset.categories.add(new_tag)
-        asset.save()
-        messages.success(request, 'Tag successfully added!')
-
-    return redirect('detail_asset_view', asset_id=asset_id)
-
-
-def add_asset_group_tags_api(request, assetgroup_id):
-    if request.method == 'POST':
-        asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
-        new_tag = add_asset_tags(asset_group, request.POST.getlist('input-search-tags')[0])
-        asset_group.categories.add(new_tag)
-        messages.success(request, 'Tag successfully added!')
-
-    return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
-
-
-def delete_asset_tags_api(request, asset_id):
-    tag_id = request.POST.get('tag_id', None)
-    try:
-        tag = AssetCategory.objects.get(id=tag_id)
-    except AssetCategory.DoesNotExist:
-        Event.objects.create(message="[AssetCategory/delete_asset_tags_api()] Asset with id '{}' was not found.".format(asset_id),
-                     type="ERROR", severity="ERROR")
-        return redirect('detail_asset_view', asset_id=asset_id)
-
-    if request.method == 'POST':
-        asset = get_object_or_404(Asset, id=asset_id)
-        asset.categories.remove(tag)  # @todo: check error cases
-
-    return redirect('detail_asset_view', asset_id=asset_id)
-
-
-def delete_asset_group_tags_api(request, assetgroup_id):
-    tag_id = request.POST.get('tag_id', None)
-    try:
-        tag = AssetCategory.objects.get(id=tag_id)
-    except AssetCategory.DoesNotExist:
-        Event.objects.create(message="[AssetCategory/delete_asset_tags_api()] AssetGroup with id '{}' was not found.".format(assetgroup_id),
-                     type="ERROR", severity="ERROR")
-        return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
-
-    if request.method == 'POST':
-        assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
-        assetgroup.categories.remove(tag)  # @todo: check error cases
-
-    return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
 
 
 def add_asset_group_view(request):
@@ -664,7 +361,16 @@ def detail_asset_view(request, asset_id):
     engine_scopes = {}
     for engine_scope in EnginePolicyScope.objects.all():
         engine_scopes.update({
-            engine_scope.name: {'priority': engine_scope.priority, 'id': engine_scope.id, 'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0}
+            engine_scope.name: {
+                'priority': engine_scope.priority,
+                'id': engine_scope.id,
+                'total': 0,
+                'critical': 0,
+                'high': 0,
+                'medium': 0,
+                'low': 0,
+                'info': 0
+            }
         })
 
     for finding in findings:
@@ -675,18 +381,23 @@ def detail_asset_view(request, asset_id):
         if finding.status == 'ack':
             findings_stats['ack'] = findings_stats.get('ack', 0) + 1
         for fs in finding.scope_list:
-            if fs != None:
+            if fs is not None:
                 c = engine_scopes[fs]
-                engine_scopes[fs].update({'total': c['total']+1, finding.severity: c[finding.severity]+1})
-        if not finding.engine_type in engines_stats.keys():
+                engine_scopes[fs].update({
+                    'total': c['total']+1,
+                    finding.severity: c[finding.severity]+1
+                })
+        if finding.engine_type not in engines_stats.keys():
             engines_stats.update({finding.engine_type: 0})
         engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
-        if finding.risk_info["cvss_base_score"] > 7.0: findings_stats['cvss_gte_7'] = findings_stats.get('cvss_gte_7', 0) + 1
+        if finding.risk_info["cvss_base_score"] > 7.0:
+            findings_stats['cvss_gte_7'] = findings_stats.get('cvss_gte_7', 0) + 1
 
         if bool(finding.vuln_refs):
             for ref in finding.vuln_refs.keys():
-                if ref not in references.keys(): references.update({ref: []})
-                tref=references[ref]
+                if ref not in references.keys():
+                    references.update({ref: []})
+                tref = references[ref]
                 if type(finding.vuln_refs[ref]) is list:
                     tref = tref + finding.vuln_refs[ref]
                 else:
@@ -708,10 +419,10 @@ def detail_asset_view(request, asset_id):
         'ondemand': ScanDefinition.objects.filter(assets_list__in=[asset], scan_type='single').count(),
         'running': Scan.objects.filter(assets__in=[asset], status='started').count(), #bug: a regrouper par assets
         'lasts': Scan.objects.filter(assets__in=[asset]).order_by('-created_at')[:3]
-        }
+    }
 
     asset_groups = list(AssetGroup.objects.filter(assets__in=[asset]).only("id"))
-    scan_defs = ScanDefinition.objects.filter(Q(assets_list__in=[asset])|Q(assetgroups_list__in=asset_groups)).annotate(engine_type_name=F('engine_type__name')).annotate(scan_set_count=Count('scan'))
+    scan_defs = ScanDefinition.objects.filter(Q(assets_list__in=[asset]) | Q(assetgroups_list__in=asset_groups)).annotate(engine_type_name=F('engine_type__name')).annotate(scan_set_count=Count('scan'))
     scans = Scan.objects.filter(assets__in=[asset]).values("id", "title", "status", "summary", "updated_at").annotate(engine_type_name=F('engine_type__name'))
 
     # Investigation links
@@ -744,7 +455,6 @@ def detail_asset_view(request, asset_id):
         'investigation_links': investigation_links,
         'engines_stats': engines_stats,
         'asset_scopes': sorted(engine_scopes.iteritems(), key=lambda (x, y): y['priority'])
-        # 'asset_scopes': sorted(engine_scopes.iteritems(), key=lambda x, y: y['priority'])
         })
 
 
@@ -764,7 +474,15 @@ def detail_asset_group_view(request, assetgroup_id):
     for scope in EnginePolicyScope.objects.all():
         asset_scopes.update({
             scope.name: {
-            'priority': scope.priority, 'id': scope.id, 'total':0, 'critical': 0, 'high':0, 'medium':0, 'low':0, 'info':0}})
+            'priority': scope.priority,
+            'id': scope.id,
+            'total':0,
+            'critical': 0,
+            'high':0,
+            'medium':0,
+            'low':0,
+            'info':0
+        }})
 
     findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
     engines_stats = {}
@@ -781,7 +499,7 @@ def detail_asset_group_view(request, assetgroup_id):
                 c = asset_scopes[fs]
                 asset_scopes[fs].update({'total': c['total']+1, finding.severity: c[finding.severity]+1})
 
-        if not finding.engine_type in engines_stats.keys():
+        if finding.engine_type not in engines_stats.keys():
             engines_stats.update({finding.engine_type: 0})
         engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
 
@@ -822,60 +540,6 @@ def detail_asset_group_view(request, assetgroup_id):
         'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda (x, y): y['priority'])
         # 'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda x, y: y['priority'])
     })
-
-
-# get asset report on last unique findings
-def get_asset_report_html(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
-
-    findings_tmp = list()
-    findings_stats = {}
-
-    # @todo: invert loops
-    for sev in ["critical", "high", "medium", "low", "info"]:
-        tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
-        if tmp.count() > 0: findings_tmp += tmp
-        findings_stats.update({sev: tmp.count()})
-    findings_stats.update({"total": len(findings_tmp)})
-
-    return render(request, 'report-asset-findings.html', {
-        'asset': asset,
-        'findings': findings_tmp,
-        'findings_stats': findings_stats})
-
-
-def get_asset_report_json(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
-
-    findings_tmp = list()
-    findings_stats = {}
-
-    # @todo: invert loops
-    for sev in ["critical", "high", "medium", "low", "info"]:
-        tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
-        findings_stats.update({sev: tmp.count()})
-        if tmp.count() > 0:
-            for f in tmp:
-                tmp_f = model_to_dict(f, exclude=["scopes"])
-                tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
-                findings_tmp.append(tmp_f)
-
-    asset_dict = model_to_dict(asset, exclude=["categories"])
-    asset_tags = [tag.value for tag in asset.categories.all()]
-    asset_dict.update({"categories": asset_tags})
-
-    return JsonResponse({
-        'asset': asset_dict,
-        'findings': findings_tmp,
-        'findings_stats': findings_stats
-        }, safe=False)
-
-
-def get_asset_group_report_html(request, asset_group_id):
-    asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
-
-    return render(request, 'report-assetgroup-findings.html', {
-        'asset_group': asset_group})
 
 
 ## Asset Owners
@@ -973,33 +637,6 @@ def add_asset_owner_document(request, asset_owner_id):
     return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)
 
 
-def get_asset_owner_doc(request, asset_owner_doc_id):
-    doc = get_object_or_404(AssetOwnerDocument, id=asset_owner_doc_id)
-    fp = urllib.unquote(doc.filepath)
-    fn = urllib.unquote(doc.filename)
-
-    file_wrapper = FileWrapper(file(fp, 'rb'))
-    file_mimetype = mimetypes.guess_type(fp)
-    response = HttpResponse(file_wrapper, content_type=file_mimetype)
-    response['X-Sendfile'] = fp
-    response['Content-Length'] = os.stat(fp).st_size
-    response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(fn)
-    return response
-
-
-@csrf_exempt
-def edit_asset_owner_comments(request, asset_owner_id):
-    new_comments = request.POST.get('new_comments', None)
-    if not request.method == "POST" or not new_comments:
-        return HttpResponse(status=400)
-
-    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
-    owner.comments = new_comments
-    owner.save()
-
-    return HttpResponse(status=200)
-
-
 def add_asset_owner_contact(request, asset_owner_id):
     if request.method != 'POST':
         return HttpResponse(status=400)
@@ -1026,26 +663,5 @@ def add_asset_owner_contact(request, asset_owner_id):
         owner.contacts.add(contact)
         owner.save()
         messages.success(request, 'Creation submission successful')
-
-    return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)
-
-
-def delete_asset_owner_contact(request, asset_owner_id):
-    if request.method != 'POST':
-        return HttpResponse(status=400)
-
-    contact = get_object_or_404(AssetOwnerContact, id=asset_owner_id)
-    contact.delete()
-
-    return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)
-
-
-def delete_asset_owner_document(request, asset_owner_id):
-    doc_id = request.POST.get('doc_id', None)
-    if request.method != 'POST' or not doc_id:
-        return HttpResponse(status=400)
-
-    document = get_object_or_404(AssetOwnerDocument, id=doc_id)
-    document.delete()
 
     return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)

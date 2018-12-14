@@ -2,9 +2,9 @@
 {% block content %}
 
 <ul class="breadcrumb">
-  <li><a href="/assets/list">assets</a></li>
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li><a href="/assets/details/{{asset.id}}">{{asset.value}}</a></li>
-  <li class="active">edit</a></li>
+  <li class="active">edit</li>
 </ul>
 
 <div class="container">

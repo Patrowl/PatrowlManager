@@ -2,7 +2,7 @@
 {% block content %}
 
 <ul class="breadcrumb">
-  <li><a href="/assets/list">assets</a></li>
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li><a href="/assets/owners/list">owners</a></li>
   <li class="active">{{ owner.name }}</li>
 </ul>
@@ -44,13 +44,13 @@
       <ul>
       {% for doc in owner.documents %}
         {% if doc.tlp_color == 'red' %}
-        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-danger">TLP:RED</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-danger">TLP:RED</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
         {% elif doc.tlp_color == 'amber' %}
-        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-warning">TLP:AMBER</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-warning">TLP:AMBER</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
         {% elif doc.tlp_color == 'green' %}
-        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-success">TLP:GREEN</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-success">TLP:GREEN</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
         {% elif doc.tlp_color == 'white' %}
-        <li><a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-white" style="color: black;">TLP:WHITE</span>({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-white" style="color: black;">TLP:WHITE</span>({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
         {% endif %}
           <a href="#" data-toggle="modal" data-target="#modal-delete-document"
            doc-id="{{ doc.id }}"
@@ -129,7 +129,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <form id="contact-form" role="form" action="/assets/owners/addcontact/{{owner.id}}" method="post" class="form-horizontal" enctype="multipart/form-data">
+        <form id="contact-form" role="form" action="{% url 'add_asset_owner_contact_api' owner.id %}" method="post" class="form-horizontal" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="form-group">
             <label class="col-sm-2 control-label" for="id_name">Name:</label>
@@ -340,13 +340,12 @@
 <script>
     $(function() {
       $("button.btn-save-comments").on('click', function(eventObject) {
-        save_comments_url = "/assets/owners/editcom/{{owner.id}}";
+        save_comments_url = "{% url 'edit_asset_owner_comments_api' owner.id %}";
         comments = $("#id_comments")[0].value
-        //alert(save_comments_url)
         var request = $.ajax({
           url: save_comments_url,
           method: "POST",
-          data: "new_comments="+comments
+          data: "new_comments="+comments+"&csrfmiddlewaretoken={{ csrf_token }}"
         });
         // request.done(function(response){
         //   if (response.status == 'success'){
@@ -363,19 +362,17 @@
         $("div#delete-contact-info").html("<b>"+contact_name+"</b><br/>");
       });
       $("button.btn-delete-contact").on('click', function (e) {
-        csrf_token = $("div#delete-contact-info").attr('csrf-token');
         contact_id = $("div#delete-contact-info").attr('contact-id');
-        owner_id = $("div[owner-id]").attr('owner-id');
-        delete_contact_url = "/assets/owners/deletecontact/"+contact_id;
+        delete_contact_url = "{% url 'delete_asset_owner_contact_api' owner.id %}";
         var request = $.ajax({
           url: delete_contact_url,
           method: "POST",
-          data: "contact_id="+contact_id+"&csrfmiddlewaretoken="+csrf_token,
+          data: "contact_id="+contact_id+"&csrfmiddlewaretoken={{ csrf_token }}",
           success: function(){
             location.reload();
           }
         });
-      });
+      }); // End - Delete Contact modal
 
       // Delete document modal
       $("#modal-delete-document").on('show.bs.modal', function (e) {
@@ -385,20 +382,17 @@
         $("div#delete-document-info").html("<b>"+doc_filename+"</b><br/>");
       });
       $("button.btn-delete-document").on('click', function (e) {
-        csrf_token = $("div#delete-document-info").attr('csrf-token');
         doc_id = $("div#delete-document-info").attr('doc-id');
-        owner_id = $("div[owner-id]").attr('owner-id');
-        delete_doc_url = "/assets/owners/deletedoc/"+owner_id;
+        delete_doc_url = "{% url 'delete_asset_owner_document_api' owner.id %}";
         var request = $.ajax({
           url: delete_doc_url,
           method: "POST",
-          data: "doc_id="+doc_id+"&csrfmiddlewaretoken="+csrf_token,
+          data: "doc_id="+doc_id+"&csrfmiddlewaretoken={{ csrf_token }}",
           success: function(){
             location.reload();
           }
         });
-      });
-
+      }); // End - Delete document modal
 
     }); // End - jQuery ready
 </script>

@@ -59,8 +59,8 @@ div.risk-trends {
 </style>
 
 <ul class="breadcrumb">
-  <li><a href="/assets/list">assets</a></li>
-  <li><a href="/assets/list?target=asset_group">groups</a></li>
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
+  <li><a href="{% url 'list_assets_view' %}?target=asset_group">groups</a></li>
   <li class="active">details for: {{ asset_group.name }} [<a href='/assets/groups/edit/{{ asset_group.id }}'>edit</a>]</li>
 </ul>
 
@@ -102,7 +102,7 @@ div.risk-trends {
         </dd>
         <dt>Export assets</dt>
         <dd>
-          <a href="/assets/export/{{ asset_group.id }}">CSV</a>
+          <a href="{% url 'export_assets_api' asset_group.id %}">CSV</a>
         </dd>
       </dl>
     </div><!-- End of first col -->
@@ -817,7 +817,8 @@ div.risk-trends {
     $("#input-search-tags").autocomplete({
       source: function(req, response) {
          $.ajax({
-          url: "/assets/get_tags",
+          // url: "/assets/get_tags",
+          url: "{% url 'get_asset_tags_api' %}",
           dataType: "json",
           success: function( data ) {
             var re = $.ui.autocomplete.escapeRegex(req.term);

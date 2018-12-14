@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls import url
-from . import views
+from . import views, apis
 
 
 urlpatterns = [
     # API Views
-    # ex: /events/list
-    url(r'^list$', views.list_events, name='list_events'),
+    # ex: /events/api/v1/list
+    url(r'^api/v1/list$', apis.list_events_api, name='list_events_api'),
 
     # WEB Views
     # ex: /events/delete [POST]
