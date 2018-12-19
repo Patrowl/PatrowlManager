@@ -16,7 +16,6 @@ import csv
 @api_view(['POST'])
 def update_setting_api(request):
     """API: Update a setting value."""
-
     setting_id = json.loads(request.body)["setting_id"]
     setting = get_object_or_404(Setting, id=setting_id)
     setting.value = json.loads(request.body)["setting_value"]
@@ -30,7 +29,6 @@ def update_setting_api(request):
 @api_view(['POST'])
 def add_setting_api(request):
     """API: Add a setting key/value."""
-
     setting_key = json.loads(request.body)["setting_key"]
     if Setting.objects.filter(key=setting_key).count() == 0:
         new_settings_args = {

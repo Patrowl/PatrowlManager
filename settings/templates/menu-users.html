@@ -7,6 +7,7 @@
       <tr>
         <th data-field="name">Username</th>
         <!-- <th data-field="profile">Profil</th> -->
+        <th data-field="apitoken">API-Token</th>
         <th data-field="status">Status</th>
         <th data-field="is_authenticated">Authenticated ?</th>
         <th data-field="updated_at">Last update</th>
@@ -18,6 +19,15 @@
     <tr class='dblclickable-row' data-href='/admin/auth/user/{{ user.id }}/change/'>
       <td>{{ user.username }}</td>
       <!-- <td>{{ user.profile }}</td> -->
+      <td>
+        {% if user.apitoken %}
+          <span style="font-family: monospace;">{{ user.apitoken }}</span>
+          <label class="label label-warning label-api" action="renew" user-id="{{ user.id }}">renew</label>
+          <label class="label label-danger label-api" action="delete" user-id="{{ user.id }}">delete</label>
+        {% else %}
+          <label class="label label-primary label-api" action="get" user-id="{{ user.id }}">create</label>
+        {% endif %}
+      </td>
       <td>
         {% if user.profile.status == 'ACTIVE' %}
         Active <span class="glyphicon glyphicon-ok text-success"></span>
@@ -78,5 +88,24 @@
   </ul>
   {% endif %}
 </div>
+
+<script>
+  $(function() {
+    // Token API management
+    $("label.label-api").on('click', function (e) {
+      user_id = e.target.getAttribute('user-id');
+      action = e.target.getAttribute('action');
+      token_api_url = "/users/api/v1/authtoken/"+action+"/"+user_id;
+      var request = $.ajax({
+        url: token_api_url,
+        method: "GET",
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+  }); // End of jQuery-ready
+</script>
 
 {% endblock %}

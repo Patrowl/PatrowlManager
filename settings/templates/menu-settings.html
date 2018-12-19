@@ -253,6 +253,11 @@
   var hash = window.location.hash;
   hash && $('ul.nav a[href="' + hash + '"]').tab('show');
 
+  // Fixing bootstrap tab issue
+  $('#menu_tabs > ul > li > a').click(function (e) {
+    $(this).removeClass('active');
+  });
+
   // Set the url variable
   current_url = window.location.href;
   url = new URL(current_url);

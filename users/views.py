@@ -7,9 +7,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
 from rest_framework import viewsets
+from rest_framework.authtoken.models import Token
 from users.serializers import UserSerializer
 from users.forms import LoginForm
 from reportings.views import homepage_dashboard_view
@@ -121,8 +122,12 @@ def signup(request):
 
 
 def user_details_view(request):
-    user = User.objects.get(id=request.user.id)
-    return render(request, 'details-user.html', {'user': user})
+    user = get_object_or_404(User, id=request.user.id)
+    apitoken = Token.objects.filter(user=request.user)[0]
+    return render(request, 'details-user.html', {
+        'user': user,
+        'apitoken': apitoken
+    })
 
 
 def list_users_view(request):

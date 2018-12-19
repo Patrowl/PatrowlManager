@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'rest_framework',
+    'rest_framework.authtoken',
+    'rest_framework_swagger',
     'datetimewidget',
     'engines',
     'findings',
@@ -83,6 +85,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
     )
 }
 
@@ -92,10 +98,9 @@ LOGIN_REQUIRED_URLS = (
 LOGIN_REQUIRED_URLS_EXCEPTIONS = (
     r'/login(.*)$',
     r'/logout(.*)$',
-    r'/home$',
     r'/signup$',
     r'/static/(.*)$',
-    r'/assets/api/v1/details/(.*)$',
+    r'/(.*)/api/v1/(.*)$',
 )
 
 LOGIN_URL = '/login'

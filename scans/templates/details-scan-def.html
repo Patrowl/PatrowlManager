@@ -102,31 +102,31 @@
         <td>{{ scan.updated_at | date:"Y/m/d-H:m:s.u" }}</td>
         <td>
           {% if scan.summary.critical > 0 %}
-          <span class="label label-danger">{{ scan.summary.critical }}</span>
+          <span class="label label-critical">{{ scan.summary.critical }}</span>
           {% else %}
           0
           {% endif %}/
 
           {% if scan.summary.high > 0 %}
-          <span class="label label-warning">{{ scan.summary.high }}</span>
+          <span class="label label-danger">{{ scan.summary.high }}</span>
           {% else %}
           0
           {% endif %}/
 
           {% if scan.summary.medium > 0 %}
-          <span class="label label-info">{{ scan.summary.medium }}</span>
+          <span class="label label-medium">{{ scan.summary.medium }}</span>
           {% else %}
           0
           {% endif %}/
 
           {% if scan.summary.low > 0 %}
-          <span class="label label-success">{{ scan.summary.low }}</span>
+          <span class="label label-low">{{ scan.summary.low }}</span>
           {% else %}
           0
           {% endif %}/
 
           {% if scan.summary.info > 0 %}
-          <span class="label label-primary">{{ scan.summary.info }}</span>
+          <span class="label label-info">{{ scan.summary.info }}</span>
           {% else %}
           0
           {% endif %}

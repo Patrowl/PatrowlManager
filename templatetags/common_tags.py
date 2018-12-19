@@ -44,6 +44,8 @@ def smartdate(date):
 @register.filter
 def sort_by(queryset, order_args):
     """Return a queryset sorted by supplied args."""
+    if isinstance(queryset, set):
+        return sorted(queryset)
     if order_args is None:
         return queryset
     orders = [arg.strip() for arg in order_args.split(',')]

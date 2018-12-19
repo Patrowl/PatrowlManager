@@ -15,10 +15,9 @@ from engines.models import Engine, EnginePolicy, EngineInstance, EnginePolicySco
 from findings.models import RawFinding
 from assets.models import Asset, AssetGroup
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from pytz import timezone
 import shlex
-import datetime
 import json
 
 
