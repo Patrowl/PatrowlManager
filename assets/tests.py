@@ -1,9 +1,7 @@
 from django.test import TestCase, Client
-from .models import Asset
-import json
+
 
 class AssetTestCase(TestCase):
-    #fixtures = ['tmp/db.json']
 
     def add_asset_test(self):
         print("TEST CASE: add_asset_test")

@@ -208,7 +208,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <form id="document-form" role="form" action="/assets/owners/adddoc/{{owner.id}}" method="post" class="form-horizontal" enctype="multipart/form-data">
+        <form id="document-form" role="form" action="/assets/api/v1/owners/adddoc/{{owner.id}}" method="post" class="form-horizontal" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="form-group">
             <label class="col-sm-2 control-label" for="id_doctitle">Title:</label>
@@ -300,7 +300,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-contact-info" csrf-token="{{ csrf_token }}">
+        <div id="delete-contact-info">
           <!-- Content -->
         </div>
         Confirm Deletion?
@@ -326,7 +326,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-document-info" csrf-token="{{ csrf_token }}">
+        <div id="delete-document-info">
           <!-- Content -->
         </div>
         Confirm Deletion?

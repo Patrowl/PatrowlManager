@@ -19,4 +19,7 @@ urlpatterns = [
     # REST-API Endpoints
     url(r'^users/api/v1/details/(?P<user_id>[0-9]+)$', apis.user_details_api, name='user_details_api'),
     url(r'^users/api/v1/list$', apis.list_users_api, name='list_users_api'),
+    url(r'^users/api/v1/authtoken/get$', apis.get_user_authtoken, name='get_user_authtoken'),
+    url(r'^users/api/v1/authtoken/renew$', apis.renew_user_authtoken, name='renew_user_authtoken'),
+    url(r'^users/api/v1/authtoken/delete$', apis.delete_user_authtoken, name='delete_user_authtoken'),
 ]

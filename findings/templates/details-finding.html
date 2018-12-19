@@ -20,8 +20,7 @@ hr {
 </style>
 
 <ul class="breadcrumb">
-  <li><a href="/findings/list">findings</a></li>
-  <li><a href="/findings/list">details</a></li>
+  <li><a href="{% url 'list_findings_view' %}">findings</a></li>
   <li class="active"> {{ finding.asset_name }}: {{ finding.title }}</li>
 </ul>
 <div class="container-fluid">
@@ -51,7 +50,7 @@ hr {
                 <span class="label label-low">{{ finding.severity }}</span>
                 {% else %}
                 <span class="label label-info">{{ finding.severity }}</span>
-                {% endif %} 
+                {% endif %}
                 {{ finding.title }}
               </b>
             </div>
@@ -276,57 +275,6 @@ hr {
   {% endif %}
 </div>
 
-<!-- Change finding status modal 
-<div class="modal fade" id="modal-change-finding-infos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      
-      <div class="modal-header bg-primary">
-        <button type="button" class="close" data-dismiss="modal">
-          <span aria-hidden="true">&times;</span>
-          <span class="sr-only">Close</span>
-        </button>
-        <h4 class="modal-title" id="myModalLabel">Update finding infos</h4>
-      </div>
-
-      
-      <div class="modal-body">
-        <div id="change-finding-infos" csrf-token="{{ csrf_token }}">
-          
-          <dl class="dl-horizontal">
-            <dt>Severity:</dt>
-            <dd>
-              <select id="chg_severity">
-                <option value='info'>Info</option>
-                <option value='low'>Low</option>
-                <option value='medium'>Medium</option>
-                <option value='high'>High</option>
-              </select>
-            </dd>
-            <dt>Status:</dt>
-            <dd>
-              <select id="chg_status">
-                <option value='new'>New</option>
-                <option value='ack'>Ack</option>
-              </select>
-            </dd>
-            <dt>Tags:</dt>
-            <dd>
-              Todo: update tag list
-            </dd>
-            <dt>CVSS</dt>
-            <dd>
-              Todo: update CVSS
-            </dd>
-          </dl>
-
-        </div>
-        <button type="button" class="btn btn-xs btn-warning btn-update-finding" data-dismiss="modal">Update</button>
-      </div>
-    </div>
-  </div>
-</div> -->
-
 <script>
 
   // function for parsing query string
@@ -356,7 +304,6 @@ hr {
 
   // Update finding comments
   $('button.btn-update-comments').on('click', function(e){
-
     comments = "csrfmiddlewaretoken={{ csrf_token }}&comments="+$("textarea#comments_text").val();
 
     if (qs('raw') == "true") {
@@ -371,24 +318,8 @@ hr {
         location.reload();
       }
     });
-  });
+  }); // End - Update finding comments
 
-  // Update info
-  /*$('button.btn-update-finding').on('click', function(e){
-    finding_id = "{{finding.id}}";
-    update_url = "/findings/api/v1/update/"+finding_id+"?severity="+$('#chg_severity').val()+"&status="+$('#chg_status').val()
-    if (qs('raw') == "true") {
-      update_url = update_url+"&raw=true";
-    }
-
-    var request = $.ajax({
-      url: update_url,
-      method: "GET",
-      success: function(data){
-        location.reload();
-      }
-    });
-  });*/
 
   // Export finding
   $('div.export-finding ul li a').on('click', function(e){

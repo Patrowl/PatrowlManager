@@ -7,7 +7,11 @@ from . import views, apis
 urlpatterns = [
     # API Views
     # ex: /events/api/v1/list
-    url(r'^api/v1/list$', apis.list_events_api, name='list_events_api'),
+    url(r'^api/v1/list$',
+        apis.list_events_api, name='list_events_api'),
+    # ex: /events/api/v1/delete/2
+    url(r'^api/v1/delete/(?P<event_id>[0-9]+)$',
+        apis.delete_event_api, name='delete_event_api'),
 
     # WEB Views
     # ex: /events/delete [POST]

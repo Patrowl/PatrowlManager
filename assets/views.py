@@ -1,41 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.forms.models import model_to_dict
-from django.utils.encoding import smart_str
-from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Value, CharField, Case, When, Q, F, Count
-
-from wsgiref.util import FileWrapper
 
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework.parsers import JSONParser
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-
-from app.settings import MEDIA_ROOT
-from .serializers import AssetSerializer
-from .forms import AssetForm, AssetGroupForm, AssetBulkForm, AssetOwnerForm, AssetOwnerDocumentForm, AssetOwnerContactForm
-from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument, AssetCategory, ASSET_INVESTIGATION_LINKS
+from .forms import AssetForm, AssetGroupForm, AssetBulkForm, AssetOwnerForm
+from .models import Asset, AssetGroup, AssetOwner, AssetCategory
+from .models import ASSET_INVESTIGATION_LINKS
 from findings.models import Finding
 from engines.models import EnginePolicyScope
-from events.models import Event
 from scans.models import Scan, ScanDefinition
 from common.utils import encoding
 
-import json
 import csv
-import os
-import mimetypes
-import datetime
-import urllib
 import copy
 
 
@@ -263,8 +246,11 @@ def edit_asset_group_view(request, assetgroup_id):
             messages.success(request, 'Update submission successful')
             return redirect('list_assets_view')
 
-    return render(request, 'edit-asset-group.html',
-                  {'form': form, 'assetgroup_id': assetgroup_id, 'asset_group': asset_group})
+    return render(request, 'edit-asset-group.html', {
+        'form': form,
+        'assetgroup_id': assetgroup_id,
+        'asset_group': asset_group
+    })
 
 
 def delete_asset_group_view(request, assetgroup_id):
@@ -289,7 +275,6 @@ def bulkadd_asset_view(request):
             for line in records:
                 # Add assets
                 if Asset.objects.filter(value=line[0]).count() > 0:
-                    #print "{} already added".format(line[0])
                     continue
 
                 asset_args = {
@@ -320,7 +305,7 @@ def bulkadd_asset_view(request):
                     ag.assets.add(asset)
 
                 # Manage tags (categories)
-                #@todo
+                # @todo
                 # if len(line) >= 7 and line[6] != ":
                 #     print line[5]
                 #     for tag in line[5].split(","):
@@ -417,7 +402,7 @@ def detail_asset_view(request, asset_id):
         'defined': ScanDefinition.objects.filter(assets_list__in=[asset]).count(),
         'periodic': ScanDefinition.objects.filter(assets_list__in=[asset], scan_type='periodic').count(),
         'ondemand': ScanDefinition.objects.filter(assets_list__in=[asset], scan_type='single').count(),
-        'running': Scan.objects.filter(assets__in=[asset], status='started').count(), #bug: a regrouper par assets
+        'running': Scan.objects.filter(assets__in=[asset], status='started').count(),  # bug: a regrouper par assets
         'lasts': Scan.objects.filter(assets__in=[asset]).order_by('-created_at')[:3]
     }
 
@@ -474,15 +459,16 @@ def detail_asset_group_view(request, assetgroup_id):
     for scope in EnginePolicyScope.objects.all():
         asset_scopes.update({
             scope.name: {
-            'priority': scope.priority,
-            'id': scope.id,
-            'total':0,
-            'critical': 0,
-            'high':0,
-            'medium':0,
-            'low':0,
-            'info':0
-        }})
+                'priority': scope.priority,
+                'id': scope.id,
+                'total': 0,
+                'critical': 0,
+                'high': 0,
+                'medium': 0,
+                'low': 0,
+                'info': 0
+            }
+        })
 
     findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
     engines_stats = {}
@@ -518,7 +504,7 @@ def detail_asset_group_view(request, assetgroup_id):
     }
 
     # calculate automatically risk grade
-    #asset_group.calc_risk_grade()
+    # asset_group.calc_risk_grade()
     asset_group_risk_grade = {
         'now': asset_group.get_risk_grade(),
         # 'day_ago': asset_group.get_risk_grade(history = 1),
@@ -580,7 +566,7 @@ def add_asset_owner_view(request):
             messages.success(request, 'Creation submission successful')
 
             return redirect('list_asset_owners_view')
-    return render(request, 'add-asset-owner.html', {'form': form })
+    return render(request, 'add-asset-owner.html', {'form': form})
 
 
 def delete_asset_owner_view(request, asset_owner_id):
@@ -595,73 +581,3 @@ def delete_asset_owner_view(request, asset_owner_id):
 def details_asset_owner_view(request, asset_owner_id):
     owner = model_to_dict(get_object_or_404(AssetOwner, id=asset_owner_id))
     return render(request, 'details-asset-owner.html', {'owner': owner})
-
-
-def add_asset_owner_document(request, asset_owner_id):
-    if request.method != 'POST':
-        return HttpResponse(status=400)
-
-    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
-    form = AssetOwnerDocumentForm(request.POST, request.FILES)
-    if form.is_valid():
-        doc_args = {
-            'doctitle': form.cleaned_data['doctitle'],
-            'tlp_color': form.cleaned_data['tlp_color'],
-            'comments': form.cleaned_data['comments'],
-            'owner': request.user,
-        }
-        if request.FILES:
-            # Create /media/ folders if not exists
-            if not os.path.exists(MEDIA_ROOT+"/owners_docs"):
-                os.makedirs(MEDIA_ROOT+"/owners_docs")
-            if not os.path.exists(MEDIA_ROOT+"/owners_docs/"+str(request.user.id)):
-                os.makedirs(MEDIA_ROOT+"/owners_docs/"+str(request.user.id))
-
-            myfile = request.FILES['file']
-            fs = FileSystemStorage(location=MEDIA_ROOT+"/owners_docs/"+str(request.user.id), base_url=MEDIA_ROOT+"/owners_docs/"+str(request.user.id))
-            filename = fs.save(myfile.name, myfile)
-            uploaded_file_url = fs.url(filename)
-            doc_args.update({
-                'filename': filename,
-                'filepath': uploaded_file_url
-            })
-
-        doc = AssetOwnerDocument(**doc_args)
-        doc.save()
-
-        # Add this document to the asset owner
-        owner.documents.add(doc)
-        owner.save()
-        messages.success(request, 'Creation submission successful')
-
-    return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)
-
-
-def add_asset_owner_contact(request, asset_owner_id):
-    if request.method != 'POST':
-        return HttpResponse(status=400)
-
-    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
-
-    form = AssetOwnerContactForm(request.POST)
-    if form.is_valid():
-        contact_args = {
-            'name': form.cleaned_data['name'],
-            'title': form.cleaned_data['title'],
-            'email': form.cleaned_data['email'],
-            'phone': form.cleaned_data['phone'],
-            'address': form.cleaned_data['address'],
-            'url': form.cleaned_data['url'],
-            'comments': form.cleaned_data['comments'],
-            'owner': request.user,
-        }
-
-        contact = AssetOwnerContact(**contact_args)
-        contact.save()
-
-        # Add this contact to the asset owner
-        owner.contacts.add(contact)
-        owner.save()
-        messages.success(request, 'Creation submission successful')
-
-    return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)

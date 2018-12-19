@@ -3,11 +3,11 @@
 
 <ul class="breadcrumb">
   <li><a href="{% url 'list_assets_view' %}">assets</a></li>
-  <li class="active">add new asset manually [<a href='/assets/list'>back</a>]</li>
+  <li class="active">add new asset manually [<a href="{% url 'list_assets_view' %}">back</a>]</li>
 </ul>
 
 <div class="container">
-  <form action="/assets/add" method="post" class="form-horizontal">
+  <form action="{% url 'add_asset_view' %}" method="post" class="form-horizontal">
     <legend>Add an asset</legend>
       {% csrf_token %}
       {% for field in form %}

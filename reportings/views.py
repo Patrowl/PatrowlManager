@@ -2,12 +2,15 @@ from django.shortcuts import render
 from django.db.models import Q, Count
 
 from assets.models import Asset, AssetGroup, ASSET_TYPES
-from findings.models import Finding, RawFinding
+from findings.models import Finding
 from scans.models import Scan, ScanDefinition
 from engines.models import EngineInstance, EnginePolicy
 from rules.models import Rule
 
-import datetime, operator, copy
+import datetime
+import operator
+import copy
+
 
 def homepage_dashboard_view(request):
     findings = Finding.objects.all()

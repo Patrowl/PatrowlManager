@@ -169,7 +169,7 @@ table tr td.scan-progress {
           <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
             <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
           {% else %}
-          <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/report/html/{{ scan.id }}'">
+          <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">
             <span class="glyphicon glyphicon-share"></span></button>
           {% endif %}
           <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_definition.id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
@@ -228,7 +228,7 @@ table tr td.scan-progress {
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-scan" csrf-token="{{ csrf_token }}">
+        <div id="delete-scan">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -406,7 +406,7 @@ table tr td.scan-progress {
           scan_row_html += "\
             <td>\
             <button type='button' class='btn btn-default btn-xs' title='Details' onclick='location.href=\"/scans/details/"+data[i]["scan_id"]+"\"'>details</button>\
-              <button type='button' class='btn btn-default btn-xs' title='Export scan findings' onclick='location.href=\"/scans/report/html/"+data[i]["scan_id"]+"\"'>\
+              <button type='button' class='btn btn-default btn-xs' title='Export scan findings' onclick='location.href=\"/scans/api/v1/report/html/"+data[i]["scan_id"]+"\"'>\
                 <span class='glyphicon glyphicon-share'></span></button>\
               <button type='button' class='btn btn-warning btn-xs btn-run-now' scan-id='"+data[i]["scan_definition_id"]+"' scan-title='"+data[i]["title"]+"' data-toggle='modal' data-target='#modal-run-scan'>\
                 Run </button>\
@@ -485,7 +485,8 @@ table tr td.scan-progress {
       }, 2000));
     });
     $("button.btn-run-now").on('click', function(eventObject) {
-      scan_url = "/scans/defs/run/"+eventObject.target.getAttribute('scan-id');
+      scan_id = eventObject.target.getAttribute('scan-id');
+      scan_url = "{% url 'run_scan_def_api' 0 %}".replace("0", scan_id);
       var xhr = $.get(scan_url, function(data) {
       })
     });
@@ -498,14 +499,12 @@ table tr td.scan-progress {
       $("div#delete-scan").html("Title: <b>"+scan_title+"</b><br/><br/>");
     });
     $("button.btn-delete-scan").on('click', function (e) {
-      csrf_token = $("div#delete-scan").attr('csrf-token');
       id = $("div#delete-scan").attr('scan-id');
       delete_scan_url = "/scans/delete/"+id;
       var request = $.ajax({
         url: delete_scan_url,
         method: "POST",
-        //data: "doc_id="+doc_id+"&csrfmiddlewaretoken="+csrf_token,
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }
@@ -515,7 +514,7 @@ table tr td.scan-progress {
     // Stop scan
     $("button.btn-stop-scan").on('click', function (e) {
       id = e.target.getAttribute('scan-id');
-      stop_scan_url = "/scans/stop/"+id;
+      stop_scan_url = "{% url 'stop_scan_api' 0 %}".replace("0", id);
       var request = $.ajax({
         url: stop_scan_url,
         method: "GET",
@@ -535,10 +534,11 @@ table tr td.scan-progress {
       })
 
       if (scans_to_delete.length != 0){
-        delete_url="/scans/delete"
+        delete_url="{% url 'delete_scans_api' %}"
         var request = $.ajax({
           url: delete_url,
           method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(scans_to_delete),
           contentType: "application/json"
         });

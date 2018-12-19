@@ -63,6 +63,26 @@ def get_engine_status_task(self, engine_id):
 
 
 @shared_task(bind=True)
+def get_engine_info_task(self, engine_id):
+    print ("task: starting get_engine_info_task !")
+    for engine in EngineInstance.objects.filter(id=engine_id):
+        try:
+            resp = requests.get(
+                url=str(engine.api_url)+"info",
+                verify=False, timeout=5, proxies=PROXIES)
+
+            if resp.status_code == 200:
+                engine.status = json.loads(resp.text)['status'].strip().upper()
+            else:
+                engine.status = "ERROR"
+        except requests.exceptions.RequestException:
+            engine.status = "ERROR"
+
+        engine.save()
+    return True
+
+
+@shared_task(bind=True)
 def importfindings_task(self, report_filename, owner_id, engine, min_level):
     Event.objects.create(message="[EngineTasks/importfindings_task/{}] Task started with engine {}.".format(self.request.id, engine),
                  type="INFO", severity="INFO")

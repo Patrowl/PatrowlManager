@@ -150,7 +150,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-rule" csrf-token="{{ csrf_token }}">
+        <div id="delete-rule">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -308,8 +308,6 @@
       }
       delete_rule_args = []
       delete_rule_args.push($("div#delete-rule").attr('rule-id'))
-      // csrf_token = $("div#delete-rule").attr('csrf-token');
-      // rule_id = $("div#delete-rule").attr('rule-id');
       delete_rule_url = "/rules/api/v1/delete";
       var request = $.ajax({
         url: delete_rule_url,

@@ -52,8 +52,8 @@ function toggle(source, element) {
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
-              <li><a class="btn-asset-add" href="/assets/add">+ Add a new asset manually</a></li>
-              <li><a class="btn-asset-bulkadd" href="/assets/bulkadd">+ Add new assets in bulk</a></li>
+              <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
+              <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
               <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
             </ul>
           </div>
@@ -77,7 +77,7 @@ function toggle(source, element) {
               <li><a onclick="sortby('type', 'assets');">Type</a></li>
               <li><a onclick="sortby('-updated_at', 'assets');">Last update</a></li>
             </ul>
-            <button class="btn btn-primary btn-xs" type="button" onclick="location.href='/assets/list'">
+            <button class="btn btn-primary btn-xs" type="button" onclick="location.href='{% url "list_assets_view" %}'">
               Reset
             </button>
           </div>
@@ -177,7 +177,7 @@ function toggle(source, element) {
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-            <li><a class="btn-assetgroup-add" href="/assets/addgroup">+ Add a new asset group manually</a></li>
+            <li><a class="btn-assetgroup-add" href="{% url 'add_asset_group_view' %}">+ Add a new asset group manually</a></li>
             <!-- <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li> -->
           </ul>
         </div>
@@ -227,20 +227,6 @@ function toggle(source, element) {
     </div>
   </div>
 
-  <!-- <div class="dropdown">
-    <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-      Actions
-      <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-      <li><a class="btn-asset-add" href="/assets/add">+ Add a new asset manually</a></li>
-      <li><a class="btn-asset-bulkadd" href="/assets/bulkadd">+ Add new assets in bulk</a></li>
-      <li><a class="btn-assetgroup-add" href="/assets/addgroup">+ Add a new asset group</a></li>
-      <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
-    </ul>
-  </div> -->
-
-
   <div class="notifications">
     {% if messages %}
     <ul class="messages">
@@ -268,7 +254,7 @@ function toggle(source, element) {
 
         <!-- Modal Body -->
         <div class="modal-body">
-          <div id="delete-asset" csrf-token="{{ csrf_token }}">
+          <div id="delete-asset">
             <!-- Content -->
           </div>
           Confirm Deleting?
@@ -294,7 +280,7 @@ function toggle(source, element) {
 
         <!-- Modal Body -->
         <div class="modal-body">
-          <div id="delete-asset-group" csrf-token="{{ csrf_token }}">
+          <div id="delete-asset-group">
             <!-- Content -->
           </div>
           Confirm Deleting?
@@ -353,7 +339,7 @@ function toggle(source, element) {
         if (url.searchParams.get("n") == null) {
           n_options = NB_ROWS;
         }
-        window.location = "/assets/list?sort="+sort_options+"&filter="+e.target.value+"&n="+n_options;
+        window.location = "{% url 'list_assets_view' %}?sort="+sort_options+"&filter="+e.target.value+"&n="+n_options;
 
       } else if (e.which == 27) { e.target.value = ""; } // Escape Key
     });
@@ -366,13 +352,12 @@ function toggle(source, element) {
       $("div#delete-asset").html("Asset: <b>"+asset_value+"</b><br/><br/>");
     });
     $("button.btn-delete-asset").on('click', function (e) {
-      csrf_token = $("div#delete-asset").attr('csrf-token');
       id = $("div#delete-asset").attr('asset-id');
       delete_asset_url = "/assets/delete/"+id;
       var request = $.ajax({
         url: delete_asset_url,
         method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }
@@ -387,13 +372,12 @@ function toggle(source, element) {
       $("div#delete-asset-group").html("Asset Group Name: <b>"+asset_group_value+"</b><br/><br/>");
     });
     $("button.btn-delete-asset-group").on('click', function (e) {
-      csrf_token = $("div#delete-asset-group").attr('csrf-token');
       id = $("div#delete-asset-group").attr('asset-group-id');
       delete_asset_group_url = "/assets/deletegroup/"+id;
       var request = $.ajax({
         url: delete_asset_group_url,
         method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }
@@ -410,10 +394,11 @@ function toggle(source, element) {
       })
 
       if (assets_to_delete.length != 0){
-        delete_url="/assets/delete"
+        delete_url="{% url 'delete_assets_api' %}";
         var request = $.ajax({
           url: delete_url,
           method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(assets_to_delete),
           contentType: "application/json"
         });
@@ -424,7 +409,6 @@ function toggle(source, element) {
     });
 
     // Manage nb_rows_per_page //TODO: debug
-    // _nb_rows = getUrlParameter('n')
     _nb_rows = url.searchParams.get("n");
     if (typeof _nb_rows === "undefined") {
 

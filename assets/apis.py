@@ -6,11 +6,15 @@ from django.utils.encoding import smart_str
 from django.db.models import Value, CharField
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
 
 from wsgiref.util import FileWrapper
 from rest_framework.decorators import api_view
 
-from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument, AssetCategory
+from .models import Asset, AssetGroup, AssetCategory
+from .models import AssetOwner, AssetOwnerContact, AssetOwnerDocument
+from .forms import AssetOwnerContactForm, AssetOwnerDocumentForm
+from app.settings import MEDIA_ROOT
 from findings.models import Finding
 from events.models import Event
 
@@ -424,4 +428,68 @@ def delete_asset_owner_document_api(request, asset_owner_id):
     doc_id = request.POST.get('doc_id')
     document = get_object_or_404(AssetOwnerDocument, id=doc_id)
     document.delete()
+    return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)
+
+
+@api_view(['POST'])
+def add_asset_owner_document_api(request, asset_owner_id):
+    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
+    form = AssetOwnerDocumentForm(request.POST, request.FILES)
+    if form.is_valid():
+        doc_args = {
+            'doctitle': form.cleaned_data['doctitle'],
+            'tlp_color': form.cleaned_data['tlp_color'],
+            'comments': form.cleaned_data['comments'],
+            'owner': request.user,
+        }
+        if request.FILES:
+            # Create /media/ folders if not exists
+            if not os.path.exists(MEDIA_ROOT+"/owners_docs"):
+                os.makedirs(MEDIA_ROOT+"/owners_docs")
+            if not os.path.exists(MEDIA_ROOT+"/owners_docs/"+str(request.user.id)):
+                os.makedirs(MEDIA_ROOT+"/owners_docs/"+str(request.user.id))
+
+            myfile = request.FILES['file']
+            fs = FileSystemStorage(location=MEDIA_ROOT+"/owners_docs/"+str(request.user.id), base_url=MEDIA_ROOT+"/owners_docs/"+str(request.user.id))
+            filename = fs.save(myfile.name, myfile)
+            uploaded_file_url = fs.url(filename)
+            doc_args.update({
+                'filename': filename,
+                'filepath': uploaded_file_url
+            })
+
+        doc = AssetOwnerDocument(**doc_args)
+        doc.save()
+
+        # Add this document to the asset owner
+        owner.documents.add(doc)
+        owner.save()
+
+    return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)
+
+
+@api_view(['POST'])
+def add_asset_owner_contact_api(request, asset_owner_id):
+    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
+
+    form = AssetOwnerContactForm(request.POST)
+    if form.is_valid():
+        contact_args = {
+            'name': form.cleaned_data['name'],
+            'title': form.cleaned_data['title'],
+            'email': form.cleaned_data['email'],
+            'phone': form.cleaned_data['phone'],
+            'address': form.cleaned_data['address'],
+            'url': form.cleaned_data['url'],
+            'comments': form.cleaned_data['comments'],
+            'owner': request.user,
+        }
+
+        contact = AssetOwnerContact(**contact_args)
+        contact.save()
+
+        # Add this contact to the asset owner
+        owner.contacts.add(contact)
+        owner.save()
+
     return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)

@@ -104,7 +104,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-scan-def" csrf-token="{{ csrf_token }}">
+        <div id="delete-scan-def">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -163,18 +163,19 @@
       }, 3000));
     });
     $("button.btn-run-now").on('click', function(eventObject) {
-      scan_url = "/scans/defs/run/"+eventObject.target.getAttribute('scan-id')
+      scan_id = eventObject.target.getAttribute('scan-id');
+      scan_url = "{% url 'run_scan_def_api' 0 %}".replace("0", scan_id);
       var xhr = $.get(scan_url, function(data) {
-        //location.reload()
+        location.reload();
       })
     });
 
     // Change periodic scan status Event
     $("button.btn-change-status").on('click', function(eventObject) {
-      scan_id = eventObject.target.getAttribute('scan-id')
-      scan_url = "/scans/defs/change_status/"+scan_id
+      scan_id = eventObject.target.getAttribute('scan-id');
+      scan_url = "{% url 'toggle_scan_def_status_api' 0 %}".replace("0", scan_id);
       var xhr = $.get( scan_url, function(data) {
-        location.reload()
+        location.reload();
         if (xhr.status == 200) {
           $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
           $("div.notifications>div").delay(3000).fadeOut(
@@ -194,13 +195,12 @@
       $("div#delete-scan-def").html("Title: <b>"+scan_title+"</b><br/><br/>");
     });
     $("button.btn-delete-scan-def").on('click', function (e) {
-      csrf_token = $("div#delete-scan-def").attr('csrf-token');
       scan_id = $("div#delete-scan-def").attr('scan-id');
       delete_scan_def_url = "/scans/defs/delete/"+scan_id;
       var request = $.ajax({
         url: delete_scan_def_url,
         method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }
