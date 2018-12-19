@@ -97,7 +97,6 @@
     function refresh_engines_status(){
       $('span.engine-status').empty();
       $('span.running-scans').empty();
-      //$('span.engine-status').append("");
       var xhr = $.get("{% url 'list_engines_intances_api' %}", function(response) {
         engines_json = response.engines;
         for (var engine_id in engines_json) {
@@ -287,7 +286,10 @@
             <span class="glyphicon glyphicon-map-marker"></span> Findings<span class="caret"></span>
           </a>
           <ul class="dropdown-menu" role="menu">
-            <li><a href="/findings/list">List</a></li>
+            <li><a href="/findings/list">All findings</a></li>
+            <li><a href="/findings/list?_status=new">New findings</a></li>
+            <li><a href="/findings/list?_status=ack">Ack. findings</a></li>
+            <li role="separator" class="divider"></li>
             <li><a href="/findings/import">Manual import</a></li>
             <li><a href="/findings/add">+ Add finding</a></li>
           </ul>
@@ -303,9 +305,6 @@
             <li role="separator" class="divider"></li>
             <li><a href="/scans/defs/list">List scans definitions</a></li>
             <li><a href="/scans/defs/add">+ Add new scan</a></li>
-            <!-- <li role="separator" class="divider"></li>
-            <li><a href="/scans/campaigns/list">List scan campaigns</a></li>
-            <li><a href="/scans/campaigns/add">+ Add scan Campaign</a></li> -->
           </ul>
         </li>
 
@@ -315,13 +314,13 @@
             <span class="glyphicon glyphicon-screenshot"></span> Engines<span class="caret"></span>
           </a>
           <ul class="dropdown-menu">
-            <li class="dropdown-submenu" >
+            <li class="dropdown-submenu">
               <a href="/engines/list"><strong>Scan Engines</strong></a>
               <li><a href="/engines/list">List engines</a></li>
               <li><a href="/engines/add">+ Add scan engine instance</a></li>
             </li>
             <li role="separator" class="divider"></li>
-            <li class="dropdown-submenu" >
+            <li class="dropdown-submenu">
               <a href="/engines/policies/list"><strong>Scan Engines Policies</strong></a>
               <li><a href="/engines/policies/list">List policies</a></li>
               <li><a href="/engines/policies/add">+ Add policy</a></li>

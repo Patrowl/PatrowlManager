@@ -3,7 +3,7 @@
 from django.http import JsonResponse, HttpResponse
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_str
-from django.db.models import Value, CharField
+from django.db.models import Value, CharField, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
@@ -126,21 +126,22 @@ def get_asset_trends_api(request, asset_id):
 def list_assets_api(request):
     q = request.GET.get("q", None)
     if q:
-        assets = list(Asset.objects.filter(value__icontains=q)
-                      .annotate(format=Value("asset", output_field=CharField()))
-                      .values('id', 'value', 'format'))
+        assets = list(Asset.objects
+            .filter(Q(value__icontains=q) | Q(name__icontains=q))
+            .annotate(format=Value("asset", output_field=CharField()))
+            .values('id', 'value', 'format', 'name'))
         assetgroups = list(AssetGroup.objects.filter(name__icontains=q)
-                       .extra(select={'value': 'name'})
-                       .annotate(format=Value("assetgroup", output_field=CharField()))
-                       .values('id', 'value', 'format'))
+            .extra(select={'value': 'name'})
+            .annotate(format=Value("assetgroup", output_field=CharField()))
+            .values('id', 'value', 'format', 'name'))
     else:
         assets = list(Asset.objects
-                      .annotate(format=Value("asset", output_field=CharField()))
-                      .values('id', 'value', 'format'))
+            .annotate(format=Value("asset", output_field=CharField()))
+            .values('id', 'value', 'format', 'name'))
         assetgroups = list(AssetGroup.objects
-                           .extra(select={'value': 'name'})
-                           .annotate(format=Value("assetgroup", output_field=CharField()))
-                           .values('id', 'value', 'format'))
+            .extra(select={'value': 'name'})
+            .annotate(format=Value("assetgroup", output_field=CharField()))
+            .values('id', 'value', 'format', 'name'))
     return JsonResponse(assets + assetgroups, safe=False)
 #
 #

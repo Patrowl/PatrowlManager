@@ -381,11 +381,15 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
         <div class="tile-body">
           <dl class="dl-horizontal">
-            <dt>#CVSS < 5.0: </dt><dd>{{cvss_scores.lte5}}</dd>
-            <dt>#5.0 < CVSS < 7.0 : </dt><dd>{{cvss_scores.5to7}}</dd>
-            <dt>#7.0 < CVSS < 9.0: </dt><dd>{{cvss_scores.gte7}}</dd>
-            <dt>#9.0 < CVSS < 10</dt><dd>{{cvss_scores.gte9}}</dd>
             <dt>#CVSS = 10: </dt><dd>{{cvss_scores.eq10}}</dd>
+            <dt>9.0 <= #CVSS < 10</dt><dd>{{cvss_scores.gte9}}</dd>
+            <dt>7.0 <= #CVSS < 9.0: </dt><dd>{{cvss_scores.gte7}}</dd>
+            <dt>5.0 <= #CVSS < 7.0 : </dt><dd>{{cvss_scores.5to7}}</dd>
+            <dt>#CVSS < 5.0: </dt><dd>{{cvss_scores.lte5}}</dd>
+
+
+
+
           </dl>
         </div>
       </div>
