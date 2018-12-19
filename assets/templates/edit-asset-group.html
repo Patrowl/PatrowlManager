@@ -64,7 +64,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-asset-group" csrf-token="{{ csrf_token }}">
+        <div id="delete-asset-group">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -85,15 +85,14 @@ $(function() {
     $("div#delete-asset-group").html("Asset Group Name: <b>"+asset_group_value+"</b><br/><br/>");
   });
   $("button.btn-delete-asset-group").on('click', function (e) {
-    csrf_token = $("div#delete-asset-group").attr('csrf-token');
     id = $("div#delete-asset-group").attr('asset-group-id');
     delete_asset_group_url = "/assets/deletegroup/"+id;
     var request = $.ajax({
       url: delete_asset_group_url,
       method: "POST",
-      data: "csrfmiddlewaretoken="+csrf_token,
+      headers: {"X-CSRFToken": "{{ csrf_token }}"},
       success: function(){
-        window.location = "/assets/list";
+        window.location = "{% url 'list_assets_view' %}";
       }
     });
   });

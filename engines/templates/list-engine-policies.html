@@ -3,7 +3,7 @@
 {% block content %}
 
 <ul class="breadcrumb">
-  <li><a href="/engines/list">engines</a></li>
+  <li><a href="{% url 'list_engines_view' %}">engines</a></li>
   <li class="active">policies</li>
 </ul>
 
@@ -54,11 +54,11 @@
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn-default dropdown-toggle btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/policies/duplicate/{{ policy.id }}'">
+        <button type="button" class="btn btn-default dropdown-toggle btn-xs btn-duplicate-policy" policy-id="{{ policy.id }}">
           <span class="glyphicon glyphicon-duplicate"></span></button>
         <button type="button" class="btn btn-default dropdown-toggle btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/policies/edit/{{ policy.id }}'">
           <span class="glyphicon glyphicon-edit"></span></button>
-        <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/policies/export/{{ policy.id }}'">
+        <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='{% url 'export_policy_api' policy.id %}'">
           <span class="glyphicon glyphicon-share"></span></button>
         <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-policy"
            policy-id="{{ policy.id }}" policy-name="{{ policy.name }}">
@@ -68,9 +68,9 @@
   {% endfor %}
   </tbody>
   </table>
-  <a href="/engines/policies/add">+ Add a new policy</a><br/>
-  <a class="text-warning btn-export-selected" href="#">* Export selected policies</a> or <a href="/engines/policies/export?all=true" class="text-warning">* Export all policies</a><br/>
-  <a href="/engines/policies/import" class="text-danger"># Import policies</a><br/>
+  <a href="{% url 'add_policy_view' %}">+ Add a new policy</a><br/>
+  <a class="text-warning btn-export-selected" href="#">* Export selected policies</a> or <a href="{% url 'export_policies_api' %}?all=true" class="text-warning">* Export all policies</a><br/>
+  <a href="{% url 'import_policies_view' %}" class="text-danger"># Import policies</a><br/>
 
   {% if messages %}
   <ul class="messages">
@@ -96,7 +96,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-policy" csrf-token="{{ csrf_token }}">
+        <div id="delete-policy">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -120,7 +120,7 @@
   // jQuery ready
   $(function() {
 
-    // export selected policies
+    // Export selected policies
     $("a.btn-export-selected").on('click', function(eventObject) {
       policies_to_export = [];
       $("input[name='policy']").each(function(cbx){
@@ -130,10 +130,11 @@
       });
 
       if (policies_to_export.length != 0){
-        export_url="/engines/policies/export"
+        export_url="{% url 'export_policies_api' %}"
         var request = $.ajax({
           url: export_url,
           method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(policies_to_export),
           contentType: "application/json"
         });
@@ -145,7 +146,7 @@
           link.click();
         });
       }
-    });
+    }); // End - Export selected policies
 
     // Delete engine policy modal
     $("#modal-delete-policy").on('show.bs.modal', function (e) {
@@ -155,18 +156,31 @@
       $("div#delete-policy").html("Policy: <b>"+policy_name+"</b><br/><br/>");
     });
     $("button.btn-delete-policy").on('click', function (e) {
-      csrf_token = $("div#delete-policy").attr('csrf-token');
       policy_id = $("div#delete-policy").attr('policy-id');
-      delete_policy_url = "/engines/policies/delete/"+policy_id;
+      delete_policy_url = "{% url 'delete_policy_api' 0 %}".replace('0', policy_id);
       var request = $.ajax({
         url: delete_policy_url,
-        method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        method: "DELETE",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }
       });
-    });
+    }); // End - Delete engine policy modal
+
+    // Duplicate engine policy
+    $("button.btn-duplicate-policy").on('click', function (e) {
+      policy_id = e.currentTarget.getAttribute('policy-id');
+      duplicate_policy_url = "{% url 'duplicate_policy_api' 0 %}".replace('0', policy_id);
+      var request = $.ajax({
+        url: duplicate_policy_url,
+        method: "PUT",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        success: function(){
+          location.reload();
+        }
+      });
+    }); // End - Duplicate engine policy
 
   });
 </script>

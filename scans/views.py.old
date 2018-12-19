@@ -29,7 +29,7 @@ def detail_scan_view(request, scan_id):
     scan.save()
     scan_def = ScanDefinition.objects.get(id=scan.scan_definition.id)
 
-    # Check search filters
+    ## Check search filters
     search_filters = request.GET.get("search", None)
     parsed_filters = ""
     assets_filters = {}
@@ -178,6 +178,131 @@ def delete_scan_view(request, scan_id):
         messages.success(request, 'Scan successfully deleted!')
         return redirect('list_scan_def_view')
     return render(request, 'delete-scan.html', {'scan': scan})
+
+
+# def list_scan_campaigns(request):
+#     scan_campaigns = []
+#     for scan in ScanCampaign.objects.all():
+#         tmp_scan = model_to_dict(scan, exclude=['assets_list', 'scans_list'])
+#         tmp_scan['assets'] = list(scan['assets'])
+#         scan_campaigns.append(tmp_scan)
+#     return JsonResponse(scan_campaigns, safe=False)
+
+
+# def list_scan_campaigns_view(request):
+#     scan_campaigns = ScanCampaign.objects.filter(
+#         owner_id=request.user.id).order_by('-updated_at')
+#     return render(request, 'list-scan-campaigns.html',
+#         {'scan_campaigns': scan_campaigns})
+
+
+# @csrf_exempt
+# def delete_scan_campaigns(request):
+#     if request.method != 'POST':
+#         return JsonResponse({'status': 'error'})
+#
+#     scan_campaigns = json.loads(request.body)
+#     for scan_campaign_id in scan_campaigns:
+#         ScanCampaign.objects.filter(scan_campaign_id=scan_campaign_id,owner_id=request.user.id).delete()
+#
+#     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+
+
+# def delete_scan_campaign_view(request, scan_campaign_id):
+#     scan_campaign = ScanCampaign.objects.filter(scan_campaign_id=scan_campaign_id,owner_id=request.user.id).first()
+#     if request.method == 'POST':
+#         scan_campaign.delete()
+#         messages.success(request, 'Scan Campaign successfully deleted!')
+#         return redirect('list_scan_campaigns_view')
+#     return render(request, 'delete-scan-campaign.html', {'scan_campaign': scan_campaign})
+
+
+# def add_scan_campaign_view(request):
+#     form = None
+#     if request.method == 'GET':
+#         form = ScanCampaignForm(initial={'scan_campaign_id': uuid.uuid4(), 'owner_id': request.user.id})
+#     elif request.method == 'POST':
+#         form = ScanCampaignForm(request.POST)
+#         if form.is_valid():
+#             scan_campaign_args = {
+#                 'title':        form.cleaned_data['title'],
+#                 #'scan_type':    form.cleaned_data['scan_type'],
+#                 'owner_id':     request.user.id,
+#                 'status':       "created",
+#                 'scan_def_list': set(form.data.getlist('scan_def_list')),
+#                 'enabled':      form.cleaned_data['enabled'] == "True",
+#                 'scheduled_at': form.cleaned_data['scheduled_at']
+#            }
+#             scan_campaign = ScanCampaign(**scan_campaign_args)
+#             scan_campaign.save()
+#
+#             messages.success(request, 'Creation submission successful')
+#             return redirect('list_scan_campaigns_view')
+#
+#     return render(request, 'add-scan-campaign.html', {'form': form})
+
+
+# def edit_scan_campaign_view(request, scan_campaign_id):
+#     try:
+#         scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
+#     except ScanCampaign.DoesNotExist:
+#         return HttpResponse(status=404)
+#
+#     form = None
+#     if request.method == 'GET':
+#         form = ScanCampaignForm(initial=scan_campaign)
+#     elif request.method == 'POST':
+#         form = ScanCampaignForm(request.POST)
+#         if form.is_valid():
+#             scan_campaign.title         = form.cleaned_data['title']
+#             #scan_campaign.scan_type     = form.cleaned_data['scan_type']
+#             scan_campaign.scheduled_at  = form.cleaned_data['scheduled_at']
+#             scan_campaign.enabled       = form.cleaned_data['enabled'] == "True"
+#             scan_campaign.scan_def_list = set(form.data.getlist('scan_def_list'))
+#
+#             scan_campaign.save()
+#             messages.success(request, 'Update submission successful')
+#             return redirect('list_scan_campaigns_view')
+#
+#     return render(request, 'edit-scan-campaign.html', {'form': form, 'scan_campaign_id': scan_campaign_id})
+
+#
+# def run_scan_campaign(request, scan_campaign_id):
+#     try:
+#         scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
+#     except ScanCampaign.DoesNotExist:
+#         return HttpResponse(status=404)
+#
+#     for scan_def_id in scan_campaign.scan_def_list:
+#         if scan_campaign.scan_type == "single":
+#             _run_scan(scan_def_id, request.user.id)
+#
+#     messages.success(request, 'Scans enqueued!')
+#     return redirect('list_scan_def_view')
+
+
+# @csrf_exempt
+# def toggle_scan_campaign_status(request, scan_campaign_id):
+#     scan_campaign = ScanCampaign.objects.get(scan_campaign_id=scan_campaign_id, owner_id=request.user.id)
+#     scan_campaign.enabled = not scan_campaign.enabled
+#     scan_campaign.save()
+#
+#     for scan_id in scan_campaign.scan_def_list:
+#         scan = ScanDefinition.objects.get(scan_definition_id=scan_id, owner_id=request.user.id)
+#         if scan.scan_type == 'periodic':
+#             try:
+#                 periodic_task = PeriodicTask.objects.get(id=scan.periodic_task_id)
+#                 periodic_task.enabled = not periodic_task.enabled
+#                 periodic_task.last_run_at = None
+#                 periodic_task.save()
+#             except PeriodicTask.DoesNotExist:
+#                 pass
+#
+#     ######  Todo: wait celery beat fix
+#     _update_celerybeat()
+#     ######LOL end
+#
+#     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
 # Scan Definitions

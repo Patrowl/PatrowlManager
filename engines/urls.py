@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls import url
-from . import views
+from . import views, apis
 
 
 urlpatterns = [
@@ -9,36 +9,20 @@ urlpatterns = [
     ## WEB templates
     # ex: /engines/list
     url(r'^list$', views.list_engines_view, name='list_engines_view'),
-    # ex: /engines/change_status/8
-    url(r'^change_status/(?P<engine_id>[0-9]+)$', views.toggle_engine_status, name='toggle_engine_status'),
     # ex: /engines/add
     url(r'^add$', views.add_engine_view, name='add_engine_view'),
     # ex: /engines/edit/1
     url(r'^edit/(?P<engine_id>[0-9]+)$', views.edit_engine_view, name='edit_engine_view'),
-    # ex: /engines/info/1
-    url(r'^info/(?P<engine_id>[0-9]+)$', views.info_engine_api, name='info_engine_api'),
     # ex: /engines/delete/1
     url(r'^delete/(?P<engine_id>[0-9]+)$', views.delete_engine_view, name='delete_engine_view'),
-    # ex: /engines/1/startscan
-    #url(r'^(?P<engine_id>[0-9]+)/startscan$', views.startscan_by_engine_id, name='startscan_by_engine_id'),
-    # ex: /engines/nmap/startscan
-    #url(r'^(?P<engine_name>[a-zA-Z]+)/startscan$', views.startscan_by_engine_name, name='startscan_by_engine_name'),
     # ex: /engines/policies/list
     url(r'^policies/list$', views.list_policies_view, name='list_policies_view'),
     # ex: /engines/policies/add
     url(r'^policies/add$', views.add_policy_view, name='add_policy_view'),
-    # ex: /engines/policies/delete/2
-    url(r'^policies/delete/(?P<policy_id>[0-9]+)$', views.delete_policy_view, name='delete_policy_view'),
     # ex: /engines/policies/edit/2
     url(r'^policies/edit/(?P<policy_id>[0-9]+)$', views.edit_policy_view, name='edit_policy_view'),
-    # ex: /engines/policies/duplicate/2
-    url(r'^policies/duplicate/(?P<policy_id>[0-9]+)$', views.duplicate_policy_view, name='duplicate_policy_view'),
     # ex: /engines/policies/import
     url(r'^policies/import$', views.import_policies_view, name='import_policies_view'),
-    # ex: /engines/policies/export/2
-    url(r'^policies/export/(?P<policy_id>[0-9]+)$', views.export_policy, name='export_policy'),
-    # ex: /engines/policies/export
-    url(r'^policies/export$', views.export_policies, name='export_policies'),
     # ex: /engines/types/list
     url(r'^types/list$', views.list_engine_types_view, name='list_engine_types_view'),
     # ex: /engines/types/add
@@ -49,28 +33,36 @@ urlpatterns = [
     url(r'^types/delete/(?P<engine_id>[0-9]+)$', views.delete_engine_type_view, name='delete_engine_type_view'),
 
     ## JSON API
-    # ex: /engines/
-    url(r'^$', views.list_engines, name='list_engines'),
-    # ex: /engines/refresh
-    url(r'^refresh$', views.refresh_engines_status, name='refresh_engines_status'),
-    # ex: /engines/autorefresh
-    url(r'^autorefresh$', views.toggle_autorefresh_engine_status, name='toggle_autorefresh_engine_status'),
-    # ex: /engines/1
-    url(r'^(?P<engine_id>[0-9]+)$', views.list_instances_by_id, name='list_instances_by_id'),
-    # ex: /engines/nmap
-    url(r'^(?P<engine_name>[a-zA-Z]+)$', views.list_instances_by_name, name='list_instances_by_name'),
-    # ex: /engines/1/status
-    url(r'^(?P<engine_id>[0-9]+)/status$', views.get_engine_status, name='get_engine_status'),
-    # ex: /engines/1/refresh
-    url(r'^(?P<engine_id>[0-9]+)/refresh$', views.get_engine_status, name='get_engine_status'),
-
-    # ex: /engines/1/info
-    url(r'^(?P<engine_id>[0-9]+)/info$', views.get_engine_info, name='get_engine_info'),
-    # ex: /engines/nmap/policies
-    url(r'^(?P<engine_name>[a-zA-Z]+)/policies$', views.list_policies_by_engine, name='list_policies_by_engine'),
-    # ex: /engines/types
-    url(r'^types$', views.list_engine_types, name='list_engine_types'),
-
     # ex: /engines/api/v1/list
-    url(r'^api/v1/list$', views.list_engines_api, name='list_engines_api'),
+    url(r'^api/v1/list$', apis.list_engines_api, name='list_engines_api'),
+    # ex: /engines/api/v1/refresh
+    url(r'^api/v1/refresh$', apis.refresh_engines_status_api, name='refresh_engines_status_api'),
+    # ex: /engines/api/v1/autorefresh
+    url(r'^api/v1/autorefresh$', apis.toggle_autorefresh_engine_status_api, name='toggle_autorefresh_engine_status_api'),
+    # ex: /engines/api/v1/list/by_id/1
+    url(r'^api/v1/list/by_id/(?P<engine_id>[0-9]+)$', apis.list_instances_by_id_api, name='list_instances_by_id_api'),
+    # ex: /engines/api/v1/list/by_name/nmap
+    url(r'^api/v1/list/by_name/(?P<engine_name>[a-zA-Z]+)$', apis.list_instances_by_name_api, name='list_instances_by_name_api'),
+    # ex: /engines/api/v1/instances/status/1
+    url(r'^api/v1/instances/status/(?P<engine_id>[0-9]+)$', apis.get_engine_status_api, name='get_engine_status_api'),
+    # ex: /engines/api/v1/instances/info/1
+    url(r'^api/v1/instances/info/(?P<engine_id>[0-9]+)$', apis.get_engine_info_api, name='get_engine_info_api'),
+    # ex: /engines/api/v1/instances/status/change/8
+    url(r'^api/v1/instances/status/change/(?P<engine_id>[0-9]+)$', apis.toggle_engine_status_api, name='toggle_engine_status_api'),
+    # ex: /engines/api/v1/instance/info/1
+    url(r'^api/v1/instance/info/(?P<engine_id>[0-9]+)$', apis.info_engine_api, name='info_engine_api'),
+    # ex: /engines/api/v1/nmap/policies
+    url(r'^api/v1/policies/list/by_name/(?P<engine_name>[a-zA-Z]+)$', apis.list_policies_by_engine_api, name='list_policies_by_engine_api'),
+    # ex: /engines/api/v1/types
+    url(r'^api/v1/types$', apis.list_engine_types_api, name='list_engine_types_api'),
+    # ex: /engines/api/v1/list
+    url(r'^api/v1/instances/list$', apis.list_engines_intances_api, name='list_engines_intances_api'),
+    # ex: /engines/api/v1/policies/delete/2
+    url(r'^api/v1/policies/delete/(?P<policy_id>[0-9]+)$', apis.delete_policy_api, name='delete_policy_api'),
+    # ex: /engines/api/v1/policies/export
+    url(r'^api/v1/policies/export$', apis.export_policies_api, name='export_policies_api'),
+    # ex: /engines/api/v1/policies/export/2
+    url(r'^api/v1/policies/export/(?P<policy_id>[0-9]+)$', apis.export_policy_api, name='export_policy_api'),
+    # ex: /engines/api/v1/policies/duplicate/2
+    url(r'^api/v1/policies/duplicate/(?P<policy_id>[0-9]+)$', apis.duplicate_policy_api, name='duplicate_policy_api'),
 ]

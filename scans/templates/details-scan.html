@@ -414,10 +414,10 @@ function toggle(source, element) {
         <dt>Status:</dt><dd>
           {% if scan.status == "finished" %}
             <span class="label label-success">Finished</span>
-            <a href="/scans/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
+            <a href="/scans/api/v1/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
           {% elif scan.status == "error" %}
             <span class="label label-danger">Error</span>
-            <a href="/scans/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
+            <a href="/scans/api/v1/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
           {% else %}
             <span class="label label-warning">{{ scan.status|capfirst }}</span>
           {% endif %}
@@ -427,9 +427,9 @@ function toggle(source, element) {
         <dt>Finished at:</dt><dd>{{ scan.finished_at|date:"Y/m/d-H:m:s" }}</dd>
         <dt>Elaspsed:</dt><dd>{{ scan.finished_at|get_time_diff:scan.started_at }}</dd>
         <dt>Reports:</dt><dd>
-          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/json/{{ scan.id }}'">json</button>
-          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/csv/{{ scan.id }}'">csv</button>
-          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/report/html/{{ scan.id }}'">html</button>
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/json/{{ scan.id }}'">json</button>
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/csv/{{ scan.id }}'">csv</button>
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">html</button>
           <button type="button" class="btn btn-default btn-xs" onclick="location.href='#'">raw</button>
         </dd>
       </dl>
@@ -566,7 +566,7 @@ function toggle(source, element) {
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="change-finding-infos" csrf-token="{{ csrf_token }}">
+        <div id="change-finding-infos">
           <!-- Content -->
           <dl class="dl-horizontal">
             <dt>Severity:</dt>
@@ -740,10 +740,11 @@ function toggle(source, element) {
     })
 
     if (findings_to_delete.length != 0){
-      delete_url="/findings/rdelete";
+      delete_url="{% url 'delete_rawfindings_api' %}";
       var request = $.ajax({
         url: delete_url,
         method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         data: JSON.stringify(findings_to_delete),
         contentType: "application/json"
       });
@@ -763,10 +764,11 @@ function toggle(source, element) {
     })
 
     if (findings_to_ack.length != 0){
-      ack_url="/findings/rstatus";
+      ack_url="{% url 'change_rawfindings_status_api' %}";
       var request = $.ajax({
         url: ack_url,
         method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         data: JSON.stringify(findings_to_ack),
         contentType: "application/json"
       });

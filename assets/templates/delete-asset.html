@@ -10,7 +10,7 @@
     <p>Addr: {{ asset.value }}</p>
     <div class="form-group">
       <button type="submit" class="btn btn-warning">Delete</button>
-      <button class="btn btn-primary"><a href="/assets/list">Cancel</a></button>
+      <button class="btn btn-primary"><a href="{% url 'list_assets_view' %}">Cancel</a></button>
     </div>
   </form>
 

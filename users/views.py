@@ -19,6 +19,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+
 @login_required(login_url="login/")
 def home(request):
     # get logged user info:
@@ -84,6 +85,7 @@ def home(request):
     #      })
     return redirect(homepage_dashboard_view)
 
+
 @csrf_exempt
 def login(request):
     default_form = LoginForm()
@@ -100,6 +102,7 @@ def login(request):
             return render(request, 'login.html', {'form': default_form})
     else:
         return render(request, 'login.html', {'form': default_form})
+
 
 @csrf_exempt
 def signup(request):
@@ -126,10 +129,10 @@ def list_users_view(request):
     users = User.objects.all()
     return render(request, 'list-users.html', {'users': users})
 
+
 @csrf_exempt
 def add_user_view(request):
     form = None
-
     if request.method == 'GET':
         form = UserCreationForm()
     elif request.method == 'POST':
@@ -143,4 +146,4 @@ def add_user_view(request):
             messages.success(request, 'Creation submission successful')
             return redirect('list_users_view')
 
-    return render(request, 'add-user.html', {'form': form })
+    return render(request, 'add-user.html', {'form': form})

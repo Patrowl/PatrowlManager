@@ -98,7 +98,7 @@
       $('span.engine-status').empty();
       $('span.running-scans').empty();
       //$('span.engine-status').append("");
-      var xhr = $.get("/engines/api/v1/list", function(response) {
+      var xhr = $.get("{% url 'list_engines_intances_api' %}", function(response) {
         engines_json = response.engines;
         for (var engine_id in engines_json) {
           engine = engines_json[engine_id];
@@ -266,12 +266,12 @@
             <span class="glyphicon glyphicon-cloud"></span> Assets<span class="caret"></span>
           </a>
           <ul class="dropdown-menu" role="menu">
-            <li><a href="/assets/list">List assets</a></li>
-            <li><a href="/assets/add">+ Add new asset</a></li>
-            <li><a href="/assets/bulkadd">+ Add new assets in bulk (CSV file)</a></li>
+            <li><a href="{% url 'list_assets_view' %}">List assets</a></li>
+            <li><a href="{% url 'add_asset_view' %}">+ Add new asset</a></li>
+            <li><a href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk (CSV file)</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="/assets/list?target=asset_group">List asset groups</a></li>
-            <li><a href="/assets/addgroup">+ Add new group of assets</a></li>
+            <li><a href="{% url 'list_assets_view' %}?target=asset_group">List asset groups</a></li>
+            <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="/assets/owners/list">List asset owners</a></li>
             <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
@@ -290,7 +290,6 @@
             <li><a href="/findings/list">List</a></li>
             <li><a href="/findings/import">Manual import</a></li>
             <li><a href="/findings/add">+ Add finding</a></li>
-            <!-- <li><a href="/findings/export">Export</a></li> -->
           </ul>
         </li>
 
@@ -301,7 +300,6 @@
           </a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="/scans/list">List scans performed</a></li>
-            <!-- <li><a href="/scans/compare">Compare scans</a></li> -->
             <li role="separator" class="divider"></li>
             <li><a href="/scans/defs/list">List scans definitions</a></li>
             <li><a href="/scans/defs/add">+ Add new scan</a></li>
@@ -347,19 +345,6 @@
             <li><a href="/rules/list">List rules</a></li>
           </ul>
         </li>
-
-        <!-- Settings -->
-        <!-- <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
-            <span class="glyphicon glyphicon-wrench"></span> Settings<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="/settings/">Global settings</a></li>
-            <li><a href="/settings/">Updates</a></li>
-            <li><a href="/settings/">Users</a></li>
-            <li><a href="/settings/">Events</a></li>
-          </ul>
-        </li> -->
       </ul>
 
       <form class="navbar-form navbar-left" role="search" method="get" accept-charset="utf-8" action="/search" style="padding-top: 4px;">
@@ -380,8 +365,7 @@
               <span class="caret"></span>
             </a>
             <ul class="dropdown-menu" role="menu">
-              <li><a href="/home"><span class="glyphicon glyphicon-home"></span> Homepage</a></li>
-              <!-- <li><a href="/dashboard">Dashboards</a></li> -->
+              <li><a href="/dashboard"><span class="glyphicon glyphicon-home"></span> Homepage</a></li>
               <li><a href="/settings/"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
 
               <li class="divider"></li>

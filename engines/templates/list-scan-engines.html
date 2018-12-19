@@ -3,7 +3,7 @@
 {% block content %}
 
 <ul class="breadcrumb">
-  <li><a href="/engines/list">engines</a></li>
+  <li><a href="{% url 'list_engines_view' %}">engines</a></li>
   <li class="active">instances</li>
 </ul>
 
@@ -92,7 +92,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-engine" csrf-token="{{ csrf_token }}">
+        <div id="delete-engine">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -136,7 +136,7 @@
     $("#modal-info-engine").on('show.bs.modal', function (e) {
       engine_id = e.relatedTarget.getAttribute('engine-id');
       xhr = $.ajax({
-        url: "/engines/info/"+engine_id,
+        url: "{% url 'info_engine_api' 0 %}".replace("0", engine_id),
         method: "GET",
         dataType: 'json',
         beforeSend: function(){
@@ -181,13 +181,12 @@
       $("div#delete-engine").html("Engine: <b>"+engine_name+"</b><br/><br/>");
     });
     $("button.btn-delete-engine").on('click', function (e) {
-      csrf_token = $("div#delete-engine").attr('csrf-token');
       engine_id = $("div#delete-engine").attr('engine-id');
       delete_engine_url = "/engines/delete/"+engine_id;
       xhr = $.ajax({
         url: delete_engine_url,
         method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }
@@ -197,30 +196,33 @@
     // Change engine status (enable-disable)
     $("button.btn-change-status").on('click', function(eventObject) {
       engine_id = eventObject.target.getAttribute('engine-id');
-      engine_url = "/engines/change_status/"+engine_id;
-      console.log(engine_url);
-      var xhr = $.get(engine_url, function(data) {
-        location.reload()
-        if (data.status == "success") {
-          console.log( "Status successfully updated!" );
-          $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
-          $("div.notifications>div").delay(3000).fadeOut(
-            function () {
-                $("div.notifications>div").remove();
-            }
-          );
+      engine_url = "{% url 'toggle_engine_status_api' 0%}".replace("0", engine_id);
+      xhr = $.ajax({
+        url: engine_url,
+        method: "PATCH",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        success: function(){
+          location.reload();
+          if (data.status == "success") {
+            console.log( "Status successfully updated!" );
+            $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
+            $("div.notifications>div").delay(3000).fadeOut(
+              function () {
+                  $("div.notifications>div").remove();
+              }
+            );
+          }
         }
-      })
+      });
     });
 
     // Refresh an engine status
     $("button.btn-refresh-engine-status").on('click', function(eventObject) {
       engine_id = eventObject.currentTarget.getAttribute('engine-id');
-      engine_url = "/engines/"+engine_id+"/refresh";
+      engine_url = "{% url 'get_engine_status_api' 0 %}".replace("0", engine_id);
       var xhr = $.get(engine_url, function(data) {
         location.reload();
         if (data.status == "success") {
-          //console.log( "Status successfully refreshed!" );
           $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
           $("div.notifications>div").delay(3000).fadeOut(
             function () {
@@ -233,14 +235,13 @@
 
     // Refresh all engine status
     $("a.btn-refresh-all-engines").on('click', function() {
-      engine_url = "/engines/refresh";
+      engine_url = "{% url 'refresh_engines_status_api' %}";
       var xhr = $.get(engine_url, function(data) {
         if (xhr.status == 200) {
-          //console.log( "Status successfully refreshed!" );
-          $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Scan successfully enqueued</div>');
+          $("div.notifications").html('<div class="alert alert-dismissible alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Action enqueued</div>');
           $("div.notifications>div").delay(3000).fadeOut(
             function () {
-                $("div.notifications>div").remove();
+              $("div.notifications>div").remove();
             }
           );
         }
@@ -250,7 +251,7 @@
 
     // Auto-Refresh all engine status
     $("a.btn-autorefresh-all-engines").on('click', function() {
-      autorefresh_url = "/engines/autorefresh";
+      autorefresh_url = "{% url 'toggle_autorefresh_engine_status_api' %}";
       var xhr = $.get(autorefresh_url, function(data) {
         if (xhr.status == 200) {
           if (data.autorefresh_task_status == true){

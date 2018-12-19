@@ -7,12 +7,9 @@ from engines.models import Engine, EnginePolicy
 from scans.models import ScanDefinition
 from findings.models import Finding
 
-def search_view(request):
-    results = []
-    kw = request.GET.get('srch-term', None)
 
-    if not kw:
-        return render(request, 'search-results.html', {'results': results})
+def _search(kw):
+    results = []
 
     # search by asset value or description
     for asset in Asset.objects.filter(
@@ -22,7 +19,7 @@ def search_view(request):
     # search by asset value or description
     for asset_group in AssetGroup.objects.filter(
         Q(description__icontains=kw) | Q(name__icontains=kw)):
-        results.append({"type": "asset_group", "value": asset_group.name, "id": asset_group.id, "link": "/assets/list"})
+        results.append({"type": "asset_group", "value": asset_group.name, "id": asset_group.id, "link": "{% url 'list_assets_view' %}"})
 
     # search by asset owner name, url or comments
     for asset_owner in AssetOwner.objects.filter(Q(name__icontains=kw) | Q(url__icontains=kw) | Q(comments__icontains=kw)):
@@ -56,4 +53,24 @@ def search_view(request):
         Q(title__icontains=kw) | Q(description__icontains=kw) | Q(type__icontains=kw) | Q(solution__icontains=kw) | Q(vuln_refs__icontains=kw) | Q(links__icontains=kw) | Q(tags__icontains=kw)):
         results.append({"type": "finding", "value": finding.title, "id": finding.id, "link": "/findings/details/"+str(finding.id)})
 
+    return results
+
+
+def search_view(request):
+    kw = request.GET.get('srch-term', None)
+
+    if not kw:
+        return render(request, 'search-results.html', {'results': []})
+
+    results = _search(kw)
+    return render(request, 'search-results.html', {'results': results, 'search_term': kw})
+
+
+def search_api(request):
+    kw = request.GET.get('srch-term', None)
+
+    if not kw:
+        return JsonResponse()
+
+    results = _search(kw)
     return render(request, 'search-results.html', {'results': results, 'search_term': kw})

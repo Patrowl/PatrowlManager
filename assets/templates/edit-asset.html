@@ -2,9 +2,9 @@
 {% block content %}
 
 <ul class="breadcrumb">
-  <li><a href="/assets/list">assets</a></li>
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li><a href="/assets/details/{{asset.id}}">{{asset.value}}</a></li>
-  <li class="active">edit</a></li>
+  <li class="active">edit</li>
 </ul>
 
 <div class="container">
@@ -70,7 +70,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-asset" csrf-token="{{ csrf_token }}">
+        <div id="delete-asset">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -91,15 +91,14 @@
       $("div#delete-asset").html("Asset: <b>"+asset_value+"</b><br/><br/>");
     });
     $("button.btn-delete-asset").on('click', function (e) {
-      csrf_token = $("div#delete-asset").attr('csrf-token');
       id = $("div#delete-asset").attr('asset-id');
       delete_asset_url = "/assets/delete/"+id;
       var request = $.ajax({
         url: delete_asset_url,
         method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
-          window.location = "/assets/list";
+          window.location = "{% url 'list_assets_view' %}";
         }
       });
     });

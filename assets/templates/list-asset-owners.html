@@ -2,7 +2,7 @@
 {% block content %}
 
 <ul class="breadcrumb">
-  <li><a href="/assets/list">assets</a></li>
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li><a href="/assets/owners/list">owners</a></li>
   <li class="active">list</li>
 </ul>
@@ -70,7 +70,7 @@
 
         <!-- Modal Body -->
         <div class="modal-body">
-          <div id="delete-owner" csrf-token="{{ csrf_token }}">
+          <div id="delete-owner">
             <!-- Content -->
           </div>
           Confirm Deleting?
@@ -95,13 +95,12 @@
       $("div#delete-owner").html("Owner Name: <b>"+owner_name+"</b><br/><br/>");
     });
     $("button.btn-delete-owner").on('click', function (e) {
-      csrf_token = $("div#delete-owner").attr('csrf-token');
       owner_id = $("div#delete-owner").attr('owner-id');
       delete_owner_url = "/assets/owners/delete/"+owner_id;
       var request = $.ajax({
         url: delete_owner_url,
         method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }

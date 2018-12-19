@@ -92,7 +92,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
 <div class="container-fluid">
   <!-- 1st row -->
   <div class="row equal">
-    <div class="tile col-sm-15" ondblclick="window.location='/assets/list'">
+    <div class="tile col-sm-15" ondblclick="window.location='{% url 'list_assets_view' %}'">
       <div class="tile-content">
         <h2 class="text-center strong">{{global_stats.assets.total}}</h2>
         <h6 class="text-muted text-center">Assets defined</h6>
@@ -158,9 +158,9 @@ td.bg-grade-F-high {background-color: black; color: white;}
              {% for grade, value in grades.items %}
            <tr>
              <td>{{ grade }}</td>
-             <td style="width: 20%;" class="bg-grade-{{grade}}-low" onclick="window.location='/assets/list?filter=criticity:low%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
-             <td style="width: 20%;" class="bg-grade-{{grade}}-medium" onclick="window.location='/assets/list?filter=criticity:medium%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
-             <td style="width: 20%;" class="bg-grade-{{grade}}-high" onclick="window.location='/assets/list?filter=criticity:high%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-low" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:low%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-medium" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:medium%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
+             <td style="width: 20%;" class="bg-grade-{{grade}}-high" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:high%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
            </tr>
              {% endfor %}
            {% endfor %}
@@ -460,160 +460,6 @@ td.bg-grade-F-high {background-color: black; color: white;}
     window.cfbc_pie_chart.getDatasetMeta(0).data[4].hidden = true;
     window.cfbc_pie_chart.update();
 
-
-  // var finding_trends_chart;
-  //
-  // function print_chart(num_records=20){
-  //   if(finding_trends_chart){findingsByScanDef_chart.destroy();}
-  //   // update the findings stat pies
-  //   data_url = "/scans/api/v1/stats?scope=scans&num_records="+num_records;
-  //
-  //   data_labels_id = [];
-  //   data_labels_date = [];
-  //   data_datasets_total = [];
-  //   data_datasets_info = [];
-  //   data_datasets_low = [];
-  //   data_datasets_medium = [];
-  //   data_datasets_high = [];
-  //   data_datasets_new = [];
-  //
-  //   xhr = $.get(data_url, function(resp) {
-  //     for (i = 0; i < resp.length; i++){
-  //       data_labels_id.push(resp[i]["id"]);
-  //       data_labels_date.push(resp[i]["created_at"]);
-  //       if (resp[i]["summary"]){
-  //         data_datasets_total.push(resp[i]["summary"]["total"]);
-  //         data_datasets_info.push(resp[i]["summary"]["info"]);
-  //         data_datasets_low.push(resp[i]["summary"]["low"]);
-  //         data_datasets_medium.push(resp[i]["summary"]["medium"]);
-  //         data_datasets_high.push(resp[i]["summary"]["high"]);
-  //         data_datasets_new.push(resp[i]["summary"]["new"]);
-  //       } else {
-  //         data_datasets_total.push(0);
-  //         data_datasets_info.push(0);
-  //         data_datasets_low.push(0);
-  //         data_datasets_medium.push(0);
-  //         data_datasets_high.push(0);
-  //         data_datasets_new.push(0);
-  //       }
-  //     };
-  //
-  //     finding_trends_chart_config = {
-  //       type: 'bar',
-  //       data: {
-  //         datasets: [],
-  //         borderWidth: 1
-  //       },
-  //       options: {
-  //         responsive: true,
-  //         maintainAspectRatio: false,
-  //         legend: {
-  //           display: true,
-  //           position: 'top',
-  //           //fullWidth: true,
-  //           labels: {
-  //             boxWidth: 20
-  //           }
-  //         },
-  //         scales: {
-  //           xAxes: [{
-  //             stacked: true,
-  //             gridLines: {
-  //               display: false
-  //             }
-  //           }],
-  //           yAxes:[{
-  //             stacked: true,
-  //             ticks: {
-  //               beginAtZero: true,
-  //               callback: function(value, index, values) {
-  //                 if (Math.floor(value) === value) {
-  //                   return value;
-  //                 }
-  //               }
-  //             }
-  //           }, {
-  //               id: "not-stacked-line",
-  //               stacked: false,
-  //               display: false,
-  //               ticks: {
-  //                 beginAtZero: true,
-  //                 callback: function(value, index, values) {
-  //                   if (Math.floor(value) === value) {
-  //                     return value;
-  //                   }
-  //                 }
-  //               }
-  //           }]
-  //         },
-  //         tooltips: {
-  //           mode: 'index',
-  //           //yAlign: 'bottom',
-  //           position: 'nearest',
-  //           callbacks: {
-  //             title: function(tooltipItems, data) {
-  //               return data_labels_date[tooltipItems[0].index] + ' (id: '+data.labels[tooltipItems[0].index]+')';
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //
-  //     config = jQuery.extend(true, {}, finding_trends_chart_config);
-  //     config["data"]["labels"] = data_labels_id;
-  //     config["data"]["datasets"].push(
-  //       {
-  //         "type": 'line',
-  //         "label": "Total",
-  //         "data": data_datasets_total,
-  //         "fill": false, "lineTension": 0.1, "borderColor": "#000000",
-  //         "yAxisID": "not-stacked-line"
-  //       },
-  //       {
-  //         "type": 'line',
-  //         "label": "New",
-  //         "data": data_datasets_new,
-  //         "fill": false, "lineTension": 0.1, "borderColor": "#18bc9c",
-  //         "yAxisID": "not-stacked-line"
-  //       },
-  //       {
-  //         "label": "Info",
-  //         "data": data_datasets_info,
-  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#66D2FF"
-  //       },
-  //       {
-  //         "label": "Low",
-  //         "data": data_datasets_low,
-  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#FFFF00"
-  //       },
-  //       {
-  //         "label": "Medium",
-  //         "data": data_datasets_medium,
-  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#FF8000"
-  //       },
-  //       {
-  //         "label": "High",
-  //         "data": data_datasets_high,
-  //         "fill": false, "lineTension": 0.1, "backgroundColor": "#FF0000"
-  //       }
-  //     );
-  //
-  //     var canvas_findings = document.getElementById("chart-finding-trends");
-  //     var ctx_findings = canvas_findings.getContext("2d");
-  //     finding_trends_chart = new Chart(ctx_findings, config);
-  //
-  //     canvas_findings.onclick = function (evt) {
-  //       var activePoints = finding_trends_chart.getElementsAtEvent(evt);
-  //       if (typeof activePoints != "undefined" && activePoints != null && activePoints.length > 0){
-  //         var chartData = activePoints[0]['_chart'].config.data;
-  //         var idx = activePoints[0]['_index'];
-  //         var label = chartData.labels[idx];
-  //       }
-  //     };
-  //   });
-  // }; // End fo function print_chart()
-  //
-  // print_chart(5);
 </script>
 
 {% endblock %}

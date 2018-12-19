@@ -1,43 +1,35 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls import url
-from . import views
+from . import views, apis
 
 
 urlpatterns = [
     ## JSON API
-    # ex: /scans
-    # url(r'^$', views.list_scans, name='list_scans'),
     # ex: /scans/api/v1/stats
-    url(r'^api/v1/stats$', views.get_scans_stats, name='get_scans_stats'),
+    url(r'^api/v1/stats$', apis.get_scans_stats_api, name='get_scans_stats_api'),
     # ex: /scans/api/v1/list
-    url(r'^api/v1/list$', views.get_scans_heatmap, name='get_scans_heatmap'),
+    url(r'^api/v1/list$', apis.get_scans_heatmap_api, name='get_scans_heatmap_api'),
     # ex: /scans/api/v1/listbydate
-    url(r'^api/v1/listbydate$', views.get_scans_by_date, name='get_scans_by_date'),
+    url(r'^api/v1/listbydate$', apis.get_scans_by_date_api, name='get_scans_by_date_api'),
     # ex: /scans/api/v1/list
-    url(r'^api/v1/filter$', views.get_scans_by_period, name='get_scans_by_period'),
-    # ex: /scans/delete (add multiple scans in POST)
-    url(r'^delete$', views.delete_scans, name='delete_scans'),
-    # ex: /scans/stop/33
-    url(r'^stop/(?P<scan_id>[0-9]+)$', views.stop_scan, name='stop_scan'),
-    # ex: /scans/report/json/33
-    url(r'^report/json/(?P<scan_id>[0-9]+)$', views.get_scan_report_json, name='get_scan_report_json'),
-    # ex: /scans/report/csv/33
-    url(r'^report/csv/(?P<scan_id>[0-9]+)$', views.get_scan_report_csv, name='get_scan_report_csv'),
-    # ex: /scans/report/html/33
-    url(r'^report/html/(?P<scan_id>[0-9]+)$', views.get_scan_report_html, name='get_scan_report_html'),
-    # ex: /scans/reportzip/33
-    url(r'^reportzip/(?P<scan_id>[0-9]+)$', views.send_scan_reportzip, name='send_scan_reportzip'),
-    # ex: /scans/campaigns
-    # url(r'^campaigns$', views.list_scan_campaigns, name='list_scan_campaigns'),
-    # # ex: /scans/periodic/change_status/33
-    # url(r'^campaigns/change_status/(?P<scan_campaign_id>[0-9]+)$', views.toggle_scan_campaign_status, name='toggle_scan_campaign_status'),
-    # # ex: /scans/defs/delete/33
-    # url(r'^campaigns/run/(?P<scan_campaign_id>[0-9]+)$', views.run_scan_campaign, name='run_scan_campaign'),
-    # ex: /scans/defs/change_status/33
-    url(r'^defs/change_status/(?P<scan_def_id>[0-9]+)$', views.toggle_scan_def_status, name='toggle_scan_def_status'),
-    # ex: /scans/defs/delete/33
-    url(r'^defs/run/(?P<scan_def_id>[0-9]+)$', views.run_scan_def, name='run_scan_def'),
+    url(r'^api/v1/filter$', apis.get_scans_by_period_api, name='get_scans_by_period_api'),
+    # ex: /scans/api/v1/delete (add multiple scans in POST)
+    url(r'^api/v1/delete$', apis.delete_scans_api, name='delete_scans_api'),
+    # ex: /scans/api/v1/stop/33
+    url(r'^api/v1/stop/(?P<scan_id>[0-9]+)$', apis.stop_scan_api, name='stop_scan_api'),
+    # ex: /scans/api/v1/report/json/33
+    url(r'^api/v1/report/json/(?P<scan_id>[0-9]+)$', apis.get_scan_report_json_api, name='get_scan_report_json_api'),
+    # ex: /scans/api/v1/report/csv/33
+    url(r'^api/v1/report/csv/(?P<scan_id>[0-9]+)$', apis.get_scan_report_csv_api, name='get_scan_report_csv_api'),
+    # ex: /scans/api/v1/report/html/33
+    url(r'^api/v1/report/html/(?P<scan_id>[0-9]+)$', apis.get_scan_report_html_api, name='get_scan_report_html_api'),
+    # ex: /scans/api/v1/reportzip/33
+    url(r'^api/v1/reportzip/(?P<scan_id>[0-9]+)$', apis.send_scan_reportzip_api, name='send_scan_reportzip_api'),
+    # ex: /scans/api/v1/defs/change_status/33
+    url(r'^api/v1/defs/change_status/(?P<scan_def_id>[0-9]+)$', apis.toggle_scan_def_status_api, name='toggle_scan_def_status_api'),
+    # ex: /scans/api/v1/defs/run/33
+    url(r'^api/v1/defs/run/(?P<scan_def_id>[0-9]+)$', apis.run_scan_def_api, name='run_scan_def_api'),
 
 
     ## WEB Views
@@ -47,18 +39,8 @@ urlpatterns = [
     url(r'^delete/(?P<scan_id>[0-9]+)$', views.delete_scan_view, name='delete_scan_view'),
     # ex: /scans/details/33
     url(r'^details/(?P<scan_id>[0-9]+)$', views.detail_scan_view, name='detail_scan_view'),
-    # # ex: /scans/details/33/findings/34?raw=true
-    # url(r'^details/(?P<scan_id>[0-9]+)/findings/(?P<finding_id>[0-9]+)$', views.detail_scan_finding_view, name='detail_scan_finding_view'),
     # ex: /scans/compare?scan_a_id=2&scan_b_id=32
     url(r'^compare$', views.compare_scans_view, name='compare_scans_view'),
-    # # ex: /scans/campaigns/list
-    # url(r'^campaigns/list$', views.list_scan_campaigns_view, name='list_scan_campaigns_view'),
-    # # ex: /scans/campaigns/delete/33
-    # url(r'^campaigns/delete/(?P<scan_campaign_id>[0-9]+)$', views.delete_scan_campaign_view, name='delete_scan_campaign_view'),
-    # # ex: /scans/campaigns/edit/33
-    # url(r'^campaigns/edit/(?P<scan_campaign_id>[0-9]+)$', views.edit_scan_campaign_view, name='edit_scan_campaign_view'),
-    # # ex: /scans/campaigns/add/33
-    # url(r'^campaigns/add$', views.add_scan_campaign_view, name='add_scan_campaign_view'),
     # ex: /scans/defs/list
     url(r'^defs/list$', views.list_scan_def_view, name='list_scan_def_view'),
     # ex: /scans/defs/delete/33

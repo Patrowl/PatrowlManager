@@ -59,8 +59,8 @@ div.risk-trends {
 </style>
 
 <ul class="breadcrumb">
-  <li><a href="/assets/list">assets</a></li>
-  <li><a href="/assets/list?target=asset_group">groups</a></li>
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
+  <li><a href="{% url 'list_assets_view' %}?target=asset_group">groups</a></li>
   <li class="active">details for: {{ asset_group.name }} [<a href='/assets/groups/edit/{{ asset_group.id }}'>edit</a>]</li>
 </ul>
 
@@ -77,7 +77,7 @@ div.risk-trends {
         <dt>Tags</dt>
         <dd>
           {% for tag in asset_group.categories.all %}
-          <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}" csrf-token="{{ csrf_token }}"></i></span>
+          <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}"></i></span>
           {% endfor %}
           <a href="#modal-edit-asset-group-tags" data-toggle="modal" data-target="#modal-edit-asset-group-tags">+ add</a>
         </dd>
@@ -97,12 +97,12 @@ div.risk-trends {
         <dt>Download report</dt>
         <dd>
           <a href="/assets/groups/report/json/{{ asset_group.id }}">json</a> -
-          <a href="/assets/groups/report/html/{{ asset_group.id }}">html</a> -
+          <a href="/assets/api/v1/groups/report/html/{{ asset_group.id }}">html</a> -
           pdf
         </dd>
         <dt>Export assets</dt>
         <dd>
-          <a href="/assets/export/{{ asset_group.id }}">CSV</a>
+          <a href="{% url 'export_assets_api' asset_group.id %}">CSV</a>
         </dd>
       </dl>
     </div><!-- End of first col -->
@@ -542,7 +542,7 @@ div.risk-trends {
                 <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
                   <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
                 {% else %}
-                <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/report/html/{{ scan.id }}'">
+                <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">
                   <span class="glyphicon glyphicon-share"></span></button>
                 {% endif %}
                 <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_definition__id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
@@ -675,7 +675,7 @@ div.risk-trends {
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-finding" csrf-token="{{ csrf_token }}">
+        <div id="delete-finding">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -702,7 +702,7 @@ div.risk-trends {
       <!-- Modal Body -->
       <!-- <div class="modal-body"> -->
       <div class="modal-body">
-        <div id="asset-tags" csrf-token="{{ csrf_token }}">
+        <div id="asset-tags">
           <!-- Content -->
           <b>Current tags</b>: {{ asset_group.categories.all|join:", " }}<br/>
           <p class="text-warning">
@@ -710,7 +710,7 @@ div.risk-trends {
             1/ All sub-tags will be deleted if a parent tag is added<br/>
             2/ Parent tag will be deleted if a child tag is added</p>
 
-          <form class="search-asset-group-tags-form" action="/assets/groups/details/{{asset_group.id}}/add_tag" method="post">
+          <form class="search-asset-group-tags-form" action="/assets/api/v1/groups/details/{{asset_group.id}}/add_tag" method="post">
             {% csrf_token %}
             <input type="text" id="input-search-tags" name="input-search-tags"/><button class="btn btn-xs btn-warning" type="submit">+</button>
           </form>
@@ -747,10 +747,11 @@ div.risk-trends {
       })
 
       if (findings_to_delete.length != 0){
-        delete_url="/findings/delete"
+        delete_url="{% url 'delete_findings_api' %}"
         var request = $.ajax({
           url: delete_url,
           method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(findings_to_delete),
           contentType: "application/json"
         });
@@ -762,10 +763,10 @@ div.risk-trends {
 
     // Compare findings
     $("a.btn-compare-selected").on('click', function (e) {
-      findings_to_compare = []
+      findings_to_compare = [];
       $("input[name='finding']").each(function(cbx){
         if (this.checked) {
-          findings_to_compare.push(this.value)
+          findings_to_compare.push(this.value);
         }
       });
       if(findings_to_compare.length == 2){
@@ -775,18 +776,19 @@ div.risk-trends {
 
     // Change the finding status
     $("a.btn-ack").on('click', function(eventObject) {
-      findings_to_ack = []
+      findings_to_ack = [];
       $("input[name='finding']").each(function(cbx){
         if (this.checked) {
-          findings_to_ack.push({'ack': this.value})
+          findings_to_ack.push({'ack': this.value});
         }
       })
 
       if (findings_to_ack.length != 0){
-        ack_url="/findings/status"
+        ack_url="{% url 'change_findings_status_api' %}";
         var request = $.ajax({
           url: ack_url,
           method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(findings_to_ack),
           contentType: "application/json"
         });
@@ -800,13 +802,13 @@ div.risk-trends {
 
     // Delete tag
     $("i.delete-tag-btn").on('click', function(eventObject) {
-      del_url="/assets/groups/details/{{asset_group.id}}/del_tag"
-      csrf_token = eventObject.currentTarget.getAttribute('csrf-token');
+      del_url="/assets/api/v1/groups/details/{{asset_group.id}}/del_tag"
       tag_id = eventObject.currentTarget.getAttribute('tag-id');
       var request = $.ajax({
         url: del_url,
         method: "POST",
-        data: "tag_id="+tag_id+"&csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        data: "tag_id="+tag_id,
         success: function(data, textStatus, xhr){
           location.reload();
         }
@@ -817,7 +819,8 @@ div.risk-trends {
     $("#input-search-tags").autocomplete({
       source: function(req, response) {
          $.ajax({
-          url: "/assets/get_tags",
+          // url: "/assets/get_tags",
+          url: "{% url 'get_asset_tags_api' %}",
           dataType: "json",
           success: function( data ) {
             var re = $.ui.autocomplete.escapeRegex(req.term);
@@ -839,13 +842,12 @@ div.risk-trends {
       $("div#delete-finding").html("Finding: <b>"+finding_title+"</b><br/><br/>");
     });
     $("button.btn-delete-finding").on('click', function (e) {
-      csrf_token = $("div#delete-finding").attr('csrf-token');
       finding_id = $("div#delete-finding").attr('finding-id');
       delete_finding_url = "/findings/delete/"+finding_id;
       var request = $.ajax({
         url: delete_finding_url,
         method: "POST",
-        data: "csrfmiddlewaretoken="+csrf_token,
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }

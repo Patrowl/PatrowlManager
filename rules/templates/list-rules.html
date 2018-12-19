@@ -3,7 +3,7 @@
 {% block content %}
 
 <ul class="breadcrumb">
-  <li><a href="/rules/list">Rules</a></li>
+  <li><a href="{% url 'list_rules_view' %}">Rules</a></li>
   <li class="active">List</li>
 </ul>
 
@@ -150,7 +150,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <div id="delete-rule" csrf-token="{{ csrf_token }}">
+        <div id="delete-rule">
           <!-- Content -->
         </div>
         Confirm Deleting?
@@ -168,8 +168,6 @@
     // global variables for common rules attributes
     scope_attributes = JSON.parse("{{form_options.rule_scope_attributes|escapejs}}");
     rules_conditions = JSON.parse("{{form_options.rule_conditions|escapejs}}");
-    //console.log(rules_conditions);
-    // rules_severities = JSON.parse("{{form_options.rule_severities|escapejs}}");
     var scope;
     var scope_attrs;
     refresh_scope_attributes();
@@ -242,10 +240,11 @@
       }
 
       var request = $.ajax({
-        url: "/rules/api/v1/add",
+        url: "{% url 'add_rule_api' %}",
         method: "POST",
         data: JSON.stringify(rule_args),
-        contentType: "application/json"
+        contentType: "application/json",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"}
       });
       request.done(function(response){
         if (response.status == 'success'){location.reload()}
@@ -305,18 +304,16 @@
     });
     $("button.btn-delete-rule").on('click', function (e) {
       delete_rule_args = {
-        "csrfmiddlewaretoken": $("div#delete-rule").attr('csrf-token'),
         "rule_id": $("div#delete-rule").attr('rule-id')
       }
       delete_rule_args = []
       delete_rule_args.push($("div#delete-rule").attr('rule-id'))
-      // csrf_token = $("div#delete-rule").attr('csrf-token');
-      // rule_id = $("div#delete-rule").attr('rule-id');
       delete_rule_url = "/rules/api/v1/delete";
       var request = $.ajax({
         url: delete_rule_url,
         method: "POST",
         data: JSON.stringify(delete_rule_args),
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
         }
@@ -338,7 +335,8 @@
         var request = $.ajax({
           url: delete_url,
           method: "POST",
-          data: JSON.stringify(rules_to_delete),
+          // data: JSON.stringify(rules_to_delete),
+          data: rules_to_delete,
           contentType: "application/json"
         });
         request.done(function(response){
