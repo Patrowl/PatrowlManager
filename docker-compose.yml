@@ -2,7 +2,7 @@ version: '3'
 services:
 
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:3-alpine
     container_name: patrowl-rabbitmq
     environment:
       - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error}]
@@ -10,7 +10,7 @@ services:
       - '5672'
 
   db:
-    image: postgres:10.1-alpine
+    image: postgres:11-alpine
     container_name: patrowl-postgres
     environment:
       - POSTGRES_DB=patrowl_db
@@ -34,8 +34,6 @@ services:
     depends_on:
       - db
       - rabbitmq
-    # ports:
-    #   - "0.0.0.0:8003:8003"
     expose:
       - "8003"
     volumes:

@@ -10,7 +10,7 @@ from engines.tasks import startscan_task
 import xmlrpclib
 import uuid
 import random
-import datetime
+from datetime import datetime
 
 
 def _update_celerybeat():

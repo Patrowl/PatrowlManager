@@ -123,7 +123,11 @@ def signup(request):
 
 def user_details_view(request):
     user = get_object_or_404(User, id=request.user.id)
-    apitoken = Token.objects.filter(user=request.user)[0]
+    apitokens = Token.objects.filter(user=request.user)
+    if apitokens.count() >= 1:
+        apitoken = apitokens[0]
+    else:
+        apitoken = ""
     return render(request, 'details-user.html', {
         'user': user,
         'apitoken': apitoken
