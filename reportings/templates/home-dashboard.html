@@ -186,7 +186,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
               {% for asset in top_critical_assets %}
               <tr class='dblclickable-row' data-href='/assets/details/{{asset.id}}'>
                 <td><span class="badge badge-risk-grade-{{asset.risk_level|keyvalue:'grade'}}">{{asset.risk_level|keyvalue:"grade"}}</span></td>
-                <td>{{asset.value|truncatechars:35}}</td>
+                <td>{{asset.value|truncatechars:25}}</td>
                 <td>{{asset|risk_score}}</td>
               </tr>
               {% endfor %}

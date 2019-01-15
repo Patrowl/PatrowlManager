@@ -52,7 +52,7 @@ class EngineInstanceForm(forms.ModelForm):
 
         if 'initial' in self.__dict__:
             # Autocomple the list of engine types available
-            engines = list(Engine.objects.values('name', 'id'))
+            engines = list(Engine.objects.values('name', 'id').order_by('name'))
             engines = [(engine['id'], engine['name']) for engine in engines]
             self.fields['engine'].widget = forms.Select(choices=engines, attrs={'class': 'form-control form-control-sm'})
 
