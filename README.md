@@ -4,6 +4,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/Patrowl/PatrowlManager/badge.svg)](https://snyk.io/test/github/Patrowl/PatrowlManager)
 ![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=patrowl-manager&metric=alert_status)
 [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlManager)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/524eab1787ba4a8dbff03f6f59c93b33)](https://www.codacy.com/app/MaKyOtOx/PatrowlManager)
 
 # **PatrOwl**
 [PatrOwl](https://www.patrowl.io/) is a scalable, free and open-source solution for orchestrating Security Operations.  
@@ -30,7 +31,7 @@ Information, news and updates are regularly posted on [Patrowl.io Twitter accoun
 Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/master/support/code_of_conduct.md). We welcome your contributions. Please feel free to fork the code, play with it, make some patches and send us pull requests via [issues](https://github.com/Patrowl/PatrowlManager/issues).
 
 # Roadmap
-- [ ] API Documentation
+- [X] API Documentation
 - [ ] Transform all API calls to async tasks (limit Nginx 504 timeouts)
 - [ ] Beautify scan creation and edition forms
 - [ ] Enhance finding states management
@@ -41,6 +42,8 @@ Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/mas
 - [ ] Optimize global performances
 - [ ] Refactor static files (remove unused ?)
 - [ ] Continuous Docker image deployment (Travis stage)
+
+Follow our roadmap on Trello [here](https://trello.com/b/rksoIN5y)
 
 # Support
 Please [open an issue on GitHub](https://github.com/Patrowl/PatrowlManager/issues) if you'd like to report a bug or request a feature. We are also available on [Gitter](https://gitter.im/Patrowl/Support) to help you out.

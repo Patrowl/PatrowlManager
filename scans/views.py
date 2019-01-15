@@ -247,12 +247,14 @@ def add_scan_def_view(request):
 
             if form.data['start_scan'] == "scheduled":
                 try:
-                    if form.cleaned_data['scheduled_at'] > datetime.now():  # check if it's future ...
+                    # check if it's future or not
+                    if form.cleaned_data['scheduled_at'] > datetime.now():
+                        # @todo: validate datetime format
                         scan_definition.scheduled_at = timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at'])
-                        # scan_definition.scheduled_at = form.cleaned_data['scheduled_at']
                         scan_definition.enabled = True
                 except Exception:
                     scan_definition.scheduled_at = None
+                    scan_definition.enabled = False
 
             if int(form.data['engine_id']) > 0:
                 # todo: check if the engine is compliant with the scan policy

@@ -25,7 +25,7 @@ import csv
 
 @api_view(['POST'])
 def delete_scans_api(request):
-    scans = json.loads(request.body)
+    scans = request.data
     for scan_id in scans:
         Scan.objects.get(id=scan_id).delete()
 
