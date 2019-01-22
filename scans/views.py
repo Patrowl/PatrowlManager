@@ -464,6 +464,128 @@ def edit_scan_def_view(request, scan_def_id):
     return render(request, 'edit-scan-definition.html', {'form': form, 'scan_def_id': scan_def_id})
 
 
+def edit_scan_def_view2(request, scan_def_id):
+    scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
+
+    form = None
+    if request.method == 'GET':
+        form = ScanDefinitionForm(instance=scan_definition)
+        scan_cats = EnginePolicyScope.objects.all().values()
+        scan_policies = list(EnginePolicy.objects.all())
+        scan_engines = Engine.objects.all().values()
+        scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
+
+        scan_policies_json = []
+        for p in scan_policies:
+            scan_policies_json.append(p.as_dict())
+    elif request.method == 'POST':
+        form = ScanDefinitionForm(request.POST)
+
+        if form.is_valid():
+            scan_definition.title = form.cleaned_data['title']
+            scan_definition.status = "edited"
+            scan_definition.description = form.cleaned_data['description']
+            scan_definition.enabled = form.cleaned_data['enabled'] is True
+            scan_definition.engine_policy = form.cleaned_data['engine_policy']
+            scan_definition.engine_type = scan_definition.engine_policy.engine
+            if len(form.data['engine']) > 0:
+                # todo: check if the engine is compliant with the scan policy
+                scan_definition.engine = EngineInstance.objects.get(id=form.data['engine'])
+            else:
+                scan_definition.engine = None
+
+            scan_definition.assets_list.clear()
+            scan_definition.assetgroups_list.clear()
+            assets_list = []
+            for asset_id in form.data.getlist('assets_list'):
+                asset = Asset.objects.get(id=asset_id)
+                scan_definition.assets_list.add(asset)
+                assets_list.append({
+                    "id": asset.id,
+                    "value": asset.value.strip(),
+                    "criticity": asset.criticity,
+                    "datatype": asset.type
+                })
+            for assetgroup_id in form.data.getlist('assetgroups_list'):
+                assetgroup = AssetGroup.objects.get(id=assetgroup_id)
+                scan_definition.assetgroups_list.add(assetgroup)
+                for a in assetgroup.assets.all():
+                    scan_definition.assets_list.add(a)
+                    assets_list.append({
+                        "id": a.id,
+                        "value": a.value.strip(),
+                        "criticity": a.criticity,
+                        "datatype": a.type
+                    })
+
+            if form.cleaned_data['scan_type'] == 'single':
+                scan_definition.every = None
+                scan_definition.period = None
+
+            if form.cleaned_data['scan_type'] == 'periodic':
+                scan_definition.every = int(form.cleaned_data['every'])
+                scan_definition.period = form.cleaned_data['period']
+
+                schedule, created = IntervalSchedule.objects.get_or_create(
+                    every=int(scan_definition.every),
+                    period=scan_definition.period,
+                )
+
+                parameters = {
+                    "scan_params": {
+                        "assets": assets_list,
+                        # "assetgroups": assetgroups_list,
+                        "options": scan_definition.engine_policy.options,
+                    },
+                    # "scan_definition_id": str(scan_definition.id),
+                    "scan_definition_id": scan_definition.id,
+                    "engine_name": str(scan_definition.engine_type.name).lower(),
+                    "owner_id": request.user.id,
+                }
+                if form.data['engine'] != '' and int(form.data['engine']) > 0:
+                    parameters.update({
+                        "engine_id": EngineInstance.objects.get(id=form.data['engine']).id,
+                        "scan_params": {
+                            "engine_id": EngineInstance.objects.get(id=form.data['engine']).id
+                        }
+                    })
+
+                # Remove the old PeriodicTask if exists
+                task_title = '[PO] {}@{}'.format(scan_definition.title, scan_definition.id)
+                PeriodicTask.objects.filter(name=task_title).delete()
+
+                # Create new one
+                periodic_task = PeriodicTask.objects.create(
+                    interval=schedule,
+                    name=task_title,
+                    task='engines.tasks.start_periodic_scan_task',
+                    args=json.dumps([parameters]),
+                    #expires=datetime.utcnow() + timedelta(seconds=30),
+                    queue='scan-'+scan_definition.engine_type.name.lower(),
+                    routing_key='scan.'+scan_definition.engine_type.name.lower(),
+                    last_run_at=None,
+                )
+
+                periodic_task.enabled = True
+                periodic_task.save()
+
+                scan_definition.periodic_task = periodic_task
+                _update_celerybeat()
+
+            scan_definition.save()
+            messages.success(request, 'Update submission successful')
+            return redirect('list_scan_def_view')
+
+    return render(request, 'edit-scan-definition-new.html', {
+        'form': form,
+        'scan_def': scan_definition,
+        'scan_engines': scan_engines,
+        'scan_engines_json': scan_engines_json,
+        'scan_cats': scan_cats,
+        'scan_policies_json': json.dumps(scan_policies_json),
+        'scan_policies': scan_policies})
+
+
 def detail_scan_def_view(request, scan_definition_id):
     scan_def = get_object_or_404(ScanDefinition, id=scan_definition_id)
     return render(request, 'details-scan-def.html', {
