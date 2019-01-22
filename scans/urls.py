@@ -47,7 +47,6 @@ urlpatterns = [
     url(r'^defs/delete/(?P<scan_def_id>[0-9]+)$', views.delete_scan_def_view, name='delete_scan_def_view'),
     # ex: /scans/defs/delete/33
     url(r'^defs/edit/(?P<scan_def_id>[0-9]+)$', views.edit_scan_def_view, name='edit_scan_def_view'),
-    url(r'^defs/edit2/(?P<scan_def_id>[0-9]+)$', views.edit_scan_def_view2, name='edit_scan_def_view2'),
     # ex: /scans/defs/add/33
     url(r'^defs/add$', views.add_scan_def_view, name='add_scan_def_view'),
     # ex: /scans/defs/details/33
