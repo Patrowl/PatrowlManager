@@ -61,7 +61,7 @@ label.radio {
 </ul>
 
 <div class="container">
-  <form action="{% url 'edit_scan_def_view2' scan_def.id %}" method="post" class="form-horizontal">
+  <form action="{% url 'edit_scan_def_view' scan_def.id %}" method="post" class="form-horizontal">
     <legend>Edit a scan definition (ID: {{scan_def.id}})</legend>
     {% csrf_token %}
 

@@ -96,7 +96,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for scan in scan_def.scan_set.all|sort_by:"-created_at" %}
+      {% for scan in scans %}
       <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
         <td><input type="checkbox" class="radio" name="scan" value="{{scan.id}}"/></td>
         <td>{{ scan.id }}</td>
@@ -172,6 +172,46 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <div style="display: inline-flex;">
+    <ul class="pagination pagination-xs">
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a>
+      </li>
+      {% if scans.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href= "#" onclick="gotopage({{ scans.previous_page_number }});">&laquo;</a>
+      </li>
+      {% endif %}
+      {{scans.paginator.items}}
+      {% for pn in scans.paginator.page_range %}
+      {% if pn == scans.number %}
+      <li class="page-item active">
+      {% else %}
+      <li class="page-item">
+      {% endif %}
+        <a class="page-link" href="#" onclick="gotopage({{ pn }});">{{ pn }}</a>
+      </li>
+      {% endfor %}
+      {% if scans.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage({{ scans.next_page_number }});">&raquo;</a>
+      </li>
+      {% endif %}
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage({{ scans.paginator.num_pages }});">&raquo;&raquo;</a>
+      </li>
+    </ul>
+    <!-- <div style="margin: 21px;">
+      <select id="nb_rows_per_page" >
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="200">200</option>
+      </select>
+      scans per page
+    </div> -->
+  </div>
 
   {% if messages %}
   <ul class="messages">
@@ -301,6 +341,13 @@ function toggle(source) {
     checkboxes[i].checked = source.checked;
   }
 } // End fo function toggle()
+
+// Goto paginate
+url = new URL(window.location.href);
+var gotopage = function gotopage(page_num) {
+  url.searchParams.set("page", page_num);
+  window.location = url.search;
+};
 
 var findingsByScanDef_chart;
 

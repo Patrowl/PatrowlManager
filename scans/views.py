@@ -157,6 +157,7 @@ def detail_scan_view(request, scan_id):
 
 
 def list_scans_view(request):
+    """List performed scans."""
     scan_list = Scan.objects.all().order_by('-finished_at')
 
     paginator = Paginator(scan_list, 10)
@@ -171,6 +172,7 @@ def list_scans_view(request):
 
 
 def delete_scan_view(request, scan_id):
+    """Delete scan."""
     scan = get_object_or_404(Scan, id=scan_id)
     if request.method == 'POST':
         scan.delete()
@@ -480,9 +482,20 @@ def edit_scan_def_view(request, scan_def_id):
 
 
 def detail_scan_def_view(request, scan_definition_id):
+    """Details of a scan definition."""
     scan_def = get_object_or_404(ScanDefinition, id=scan_definition_id)
+    scan_list = scan_def.scan_set.order_by('-finished_at')
+
+    paginator = Paginator(scan_list, 2)
+    page = request.GET.get('page')
+    try:
+        scans = paginator.page(page)
+    except PageNotAnInteger:
+        scans = paginator.page(1)
+    except EmptyPage:
+        scans = paginator.page(paginator.num_pages)
     return render(request, 'details-scan-def.html', {
-        'scan_def': scan_def})
+        'scan_def': scan_def, 'scans': scans})
 
 
 def compare_scans_view(request):

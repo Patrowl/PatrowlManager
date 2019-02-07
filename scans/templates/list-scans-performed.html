@@ -17,19 +17,6 @@
     to { transform: scale(1) rotate(360deg);}
 }
 
-.progress-bar-high {
-  background-color: #E43725
-}
-.progress-bar-medium {
-  background-color: #EE9336
-}
-.progress-bar-low {
-  background-color: #FDC431
-}
-.progress-bar-info {
-  background-color: #357ABD
-}
-
 table tr td.scan-progress {
   vertical-align: middle;
 }
@@ -188,20 +175,45 @@ table tr td.scan-progress {
     <a class="text-warning btn-stop-selected" href="#">x Stop selected scans (no confirm)</a><br/>
     <a class="text-default btn-compare-selected" href="#">// Compare selected scans (2 scans max.)</a>
   </div>
-  <div class="pagination">
-    <span class="step-links">
-        {% if scans.has_previous %}
-            <a href="?page={{ scans.previous_page_number }}">previous</a>
-        {% endif %}
 
-        <span class="current">
-            Page {{ scans.number }} of {{ scans.paginator.num_pages }}.
-        </span>
-
-        {% if scans.has_next %}
-            <a href="?page={{ scans.next_page_number }}">next</a>
-        {% endif %}
-    </span>
+  <div style="display: inline-flex;">
+    <ul class="pagination pagination-xs">
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a>
+      </li>
+      {% if scans.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href= "#" onclick="gotopage({{ scans.previous_page_number }});">&laquo;</a>
+      </li>
+      {% endif %}
+      {{scans.paginator.items}}
+      {% for pn in scans.paginator.page_range %}
+      {% if pn == scans.number %}
+      <li class="page-item active">
+      {% else %}
+      <li class="page-item">
+      {% endif %}
+        <a class="page-link" href="#" onclick="gotopage({{ pn }});">{{ pn }}</a>
+      </li>
+      {% endfor %}
+      {% if scans.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage({{ scans.next_page_number }});">&raquo;</a>
+      </li>
+      {% endif %}
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage({{ scans.paginator.num_pages }});">&raquo;&raquo;</a>
+      </li>
+    </ul>
+    <!-- <div style="margin: 21px;">
+      <select id="nb_rows_per_page" >
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="200">200</option>
+      </select>
+      scans per page
+    </div> -->
   </div>
 
 
@@ -330,6 +342,13 @@ table tr td.scan-progress {
     var strTime = hours + ':' + minutes// + ' ' + ampm;
     return date.getDate() + "/" + date.getMonth()+1 + "/" + date.getFullYear() + " - " + strTime + " (1h)";
   }
+
+  // Goto paginate
+  url = new URL(window.location.href);
+  var gotopage = function gotopage(page_num) {
+    url.searchParams.set("page", page_num);
+    window.location = url.search;
+  };
 
 
   var cal = new CalHeatMap();
