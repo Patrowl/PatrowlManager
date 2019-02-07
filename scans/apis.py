@@ -25,6 +25,7 @@ import csv
 
 @api_view(['POST'])
 def delete_scans_api(request):
+    """Delete selected scans."""
     scans = request.data
     for scan_id in scans:
         Scan.objects.get(id=scan_id).delete()
@@ -34,6 +35,7 @@ def delete_scans_api(request):
 
 @api_view(['GET'])
 def stop_scan_api(request, scan_id):
+    """Stop a scan."""
     scan = get_object_or_404(Scan, id=scan_id)
     scan.status = "stopping"
     scan.save()
@@ -43,6 +45,27 @@ def stop_scan_api(request, scan_id):
         routing_key='scan.'+str(scan.engine_type).lower(),
         retry=False
     )
+    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+
+
+@api_view(['POST'])
+def stop_scans_api(request):
+    """Stop selected scans."""
+    scans = request.data
+    for scan_id in scans:
+        try:
+            scan = Scan.objects.get(id=scan_id)
+        except Scan.DoesNotExist:
+            continue
+
+        scan.status = "stopping"
+        scan.save()
+        stopscan_task.apply_async(
+            args=[scan.id],
+            queue='scan-'+str(scan.engine_type).lower(),
+            routing_key='scan.'+str(scan.engine_type).lower(),
+            retry=False
+        )
 
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
@@ -111,8 +134,8 @@ def get_scans_by_date_api(request):
     date = request.GET.get('date', None)
     stop_date = None
     scope = request.GET.get('scope', None)
-    if date and datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ'):
-        date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ')
+    if date and datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ'):
+        date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ')
     else:
         return HttpResponse(status=400)
 

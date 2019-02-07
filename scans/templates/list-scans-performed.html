@@ -185,6 +185,7 @@ table tr td.scan-progress {
   </table>
   <div>
     <a class="text-danger btn-delete-selected" href="#">- Delete selected scans (no confirm)</a><br/>
+    <a class="text-warning btn-stop-selected" href="#">x Stop selected scans (no confirm)</a><br/>
     <a class="text-default btn-compare-selected" href="#">// Compare selected scans (2 scans max.)</a>
   </div>
   <div class="pagination">
@@ -524,12 +525,36 @@ table tr td.scan-progress {
       });
     });
 
-    // Delete scans
+    // Stop selected scans
+    $("a.btn-stop-selected").on('click', function(eventObject) {
+      scans_to_stop = []
+      $("input[name='scan']").each(function(cbx){
+        if (this.checked) {
+          scans_to_stop.push(this.value);
+        }
+      })
+
+      if (scans_to_stop.length != 0){
+        stop_url="{% url 'stop_scans_api' %}"
+        var request = $.ajax({
+          url: stop_url,
+          method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: JSON.stringify(scans_to_stop),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    // Delete selected scans
     $("a.btn-delete-selected").on('click', function(eventObject) {
       scans_to_delete = []
       $("input[name='scan']").each(function(cbx){
         if (this.checked) {
-          scans_to_delete.push(this.value)
+          scans_to_delete.push(this.value);
         }
       })
 
@@ -548,12 +573,12 @@ table tr td.scan-progress {
       }
     });
 
-    // Compare scans
+    // Compare selected scans
     $("a.btn-compare-selected").on('click', function (e) {
       scans_to_compare = []
       $("input[name='scan']").each(function(cbx){
         if (this.checked) {
-          scans_to_compare.push(this.value)
+          scans_to_compare.push(this.value);
         }
       });
       if(scans_to_compare.length == 2){

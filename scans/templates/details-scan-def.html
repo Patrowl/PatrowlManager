@@ -79,6 +79,7 @@
     </button>
     <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
       <li><a class="btn-compare-selected" href="#">Compare selected scans (2 scans max.)</a></li>
+      <li><a class="btn-stop-selected" href="#">Stop selected scans (no confirm)</a></li>
       <li><a class="btn-delete-selected" href="#">Delete selected scans (no confirm)</a></li>
     </ul>
   </div>
@@ -493,10 +494,10 @@ $(function() {
 
   // Compare scans
   $("a.btn-compare-selected").on('click', function (e) {
-    scans_to_compare = []
+    scans_to_compare = [];
     $("input[name='scan']").each(function(cbx){
       if (this.checked) {
-        scans_to_compare.push(this.value)
+        scans_to_compare.push(this.value);
       }
     });
     if(scans_to_compare.length == 2){
@@ -504,26 +505,49 @@ $(function() {
     }
   });
 
-  // Delete scans
+  // Delete selected scans
   $("a.btn-delete-selected").on('click', function(eventObject) {
-    scans_to_delete = []
+    scans_to_delete = [];
     $("input[name='scan']").each(function(cbx){
       if (this.checked) {
-        scans_to_delete.push(this.value)
+        scans_to_delete.push(this.value);
       }
     })
 
     if (scans_to_delete.length != 0){
-      delete_url="{% url 'delete_scans_api' %}"
       var request = $.ajax({
-        url: delete_url,
+        url: "{% url 'delete_scans_api' %}",
         method: "POST",
         headers: {"X-CSRFToken": "{{ csrf_token }}"},
         data: JSON.stringify(scans_to_delete),
         contentType: "application/json"
       });
       request.done(function(response){
-        if (response.status == 'success'){location.reload()}
+        if (response.status == 'success'){location.reload();}
+      });
+    }
+  });
+
+
+  // Stop selected scans
+  $("a.btn-stop-selected").on('click', function(eventObject) {
+    scans_to_stop = [];
+    $("input[name='scan']").each(function(cbx){
+      if (this.checked) {
+        scans_to_stop.push(this.value);
+      }
+    })
+
+    if (scans_to_stop.length != 0){
+      var request = $.ajax({
+        url: "{% url 'stop_scans_api' %}",
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        data: JSON.stringify(scans_to_stop),
+        contentType: "application/json"
+      });
+      request.done(function(response){
+        if (response.status == 'success'){location.reload();}
       });
     }
   });

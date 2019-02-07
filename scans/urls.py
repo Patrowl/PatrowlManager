@@ -16,6 +16,8 @@ urlpatterns = [
     url(r'^api/v1/filter$', apis.get_scans_by_period_api, name='get_scans_by_period_api'),
     # ex: /scans/api/v1/delete (add multiple scans in POST)
     url(r'^api/v1/delete$', apis.delete_scans_api, name='delete_scans_api'),
+    # ex: /scans/api/v1/stop (POST)
+    url(r'^api/v1/stop$', apis.stop_scans_api, name='stop_scans_api'),
     # ex: /scans/api/v1/stop/33
     url(r'^api/v1/stop/(?P<scan_id>[0-9]+)$', apis.stop_scan_api, name='stop_scan_api'),
     # ex: /scans/api/v1/report/json/33
