@@ -263,7 +263,7 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
 def stopscan_task(self, scan_id):
     scan = get_object_or_404(Scan, id=scan_id)
     Event.objects.create(message="[EngineTasks/stopscan_task/{}] Task started.".format(self.request.id),
-                 type="INFO", severity="INFO", scan=scan)
+        type="INFO", severity="INFO", scan=scan)
 
     revoke(str(scan.task_id), terminate=True)
 
@@ -278,7 +278,7 @@ def stopscan_task(self, scan_id):
             # print("ERROR: something goes wrong in 'stopscan_task' (request_status_code={}, engine_error={})",
             #        resp.status_code, json.loads(resp.text)['reason'])
             Event.objects.create(message="[EngineTasks/stopscan_task/{}] Error when stopping scan.".format(self.request.id),
-                         type="ERROR", severity="ERROR", scan=scan)
+                type="ERROR", severity="ERROR", scan=scan, description="STATUS CODE={}, {}".format(resp.status_code, json.loads(resp.text)))
             return False
     except Exception as e:
         scan.status = "error"
@@ -629,7 +629,7 @@ def start_periodic_scan_task(self, params):
 
 
 def _get_engine_status(engine):
-    #print("I'm inside the _get_engine_status with args '{}'".format(engine))
+    # print("I'm inside the _get_engine_status with args '{}'".format(engine))
 
     engine_status = "undefined"
 
@@ -649,7 +649,7 @@ def _get_engine_status(engine):
 
 
 def _get_scan_status(engine, scan_id):
-    #print("I'm inside the _get_scan_status with args 'engine={}, scan_id={}'".format(engine, scan_id))
+    # print("I'm inside the _get_scan_status with args 'engine={}, scan_id={}'".format(engine, scan_id))
     scan_status = "undefined"
 
     try:
@@ -789,45 +789,18 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             #     finding['severity']: scan_summary[finding['severity']] + 1
             # })
 
-            # store finding in the RawFinding table
-            new_raw_finding = RawFinding.objects.create(
-                asset       = asset,
-                asset_name  = asset.value,
-                scan        = scan,
-                owner       = scan.owner,
-                title       = finding['title'],
-                type        = finding['type'],
-                confidence  = finding['confidence'],
-                severity    = finding['severity'],
-                description = finding['description'],
-                solution    = finding['solution'],
-                status      = "new",
-                engine_type = scan.engine_type.name,
-                risk_info   = risk_info,
-                vuln_refs   = vuln_refs,
-                links       = links,
-                tags        = tags,
-                raw_data    = raw_data
-                #found_at = ???
-            )
-            new_raw_finding.save()
 
-            # Add the engine policy scopes
-            for scope in scan.engine_policy.scopes.all():
-                new_raw_finding.scopes.add(EnginePolicyScope.objects.get(id=scope.id))
-            new_raw_finding.save()
-
-            # check if this finding is new
+            # Check if this finding is new
             f = Finding.objects.filter(
                 hash=hashlib.sha1(str(asset.value)+str(finding['title'])).hexdigest()).first()
-
+            finding_state = "new"  # Default value
             if f:
                 f.checked_at = timezone.now()
                 f.save()
+                finding_state = f.status
             else:
-                # create a new asset:
-                #print "#########NEW:", new_raw_finding.title
-                Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] New finding: {}".format(scan_id, new_raw_finding.title), type="DEBUG", severity="INFO", scan=scan)
+                # Create a new asset:
+                Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] New finding: {} ({})".format(scan_id, finding['title'], asset.value), type="DEBUG", severity="INFO", scan=scan)
                 new_finding = Finding.objects.create(
                     raw_finding = new_raw_finding,
                     asset       = asset,
@@ -848,7 +821,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     tags        = tags,
                     raw_data    = raw_data
                 )
-
                 new_finding.save()
 
                 # Add the engine policy scopes
@@ -856,14 +828,48 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     new_finding.scopes.add(EnginePolicyScope.objects.get(id=scope.id))
                 new_finding.save()
 
-                # reevaluate the risk level of the asset on new risk
-                asset.evaluate_risk()
-                asset.calc_risk_grade()
+                # Evaluate alerting rules
                 new_finding.evaluate_alert_rules(trigger='auto')
+
+            # Store finding in the RawFinding table
+            new_raw_finding = RawFinding.objects.create(
+                asset       = asset,
+                asset_name  = asset.value,
+                scan        = scan,
+                owner       = scan.owner,
+                title       = finding['title'],
+                type        = finding['type'],
+                confidence  = finding['confidence'],
+                severity    = finding['severity'],
+                description = finding['description'],
+                solution    = finding['solution'],
+                status      = finding_state,
+                engine_type = scan.engine_type.name,
+                risk_info   = risk_info,
+                vuln_refs   = vuln_refs,
+                links       = links,
+                tags        = tags,
+                raw_data    = raw_data
+                #found_at = ???
+            )
+            new_raw_finding.save()
+
+            # Add the engine policy scopes
+            for scope in scan.engine_policy.scopes.all():
+                new_raw_finding.scopes.add(EnginePolicyScope.objects.get(id=scope.id))
+            new_raw_finding.save()
 
     scan.save()
     scan.update_sumary()
+
+    for a in scan.assets.all():
+        # Reevaluate the risk level of the asset on new risk
+        # a.evaluate_risk()
+        a.calc_risk_grade(update_groups=True)
+
+    # @Todo: Revaluate the risk level of all asset groups
+
     scan.save()
-    #print("All findings are now imported")
+    # print("All findings are now imported")
     Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] Findings imported.".format(scan_id), type="DEBUG", severity="INFO", scan=scan)
     return True

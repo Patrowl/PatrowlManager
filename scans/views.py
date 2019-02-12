@@ -278,7 +278,7 @@ def add_scan_def_view(request):
             # assetgroups_list = []
             for assetgroup_id in form.data.getlist('assetgroups_list'):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
-                # scan_definition.assetgroups_list.add(assetgroup)
+                scan_definition.assetgroups_list.add(assetgroup)
                 # assetgroups_list.append(assetgroup.name)
                 for a in assetgroup.assets.all():
                     scan_definition.assets_list.add(a)
@@ -486,7 +486,7 @@ def detail_scan_def_view(request, scan_definition_id):
     scan_def = get_object_or_404(ScanDefinition, id=scan_definition_id)
     scan_list = scan_def.scan_set.order_by('-finished_at')
 
-    paginator = Paginator(scan_list, 2)
+    paginator = Paginator(scan_list, 20)
     page = request.GET.get('page')
     try:
         scans = paginator.page(page)

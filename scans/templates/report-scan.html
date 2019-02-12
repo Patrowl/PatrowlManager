@@ -539,7 +539,7 @@
 
                     <h2 class="classh1 " style="vertical-align: middle;">More information</h2>
                     <table width="100%">
-                      {% if not finding.links %}
+                      {% if finding.links|length == 0 %}
                         <tr><td width="100%" valign="top" class="classcell"><p>No links.</p></td></tr>
                       {% else %}
                         {% for link in finding.links %}
@@ -586,11 +586,15 @@
                     </table>
                     <h2 class="classh1 " style="vertical-align: middle;">Tags</h2>
                     <table width="100%">
+                      {% if finding.tags|length == 0 %}
+                        <tr><td width="100%" valign="top" class="classcell"><p>No tags.</p></td></tr>
+                      {% else %}
                       <tr><td width="100%" valign="top" class="classcell">
                         <span class="classtext" style="color: #263645; font-weight: normal;">
                           {{ finding.tags | join:", " }}
                         </span>
                       </td></tr>
+                      {% endif %}
                     </table>
 
                     <hr/>

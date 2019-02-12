@@ -8,7 +8,7 @@
 
 <div class="container">
   <form action="{% url 'bulkadd_asset_view' %}" method="post" class="form-horizontal" enctype="multipart/form-data">
-    <legend>Add assets in bulk</legend>
+    <legend>Add assets in bulk [<a href="/static/tmpl/assets_bulk_import_template.csv">template</a>]</legend>
       {% csrf_token %}
       {% for field in form %}
           {% if field.errors %}

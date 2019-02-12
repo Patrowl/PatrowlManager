@@ -116,7 +116,7 @@ class AssetCategory(models.Model):
     #     return r
     def show_children(self, level=0):
         r = []
-        r.append((self.id, "-"*level +"{}\n".format(self.value)))
+        r.append((self.id, "-"*level + "{}\n".format(self.value)))
         for c in AssetCategory.objects.filter(parent=self).order_by('value'):
             r.extend(c.show_children(level=level+1))
         return r
@@ -126,16 +126,16 @@ class AssetCategory(models.Model):
 def assetcat_create_update_log(sender, **kwargs):
     if kwargs['created']:
         Event.objects.create(message="[AssetCategory] New asset category created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+            type="CREATE", severity="DEBUG")
     else:
         Event.objects.create(message="[AssetCategory] Asset category '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+            type="UPDATE", severity="DEBUG")
 
 
 @receiver(post_delete, sender=AssetCategory)
 def assetcat_delete_log(sender, **kwargs):
     Event.objects.create(message="[AssetCategory] Asset category '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+        type="DELETE", severity="DEBUG")
 
 
 class Asset(models.Model):
@@ -194,7 +194,7 @@ class Asset(models.Model):
             self.calc_risk_grade(history=history)
         return str(self.risk_level['grade'])
 
-    def calc_risk_grade(self, history=None):
+    def calc_risk_grade(self, history=None, update_groups=False):
         risk_level = {
             "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
             "total": 0, "grade": "-"}
@@ -232,8 +232,9 @@ class Asset(models.Model):
             self.save()
 
         # Update relative asset groups
-        # for ag in self.assetgroup_set.all():
-        #     ag.calc_risk_grade()
+        if update_groups:
+            for ag in self.assetgroup_set.all():
+                ag.calc_risk_grade()
 
         return risk_level
 

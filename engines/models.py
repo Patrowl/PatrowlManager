@@ -7,7 +7,9 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
 from app.settings import MEDIA_ROOT
-import jsonfield, os, base64
+import jsonfield
+import os
+import base64
 
 ENGINE_INSTANCE_STATUS = ['STOPPED', 'READY', 'WORKING', 'ERROR']
 API_AUTH_METHODS = (
@@ -50,7 +52,7 @@ def engine_create_update_log(sender, **kwargs):
 @receiver(post_delete, sender=Engine)
 def engine_delete_log(sender, **kwargs):
     Event.objects.create(message="[Engine] Engine '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+        type="DELETE", severity="DEBUG")
 
 
 class EngineInstance(models.Model):
@@ -92,16 +94,16 @@ class EngineInstance(models.Model):
 def engineinstance_create_update_log(sender, **kwargs):
     if kwargs['created']:
         Event.objects.create(message="[EngineInstance] New engine instance created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+            type="CREATE", severity="DEBUG")
     else:
         Event.objects.create(message="[EngineInstance] Engine instance '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+            type="UPDATE", severity="DEBUG")
 
 
 @receiver(post_delete, sender=EngineInstance)
 def engineinstance_delete_log(sender, **kwargs):
     Event.objects.create(message="[EngineInstance] Engine instance '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+        type="DELETE", severity="DEBUG")
 
 # def user_directory_path(instance, filename):
 #     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
@@ -225,13 +227,13 @@ class EnginePolicy(models.Model):
 def enginepolicy_create_update_log(sender, **kwargs):
     if kwargs['created']:
         Event.objects.create(message="[EnginePolicy] New engine policy created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+            type="CREATE", severity="DEBUG")
     else:
         Event.objects.create(message="[EnginePolicy] Engine policy '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+            type="UPDATE", severity="DEBUG")
 
 
 @receiver(post_delete, sender=EnginePolicy)
 def enginepolicy_delete_log(sender, **kwargs):
     Event.objects.create(message="[EnginePolicy] Engine policy '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+        type="DELETE", severity="DEBUG")
