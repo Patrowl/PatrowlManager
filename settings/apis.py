@@ -4,36 +4,31 @@
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from .models import Setting
-
-import json
 import csv
 
 
-@csrf_exempt
 @api_view(['POST'])
 def update_setting_api(request):
     """API: Update a setting value."""
-    setting_id = json.loads(request.body)["setting_id"]
+    setting_id = request.data["setting_id"]
     setting = get_object_or_404(Setting, id=setting_id)
-    setting.value = json.loads(request.body)["setting_value"]
+    setting.value = request.data["setting_value"]
     setting.save(force_update=True)
     messages.success(request, 'Setting successfully updated!')
 
     return JsonResponse({'status': 'success'})
 
 
-@csrf_exempt
 @api_view(['POST'])
 def add_setting_api(request):
     """API: Add a setting key/value."""
-    setting_key = json.loads(request.body)["setting_key"]
+    setting_key = request.data["setting_key"]
     if Setting.objects.filter(key=setting_key).count() == 0:
         new_settings_args = {
-            "key": json.loads(request.body)["setting_key"],
-            "value": json.loads(request.body)["setting_value"],
+            "key": request.data["setting_key"],
+            "value": request.data["setting_value"],
             "comments": "n/a",
         }
         new_setting = Setting.objects.create(**new_settings_args)
@@ -65,7 +60,7 @@ def export_settings_api(request):
 
     settings = Setting.objects.all()
 
-    writer.writerow(['keys', 'values', 'comments'])
+    writer.writerow(['keys', 'values'])  # headers
     for setting in settings:
         writer.writerow([setting.key, setting.value, setting.comments])
 
@@ -75,4 +70,5 @@ def export_settings_api(request):
 @api_view(['GET'])
 def import_settings_api(request):
     """API: Export settings."""
+    # @Todo
     pass

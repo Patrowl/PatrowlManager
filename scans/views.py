@@ -301,7 +301,6 @@ def add_scan_def_view(request):
                     # "assetgroups": assetgroups_list,
                     "options": scan_definition.engine_policy.options,
                 },
-                # "scan_definition_id": str(scan_definition.id),
                 "scan_definition_id": scan_definition.id,
                 "engine_name": str(scan_definition.engine_type.name).lower(),
                 "owner_id": request.user.id,

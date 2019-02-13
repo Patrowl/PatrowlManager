@@ -345,7 +345,8 @@
         var request = $.ajax({
           url: save_comments_url,
           method: "POST",
-          data: "new_comments="+comments+"&csrfmiddlewaretoken={{ csrf_token }}"
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: "new_comments="+comments
         });
         // request.done(function(response){
         //   if (response.status == 'success'){
@@ -367,7 +368,8 @@
         var request = $.ajax({
           url: delete_contact_url,
           method: "POST",
-          data: "contact_id="+contact_id+"&csrfmiddlewaretoken={{ csrf_token }}",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: "contact_id="+contact_id,
           success: function(){
             location.reload();
           }
@@ -387,7 +389,8 @@
         var request = $.ajax({
           url: delete_doc_url,
           method: "POST",
-          data: "doc_id="+doc_id+"&csrfmiddlewaretoken={{ csrf_token }}",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: "doc_id="+doc_id,
           success: function(){
             location.reload();
           }

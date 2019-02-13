@@ -27,6 +27,7 @@ def list_findings_view(request):
     # filter_by_startdate = request.GET.get('_startdate', None)
     # filter_by_enddate = request.GET.get('_enddate', None)
     filter_by_status = request.GET.get('_status', None)
+    filter_by_status_cond = request.GET.get('_status_cond', None)
     filter_by_asset_id = request.GET.get('_asset_id', None)
     filter_by_asset_group_id = request.GET.get('_asset_group_id', None)
     filter_by_asset_group_name = request.GET.get('_asset_group_name', None)
@@ -66,6 +67,13 @@ def list_findings_view(request):
             filters.update({"severity__{}".format(filter_by_severity_cond): filter_by_severity})
         elif filter_by_asset_cond == "not_exact":
             excludes.update({"severity__{}".format(filter_by_severity_cond[4:]): filter_by_severity})
+
+    # Filter by finding status
+    if filter_by_status and filter_by_status in ["ack", "new", "mitigated", "patched", "closed", "false-positive"]:
+        if filter_by_status_cond == "exact":
+            filters.update({"status__{}".format(filter_by_status_cond): filter_by_status})
+        elif filter_by_asset_cond == "not_exact":
+            excludes.update({"status__{}".format(filter_by_status_cond[4:]): filter_by_status})
 
     if filter_by_status and filter_by_status in ["new", "ack"]:
         filters.update({"status": filter_by_status})
@@ -209,15 +217,15 @@ def edit_finding_view(request, finding_id):
         if form.is_valid():
             finding.title = form.cleaned_data['title']
             finding.description = form.cleaned_data['description']
-            finding.confidence = form.cleaned_data['confidence']
             finding.type = form.cleaned_data['type']
             finding.severity = form.cleaned_data['severity']
             finding.solution = form.cleaned_data['solution']
             finding.risk_info = form.cleaned_data['risk_info']
             finding.vuln_refs = form.cleaned_data['vuln_refs']
             finding.links = form.cleaned_data['links']
-            finding.tags = form.cleaned_data['tags'].split(',')
+            finding.tags = form.cleaned_data['tags']
             finding.status = form.cleaned_data['status']
+            finding.comments = form.cleaned_data['comments']
 
             finding.save()
             messages.success(request, 'Update submission successful')

@@ -44,10 +44,6 @@ ul.ui-autocomplete {
 	margin-bottom: 5px;
 }
 
-.pagination>li>a, .pagination>li>span {
-  padding: 2px 7px;
-  font-size: 12px;
-}
 </style>
 
 <script language="JavaScript">
@@ -115,6 +111,7 @@ function toggle(source, element) {
       <td>
         <div class="btn-toolbar btn-group">
           <button type="button" class="btn btn-default btn-xs" onclick="location.href='/findings/details/{{ finding.id }}'"><span class="glyphicon glyphicon-plus-sign"></span></button>
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/findings/edit/{{ finding.id }}'"><span class="glyphicon glyphicon-edit"></span></button>
 					<button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-finding"
             finding-id="{{ finding.id }}" finding-title="{{ finding.title }}" finding-asset="{{ finding.asset_name }}" finding-severity="{{ finding.severity }}">
             <span class="glyphicon glyphicon-remove"></button>
@@ -297,6 +294,28 @@ function toggle(source, element) {
 							</div>
             </div>
 
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_status_label">Finding status</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_status_condition">
+	                <option value="exact">is</option>
+	                <option value="not_exact">is not</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <select class="form-control input-sm" id="filter_finding_status_selection">
+	                <option value="none" selected>-</option>
+	                <option value="new">New</option>
+	                <option value="ack">Acknowledged</option>
+	                <option value="mitigated">Mitigated</option>
+	                <option value="confirmed">Confirmed</option>
+	                <option value="patched">Patched</option>
+	                <option value="closed">Closed</option>
+	                <option value="false-positive">False-Positive</option>
+	              </select>
+							</div>
+            </div>
+
 						<div class="form-group">
               <label class="col-sm-2 control-label" for="filter_finding_type_label">Finding type</label>
 							<div class="col-sm-2">
@@ -405,6 +424,10 @@ function toggle(source, element) {
 				filter_findings_url+="&_severity="+$('#filter_finding_severity_selection').val();
 				filter_findings_url+="&_severity_cond="+$('#filter_finding_severity_condition').val();
 			}
+			if ($('input#filter_finding_status_selection').val() != "") {
+				filter_findings_url+="&_status="+$('#filter_finding_status_selection').val();
+				filter_findings_url+="&_status_cond="+$('#filter_finding_status_condition').val();
+			}
 			if ($('input#filter_finding_ref_input').val() != "") {
 				filter_findings_url+="&_reference="+$('#filter_finding_ref_input').val();
 				filter_findings_url+="&_reference_cond="+$('#filter_finding_ref_condition').val();
@@ -455,7 +478,7 @@ function toggle(source, element) {
           contentType: "application/json"
         });
         request.done(function(response){
-          if (response.status == 'success'){location.reload()}
+          if (response.status == 'success'){location.reload();}
         });
       }
     });
@@ -465,7 +488,7 @@ function toggle(source, element) {
       findings_to_export = [];
       $("input[name='finding']").each(function(cbx){
         if (this.checked) {
-          findings_to_export.push(this.value)
+          findings_to_export.push(this.value);
         }
       })
       if (findings_to_export.length != 0){
@@ -473,7 +496,7 @@ function toggle(source, element) {
 					headers: {
 				    Accept: "text/csv; charset=utf-8"
 				  },
-          url: "{%% 'export_findings_csv_api' }",
+          url: "{% url 'export_findings_csv_api' %}",
           method: "POST",
 					headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(findings_to_export),
