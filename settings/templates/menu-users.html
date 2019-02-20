@@ -100,6 +100,8 @@
         url: token_api_url,
         method: "GET",
         success: function(){
+          url = new URL(window.location.href);
+          window.location = url.search+"#users";
           location.reload();
         }
       });

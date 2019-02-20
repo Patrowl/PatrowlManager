@@ -56,7 +56,8 @@ def engine_delete_log(sender, **kwargs):
 
 
 class EngineInstance(models.Model):
-    engine = models.ForeignKey(Engine, on_delete=models.CASCADE)
+    engine = models.ForeignKey(Engine)
+    # engine = models.ForeignKey(Engine, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, unique=True)
     version = models.CharField(max_length=20)
     api_url = models.CharField(max_length=256)

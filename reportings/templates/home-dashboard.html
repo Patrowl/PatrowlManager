@@ -158,9 +158,9 @@ td.bg-grade-F-high {background-color: black; color: white;}
              {% for grade, value in grades.items %}
            <tr>
              <td>{{ grade }}</td>
-             <td style="width: 20%;" class="bg-grade-{{grade}}-low" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:low%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
-             <td style="width: 20%;" class="bg-grade-{{grade}}-medium" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:medium%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
-             <td style="width: 20%;" class="bg-grade-{{grade}}-high" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:high%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
+             <td style="width: 20%; cursor: pointer;" class="bg-grade-{{grade}}-low" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:low%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"low" }}</td>
+             <td style="width: 20%; cursor: pointer;" class="bg-grade-{{grade}}-medium" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:medium%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"medium" }}</td>
+             <td style="width: 20%; cursor: pointer;" class="bg-grade-{{grade}}-high" onclick="window.location='{% url 'list_assets_view' %}?filter=criticity:high%20score:{{grade}}'">{{ grades|keyvalue:grade|keyvalue:"high" }}</td>
            </tr>
              {% endfor %}
            {% endfor %}

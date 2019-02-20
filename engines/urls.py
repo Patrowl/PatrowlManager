@@ -13,8 +13,8 @@ urlpatterns = [
     url(r'^add$', views.add_engine_view, name='add_engine_view'),
     # ex: /engines/edit/1
     url(r'^edit/(?P<engine_id>[0-9]+)$', views.edit_engine_view, name='edit_engine_view'),
-    # ex: /engines/delete/1
-    url(r'^delete/(?P<engine_id>[0-9]+)$', views.delete_engine_view, name='delete_engine_view'),
+    # # ex: /engines/delete/1
+    # url(r'^delete/(?P<engine_id>[0-9]+)$', views.delete_engine_view, name='delete_engine_view'),
     # ex: /engines/policies/list
     url(r'^policies/list$', views.list_policies_view, name='list_policies_view'),
     # ex: /engines/policies/add
@@ -37,6 +37,8 @@ urlpatterns = [
     url(r'^api/v1/list$', apis.list_engines_api, name='list_engines_api'),
     # ex: /engines/api/v1/refresh
     url(r'^api/v1/refresh$', apis.refresh_engines_status_api, name='refresh_engines_status_api'),
+    # ex: /engines/api/v1/delete/1
+    url(r'^api/v1/delete/(?P<engine_id>[0-9]+)$', apis.delete_engine_api, name='delete_engine_api'),
     # ex: /engines/api/v1/autorefresh
     url(r'^api/v1/autorefresh$', apis.toggle_autorefresh_engine_status_api, name='toggle_autorefresh_engine_status_api'),
     # ex: /engines/api/v1/list/by_id/1

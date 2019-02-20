@@ -182,10 +182,10 @@
     });
     $("button.btn-delete-engine").on('click', function (e) {
       engine_id = $("div#delete-engine").attr('engine-id');
-      delete_engine_url = "/engines/delete/"+engine_id;
+      delete_engine_url = "{% url 'delete_engine_api' 0 %}".replace("0", engine_id);
       xhr = $.ajax({
         url: delete_engine_url,
-        method: "POST",
+        method: "DELETE",
         headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();
@@ -196,7 +196,7 @@
     // Change engine status (enable-disable)
     $("button.btn-change-status").on('click', function(eventObject) {
       engine_id = eventObject.target.getAttribute('engine-id');
-      engine_url = "{% url 'toggle_engine_status_api' 0%}".replace("0", engine_id);
+      engine_url = "{% url 'toggle_engine_status_api' 0 %}".replace("0", engine_id);
       xhr = $.ajax({
         url: engine_url,
         method: "PATCH",

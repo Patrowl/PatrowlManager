@@ -24,7 +24,7 @@ function toggle(source, element) {
 </script>
 
 <ul class="breadcrumb">
-  <<li><a href="{% url 'list_assets_view' %}">assets</a></li>
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li class="active">list</li>
 </ul>
 
@@ -348,7 +348,7 @@ function toggle(source, element) {
     });
     $("button.btn-delete-asset").on('click', function (e) {
       id = $("div#delete-asset").attr('asset-id');
-      delete_asset_url = "/assets/delete/"+id;
+      delete_asset_url = "{% url 'delete_asset_api' 0 %}".replace("0", id);
       var request = $.ajax({
         url: delete_asset_url,
         method: "POST",
@@ -368,7 +368,7 @@ function toggle(source, element) {
     });
     $("button.btn-delete-asset-group").on('click', function (e) {
       id = $("div#delete-asset-group").attr('asset-group-id');
-      delete_asset_group_url = "/assets/deletegroup/"+id;
+      delete_asset_group_url = "{% url 'delete_assetgroup_api' 0 %}".replace("0", id);
       var request = $.ajax({
         url: delete_asset_group_url,
         method: "POST",
@@ -389,9 +389,8 @@ function toggle(source, element) {
       })
 
       if (assets_to_delete.length != 0){
-        delete_url="{% url 'delete_assets_api' %}";
         var request = $.ajax({
-          url: delete_url,
+          url: "{% url 'delete_assets_api' %}",
           method: "POST",
           headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(assets_to_delete),

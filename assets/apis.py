@@ -5,7 +5,6 @@ from django.forms.models import model_to_dict
 from django.utils.encoding import smart_str
 from django.db.models import Value, CharField, Q
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 
 from wsgiref.util import FileWrapper
@@ -222,15 +221,27 @@ def export_assets_api(request, assetgroup_id=None):
 
 
 @api_view(['POST'])
-@csrf_exempt  # not secure!!!
 def delete_assets_api(request):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error'})
-
     assets = json.loads(request.body)
     for asset_id in assets:
         a = Asset.objects.get(id=asset_id)
         a.delete()
+
+    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+
+
+@api_view(['POST'])
+def delete_asset_api(request, asset_id):
+    asset = get_object_or_404(Asset, id=asset_id)
+    asset.delete()
+
+    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+
+
+@api_view(['POST'])
+def delete_assetgroup_api(request, assetgroup_id):
+    assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
+    assetgroup.delete()
 
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
@@ -368,8 +379,7 @@ def get_asset_report_json_api(request, asset_id):
                 findings_tmp.append(tmp_f)
 
     asset_dict = model_to_dict(asset, exclude=["categories"])
-    asset_tags = [tag.value for tag in asset.categories.all()]
-    asset_dict.update({"categories": asset_tags})
+    asset_dict.update({"categories": [tag.value for tag in asset.categories.all()]})
 
     return JsonResponse({
         'asset': asset_dict,
@@ -381,8 +391,61 @@ def get_asset_report_json_api(request, asset_id):
 @api_view(['GET'])
 def get_asset_group_report_html_api(request, asset_group_id):
     asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
+
+    for asset in asset_group.assets.all():
+        findings_tmp = list()
+        findings_stats = {}
+
+        # @todo: invert loops
+        for sev in ["critical", "high", "medium", "low", "info"]:
+            tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
+            findings_stats.update({sev: tmp.count()})
+            if tmp.count() > 0:
+                for f in tmp:
+                    tmp_f = model_to_dict(f, exclude=["scopes"])
+                    tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
+                    findings_tmp.append(tmp_f)
+
+        asset_dict = model_to_dict(asset, exclude=["categories"])
+        asset_tags = [tag.value for tag in asset.categories.all()]
+        asset_dict.update({"categories": asset_tags})
+
     return render(request, 'report-assetgroup-findings.html', {
-        'asset_group': asset_group})
+        'asset_group': asset_group,
+        'findings': findings_tmp,
+        'findings_stats': findings_stats})
+
+
+@api_view(['GET'])
+def get_asset_group_report_json_api(request, asset_group_id):
+    asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
+
+    assets = list()
+    for asset in asset_group.assets.all():
+
+        findings_tmp = list()
+        findings_stats = {}
+
+        # @todo: invert loops
+        for sev in ["critical", "high", "medium", "low", "info"]:
+            tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
+            findings_stats.update({sev: tmp.count()})
+            if tmp.count() > 0:
+                for f in tmp:
+                    tmp_f = model_to_dict(f, exclude=["scopes"])
+                    tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
+                    findings_tmp.append(tmp_f)
+
+        asset_dict = model_to_dict(asset, exclude=["categories"])
+        asset_tags = [tag.value for tag in asset.categories.all()]
+        asset_dict.update({"categories": asset_tags})
+        assets.append({
+            'asset': asset_dict,
+            'findings': findings_tmp,
+            'findings_stats': findings_stats
+            })
+
+    return JsonResponse(assets, safe=False)
 
 
 @api_view(['GET'])

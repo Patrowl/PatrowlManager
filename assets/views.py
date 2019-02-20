@@ -175,17 +175,6 @@ def edit_asset_view(request, asset_id):
     return render(request, 'edit-asset.html', {'form': form, 'asset': asset})
 
 
-def delete_asset_view(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
-
-    if request.method == 'POST':
-        asset.delete()
-        messages.success(request, 'Asset successfully deleted!')
-        return redirect('list_assets_view')
-
-    return render(request, 'delete-asset.html', {'asset': asset})
-
-
 def add_asset_group_view(request):
     form = None
 
@@ -251,15 +240,6 @@ def edit_asset_group_view(request, assetgroup_id):
         'assetgroup_id': assetgroup_id,
         'asset_group': asset_group
     })
-
-
-def delete_asset_group_view(request, assetgroup_id):
-    asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
-    if request.method == 'POST':
-        asset_group.delete()
-        messages.success(request, 'Asset group successfully deleted!')
-        return redirect('list_assets_view')
-    return render(request, 'delete-asset-group.html', {'asset_group': asset_group})
 
 
 def bulkadd_asset_view(request):

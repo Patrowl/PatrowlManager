@@ -118,7 +118,11 @@ hr {
         <i class="alerts_summary"></i>
       </div>
       <div class="change-finding-status">
+        {% if raw == True %}
+        <a href="/findings/edit/{{ finding.id }}?raw=true"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
+        {% else %}
         <a href="/findings/edit/{{ finding.id }}"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
+        {% endif %}
       </div>
       <div class="export-finding btn-group" style="width: 100%;">
         <a href="#" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" style="width: 100%;">Export <span class="caret pull"></span></a>

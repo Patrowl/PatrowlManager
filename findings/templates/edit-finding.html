@@ -20,7 +20,11 @@
 </script>
 
 <div class="container">
+  {% if raw == True %}
+  <form action="/findings/edit/{{ finding.id }}?raw=true" method="post" class="form-horizontal">
+  {% else %}
   <form action="/findings/edit/{{ finding.id }}" method="post" class="form-horizontal">
+  {% endif %}
     <legend>Edit finding</legend>
       {% csrf_token %}
       {% for field in form %}

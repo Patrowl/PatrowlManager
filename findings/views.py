@@ -207,7 +207,12 @@ def details_finding_view(request, finding_id):
 
 def edit_finding_view(request, finding_id):
     form = None
-    finding = get_object_or_404(Finding, id=finding_id)
+    is_raw_finding = request.GET.get("raw", None) and request.GET.get("raw") == "true"
+    if is_raw_finding:
+        finding = get_object_or_404(RawFinding, id=finding_id)
+    else:
+        finding = get_object_or_404(Finding, id=finding_id)
+
     form = FindingForm()
     if request.method == 'GET':
         form = FindingForm(instance=finding)
@@ -231,7 +236,8 @@ def edit_finding_view(request, finding_id):
             messages.success(request, 'Update submission successful')
             return redirect('list_findings_view')
 
-    return render(request, 'edit-finding.html', {'form': form, 'finding': finding})
+    return render(request, 'edit-finding.html',
+        {'form': form, 'finding': finding, 'raw': is_raw_finding})
 
 
 def add_finding_view(request):

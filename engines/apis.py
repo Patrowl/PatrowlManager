@@ -30,6 +30,13 @@ def list_engines_api(request):
     return JsonResponse(list_engines, safe=False)
 
 
+@api_view(['DELETE'])
+def delete_engine_api(request, engine_id):
+    engine = get_object_or_404(EngineInstance, id=engine_id)
+    engine.delete()
+    return JsonResponse({'status': 'success'}, safe=False)
+
+
 @api_view(['GET'])
 def list_instances_by_id_api(request, engine_id):
     list_instances = []

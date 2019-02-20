@@ -56,7 +56,7 @@ class RawFinding(models.Model):
     vuln_refs   = JSONField(null=True, blank=True)
     links       = JSONField(null=True, blank=True)
     tags        = JSONField(null=True, blank=True)
-    status      = models.CharField(choices=FINDING_STATUS, max_length=10)
+    status      = models.CharField(choices=FINDING_STATUS, max_length=16)
     engine_type = models.CharField(max_length=20)
     found_at    = models.DateTimeField(null=True, blank=True)
     checked_at  = models.DateTimeField(null=True, blank=True)

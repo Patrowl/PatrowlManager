@@ -17,10 +17,6 @@ urlpatterns = [
     url(r'^edit/(?P<asset_id>[0-9]+)$', views.edit_asset_view, name='edit_asset_view'),
     # ex: /assets/edit/8
     url(r'^groups/edit/(?P<assetgroup_id>[0-9]+)$', views.edit_asset_group_view, name='edit_asset_group_view'),
-    # ex: /assets/delete/8
-    url(r'^delete/(?P<asset_id>[0-9]+)$', views.delete_asset_view, name='delete_asset_view'),
-    # ex: /assets/deletegroup/8
-    url(r'^deletegroup/(?P<assetgroup_id>[0-9]+)$', views.delete_asset_group_view, name='delete_asset_group_view'),
     # ex: /assets/details/8
     url(r'^details/(?P<asset_id>[0-9]+)$', views.detail_asset_view, name='detail_asset_view'),
     # # ex: /assets/groups/details/8
@@ -45,6 +41,10 @@ urlpatterns = [
     url(r'^api/v1/export$', apis.export_assets_api, name='export_assets_api'),
     # ex: /assets/api/v1/delete
     url(r'^api/v1/delete$', apis.delete_assets_api, name='delete_assets_api'),
+    # ex: /assets/api/v1/delete/2
+    url(r'^api/v1/delete/(?P<asset_id>[0-9]+)$', apis.delete_asset_api, name='delete_asset_api'),
+    # ex: /assets/api/v1/groups/delete/2
+    url(r'^api/v1/groups/delete/(?P<assetgroup_id>[0-9]+)$', apis.delete_assetgroup_api, name='delete_assetgroup_api'),
     # ex: /assets/api/v1/export/8
     url(r'^api/v1/export/(?P<assetgroup_id>[0-9]+)$', apis.export_assets_api, name='export_assets_api'),
     # ex: /assets/api/v1/details/3
@@ -55,6 +55,8 @@ urlpatterns = [
     url(r'^api/v1/groups/report/html/(?P<asset_group_id>[0-9]+)$', apis.get_asset_group_report_html_api, name='get_asset_group_report_html_api'),
     # ex: /assets/api/v1/report/json/2
     url(r'^api/v1/report/json/(?P<asset_id>[0-9]+)$', apis.get_asset_report_json_api, name='get_asset_report_json_api'),
+    # ex: /assets/api/v1/groups/report/json/2
+    url(r'^api/v1/groups/report/json/(?P<asset_group_id>[0-9]+)$', apis.get_asset_group_report_json_api, name='get_asset_group_report_json_api'),
     # ex: /assets/api/v1/tags
     url(r'^api/v1/tags$', apis.get_asset_tags_api, name='get_asset_tags_api'),
     # ex: /assets/api/v1/stats
