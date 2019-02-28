@@ -189,7 +189,7 @@ BROKER_URL = os.environ.get('BROKER_URL', '')
 if BROKER_URL == "":
     BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}/'.format(
         user=os.environ.get('RABBIT_ENV_USER', 'guest'),
-        password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'guest'),
+        password=os.environ.get('RABBIT_ENV_PASS', 'guest'),
         hostname=RABBIT_HOSTNAME,
         vhost=os.environ.get('RABBIT_ENV_VHOST', ''))
 
@@ -197,7 +197,7 @@ BROKER_HEARTBEAT = '?heartbeat=30'
 if not BROKER_URL.endswith(BROKER_HEARTBEAT):
     BROKER_URL += BROKER_HEARTBEAT
 
-BROKER_POOL_LIMIT=None
+BROKER_POOL_LIMIT = None
 
 # CELERY
 CELERY_RESULT_BACKEND = 'django-db'
