@@ -33,7 +33,7 @@ Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/mas
 # Roadmap
 - [X] API Documentation
 - [ ] Transform all API calls to async tasks (limit Nginx 504 timeouts)
-- [ ] Beautify scan creation and edition forms
+- [X] Beautify scan creation and edition forms
 - [ ] Enhance finding states management
 - [ ] Enhance user management
 - [ ] Support scan campaigns (multiple scan definition)
@@ -41,7 +41,7 @@ Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/mas
 - [ ] Support cache
 - [ ] Optimize global performances
 - [ ] Refactor static files (remove unused ?)
-- [ ] Continuous Docker image deployment (Travis stage)
+- [X] Continuous Docker image deployment (DockerHub)
 
 Follow our roadmap on Trello [here](https://trello.com/b/rksoIN5y)
 

@@ -306,6 +306,14 @@ def startscan_task(self, params):
     Event.objects.create(message="[EngineTasks/startscan_task/{}] Task started.".format(self.request.id),
                  type="INFO", severity="INFO", scan=scan)
 
+    # Check if the assets list is not empty
+    if len(params['scan_params']['assets']) == 0:
+        Event.objects.create(message="[EngineTasks/startscan_task/{}] BeforeScan - No assets set. Task aborted.".format(self.request.id), type="ERROR", severity="ERROR", scan=scan)
+        scan.status = "error"
+        scan.finished_at = timezone.now()
+        scan.save()
+        return False
+
     engine_inst = None
     # -0- select an engine instance
     if scan.scan_definition.engine is None:
@@ -498,6 +506,14 @@ def start_periodic_scan_task(self, params):
     Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Scan created.".format(self.request.id),
                  type="INFO", severity="INFO", scan=scan)
 
+    # Check if the assets list is not empty
+    if len(params['scan_params']['assets']) == 0:
+        Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - No assets set. Task aborted.".format(self.request.id), type="ERROR", severity="ERROR", scan=scan)
+        scan.status = "error"
+        scan.finished_at = timezone.now()
+        scan.save()
+        return False
+
     # check if the selected engine instance is available
     if not engine_inst:
         print("ERROR: startscan_task/select_instance: not engine '{}' available".format(params['engine_name']))
@@ -572,7 +588,7 @@ def start_periodic_scan_task(self, params):
 
     # -4- get the results
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES)#, data=params['scan_params'])
+        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES)  #, data=params['scan_params'])
         if resp.status_code != 200 or json.loads(resp.text)['status'] == "error":
             print("something goes wrong in 'startscan_task/results' (request_status_code={}, engine_error={})",
                    resp.status_code, json.loads(resp.text)['reason'])
