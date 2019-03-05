@@ -323,4 +323,4 @@ def run_scan_def_api(request, scan_def_id):
         _run_scan(scan_def_id, request.user.id)
         return JsonResponse({'status': 'success'})
     else:
-        return JsonResponse({'status': 'failed'}, status=404)
+        return JsonResponse({'status': 'failed'}, status=403)

@@ -8,7 +8,6 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, F
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
-from app.settings import TIME_ZONE
 from .forms import ScanDefinitionForm
 from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan
@@ -170,7 +169,7 @@ def list_scans_view(request):
     except EmptyPage:
         scans = paginator.page(paginator.num_pages)
     return render(request, 'list-scans-performed.html', {'scans': scans})
-# 
+#
 #
 # def delete_scan_view(request, scan_id):
 #     """Delete scan."""
@@ -293,9 +292,6 @@ def add_scan_def_view(request):
                     })
 
             scan_definition.save()
-
-            # Todo: check if no asset or asset group is defined
-            messages.success(request, 'Creation submission successful')
 
             # Todo: check if the engine instance id is set (dedicated scanner)
             parameters = {

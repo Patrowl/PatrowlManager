@@ -361,7 +361,8 @@ def startscan_task(self, params):
             url=str(engine_inst.api_url)+"startscan",
             data=json.dumps(params['scan_params']),
             headers={'Content-type': 'application/json', 'Accept': 'application/json'},
-            proxies=PROXIES)
+            proxies=PROXIES,
+            timeout=5)
 
         if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
             scan.status = "error"
@@ -412,7 +413,7 @@ def startscan_task(self, params):
 
     # -4- get the results (findings)
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES)#, data=params['scan_params'])
+        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES, timeout=30)
         if resp.status_code != 200 or json.loads(resp.text)['status'] == "error":
             scan.status = "error"
             scan.finished_at = timezone.now()
@@ -443,7 +444,7 @@ def startscan_task(self, params):
 
     # -6- get and store the report
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES)
+        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES, timeout=60)
         if resp.status_code == 200:
             user_report_dir = settings.MEDIA_ROOT + "/reports/"+str(params['owner_id'])+"/"
             if not os.path.exists(user_report_dir):
@@ -555,7 +556,8 @@ def start_periodic_scan_task(self, params):
             headers={
                 'Content-type': 'application/json',
                 'Accept': 'application/json'},
-            proxies=PROXIES)
+            proxies=PROXIES,
+            timeout=5)
         if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
             print("something goes wrong in 'startscan_task/scan' (request_status_code={}, scan_response={})",
                   resp.status_code, str(resp.text))
@@ -589,7 +591,7 @@ def start_periodic_scan_task(self, params):
 
     # -4- get the results
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES)  #, data=params['scan_params'])
+        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES, timeout=30)
         if resp.status_code != 200 or json.loads(resp.text)['status'] == "error":
             print("something goes wrong in 'startscan_task/results' (request_status_code={}, engine_error={})",
                    resp.status_code, json.loads(resp.text)['reason'])
@@ -611,7 +613,7 @@ def start_periodic_scan_task(self, params):
 
     # -6- get and store the report
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES)
+        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES, timeout=60)
         if resp.status_code == 200:
             user_report_dir = settings.MEDIA_ROOT + "/reports/"+str(params['owner_id'])+"/"
             if not os.path.exists(user_report_dir):
@@ -651,7 +653,7 @@ def _get_engine_status(engine):
     engine_status = "undefined"
 
     try:
-        resp = requests.get(url=str(engine.api_url)+"status", verify=False, proxies=PROXIES)
+        resp = requests.get(url=str(engine.api_url)+"status", verify=False, proxies=PROXIES, timeout=5)
 
         if resp.status_code == 200:
             engine_status = json.loads(resp.text)['status'].strip().upper()
@@ -670,7 +672,7 @@ def _get_scan_status(engine, scan_id):
     scan_status = "undefined"
 
     try:
-        resp = requests.get(url=str(engine.api_url)+"status/"+str(scan_id), verify=False, proxies=PROXIES)
+        resp = requests.get(url=str(engine.api_url)+"status/"+str(scan_id), verify=False, proxies=PROXIES, timeout=5)
         if resp.status_code == 200:
             scan_status = json.loads(resp.text)['status'].strip().upper()
         else:

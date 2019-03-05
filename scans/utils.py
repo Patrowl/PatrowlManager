@@ -33,6 +33,7 @@ def _update_celerybeat():
 
 
 def _run_scan(scan_def_id, owner_id, eta=None):
+    print("----- entering _run_scan({})".format(scan_def_id))
     scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
     engine = None
 

@@ -107,7 +107,7 @@ def info_engine_api(request, engine_id):
     engine_infos = None
     current_scans = None
     try:
-        resp = requests.get(url=str(engine.api_url)+"info", verify=False)
+        resp = requests.get(url=str(engine.api_url)+"info", verify=False, timeout=5)
 
         if resp.status_code == 200:
             engine_infos = json.loads(resp.text)
