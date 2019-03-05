@@ -14,6 +14,8 @@ urlpatterns = [
     url(r'^api/v1/listbydate$', apis.get_scans_by_date_api, name='get_scans_by_date_api'),
     # ex: /scans/api/v1/list
     url(r'^api/v1/filter$', apis.get_scans_by_period_api, name='get_scans_by_period_api'),
+    # ex: /scans/api/v1/delete/1
+    url(r'^api/v1/delete/(?P<scan_id>[0-9]+)$', apis.delete_scan_api, name='delete_scan_api'),
     # ex: /scans/api/v1/delete (add multiple scans in POST)
     url(r'^api/v1/delete$', apis.delete_scans_api, name='delete_scans_api'),
     # ex: /scans/api/v1/stop (POST)
@@ -37,8 +39,6 @@ urlpatterns = [
     ## WEB Views
     # ex: /scans/defs/list
     url(r'^list$', views.list_scans_view, name='list_scans_view'),
-    # ex: /scans/delete/83
-    url(r'^delete/(?P<scan_id>[0-9]+)$', views.delete_scan_view, name='delete_scan_view'),
     # ex: /scans/details/33
     url(r'^details/(?P<scan_id>[0-9]+)$', views.detail_scan_view, name='detail_scan_view'),
     # ex: /scans/compare?scan_a_id=2&scan_b_id=32

@@ -2,8 +2,7 @@
 
 from django.http import JsonResponse, HttpResponse
 from wsgiref.util import FileWrapper
-from django.shortcuts import redirect, render, get_object_or_404
-from django.contrib import messages
+from django.shortcuts import render, get_object_or_404
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django_celery_beat.models import PeriodicTask
@@ -23,6 +22,15 @@ import zipfile
 import csv
 
 
+@api_view(['GET'])
+def delete_scan_api(request, scan_id):
+    """Delete selected scan."""
+    scan = get_object_or_404(Scan, id=scan_id)
+    scan.delete()
+
+    return JsonResponse({'status': 'success'})
+
+
 @api_view(['POST'])
 def delete_scans_api(request):
     """Delete selected scans."""
@@ -30,7 +38,7 @@ def delete_scans_api(request):
     for scan_id in scans:
         Scan.objects.get(id=scan_id).delete()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])
@@ -45,7 +53,7 @@ def stop_scan_api(request, scan_id):
         routing_key='scan.'+str(scan.engine_type).lower(),
         retry=False
     )
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['POST'])
@@ -67,7 +75,7 @@ def stop_scans_api(request):
             retry=False
         )
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])
@@ -311,10 +319,8 @@ def toggle_scan_def_status_api(request, scan_def_id):
 def run_scan_def_api(request, scan_def_id):
     scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
 
-    if scan_def.scan_type == "single":
+    if scan_def.scan_type in ["single", "scheduled"]:
         _run_scan(scan_def_id, request.user.id)
-        messages.success(request, 'Scan enqueued!')
+        return JsonResponse({'status': 'success'})
     else:
-        messages.success(request, 'Error: Periodic scans are not runnable on demand')
-
-    return redirect('list_scan_def_view')
+        return JsonResponse({'status': 'failed'}, status=404)

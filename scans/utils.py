@@ -11,7 +11,6 @@ from engines.tasks import startscan_task
 import xmlrpclib
 import uuid
 import random
-from datetime import datetime
 
 
 def _update_celerybeat():
@@ -99,7 +98,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         "queue": 'scan-'+scan.engine_type.name.lower(),
         "routing_key": 'scan.'+scan.engine_type.name.lower(),
         "retry": False,
-        "countdown": 0
+        "countdown": 0,
+        "ignore_result": True
     }
 
     if eta is not None:

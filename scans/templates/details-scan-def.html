@@ -528,15 +528,20 @@ $(function() {
     clearTimeout(myModal.data('hideInterval'));
     myModal.data('hideInterval', setTimeout(function(){
         myModal.modal('hide');
-        location.reload();
+        // location.reload();
     }, 3000));
   });
   $("button.btn-run-now").on('click', function(eventObject) {
     scan_id = eventObject.target.getAttribute('scan-id');
-    scan_url = "{% url 'run_scan_def_api' 0 %}".replace("0", scan_id);
-    var xhr = $.get(scan_url, function(data) {
-      //location.reload();
-    })
+    // var xhr = $.get(scan_url, function(data) {
+    var request = $.ajax({
+      url: "{% url 'run_scan_def_api' 0 %}".replace("0", scan_id),
+      method: "GET",
+      timeout: 3000,
+      success: function(){
+        location.reload();
+      }
+    });
   });
 
   // Compare scans
@@ -621,11 +626,9 @@ $(function() {
   });
   $("button.btn-delete-scan").on('click', function (e) {
     id = $("div#delete-scan").attr('scan-id');
-    delete_scan_url = "/scans/delete/"+id;
     var request = $.ajax({
-      url: delete_scan_url,
-      method: "POST",
-      headers: {"X-CSRFToken": "{{ csrf_token }}"},
+      url: "/scans/api/v1/delete/"+id,
+      method: "GET",
       success: function(){
         location.reload();
       }
