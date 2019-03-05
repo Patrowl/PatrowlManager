@@ -34,10 +34,10 @@
       <dt>Policy</dt>
       <dd><a href="/engines/policies/edit/{{ scan_def.engine_policy_id }}">{{ scan_def.engine_policy.name }}</a></dd>
       <dt>Created at</dt>
-      <dd>{{ scan_def.created_at | date:"Y/m/d-H:m:s" }}</dd>
+      <dd>{{ scan_def.created_at | date:"Y/m/d\-H:i:s" }}</dd>
       {% if scan_def.scheduled_at %}
       <dt>Scheduled at</dt>
-      <dd>{{ scan_def.scheduled_at | date:"Y/m/d-H:m:s" }}</dd>
+      <dd>{{ scan_def.scheduled_at | date:"Y/m/d\-H:i:s" }}</dd>
       {% endif %}
       <dt>Scans performed</dt>
       <dd>{{ scan_def.scan_set.all.count }}
@@ -100,7 +100,7 @@
       <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
         <td><input type="checkbox" class="radio" name="scan" value="{{scan.id}}"/></td>
         <td>{{ scan.id }}</td>
-        <td>{{ scan.updated_at | date:"Y/m/d-H:m:s.u" }}</td>
+        <td>{{ scan.started_at | date:"Y/m/d-H:i:s.u" }}</td>
         <td>
           {% if scan.summary.critical > 0 %}
           <span class="label label-critical">{{ scan.summary.critical }}</span>

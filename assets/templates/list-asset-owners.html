@@ -29,7 +29,7 @@
         <td>{{ owner.nb_assets }}</td>
         <td>{{ owner.nb_contacts }}</td>
         <td>{{ owner.nb_documents }}</td>
-        <td>{{ owner.updated_at|date:"Y/m/d-H:m:s" }}</td>
+        <td>{{ owner.updated_at|date:"Y/m/d\-H:i:s" }}</td>
         <td>
           <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/owners/details/{{ owner.id }}'">
             <span class="glyphicon glyphicon-edit"></span></button>

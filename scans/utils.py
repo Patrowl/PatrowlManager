@@ -2,6 +2,7 @@
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from app.settings import SUPERVISORD_API_URL
 from .models import Scan, ScanDefinition
 from engines.models import EngineInstance
@@ -56,8 +57,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
 
     if engine is None:
         scan.status = "error"
-        scan.started_at = datetime.now()  # todo: check timezone
-        scan.finished_at = datetime.now()  # todo: check timezone
+        scan.started_at = timezone.now()
+        scan.finished_at = timezone.now()
         scan.save()
         return False
 
@@ -98,14 +99,14 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         "queue": 'scan-'+scan.engine_type.name.lower(),
         "routing_key": 'scan.'+scan.engine_type.name.lower(),
         "retry": False,
-        "countdown": 1
+        "countdown": 0
     }
 
     if eta is not None:
+        # print("eta:", eta)
         scan_options.update({"eta": eta})
 
     # enqueue the task in the right queue
-    print("_run_scan: ready to enqueue: {}".format(scan_options))
     resp = startscan_task.apply_async(**scan_options)
     scan.status = "enqueued"
     scan.task_id = uuid.UUID(str(resp))

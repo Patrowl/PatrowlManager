@@ -418,8 +418,8 @@ function toggle(source, element) {
           {% endif %}
         </dd>
         <dt>Policy:</dt><dd><a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a></dd>
-        <dt>Started at:</dt><dd>{{ scan.started_at|date:"Y/m/d-H:m:s" }}</dd>
-        <dt>Finished at:</dt><dd>{{ scan.finished_at|date:"Y/m/d-H:m:s" }}</dd>
+        <dt>Started at:</dt><dd>{{ scan.started_at|date:"Y/m/d\-H:i:s" }}</dd>
+        <dt>Finished at:</dt><dd>{{ scan.finished_at|date:"Y/m/d\-H:i:s" }}</dd>
         <dt>Elaspsed:</dt><dd>{{ scan.finished_at|get_time_diff:scan.started_at }}</dd>
         <dt>Reports:</dt><dd>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/json/{{ scan.id }}'">json</button>

@@ -44,13 +44,13 @@
       <ul>
       {% for doc in owner.documents %}
         {% if doc.tlp_color == 'red' %}
-        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-danger">TLP:RED</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-danger">TLP:RED</span> ({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
         {% elif doc.tlp_color == 'amber' %}
-        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-warning">TLP:AMBER</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-warning">TLP:AMBER</span> ({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
         {% elif doc.tlp_color == 'green' %}
-        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-success">TLP:GREEN</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-success">TLP:GREEN</span> ({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
         {% elif doc.tlp_color == 'white' %}
-        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-white" style="color: black;">TLP:WHITE</span>({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+        <li><a href="{% url 'get_asset_owner_doc_api' doc.id %}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-white" style="color: black;">TLP:WHITE</span>({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
         {% endif %}
           <a href="#" data-toggle="modal" data-target="#modal-delete-document"
            doc-id="{{ doc.id }}"

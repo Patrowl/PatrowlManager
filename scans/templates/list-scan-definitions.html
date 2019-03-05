@@ -49,7 +49,7 @@
           {% else %}
           <td><span class="label label-danger">Disabled</span></td>
           {% endif %}
-        {% elif scan_def.scan_type == "single" %}
+        {% else %}
             <td><span class="label label-default">n/a</span></td>
         {% endif %}
         <td>{{ scan_def.updated_at|smartdate }}</td>
@@ -64,7 +64,7 @@
             <button type="button" class="btn btn-success btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
               Enable</button>
             {% endif %}
-          {% elif scan_def.scan_type == "single" %}
+          {% else %}
             <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}" data-toggle="modal" data-target="#modal-run-scan">
               Run </button>
           {% endif %}

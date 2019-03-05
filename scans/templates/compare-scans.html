@@ -24,9 +24,9 @@
             <dt>Policy</dt>
             <dd><a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a></dd>
             <dt>Started at</dt>
-            <dd>{{ scan.started_at|date:"Y/m/d-H:m:s" }}</dd>
+            <dd>{{ scan.started_at|date:"Y/m/d\-H:i:s" }}</dd>
             <dt>Finished at</dt>
-            <dd>{{ scan.finished_at|date:"Y/m/d-H:m:s" }}</dd>
+            <dd>{{ scan.finished_at|date:"Y/m/d\-H:i:s" }}</dd>
             <dt>Status</dt>
             <dd>{{ scan.status|capfirst }}</dd>
             <dt>Engine</dt>
@@ -90,9 +90,9 @@
               <dt>Policy</dt>
               <dd><a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a></dd>
               <dt>Started at</dt>
-              <dd>{{ scan.started_at|date:"Y/m/d-H:m:s" }}</dd>
+              <dd>{{ scan.started_at|date:"Y/m/d\-H:i:s" }}</dd>
               <dt>Finished at</dt>
-              <dd>{{ scan.finished_at|date:"Y/m/d-H:m:s" }}</dd>
+              <dd>{{ scan.finished_at|date:"Y/m/d\-H:i:s" }}</dd>
               <dt>Status</dt>
               <dd>{{ scan.status|capfirst }}</dd>
               <dt>Engine</dt>

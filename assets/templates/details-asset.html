@@ -558,13 +558,13 @@ div.risk-trends {
           {% for doc in owner.documents.all %}
             <li>
               {% if doc.tlp_color == 'red' %}
-              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-danger">TLP:RED</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-danger">TLP:RED</span> ({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
               {% elif doc.tlp_color == 'amber' %}
-              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-warning">TLP:AMBER</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-warning">TLP:AMBER</span> ({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
               {% elif doc.tlp_color == 'green' %}
-              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-success">TLP:GREEN</span> ({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-success">TLP:GREEN</span> ({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
               {% elif doc.tlp_color == 'white' %}
-              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-white" style="color: black;">TLP:WHITE</span>({{ doc.updated_at|date:"Y/m/d-H:m:s" }})
+              <a href="/assets/owners/getdoc/{{doc.id}}">{{ doc.filename }}</a> - {{ doc.doctitle }} <span class="label label-white" style="color: black;">TLP:WHITE</span>({{ doc.updated_at|date:"Y/m/d\-H:i:s" }})
             {% endif %}
              </li>
           {% endfor %}

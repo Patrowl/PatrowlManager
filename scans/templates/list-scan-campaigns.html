@@ -42,7 +42,7 @@
         {% else %}
         <td><span class="label label-danger">Disabled</span></td>
         {% endif %}
-        <td>{{ scan_campaign.updated_at|date:"Y/m/d-H:m:s" }}</td>
+        <td>{{ scan_campaign.updated_at|date:"Y/m/d\-H:i:s" }}</td>
         <td>
           <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/campaigns/edit/{{ scan_campaign.scan_campaign_id }}'">
             <span class="glyphicon glyphicon-edit"></span></button>

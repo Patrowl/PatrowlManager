@@ -101,7 +101,7 @@ hr {
             <br/>
             {% if tracking_timeline|length == 0 %}No tracking data available (raw finding).{% else %}
               {% for event_date, event_message in tracking_timeline.items %}
-              {{event_date|date:"Y/m/d-H:m:s"}}: {{event_message.message|safe}}<br/>
+              {{event_date|date:"Y/m/d\-H:i:s"}}: {{event_message.message|safe}}<br/>
               {% endfor %}
             {% endif %}
           </div>
@@ -184,7 +184,7 @@ hr {
             {% endfor %}
           {% endif %}
         </dd>
-        <dt>Found at:</dt><dd>{{ finding.created_at|date:"Y/m/d-H:m:s" }}</dd>
+        <dt>Found at:</dt><dd>{{ finding.created_at|date:"Y/m/d\-H:i:s" }}</dd>
       </dl>
 
       {% if finding.risk_info %}

@@ -806,6 +806,33 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             #     finding['severity']: scan_summary[finding['severity']] + 1
             # })
 
+            # Store finding in the RawFinding table
+            new_raw_finding = RawFinding.objects.create(
+                asset       = asset,
+                asset_name  = asset.value,
+                scan        = scan,
+                owner       = scan.owner,
+                title       = finding['title'],
+                type        = finding['type'],
+                confidence  = finding['confidence'],
+                severity    = finding['severity'],
+                description = finding['description'],
+                solution    = finding['solution'],
+                status      = "new",
+                engine_type = scan.engine_type.name,
+                risk_info   = risk_info,
+                vuln_refs   = vuln_refs,
+                links       = links,
+                tags        = tags,
+                raw_data    = raw_data
+                #found_at = ???
+            )
+            new_raw_finding.save()
+
+            # Add the engine policy scopes
+            for scope in scan.engine_policy.scopes.all():
+                new_raw_finding.scopes.add(EnginePolicyScope.objects.get(id=scope.id))
+            new_raw_finding.save()
 
             # Check if this finding is new
             f = Finding.objects.filter(
@@ -813,8 +840,9 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             finding_state = "new"  # Default value
             if f:
                 f.checked_at = timezone.now()
+                new_raw_finding.status = f.status
                 f.save()
-                finding_state = f.status
+                new_raw_finding.save()
             else:
                 # Create a new asset:
                 Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] New finding: {} ({})".format(scan_id, finding['title'], asset.value), type="DEBUG", severity="INFO", scan=scan)
@@ -847,34 +875,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
                 # Evaluate alerting rules
                 new_finding.evaluate_alert_rules(trigger='auto')
-
-            # Store finding in the RawFinding table
-            new_raw_finding = RawFinding.objects.create(
-                asset       = asset,
-                asset_name  = asset.value,
-                scan        = scan,
-                owner       = scan.owner,
-                title       = finding['title'],
-                type        = finding['type'],
-                confidence  = finding['confidence'],
-                severity    = finding['severity'],
-                description = finding['description'],
-                solution    = finding['solution'],
-                status      = finding_state,
-                engine_type = scan.engine_type.name,
-                risk_info   = risk_info,
-                vuln_refs   = vuln_refs,
-                links       = links,
-                tags        = tags,
-                raw_data    = raw_data
-                #found_at = ???
-            )
-            new_raw_finding.save()
-
-            # Add the engine policy scopes
-            for scope in scan.engine_policy.scopes.all():
-                new_raw_finding.scopes.add(EnginePolicyScope.objects.get(id=scope.id))
-            new_raw_finding.save()
 
     scan.save()
     scan.update_sumary()
