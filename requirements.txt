@@ -35,7 +35,7 @@ psycopg2-binary==2.7.7
 python-crontab==2.3.6
 python-dateutil==2.8.0
 python-magic==0.4.15
-python-magic-bin==0.4.14
+#python-magic-bin==0.4.14
 python-memcached==1.59
 pytz==2018.9
 requests==2.21.0
