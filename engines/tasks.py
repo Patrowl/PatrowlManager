@@ -298,6 +298,8 @@ def stopscan_task(self, scan_id):
 
 @shared_task(bind=True)
 def startscan_task(self, params):
+    print("Entering startscan_task() with params: {}".format(params))
+
     scan = Scan.objects.get(id=params['scan_params']['scan_id'])
     scan.status = "started"
     scan.started_at = timezone.now()
@@ -321,7 +323,7 @@ def startscan_task(self, params):
             engine__name=str(scan.scan_definition.engine_type.name).upper(), status="READY", enabled=True))
     else:
         engine_inst = scan.scan_definition.engine
-        if engine_inst.status != "READY" or engine_inst.enabled == False:
+        if engine_inst.status != "READY" or engine_inst.enabled is False:
             Event.objects.create(message="[EngineTasks/startscan_task/{}] BeforeScan - Engine '{}' not available (status: {}, enabled: {}). Task aborted.".format(self.request.id, engine_inst.name, engine_inst.status, engine_inst.enabled), type="ERROR", severity="ERROR", scan=scan)
             engine_inst = None
 
@@ -358,7 +360,7 @@ def startscan_task(self, params):
         resp = requests.post(
             url=str(engine_inst.api_url)+"startscan",
             data=json.dumps(params['scan_params']),
-            headers = {'Content-type': 'application/json', 'Accept': 'application/json'},
+            headers={'Content-type': 'application/json', 'Accept': 'application/json'},
             proxies=PROXIES)
 
         if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
@@ -377,10 +379,10 @@ def startscan_task(self, params):
         return False
 
     # -3- wait the engine come available for accepting scans (status=ready)
-    retries = NB_MAX_RETRIES # test value
+    retries = NB_MAX_RETRIES  # test value
     scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
 
-    while not scan_status in ['FINISHED', 'READY'] and retries > 0:
+    while scan_status not in ['FINISHED', 'READY'] and retries > 0:
         if scan_status in ['STARTED', 'SCANNING', 'PAUSING', 'STOPING']:
             retries = NB_MAX_RETRIES
         else:
@@ -395,7 +397,7 @@ def startscan_task(self, params):
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
-        #print("ERROR: startscan_task/scaninprogress - max_retries ({}) reached.".format(retries))
+        # print("ERROR: startscan_task/scaninprogress - max_retries ({}) reached.".format(retries))
         Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - max_retries ({}) reached. Task aborted.".format(self.request.id, retries),
             type="ERROR", severity="ERROR", scan=scan)
         return False
@@ -574,7 +576,6 @@ def start_periodic_scan_task(self, params):
         else:
             print("bad scanner status: {} (retries left={})".format(scan_status, retries))
             retries -= 1
-        # print("--waiting scan finished: {}".format(_get_engine_status(params)))
         time.sleep(SLEEP_RETRY)
         scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
         print("status: {}".format(scan_status))
@@ -680,7 +681,7 @@ def _get_scan_status(engine, scan_id):
     return scan_status
 
 
-def _create_asset_on_import(asset_value, scan, asset_type = 'unknown'):
+def _create_asset_on_import(asset_value, scan, asset_type='unknown'):
     Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}/{}'.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan)
 
     # create assets if data_type is ip-subnet or ip-range

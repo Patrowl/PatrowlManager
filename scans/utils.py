@@ -54,6 +54,13 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     )
     scan.save()
 
+    if engine is None:
+        scan.status = "error"
+        scan.started_at = datetime.now()  # todo: check timezone
+        scan.finished_at = datetime.now()  # todo: check timezone
+        scan.save()
+        return False
+
     assets_list = []
     for asset in scan_def.assets_list.all():
         scan.assets.add(asset)
@@ -73,13 +80,6 @@ def _run_scan(scan_def_id, owner_id, eta=None):
                 "criticity": a.criticity,
                 "datatype": a.type
             })
-
-    if not engine:
-        scan.status = "error"
-        scan.started_at = datetime.now()  # todo: check timezone
-        scan.finished_at = datetime.now()  # todo: check timezone
-        scan.save()
-        return False
 
     parameters = {
         "scan_definition_id": scan_def.id,
@@ -105,6 +105,7 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         scan_options.update({"eta": eta})
 
     # enqueue the task in the right queue
+    print("_run_scan: ready to enqueue: {}".format(scan_options))
     resp = startscan_task.apply_async(**scan_options)
     scan.status = "enqueued"
     scan.task_id = uuid.UUID(str(resp))
