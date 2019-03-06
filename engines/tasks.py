@@ -298,7 +298,7 @@ def stopscan_task(self, scan_id):
 
 @shared_task(bind=True)
 def startscan_task(self, params):
-    print("Entering startscan_task() with params: {}".format(params))
+    print("----Entering startscan_task() with params: {}".format(params))
 
     scan = Scan.objects.get(id=params['scan_params']['scan_id'])
     scan.status = "started"

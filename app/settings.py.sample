@@ -29,8 +29,7 @@ DEBUG = os.environ.get('DEBUG', False)   # Production environment
 
 ALLOWED_HOSTS = ['*'] # /!\ Not safe for production environment
 
-#LOGGING_LEVEL = "INFO,WARNING,ERROR,DEBUG"
-LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'WARNING,ERROR')
+LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'INFO,WARNING,ERROR,DEBUG')
 
 PROXIES = {
     "http": os.environ.get('PATROWL_PROXY_HTTP', None),
@@ -205,8 +204,9 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = os.environ.get('PATROWL_TZ', 'Europe/Paris')
-CELERY_TASK_IGNORE_RESULT = True
-#CELERYD_TASK_SOFT_TIME_LIMIT = 60
+CELERY_ENABLE_UTC = False
+# CELERY_TASK_IGNORE_RESULT = True
+# CELERYD_TASK_SOFT_TIME_LIMIT = 60
 
 
 # Email settings
