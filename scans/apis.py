@@ -48,11 +48,7 @@ def stop_scan_api(request, scan_id):
     scan.status = "stopping"
     scan.save()
     stopscan_task.apply_async(
-        args=[scan.id],
-        queue='scan-'+str(scan.engine_type).lower(),
-        routing_key='scan.'+str(scan.engine_type).lower(),
-        retry=False
-    )
+        args=[scan.id], queue='scan', retry=False, ignore_result=True)
     return JsonResponse({'status': 'success'})
 
 
@@ -70,9 +66,9 @@ def stop_scans_api(request):
         scan.save()
         stopscan_task.apply_async(
             args=[scan.id],
-            queue='scan-'+str(scan.engine_type).lower(),
-            routing_key='scan.'+str(scan.engine_type).lower(),
-            retry=False
+            queue='scan',
+            retry=False,
+            ignore_result=True
         )
 
     return JsonResponse({'status': 'success'})
@@ -312,7 +308,7 @@ def toggle_scan_def_status_api(request, scan_def_id):
             print ("Fuck, PeriodicTask '{}' does not exists".format(periodic_task.id))
             return JsonResponse({'status': 'error'}, 403)
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])

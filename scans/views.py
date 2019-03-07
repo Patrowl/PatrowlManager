@@ -327,9 +327,8 @@ def add_scan_def_view(request):
                     name='[PO] {}@{}'.format(scan_definition.title, scan_definition.id),
                     task='engines.tasks.start_periodic_scan_task',
                     args=json.dumps([parameters]),
-                    queue='scan-'+scan_definition.engine_type.name.lower(),
-                    routing_key='scan.'+scan_definition.engine_type.name.lower(),
-                    last_run_at=None,
+                    queue='scan',
+                    last_run_at=None
                 )
 
                 periodic_task.enabled = True
@@ -454,8 +453,7 @@ def edit_scan_def_view(request, scan_def_id):
                     task='engines.tasks.start_periodic_scan_task',
                     args=json.dumps([parameters]),
                     #expires=datetime.utcnow() + timedelta(seconds=30),
-                    queue='scan-'+scan_definition.engine_type.name.lower(),
-                    routing_key='scan.'+scan_definition.engine_type.name.lower(),
+                    queue='scan',
                     last_run_at=None,
                 )
 

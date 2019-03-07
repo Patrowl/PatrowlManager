@@ -89,7 +89,7 @@ def toggle_engine_status_api(request, engine_id):
     engine_instance.enabled = not engine_instance.enabled
     engine_instance.save()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])

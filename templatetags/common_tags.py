@@ -1,4 +1,5 @@
 from django import template
+from django.utils import timezone
 import hashlib
 from datetime import datetime
 from assets.models import Asset, AssetGroup
@@ -35,8 +36,8 @@ def perc(nb, total):
 @register.filter
 def smartdate(date):
     """Return a formated datetime."""
-    if date.date() == datetime.today().date():
-        return date.time().strftime("%H:%M:%S")
+    if date.date() == timezone.now().date():
+        return timezone.localtime(date).strftime("%H:%M:%S")
     else:
         return date.date().isoformat()
 

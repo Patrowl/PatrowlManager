@@ -95,8 +95,7 @@ def _run_scan(scan_def_id, owner_id, eta=None):
 
     scan_options = {
         "args": [parameters],
-        "queue": 'scan-'+scan.engine_type.name.lower(),
-        "routing_key": 'scan.'+scan.engine_type.name.lower(),
+        "queue": 'scan',
         "retry": False,
         "countdown": 0,
         "ignore_result": True
