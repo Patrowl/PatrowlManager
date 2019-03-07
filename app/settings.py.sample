@@ -192,11 +192,11 @@ if BROKER_URL == "":
         hostname=RABBIT_HOSTNAME,
         vhost=os.environ.get('RABBIT_ENV_VHOST', ''))
 
-BROKER_HEARTBEAT = '?heartbeat=30'
-if not BROKER_URL.endswith(BROKER_HEARTBEAT):
-    BROKER_URL += BROKER_HEARTBEAT
+#BROKER_HEARTBEAT = '?heartbeat=30'
+#if not BROKER_URL.endswith(BROKER_HEARTBEAT):
+#    BROKER_URL += BROKER_HEARTBEAT
 
-BROKER_POOL_LIMIT = None
+# BROKER_POOL_LIMIT = None
 
 # CELERY
 CELERY_RESULT_BACKEND = 'django-db'
