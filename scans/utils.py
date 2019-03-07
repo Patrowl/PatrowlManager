@@ -33,7 +33,6 @@ def _update_celerybeat():
 
 
 def _run_scan(scan_def_id, owner_id, eta=None):
-    print("----- entering _run_scan({})".format(scan_def_id))
     scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
     engine = None
 
@@ -108,11 +107,9 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         scan_options.update({"eta": eta})
 
     # enqueue the task in the right queue
-    print("----- before async _run_scan({})".format(scan_options))
     resp = startscan_task.apply_async(**scan_options)
     scan.status = "enqueued"
     scan.task_id = uuid.UUID(str(resp))
     scan.save()
-    print("----- after async _run_scan({})".format(scan_options))
 
     return True
