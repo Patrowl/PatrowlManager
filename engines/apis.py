@@ -79,7 +79,7 @@ def list_policies_by_engine_api(request, engine_name):
 def get_engine_status_api(request, engine_id):
     inst = get_object_or_404(EngineInstance, id=engine_id)
     get_engine_status_task.apply_async(
-        args=[inst.id], queue='default', retry=False)
+        args=[inst.id], queue='default', retry=False, ignore_result=True)
     return JsonResponse({"status": "enqueued"})
 
 
@@ -96,7 +96,7 @@ def toggle_engine_status_api(request, engine_id):
 def get_engine_info_api(request, engine_id):
     inst = get_object_or_404(EngineInstance, id=engine_id)
     get_engine_info_task.apply_async(
-        args=[inst.id], queue='default', retry=False)
+        args=[inst.id], queue='default', retry=False, ignore_result=True)
     return JsonResponse({"status": "enqueued"})
 
 
@@ -129,7 +129,8 @@ def info_engine_api(request, engine_id):
 def refresh_engines_status_api(request):
     refresh_engines_status_task.apply_async(
         queue='default',
-        retry=False
+        retry=False,
+        ignore_result=True
     )
     return JsonResponse({"status": "success"})
 
