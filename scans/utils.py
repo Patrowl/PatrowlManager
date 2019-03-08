@@ -97,12 +97,12 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         "args": [parameters],
         "queue": 'scan',
         "retry": False,
-        "countdown": 0,
+        "countdown": 1,
         "ignore_result": True
     }
 
     if eta is not None:
-        # print("eta:", eta)
+        print("eta:", eta)
         scan_options.update({"eta": eta})
 
     # enqueue the task in the right queue

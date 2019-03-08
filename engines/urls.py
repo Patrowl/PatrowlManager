@@ -33,6 +33,8 @@ urlpatterns = [
     url(r'^types/delete/(?P<engine_id>[0-9]+)$', views.delete_engine_type_view, name='delete_engine_type_view'),
 
     ## JSON API
+    # ex: /engines/api/v1/test
+    url(r'^api/v1/test$', apis.test_task_api, name='test_task_api'),
     # ex: /engines/api/v1/list
     url(r'^api/v1/list$', apis.list_engines_api, name='list_engines_api'),
     # ex: /engines/api/v1/refresh

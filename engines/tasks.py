@@ -21,7 +21,17 @@ SLEEP_RETRY = 5
 PROXIES = settings.PROXIES
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, acks_late=True)
+def test_task(self, queue_name):
+    print ("task: test connexion on queue '{}'!".format(queue_name))
+    Event.objects.create(
+        message="[EngineTasks/test_task()] Test celery+RabbitMQ connexion on queue '{}'.".format(queue_name),
+        type="DEBUG", severity="INFO",
+        description="timezone.now(): {}".format(timezone.now())
+    )
+    return True
+
+@shared_task(bind=True, acks_late=True)
 def refresh_engines_status_task(self):
     print ("task: starting refresh_engines_status_task !")
     for engine in EngineInstance.objects.filter(enabled=True):
@@ -42,7 +52,7 @@ def refresh_engines_status_task(self):
     return True
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, acks_late=True)
 def get_engine_status_task(self, engine_id):
     print ("task: starting get_engine_status_task !")
     for engine in EngineInstance.objects.filter(id=engine_id):
@@ -62,7 +72,7 @@ def get_engine_status_task(self, engine_id):
     return True
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, acks_late=True)
 def get_engine_info_task(self, engine_id):
     print ("task: starting get_engine_info_task !")
     for engine in EngineInstance.objects.filter(id=engine_id):
@@ -82,7 +92,7 @@ def get_engine_info_task(self, engine_id):
     return True
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, acks_late=True)
 def importfindings_task(self, report_filename, owner_id, engine, min_level):
     Event.objects.create(message="[EngineTasks/importfindings_task/{}] Task started with engine {}.".format(self.request.id, engine),
                  type="INFO", severity="INFO")
@@ -259,7 +269,7 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
     return True
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, acks_late=True)
 def stopscan_task(self, scan_id):
     scan = get_object_or_404(Scan, id=scan_id)
     Event.objects.create(message="[EngineTasks/stopscan_task/{}] Task started.".format(self.request.id),
@@ -296,7 +306,7 @@ def stopscan_task(self, scan_id):
     return True
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, acks_late=True)
 def startscan_task(self, params):
     print("----Entering startscan_task() with params: {}".format(params))
 
@@ -477,7 +487,7 @@ def startscan_task(self, params):
     return True
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, acks_late=True)
 def start_periodic_scan_task(self, params):
     scan_def = ScanDefinition.objects.get(id=params['scan_definition_id'])
     Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Task started.".format(self.request.id),

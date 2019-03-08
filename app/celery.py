@@ -13,7 +13,14 @@ app = Celery('app', broker=settings.BROKER_URL)
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
-app.conf.timezone = os.environ.get('PATROWL_TZ', 'Europe/Paris')
+app.conf.broker_transport_options = {
+    'max_retries': 3,
+    'interval_start': 0,
+    'interval_step': 0.2,
+    'interval_max': 0.2,
+}
+
+#app.conf.timezone = os.environ.get('PATROWL_TZ', 'Europe/Paris')
 
 app.conf.task_queues = (
     # Default Queue / administrative purposes

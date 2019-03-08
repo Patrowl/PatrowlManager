@@ -8,7 +8,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from rest_framework.decorators import api_view
 from .models import Engine, EngineInstance, EnginePolicy
 from .tasks import refresh_engines_status_task
-from .tasks import get_engine_status_task, get_engine_info_task
+from .tasks import get_engine_status_task, get_engine_info_task, test_task
 from scans.models import Scan
 from scans.views import _update_celerybeat
 import requests
@@ -179,8 +179,7 @@ def list_engines_intances_api(requests):
             "type": engine.engine.name
            })
     running_scans = Scan.objects.filter(status__in=["enqueued", "started"]).count()
-    return JsonResponse(
-        {
+    return JsonResponse({
             "engines": engines,
             "running_scans": running_scans
         }, safe=False)
@@ -246,3 +245,22 @@ def duplicate_policy_api(request, policy_id):
 def list_engine_types_api(request):
     engines = Engine.objects.all().values()[::1]
     return JsonResponse(engines, json_dumps_params={'indent': 2}, safe=False)
+
+
+@api_view(['GET'])
+def test_task_api(request):
+    test_task.apply_async(
+        args=["default"],
+        queue='default',
+        retry=True,
+        countdown=0,
+        ignore_result=True
+    )
+    test_task.apply_async(
+        args=["scan"],
+        queue='scan',
+        retry=True,
+        countdown=0,
+        ignore_result=True
+    )
+    return JsonResponse({"status": "enqueued"})

@@ -13,7 +13,6 @@ from rules.models import Rule
 from engines.models import EnginePolicyScope
 
 import uuid
-import datetime
 import hashlib
 
 
@@ -87,7 +86,7 @@ class RawFinding(models.Model):
             self.severity_num = 0
         # update the 'updated_at' entry on each update except on creation
         if not self._state.adding:
-            self.updated_at = datetime.datetime.now()
+            self.updated_at = timezone.now()
         return super(RawFinding, self).save(*args, **kwargs)
 
     def evaluate_alert_rules(self, trigger='all'):
@@ -177,7 +176,7 @@ class Finding(models.Model):
 
         # update the 'updated_at' entry on each update except on creation
         if not self._state.adding:
-            self.updated_at = datetime.datetime.now()
+            self.updated_at = timezone.now()
         return super(Finding, self).save(*args, **kwargs)
 
     def evaluate_alert_rules(self, trigger='all'):
