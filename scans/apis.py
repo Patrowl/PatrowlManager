@@ -48,7 +48,8 @@ def stop_scan_api(request, scan_id):
     scan.status = "stopping"
     scan.save()
     stopscan_task.apply_async(
-        args=[scan.id], queue='scan', retry=False, ignore_result=True)
+        args=[scan.id], queue='scan', retry=True, ignore_result=False)
+    # args=[scan.id], queue='scan', retry=False, ignore_result=True)
     return JsonResponse({'status': 'success'})
 
 
@@ -67,7 +68,7 @@ def stop_scans_api(request):
         stopscan_task.apply_async(
             args=[scan.id],
             queue='scan',
-            retry=False,
+            retry=True,
             ignore_result=True
         )
 

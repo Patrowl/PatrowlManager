@@ -79,7 +79,8 @@ def list_policies_by_engine_api(request, engine_name):
 def get_engine_status_api(request, engine_id):
     inst = get_object_or_404(EngineInstance, id=engine_id)
     get_engine_status_task.apply_async(
-        args=[inst.id], queue='default', retry=False, ignore_result=True)
+        args=[inst.id], queue='default', retry=False)
+    # args=[inst.id], queue='default', retry=False, ignore_result=True)
     return JsonResponse({"status": "enqueued"})
 
 
@@ -96,7 +97,8 @@ def toggle_engine_status_api(request, engine_id):
 def get_engine_info_api(request, engine_id):
     inst = get_object_or_404(EngineInstance, id=engine_id)
     get_engine_info_task.apply_async(
-        args=[inst.id], queue='default', retry=False, ignore_result=True)
+        args=[inst.id], queue='default', retry=False, ignore_result=False)
+    # args=[inst.id], queue='default', retry=False, ignore_result=True)
     return JsonResponse({"status": "enqueued"})
 
 
@@ -107,7 +109,7 @@ def info_engine_api(request, engine_id):
     engine_infos = None
     current_scans = None
     try:
-        resp = requests.get(url=str(engine.api_url)+"info", verify=False, timeout=5)
+        resp = requests.get(url=str(engine.api_url)+"info", verify=False, timeout=20)
 
         if resp.status_code == 200:
             engine_infos = json.loads(resp.text)
@@ -129,8 +131,8 @@ def info_engine_api(request, engine_id):
 def refresh_engines_status_api(request):
     refresh_engines_status_task.apply_async(
         queue='default',
-        retry=False,
-        ignore_result=True
+        retry=False#,
+        #ignore_result=True
     )
     return JsonResponse({"status": "success"})
 

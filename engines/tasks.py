@@ -31,6 +31,7 @@ def test_task(self, queue_name):
     )
     return True
 
+
 @shared_task(bind=True, acks_late=True)
 def refresh_engines_status_task(self):
     print ("task: starting refresh_engines_status_task !")
@@ -308,7 +309,7 @@ def stopscan_task(self, scan_id):
 
 @shared_task(bind=True, acks_late=True)
 def startscan_task(self, params):
-    print("----Entering startscan_task() with params: {}".format(params))
+    # print("----Entering startscan_task() with params: {}".format(params))
 
     scan = Scan.objects.get(id=params['scan_params']['scan_id'])
     scan.status = "started"
@@ -423,7 +424,7 @@ def startscan_task(self, params):
 
     # -4- get the results (findings)
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES, timeout=30)
+        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES)
         if resp.status_code != 200 or json.loads(resp.text)['status'] == "error":
             scan.status = "error"
             scan.finished_at = timezone.now()
@@ -454,7 +455,7 @@ def startscan_task(self, params):
 
     # -6- get and store the report
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES, timeout=60)
+        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES)
         if resp.status_code == 200:
             user_report_dir = settings.MEDIA_ROOT + "/reports/"+str(params['owner_id'])+"/"
             if not os.path.exists(user_report_dir):
@@ -601,7 +602,7 @@ def start_periodic_scan_task(self, params):
 
     # -4- get the results
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES, timeout=30)
+        resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES)
         if resp.status_code != 200 or json.loads(resp.text)['status'] == "error":
             print("something goes wrong in 'startscan_task/results' (request_status_code={}, engine_error={})",
                    resp.status_code, json.loads(resp.text)['reason'])
@@ -623,7 +624,7 @@ def start_periodic_scan_task(self, params):
 
     # -6- get and store the report
     try:
-        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES, timeout=60)
+        resp = requests.get(url=str(engine_inst.api_url)+"getreport/"+str(scan.id), stream=True, proxies=PROXIES)
         if resp.status_code == 200:
             user_report_dir = settings.MEDIA_ROOT + "/reports/"+str(params['owner_id'])+"/"
             if not os.path.exists(user_report_dir):
