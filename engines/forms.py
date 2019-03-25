@@ -71,5 +71,4 @@ class EngineForm(forms.ModelForm):
         super(EngineForm, self).__init__(*args, **kwargs)
 
         if 'initial' in self.__dict__:
-            self.fields['allowed_asset_types'].widget = forms.CheckboxSelectMultiple(
-                choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'})
+            self.fields['allowed_asset_types'].widget = forms.CheckboxSelectMultiple(choices=ASSET_TYPES)
