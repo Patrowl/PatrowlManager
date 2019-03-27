@@ -234,7 +234,7 @@ def add_asset_api(request):
 
 @api_view(['POST'])
 def delete_assets_api(request):
-    assets = json.loads(request.body)
+    assets = request.data
     for asset_id in assets:
         a = Asset.objects.get(id=asset_id)
         a.delete()
