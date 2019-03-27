@@ -10,7 +10,6 @@ from .utils import _search_findings
 from assets.models import Asset
 from events.models import Event
 from engines.tasks import importfindings_task
-import json
 import os
 import time
 import collections
@@ -103,26 +102,38 @@ def details_finding_view(request, finding_id):
 
     # Inject tracking data
     tracking_timeline = {}
-    tracking_timeline.update({finding.created_at: {"level": "info", "message": "First identification in scan <a href='/scans/details/{}'>'{}'</a> ({}). Definition <a href='/scans/defs/details/{}'>here</a>".format(finding.scan.id, finding.scan, finding.scan.engine_type, finding.scan.scan_definition.id)}})
+    if finding.engine_type not in ["", "MANUAL"]:
+        tracking_timeline.update({
+            finding.created_at: {
+                "level": "info",
+                "message": "First identification in scan \
+                <a href='/scans/details/{}'>'{}'</a> ({}). \
+                Definition <a href='/scans/defs/details/{}'>here</a>"
+                .format(
+                    finding.scan.id, finding.scan, finding.scan.engine_type,
+                    finding.scan.scan_definition.id
+                )
+            }
+        })
+
+        # Identify finding occurrences in related scan results (excluding the 1st)
+        for scan in finding.scan.scan_definition.scan_set.filter(status="finished").exclude(id=finding.scan.id):
+            finding_notfound = True
+            for f in scan.rawfinding_set.all():
+                if f.hash == finding.hash:
+                    finding_notfound = False
+                    tracking_timeline.update({f.created_at: {
+                        "level": "info",
+                        "message": "Identified in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
+                break
+            if finding_notfound:
+                tracking_timeline.update({scan.created_at: {
+                    "level": "warning",
+                    "message": "Not in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
 
     # Identify changes
     for event in Event.objects.filter(finding=finding):
         tracking_timeline.update({event.created_at: {"level": "info", "message": event.message}})
-
-    # Identify finding occurrences in related scan results (excluding the 1st)
-    for scan in finding.scan.scan_definition.scan_set.filter(status="finished").exclude(id=finding.scan.id):
-        finding_notfound = True
-        for f in scan.rawfinding_set.all():
-            if f.hash == finding.hash:
-                finding_notfound = False
-                tracking_timeline.update({f.created_at: {
-                    "level": "info",
-                    "message": "Identified in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
-            break
-        if finding_notfound:
-            tracking_timeline.update({scan.created_at: {
-                "level": "warning",
-                "message": "Not in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
 
     return render(request, 'details-finding.html', {
         'finding': finding,
@@ -158,7 +169,6 @@ def edit_finding_view(request, finding_id):
             finding.comments = form.cleaned_data['comments']
 
             finding.save()
-            messages.success(request, 'Update submission successful')
             return redirect('list_findings_view')
 
     return render(request, 'edit-finding.html',
@@ -173,29 +183,29 @@ def add_finding_view(request):
         form = FindingForm()
     elif request.method == 'POST':
         form = FindingForm(request.POST)
-
         if form.is_valid():
             finding_args = {
                 'title': form.cleaned_data['title'],
                 'description': form.cleaned_data['description'],
-                'confidence': form.cleaned_data['confidence'],
+                'confidence': 'certain',
                 'type': form.cleaned_data['type'],
                 'severity': form.cleaned_data['severity'],
                 'solution': form.cleaned_data['solution'],
                 'risk_info': form.cleaned_data['risk_info'],
                 'vuln_refs': form.cleaned_data['vuln_refs'],
                 'links': form.cleaned_data['links'],
-                'tags': str(json.dumps(form.cleaned_data['tags'].split(','))),
+                'tags': form.cleaned_data['tags'],
+                # 'tags': [].append(form.cleaned_data['tags'].split(',')),
                 'status': form.cleaned_data['status'],
-                # 'owner': form.cleaned_data['owner'],
+                'owner': request.user,
                 'asset': form.cleaned_data['asset'],
                 'asset_name': form.cleaned_data['asset'].value,
-                'scan': form.cleaned_data['scan']
+                'raw_data': {},
+                'engine_type': 'MANUAL'
+                # 'scan': form.cleaned_data['scan']
             }
-
             finding = Finding(**finding_args)
             finding.save()
-            messages.success(request, 'Creation submission successful')
             return redirect('list_findings_view')
 
     return render(request, 'add-finding.html', {'form': form})

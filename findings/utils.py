@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .models import Finding, RawFinding
+from .forms import FindingForm
+
 
 def _search_findings(request):
     filter_by_asset = request.GET.get('_asset_value', None)
@@ -25,7 +27,7 @@ def _search_findings(request):
     filter_by_reference = request.GET.get('_reference', None)
     # filter_by_reference_cond = request.GET.get('_reference_cond', None)
 
-    filter_limit = request.GET.get('limit', "")
+    filter_limit = request.GET.get('limit', "100")
 
     filters = {}
     excludes = {}
@@ -64,15 +66,12 @@ def _search_findings(request):
         elif filter_by_status_cond == "not_exact":
             excludes.update({"status__{}".format(filter_by_status_cond[4:]): filter_by_status})
 
-    if filter_by_status and filter_by_status in ["new", "ack"]:
-        filters.update({"status": filter_by_status})
     if filter_by_asset_id:
         filters.update({"asset_id": filter_by_asset_id})
     if filter_by_asset_group_id:
         filters.update({"asset__assetgroup": filter_by_asset_group_id})
     if filter_by_asset_group_name:
         filters.update({"asset__assetgroup__name__icontains": filter_by_asset_group_name})
-
     if filter_by_engine:
         filters.update({"engine_type": filter_by_engine})
     if filter_by_scope:
@@ -85,5 +84,32 @@ def _search_findings(request):
     else:
         findings = Finding.objects.filter(**filters).exclude(**excludes).order_by(
                  'asset_name', 'severity', 'status', 'type')
-
     return findings
+
+
+def _add_finding(request):
+    form = FindingForm(request.POST)
+    if form.is_valid():
+        finding_args = {
+            'title': form.cleaned_data['title'],
+            'description': form.cleaned_data['description'],
+            'confidence': 'certain',
+            'type': form.cleaned_data['type'],
+            'severity': form.cleaned_data['severity'],
+            'solution': form.cleaned_data['solution'],
+            'risk_info': form.cleaned_data['risk_info'],
+            'vuln_refs': form.cleaned_data['vuln_refs'],
+            'links': form.cleaned_data['links'],
+            'tags': form.cleaned_data['tags'],
+            # 'tags': [].append(form.cleaned_data['tags'].split(',')),
+            'status': form.cleaned_data['status'],
+            'owner': request.user,
+            'asset': form.cleaned_data['asset'],
+            'asset_name': form.cleaned_data['asset'].value,
+            'raw_data': {},
+            'engine_type': 'MANUAL'
+            # 'scan': form.cleaned_data['scan']
+        }
+        finding = Finding(**finding_args)
+        finding.save()
+        return finding

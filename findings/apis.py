@@ -4,7 +4,7 @@ from django.http import JsonResponse, HttpResponse
 from django.forms.models import model_to_dict
 from django.shortcuts import render, get_object_or_404
 from .models import Finding, RawFinding
-from .utils import _search_findings
+from .utils import _search_findings, _add_finding
 from assets.models import Asset
 from scans.models import Scan, ScanDefinition
 from events.models import Event
@@ -29,27 +29,10 @@ def list_findings_api(request):
     return JsonResponse(findings_list, safe=False)
 
 
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 def add_finding_api(request):
-    res = {"page": "add_finding"}
-
-    allowed_fields = [f.name for f in Finding._meta.get_fields()]
-    if request.method == 'GET':
-        new_finding = Finding.objects.create(
-            title=request.GET.get("title")
-        )
-        res.update({"finding": model_to_dict(new_finding)})
-    elif request.method == 'POST':
-        new_finding = Finding()
-        for field_key in request.POST.iterkeys():
-            if field_key in allowed_fields:
-                setattr(new_finding, field_key, request.POST.get(field_key))
-            else:
-                print("not allowed: {}/{}".format(field_key, request.POST.get(field_key)))
-        new_finding.save()
-        res.update({"asset": model_to_dict(new_finding)})
-
-    return JsonResponse(res)
+    finding = _add_finding(request)
+    return JsonResponse(finding)
 
 
 @api_view(['GET'])
@@ -68,7 +51,7 @@ def delete_findings_api(request):
         Asset.objects.get(id=f.asset.id).evaluate_risk()
         f.delete()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['POST'])
@@ -120,7 +103,7 @@ def delete_rawfindings_api(request):
         Asset.objects.get(id=f.asset.id).evaluate_risk()
         f.delete()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['POST'])
@@ -132,7 +115,7 @@ def change_findings_status_api(request):
         f.status = "ack"
         f.save()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['POST'])
@@ -144,7 +127,7 @@ def change_rawfindings_status_api(request):
         f.status = "ack"
         f.save()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])
@@ -179,7 +162,7 @@ def get_findings_stats_api(request):
         "nb_new_critical": findings.filter(status="new", severity="critical").count(),
     }
 
-    return JsonResponse(data, json_dumps_params={'indent': 2})
+    return JsonResponse(data)
 
 
 @api_view(['GET'])
@@ -203,7 +186,7 @@ def send_finding_alerts_api(request, finding_id):
 
     rule.delete()
 
-    return JsonResponse({"status": "success"}, json_dumps_params={'indent': 2})
+    return JsonResponse({"status": "success"})
 
 
 @api_view(['GET'])
@@ -214,7 +197,7 @@ def generate_finding_alerts_api(request, finding_id):
         finding = get_object_or_404(Finding, id=finding_id)
 
     nb_matches = finding.evaluate_alert_rules()
-    return JsonResponse({"status": "success", "nb_matches": nb_matches}, json_dumps_params={'indent': 2})
+    return JsonResponse({"status": "success", "nb_matches": nb_matches})
 
 
 @api_view(['POST'])
@@ -230,7 +213,7 @@ def update_finding_comments_api(request, finding_id):
 
     finding.comments = new_comments
     finding.save()
-    return JsonResponse({"status": "success"}, json_dumps_params={'indent': 2})
+    return JsonResponse({"status": "success"})
 
 
 @api_view(['GET'])
@@ -268,7 +251,7 @@ def update_finding_api(request, finding_id):
 
     finding.save()
 
-    return JsonResponse({"status": "success"}, json_dumps_params={'indent': 2})
+    return JsonResponse({"status": "success"})
 
 
 @api_view(['GET'])
@@ -283,7 +266,7 @@ def export_finding_api(request, finding_id):
     export_format = request.GET.get("format", 'csv')
 
     if not export_format or export_format not in allowed_formats:
-        return JsonResponse({"status": "error", "reason": "bad format"}, json_dumps_params={'indent': 2})
+        return JsonResponse({"status": "error", "reason": "bad format"})
 
     res = {}
     if export_format == 'json':

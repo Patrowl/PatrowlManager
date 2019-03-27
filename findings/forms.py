@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django import forms
-from .models import Finding, FINDING_SEVERITIES, FINDING_STATUS
+from .models import Finding, FINDING_SEVERITIES
 
 ENGINE_TYPES = (
     ('json', 'json'),
@@ -27,7 +27,7 @@ class FindingForm(forms.ModelForm):
     class Meta:
         model = Finding
         fields = ['title', 'type', 'severity', 'status', 'description', 'tags',
-            'solution', 'risk_info', 'vuln_refs', 'links', 'comments']
+            'solution', 'risk_info', 'vuln_refs', 'links', 'comments', 'asset']
         widgets = {
             'description': forms.Textarea(
                 attrs={'class': 'form-control form-control-sm'}),
@@ -50,7 +50,9 @@ class FindingForm(forms.ModelForm):
             'comments': forms.Textarea(
                 attrs={'class': 'form-control form-control-sm'}),
             'status': forms.Select(
+                attrs={'class': 'form-control form-control-sm'}),
+            'asset': forms.Select(
                 attrs={'class': 'form-control form-control-sm'})
         }
 
-        tags = forms.CharField(widget=forms.TextInput(attrs={"data-role": "tagsinput"}))
+        #tags = forms.CharField(widget=forms.TextInput(attrs={"data-role": "tagsinput"}))

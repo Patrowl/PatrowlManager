@@ -131,11 +131,11 @@ def rawfinding_delete_log(sender, **kwargs):
 
 class Finding(models.Model):
     raw_finding = models.ForeignKey(RawFinding, models.SET_NULL, blank=True, null=True)
-    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='findings')
     asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
     asset_name  = models.CharField(max_length=256) #todo: delete this
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
-    scan        = models.ForeignKey(Scan, on_delete=models.CASCADE)
+    scan        = models.ForeignKey(Scan, on_delete=models.CASCADE, blank=True, null=True)
+    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE)
     owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256, default='title')
     type        = models.CharField(max_length=50)
