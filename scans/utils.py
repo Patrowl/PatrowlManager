@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from app.settings import SUPERVISORD_API_URL
-from .models import Scan, ScanDefinition
+from .models import Scan, ScanDefinition, SCAN_STATUS
 from engines.models import EngineInstance
 from engines.tasks import startscan_task
 
@@ -112,3 +112,31 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     scan.save()
 
     return True
+
+
+def _search_scans(request):
+    filters = {}
+    excludes = {}
+    filter_limit = request.GET.get('limit', "")
+    filter_by_title = request.GET.get('_title', None)
+    filter_by_title_cond = request.GET.get('_title_cond', None)
+    filter_by_status = request.GET.get('_status', None)
+    filter_by_status_cond = request.GET.get('_status_cond', None)
+
+    if filter_by_title:
+        if filter_by_title_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+            filters.update({"title__{}".format(filter_by_title_cond): filter_by_title})
+        elif filter_by_asset_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+            excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
+    if filter_by_status and filter_by_status in SCAN_STATUS:
+        if filter_by_status_cond == "exact":
+            filters.update({"status__{}".format(filter_by_status_cond): filter_by_status})
+        elif filter_by_status_cond == "not_exact":
+            excludes.update({"status__{}".format(filter_by_status_cond[4:]): filter_by_status})
+
+    if str(filter_limit).isdigit():
+        scans = Scan.objects.filter(**filters).exclude(**excludes)[:int(filter_limit)]
+    else:
+        scans = Scan.objects.filter(**filters).exclude(**excludes)
+
+    return scans

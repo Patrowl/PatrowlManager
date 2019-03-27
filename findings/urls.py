@@ -53,6 +53,8 @@ urlpatterns = [
     url(r'^api/v1/export/(?P<finding_id>[0-9]+)$', apis.export_finding_api, name='export_finding_api'),
     # ex: /findings/api/v1/8
     url(r'^api/v1/(?P<finding_id>[0-9]+)$', apis.get_finding_api, name='get_finding_api'),
+    # ex: /findings/api/v1/8
+    url(r'^api/v1/by-id/(?P<finding_id>[0-9]+)$', apis.get_finding_api, name='get_finding_byid_api'),
     # ex: /findings/api/v1/raw/8
     url(r'^api/v1/raw/(?P<finding_id>[0-9]+)$', apis.get_raw_finding_api, name='get_raw_finding_api'),
 ]

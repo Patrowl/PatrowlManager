@@ -6,12 +6,16 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.forms.models import model_to_dict
+
 from events.models import Event
 from assets.models import Asset
 from scans.models import Scan
 from rules.models import Rule
 from engines.models import EnginePolicyScope
+from common.utils.encoding import json_serial
 
+import json
 import uuid
 import hashlib
 
@@ -36,16 +40,18 @@ FINDING_STATUS = (
 
 
 class RawFinding(models.Model):
+    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='raw_findings')
     asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
     asset_name  = models.CharField(max_length=256)
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
+    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE, related_name='raw_findings')
     scan        = models.ForeignKey(Scan, on_delete=models.CASCADE)
     owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256)
     type        = models.CharField(max_length=50)
     hash        = models.CharField(max_length=256)
     confidence  = models.CharField(max_length=10)
-    severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)  # low, medium, high
+    severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)
     severity_num= models.IntegerField(default=1, blank=True, null=True)
     scopes      = models.ManyToManyField(EnginePolicyScope, blank=True)
     description = models.TextField()
@@ -125,6 +131,7 @@ def rawfinding_delete_log(sender, **kwargs):
 
 class Finding(models.Model):
     raw_finding = models.ForeignKey(RawFinding, models.SET_NULL, blank=True, null=True)
+    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='findings')
     asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
     asset_name  = models.CharField(max_length=256) #todo: delete this
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
@@ -157,6 +164,12 @@ class Finding(models.Model):
 
     def __str__(self):
         return "{}/{}".format(self.id, self.title)
+
+    def to_dict(self):
+        """Return JSONified class summary."""
+        data = model_to_dict(self, exclude=["scopes"])
+        data.update({"scopes": [model_to_dict(s, fields=["name", "id"]) for s in self.scopes.all()]})
+        return json.loads(json.dumps(data, default=json_serial))
 
     def get_risk(self):
         return (self.severity, self.confidence)

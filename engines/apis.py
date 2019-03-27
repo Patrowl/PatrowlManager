@@ -30,6 +30,12 @@ def list_engines_api(request):
     return JsonResponse(list_engines, safe=False)
 
 
+@api_view(['GET'])
+def get_engine_api(request, engine_id):
+    engine = get_object_or_404(EngineInstance, id=engine_id)
+    return JsonResponse(model_to_dict(engine), safe=False)
+
+
 @api_view(['DELETE'])
 def delete_engine_api(request, engine_id):
     engine = get_object_or_404(EngineInstance, id=engine_id)
@@ -89,7 +95,6 @@ def toggle_engine_status_api(request, engine_id):
     engine_instance = get_object_or_404(EngineInstance, id=engine_id)
     engine_instance.enabled = not engine_instance.enabled
     engine_instance.save()
-
     return JsonResponse({'status': 'success'})
 
 
@@ -187,6 +192,21 @@ def list_engines_intances_api(requests):
         }, safe=False)
 
 
+# Scan policies
+@api_view(['GET'])
+def get_policy_api(request, policy_id):
+    policy = get_object_or_404(EnginePolicy, id=policy_id)
+    return JsonResponse(policy.as_dict())
+
+
+@api_view(['GET'])
+def get_policies_api(request):
+    policies = []
+    for policy in EnginePolicy.objects.all():
+        policies.append(policy.as_dict())
+    return JsonResponse(policies, safe=False)
+
+
 @api_view(['GET'])
 def export_policy_api(request, policy_id):
     policy = get_object_or_404(EnginePolicy, id=policy_id)
@@ -212,9 +232,7 @@ def export_policies_api(request):
 @api_view(['DELETE'])
 def delete_policy_api(request, policy_id):
     policy = get_object_or_404(EnginePolicy, id=policy_id)
-
     policy.delete()
-    messages.success(request, 'Scan policy successfully deleted!')
     return JsonResponse({"status": "deleted"})
 
 
@@ -246,7 +264,7 @@ def duplicate_policy_api(request, policy_id):
 @api_view(['GET'])
 def list_engine_types_api(request):
     engines = Engine.objects.all().values()[::1]
-    return JsonResponse(engines, json_dumps_params={'indent': 2}, safe=False)
+    return JsonResponse(engines, safe=False)
 
 
 @api_view(['GET'])

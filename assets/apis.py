@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, QueryDict
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_str
 from django.db.models import Value, CharField, Q
@@ -25,6 +25,20 @@ import datetime
 import urllib
 
 
+# Assets
+@api_view(['GET'])
+def get_asset_api(request, asset_id):
+    asset = get_object_or_404(Asset, id=asset_id)
+    return JsonResponse(asset.to_dict(), safe=False)
+
+
+@api_view(['GET'])
+def get_asset_findings_api(request, asset_id):
+    asset = get_object_or_404(Asset, id=asset_id)
+    findings = [f.to_dict() for f in asset.finding_set.all()]
+    return JsonResponse(findings, safe=False)
+
+
 @api_view(['GET'])
 def get_assets_stats_api(request):
     assets = Asset.objects.all()
@@ -32,10 +46,9 @@ def get_assets_stats_api(request):
         "nb_assets": assets.count(),
         "nb_assets_high": assets.filter(criticity="high").count(),
         "nb_assets_medium": assets.filter(criticity="medium").count(),
-        "nb_assets_low": assets.filter(criticity="low").count(),
-        "nb_assets_info": assets.filter(criticity="info").count(),
+        "nb_assets_low": assets.filter(criticity="low").count()
     }
-    return JsonResponse(data, json_dumps_params={'indent': 2})
+    return JsonResponse(data)
 
 
 @api_view(['GET'])
@@ -142,28 +155,6 @@ def list_assets_api(request):
             .annotate(format=Value("assetgroup", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
     return JsonResponse(assets + assetgroups, safe=False)
-#
-#
-# @api_view(['GET', 'PUT', 'DELETE'])
-# @csrf_exempt
-# def asset_details(request, asset_id):
-#     asset = get_object_or_404(Asset, id=asset_id)
-#
-#     if request.method == 'GET':
-#         ser = AssetSerializer(asset)
-#         return JsonResponse(ser.data, safe=False)
-#
-#     elif request.method == 'PUT':
-#         data = JSONParser().parse(request)
-#         ser = AssetSerializer(asset, data=data)
-#         if ser.is_valid():
-#             ser.save()
-#             return JsonResponse(ser.data)
-#         return JsonResponse(ser.errors, status=400)
-#
-#     elif request.method == 'DELETE':
-#         asset.delete()
-#         return HttpResponse(status=204)
 
 
 @api_view(['GET'])
@@ -220,6 +211,27 @@ def export_assets_api(request, assetgroup_id=None):
     return response
 
 
+@api_view(['PUT'])
+def add_asset_api(request):
+    new_asset_args = QueryDict(request.body)
+    tags = new_asset_args.getlist('tags')
+    new_asset_args_dict = QueryDict(request.body).dict()
+    new_asset_args_dict.update({"owner": request.user})
+    new_asset_args_dict.pop("tags", None)
+
+    asset = Asset(**new_asset_args_dict)
+    asset.save()
+
+    # Add categories
+    for cat in tags:
+        c = AssetCategory.objects.filter(value=cat).first()
+        if c:
+            asset.categories.add(c)
+    asset.save()
+
+    return JsonResponse(asset.to_dict())
+
+
 @api_view(['POST'])
 def delete_assets_api(request):
     assets = json.loads(request.body)
@@ -227,15 +239,15 @@ def delete_assets_api(request):
         a = Asset.objects.get(id=asset_id)
         a.delete()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 def delete_asset_api(request, asset_id):
     asset = get_object_or_404(Asset, id=asset_id)
     asset.delete()
 
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['POST'])
@@ -290,7 +302,6 @@ def add_asset_tags_api(request, asset_id):
         new_tag = _add_asset_tags(asset, request.POST.getlist('input-search-tags')[0])
         asset.categories.add(new_tag)
         asset.save()
-        # messages.success(request, 'Tag successfully added!')
 
     return redirect('detail_asset_view', asset_id=asset_id)
 
@@ -301,7 +312,6 @@ def add_asset_group_tags_api(request, assetgroup_id):
         asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
         new_tag = _add_asset_tags(asset_group, request.POST.getlist('input-search-tags')[0])
         asset_group.categories.add(new_tag)
-        # messages.success(request, 'Tag successfully added!')
 
     return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
 

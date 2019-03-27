@@ -4,6 +4,7 @@ from django.http import JsonResponse, HttpResponse
 from django.forms.models import model_to_dict
 from django.shortcuts import render, get_object_or_404
 from .models import Finding, RawFinding
+from .utils import _search_findings
 from assets.models import Asset
 from scans.models import Scan, ScanDefinition
 from events.models import Event
@@ -23,8 +24,8 @@ def get_raw_finding_api(request, finding_id):
 @api_view(['GET'])
 def list_findings_api(request):
     findings_list = []
-    for f in Finding.objects.all():
-        findings_list.append(model_to_dict(f))
+    for f in _search_findings(request):
+        findings_list.append(f.to_dict())
     return JsonResponse(findings_list, safe=False)
 
 
@@ -53,11 +54,8 @@ def add_finding_api(request):
 
 @api_view(['GET'])
 def get_finding_api(request, finding_id):
-    res = {"page": "get_finding"}
     finding = get_object_or_404(Finding, id=finding_id)
-    res.update({"finding": model_to_dict(finding)})
-
-    return JsonResponse(res)
+    return JsonResponse(finding.to_dict())
 
 
 @api_view(['POST'])

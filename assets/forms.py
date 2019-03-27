@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django import forms
-from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument
+from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument, AssetCategory
 from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES
 
 assets = []
@@ -19,6 +19,8 @@ class AssetForm(forms.ModelForm):
             'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '10'})
         }
 
+    # all_categories = [ac.value for ac in AssetCategory.objects.all()]
+    # categories = forms.SelectMultiple(choices=all_categories,)
     type = forms.CharField(widget=forms.Select(choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'}))
     criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))
 

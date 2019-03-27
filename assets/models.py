@@ -6,10 +6,14 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.forms.models import model_to_dict
+
 from events.models import Event
+from common.utils.encoding import json_serial
 
 import datetime
 import os
+import json
 
 ASSET_TYPES = (
     ('ip', 'ip'),
@@ -161,6 +165,12 @@ class Asset(models.Model):
     def __str__(self):
         """Return Stringified class summary."""
         return "{}".format(self.value)
+
+    def to_dict(self):
+        """Return JSONified class summary."""
+        data = model_to_dict(self, exclude=["categories"])
+        data.update({"categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()]})
+        return json.loads(json.dumps(data, default=json_serial))
 
     def save(self, *args, **kwargs):
         """Update the 'updated_at' field on each updates."""
@@ -590,6 +600,16 @@ ASSET_INVESTIGATION_LINKS = [
     {
         "name": "Cymon",
         "link": "https://cymon.io/%asset%",
+        "datatypes": ["ip"]
+    },
+    {
+        "name": "DNSLytics",
+        "link": "https://dnslytics.com/domain/%asset%",
+        "datatypes": ["domain", "fqdn"]
+    },
+    {
+        "name": "DNSLytics",
+        "link": "https://dnslytics.com/ip/%asset%",
         "datatypes": ["ip"]
     },
     {

@@ -6,10 +6,18 @@ from . import views, apis
 
 urlpatterns = [
     ## JSON API
+    # ex: /scans/api/v1/defs/list
+    url(r'^api/v1/defs/list$', apis.get_scan_definitions_api, name='get_scan_definitions_api'),
+    # ex: /scans/api/v1/defs/by-id/1
+    url(r'^api/v1/defs/by-id/(?P<scan_id>[0-9]+)$', apis.get_scan_definition_api, name='get_scan_definition_api'),
+    # ex: /scans/api/v1/by-id/1
+    url(r'^api/v1/by-id/(?P<scan_id>[0-9]+)$', apis.get_scan_api, name='get_scan_api'),
     # ex: /scans/api/v1/stats
     url(r'^api/v1/stats$', apis.get_scans_stats_api, name='get_scans_stats_api'),
     # ex: /scans/api/v1/list
-    url(r'^api/v1/list$', apis.get_scans_heatmap_api, name='get_scans_heatmap_api'),
+    url(r'^api/v1/list$', apis.get_scans_api, name='get_scans_api'),
+    # ex: /scans/api/v1/heatmap
+    url(r'^api/v1/heatmap$', apis.get_scans_heatmap_api, name='get_scans_heatmap_api'),
     # ex: /scans/api/v1/listbydate
     url(r'^api/v1/listbydate$', apis.get_scans_by_date_api, name='get_scans_by_date_api'),
     # ex: /scans/api/v1/list

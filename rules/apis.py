@@ -3,6 +3,7 @@
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.forms.models import model_to_dict
 from django.contrib import messages
 from rest_framework.decorators import api_view
 
@@ -11,11 +12,19 @@ import json
 
 
 @api_view(['GET'])
-def list_rules_api(request):
+def list_alerting_rules_api(request):
     """API: List alerting rules."""
-    # rules = Rule.objects.all()
+    rules = []
+    for rule in Rule.objects.all():
+        rules.append(model_to_dict(rule))
+    return JsonResponse(rules, safe=False)
 
-    return JsonResponse('todo')
+
+@api_view(['GET'])
+def get_alerting_rule_api(request, rule_id):
+    """API: Return alerting rule."""
+    rule = get_object_or_404(Rule, id=rule_id)
+    return JsonResponse(model_to_dict(rule), safe=False)
 
 
 @api_view(['POST'])
@@ -26,11 +35,15 @@ def delete_rules_api(request):
         rule = get_object_or_404(Rule, id=json.loads(rule_id)[0])
         rule.delete()
         messages.success(request, 'Rule successfully deleted')
+    return JsonResponse({'status': 'deleted'})
 
-    return JsonResponse(
-        {'status': 'success'},
-        json_dumps_params={'indent': 2}
-    )
+
+@api_view(['DELETE'])
+def delete_rule_api(request, rule_id):
+    """API: Delete alerting rule."""
+    rule = get_object_or_404(Rule, id=rule_id)
+    rule.delete()
+    return JsonResponse({'status': 'deleted'})
 
 
 @api_view(['POST'])
@@ -49,9 +62,7 @@ def add_rule_api(request):
     }
     new_rule = Rule.objects.create(**new_rule_args)
     new_rule.save()
-    messages.success(request, 'Rule successfuly added')
-
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])
@@ -60,7 +71,7 @@ def toggle_rule_status_api(request, rule_id):
     rule = get_object_or_404(Rule, id=rule_id)
     rule.enabled = not rule.enabled
     rule.save()
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])
@@ -70,7 +81,7 @@ def duplicate_rule_api(request, rule_id):
     new_rule.title = new_rule.title + " (copy)"
     new_rule.pk = None
     new_rule.save()
-    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+    return JsonResponse({'status': 'success', 'id': new_rule.id})
 
 
 # @api_view(['GET'])
@@ -83,4 +94,4 @@ def duplicate_rule_api(request, rule_id):
 #         slack_url.value,
 #         data=json.dumps({'text': alert_message}),
 #         headers={'content-type': 'application/json'})
-#     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+#     return JsonResponse({'status': 'success'})

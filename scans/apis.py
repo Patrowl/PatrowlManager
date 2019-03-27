@@ -9,35 +9,67 @@ from django_celery_beat.models import PeriodicTask
 from rest_framework.decorators import api_view
 
 from .models import Scan, ScanDefinition
-from .utils import _update_celerybeat, _run_scan
+from .utils import _update_celerybeat, _run_scan, _search_scans
 from engines.tasks import stopscan_task
 from findings.models import RawFinding
 
 from datetime import timedelta
+from pytz import timezone
 import datetime
 import json
 import os
 import tempfile
 import zipfile
 import csv
+import tzlocal
 
 
 @api_view(['GET'])
+def get_scan_definitions_api(request):
+    """Get scan definitions."""
+    scans_list = []
+    for scan in ScanDefinition.objects.all():
+        scans_list.append(scan.to_dict())
+    return JsonResponse(scans_list, safe=False)
+
+
+@api_view(['GET'])
+def get_scan_definition_api(request, scan_id):
+    """Get selected scan."""
+    scan = get_object_or_404(ScanDefinition, id=scan_id)
+    return JsonResponse(scan.to_dict(), safe=False)
+
+
+@api_view(['GET'])
+def get_scan_api(request, scan_id):
+    """Get selected scan."""
+    scan = get_object_or_404(Scan, id=scan_id)
+    return JsonResponse(scan.to_dict(), safe=False)
+
+
+@api_view(['GET'])
+def get_scans_api(request):
+    """Get scans."""
+    scans_list = []
+    for scan in _search_scans(request):
+        scans_list.append(scan.to_dict())
+    return JsonResponse(scans_list, safe=False)
+
+
+@api_view(['GET', 'DELETE'])
 def delete_scan_api(request, scan_id):
     """Delete selected scan."""
     scan = get_object_or_404(Scan, id=scan_id)
     scan.delete()
-
     return JsonResponse({'status': 'success'})
 
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 def delete_scans_api(request):
     """Delete selected scans."""
     scans = request.data
     for scan_id in scans:
         Scan.objects.get(id=scan_id).delete()
-
     return JsonResponse({'status': 'success'})
 
 
@@ -110,7 +142,8 @@ def get_scans_heatmap_api(request):
 
     for scan in Scan.objects.all():
         # expected format: {timestamp: value, timestamp2: value2 ...}
-        data.update({scan.updated_at.strftime("%s"): 1})
+        # data.update({scan.updated_at.astimezone(timezone('Europe/Paris')).strftime("%s"): 1})
+        data.update({scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%s"): 1})
     return JsonResponse(data)
 
 
@@ -140,7 +173,8 @@ def get_scans_by_date_api(request):
     stop_date = None
     scope = request.GET.get('scope', None)
     if date and datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ'):
-        date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ')
+        date_wot = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ')
+        date = timezone(tzlocal.get_localzone().zone).localize(date_wot)
     else:
         return HttpResponse(status=400)
 
@@ -158,14 +192,15 @@ def get_scans_by_date_api(request):
 
     scans = Scan.objects.filter(updated_at__gte=date, updated_at__lte=stop_date)
     for scan in scans:
-        # expected format: {timestamp: value, timestamp2: value2 ...}
-        data.append({'scan_id': scan.id,
-                     "status": scan.status,
-                     "engine_type": scan.engine_type.name,
-                     "title": scan.title,
-                     "summary": json.dumps(scan.summary),
-                     "updated_at": scan.updated_at,
-                     "scan_definition_id": scan.scan_definition.id})
+        data.append({
+            'scan_id': scan.id,
+             "status": scan.status,
+             "engine_type": scan.engine_type.name,
+             "title": scan.title,
+             "summary": json.dumps(scan.summary),
+             "updated_at": scan.updated_at,
+             "scan_definition_id": scan.scan_definition.id
+        })
     return JsonResponse(data, safe=False)
 
 

@@ -170,16 +170,6 @@ def list_scans_view(request):
     except EmptyPage:
         scans = paginator.page(paginator.num_pages)
     return render(request, 'list-scans-performed.html', {'scans': scans})
-#
-#
-# def delete_scan_view(request, scan_id):
-#     """Delete scan."""
-#     scan = get_object_or_404(Scan, id=scan_id)
-#     if request.method == 'POST':
-#         scan.delete()
-#         messages.success(request, 'Scan successfully deleted!')
-#         return redirect('list_scan_def_view')
-#     return render(request, 'delete-scan.html', {'scan': scan})
 
 
 # Scan Definitions

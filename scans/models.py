@@ -4,14 +4,18 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.forms.models import model_to_dict
+from django_celery_beat.models import PeriodicTask
+
 from events.models import Event
 from assets.models import Asset, AssetGroup
 from engines.models import Engine, EnginePolicy, EngineInstance
+from common.utils.encoding import json_serial
 
-from django_celery_beat.models import PeriodicTask
 import os
+import json
 
-SCAN_STATUS = ('created', 'started', 'done', 'error', 'trashed')
+SCAN_STATUS = ('created', 'started', 'finished', 'error', 'trashed')
 
 PERIOD_CHOICES = (
     ('days', 'Days'),
@@ -54,6 +58,12 @@ class ScanDefinition(models.Model):
 
     def __str__(self):
         return "{}/{}".format(self.id, self.title)
+    
+    def to_dict(self):
+        data = model_to_dict(self, exclude=["assets_list", "assetgroups_list"])
+        data.update({"assets_list": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets_list.all()]})
+        data.update({"assetgroups_list": [model_to_dict(a, fields=["id", "name"]) for a in self.assetgroups_list.all()]})
+        return json.loads(json.dumps(data, default=json_serial))
 
     def save(self, *args, **kwargs):
         # update the 'updated_at' entry on each update except on creation
@@ -80,7 +90,8 @@ def scandef_delete_log(sender, **kwargs):
 
 class Scan(models.Model):
     scan_settings   = models.CharField(max_length=256, null=True, blank=True)
-    scan_definition = models.ForeignKey(ScanDefinition, null=True, on_delete=models.SET_NULL)
+    # scan_definition = models.ForeignKey(ScanDefinition, null=True, on_delete=models.SET_NULL)
+    scan_definition = models.ForeignKey(ScanDefinition, null=True, on_delete=models.CASCADE)
     assets          = models.ManyToManyField(Asset)
     task_id         = models.UUIDField(editable=True, null=True, blank=True)
     title           = models.CharField(max_length=256)
@@ -102,6 +113,11 @@ class Scan(models.Model):
 
     def __str__(self):
         return "{}/{}".format(self.id, self.title)
+
+    def to_dict(self):
+        data = model_to_dict(self, exclude=["assets"])
+        data.update({"assets": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets.all()]})
+        return json.loads(json.dumps(data, default=json_serial))
 
     def save(self, *args, **kwargs):
         # update the 'updated_at' entry on each update except on creation
