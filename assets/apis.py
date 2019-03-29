@@ -231,6 +231,21 @@ def add_asset_api(request):
 
     return JsonResponse(asset.to_dict())
 
+@api_view(['POST'])
+def update_criticity_assets_api(request, criticity):
+    if criticity == '0':
+        criticity = 'low'
+    elif criticity == '1':
+        criticity = 'medium'
+    else:
+        criticity = 'high'
+
+    assets = request.data
+    for asset_id in assets:
+        a = Asset.objects.get(id=asset_id)
+        a.set_criticity(criticity)
+
+    return JsonResponse({'status': 'success'})
 
 @api_view(['POST'])
 def delete_assets_api(request):
