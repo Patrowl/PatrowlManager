@@ -39,7 +39,9 @@ class EngineInstanceForm(forms.ModelForm):
                   'authentication_method', 'api_key', 'username', 'password']
         widgets = {
             'enabled': forms.CheckboxInput(),
-            'api_url': forms.URLInput(attrs={'class': 'form-control form-control-sm'}),
+            'api_url': forms.URLInput(attrs={
+                'class': 'form-control form-control-sm',
+                'value': 'https://engine_ip:50xx/engines/<engine_name>/'}),
             'password': forms.PasswordInput(attrs={'class': 'form-control form-control-sm'}),
             'username': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
@@ -71,5 +73,4 @@ class EngineForm(forms.ModelForm):
         super(EngineForm, self).__init__(*args, **kwargs)
 
         if 'initial' in self.__dict__:
-            self.fields['allowed_asset_types'].widget = forms.CheckboxSelectMultiple(
-                choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'})
+            self.fields['allowed_asset_types'].widget = forms.CheckboxSelectMultiple(choices=ASSET_TYPES)

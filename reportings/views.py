@@ -159,7 +159,7 @@ def patch_management_view(request):
     else:
         try:
             ref_date = datetime.datetime.strptime(ref_date, '%Y/%m/%d')
-        except:
+        except Exception:
             # bad date format -> today by default
             ref_date = datetime.datetime.today()
 

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from .models import Finding, RawFinding
+from .models import Finding
 from .forms import FindingForm
+
+import datetime
 
 
 def _search_findings(request):
@@ -110,6 +112,14 @@ def _add_finding(request):
             'engine_type': 'MANUAL'
             # 'scan': form.cleaned_data['scan']
         }
+        if not any(finding_args.risk_info):
+            finding_args.update({
+                'risk_info': {
+                    "cvss_base_score": 0.0,
+                    "vuln_publication_date": datetime.datetime.today().strftime('%Y/%m/%d')
+                }
+            })
+
         finding = Finding(**finding_args)
         finding.save()
         return finding

@@ -204,6 +204,14 @@ def add_finding_view(request):
                 'engine_type': 'MANUAL'
                 # 'scan': form.cleaned_data['scan']
             }
+
+            if not any(finding_args.risk_info):
+                finding_args.update({
+                    'risk_info': {
+                        "cvss_base_score": 0.0,
+                        "vuln_publication_date": datetime.datetime.today().strftime('%Y/%m/%d')
+                    }
+                })
             finding = Finding(**finding_args)
             finding.save()
             return redirect('list_findings_view')

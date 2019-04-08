@@ -388,7 +388,7 @@ function toggle(source, element) {
 
     <!-- Second column -->
     <div class="col-sm-3">
-      <b>Scan details</b> <small>(ID={{ scan.id }})</small>
+      <b>Scan details</b> <small>(ID={{ scan.id }})</small> <button type="button" class="btn btn-xs btn-warning btn-rerun">Re-run !</button>
       <hr class="my-1">
       <dl class="dl-horizontal">
         <dt>Title:</dt><dd><a href="/scans/defs/details/{{scan.scan_definition.id}}">{{ scan.title }}</a></dd>
@@ -409,10 +409,8 @@ function toggle(source, element) {
         <dt>Status:</dt><dd>
           {% if scan.status == "finished" %}
             <span class="label label-success">Finished</span>
-            <a href="/scans/api/v1/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
           {% elif scan.status == "error" %}
             <span class="label label-danger">Error</span>
-            <a href="/scans/api/v1/defs/run/{{scan.scan_definition.id}}"><span class="label label-warning">Re-run !</span></a>
           {% else %}
             <span class="label label-warning">{{ scan.status|capfirst }}</span>
           {% endif %}
@@ -700,6 +698,16 @@ function toggle(source, element) {
     });
   });
 
+
+  // Re-run scan
+  $('button.btn-rerun').on('click', function(e){
+    scan_id = "{{scan.scan_definition_id}}";
+    rerun_url = "{% url 'run_scan_def_api' 0 %}".replace("0", scan_id);
+    var request = $.ajax({
+      url: rerun_url,
+      method: "GET",
+    });
+  });
 
   // Export finding
   $('button.btn-export-finding').on('click', function(e){

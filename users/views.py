@@ -6,6 +6,7 @@ from django.contrib.auth import login as login_d
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -153,6 +154,7 @@ def add_user_view(request):
             )
 
             messages.success(request, 'Creation submission successful')
-            return redirect('list_users_view')
+            # return redirect('list_users_view')
+            return redirect(reverse('show_settings_menu') + "#users")
 
     return render(request, 'add-user.html', {'form': form})

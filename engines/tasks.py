@@ -23,7 +23,7 @@ PROXIES = settings.PROXIES
 
 @shared_task(bind=True, acks_late=True)
 def test_task(self, queue_name):
-    print ("task: test connexion on queue '{}'!".format(queue_name))
+    # print ("task: test connexion on queue '{}'!".format(queue_name))
     Event.objects.create(
         message="[EngineTasks/test_task()] Test celery+RabbitMQ connexion on queue '{}'.".format(queue_name),
         type="DEBUG", severity="INFO",
@@ -34,7 +34,7 @@ def test_task(self, queue_name):
 
 @shared_task(bind=True, acks_late=True)
 def refresh_engines_status_task(self):
-    print ("task: starting refresh_engines_status_task !")
+    # print ("task: starting refresh_engines_status_task !")
     for engine in EngineInstance.objects.filter(enabled=True):
         try:
             resp = requests.get(
@@ -55,7 +55,7 @@ def refresh_engines_status_task(self):
 
 @shared_task(bind=True, acks_late=True)
 def get_engine_status_task(self, engine_id):
-    print ("task: starting get_engine_status_task !")
+    # print ("task: starting get_engine_status_task !")
     for engine in EngineInstance.objects.filter(id=engine_id):
         try:
             resp = requests.get(
@@ -75,7 +75,7 @@ def get_engine_status_task(self, engine_id):
 
 @shared_task(bind=True, acks_late=True)
 def get_engine_info_task(self, engine_id):
-    print ("task: starting get_engine_info_task !")
+    # print ("task: starting get_engine_info_task !")
     for engine in EngineInstance.objects.filter(id=engine_id):
         try:
             resp = requests.get(
@@ -367,13 +367,14 @@ def startscan_task(self, params):
         return False
 
     # -2- call the engine REST API /startscan
+    resp = None
     try:
         resp = requests.post(
             url=str(engine_inst.api_url)+"startscan",
             data=json.dumps(params['scan_params']),
             headers={'Content-type': 'application/json', 'Accept': 'application/json'},
             proxies=PROXIES,
-            timeout=5)
+            timeout=30)
 
         if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
             scan.status = "error"
@@ -382,12 +383,14 @@ def startscan_task(self, params):
             Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
                          description=str(resp.text), type="ERROR", severity="ERROR", scan=scan)
             return False
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
-        Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
-                     description=json.loads(resp.text)['status'], type="ERROR", severity="ERROR", scan=scan)
+        Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong. Task aborted.".format(self.request.id),
+                     description=str(e), type="ERROR", severity="ERROR", scan=scan)
+        # Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
+        #              description=json.loads(resp.text)['status'], type="ERROR", severity="ERROR", scan=scan)
         return False
 
     # -3- wait the engine come available for accepting scans (status=ready)
@@ -581,7 +584,7 @@ def start_periodic_scan_task(self, params):
     # -3- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES  # test value
     scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
-    print("status: {}".format(scan_status))
+    # print("status: {}".format(scan_status))
 
     while scan_status not in ['READY', 'FINISHED'] and retries > 0:
         if scan_status in ['SCANNING', 'PAUSING']:

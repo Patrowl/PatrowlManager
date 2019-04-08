@@ -2,7 +2,8 @@
 
 import os
 
-PATROWL_VERSION = os.environ.get('PATROWL_VERSION', '1.0.3-BETA')
+with open("VERSION") as v_file:
+    PATROWL_VERSION = v_file.read()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -118,6 +119,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'app.context_processors.selected_settings',
             ],
             'libraries': {
                 'patrowl_tags': 'templatetags.common_tags'

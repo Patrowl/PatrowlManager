@@ -71,7 +71,7 @@
         </div>
         <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/admin/auth/user/{{ user.id }}/change/'">
           <span class="glyphicon glyphicon-edit"></span></button>
-        <button type="button" class="btn btn-danger btn-xs" onclick="location.href='/admin/auth/user/{{ user.id }}/delete/'">
+        <button type="button" class="btn btn-danger btn-xs btn-delete-user" user-id="{{ user.id }}">
           <span class="glyphicon glyphicon-remove"></span></button>
       </td>
     </tr>
@@ -98,6 +98,21 @@
       token_api_url = "/users/api/v1/authtoken/"+action+"/"+user_id;
       var request = $.ajax({
         url: token_api_url,
+        method: "GET",
+        success: function(){
+          url = new URL(window.location.href);
+          window.location = url.search+"#users";
+          location.reload();
+        }
+      });
+    });
+
+    // Delete user
+    $("button.btn-delete-user").on('click', function (e) {
+      user_id = e.target.getAttribute('user-id');
+      delete_user_url = "{% url 'delete_user_api' 0 %}".replace("0", user_id);
+      var request = $.ajax({
+        url: delete_user_url,
         method: "GET",
         success: function(){
           url = new URL(window.location.href);

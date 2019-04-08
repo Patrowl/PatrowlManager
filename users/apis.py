@@ -15,10 +15,18 @@ def user_details_api(request, user_id):
 
 @api_view(['GET'])
 def list_users_api(request):
-    users = User.objects.all()
+    users = User.objects.all().order_by('username')
     return JsonResponse(users, safe=False)
 
 
+@api_view(['GET'])
+def delete_user_api(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    return JsonResponse({'status': 'deleted'})
+
+
+# Auth token management
 @api_view(['GET'])
 def get_curruser_authtoken_api(request):
     token = Token.objects.get_or_create(user=request.user)[0]
