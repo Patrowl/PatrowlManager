@@ -172,6 +172,11 @@ class Asset(models.Model):
         data.update({"categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()]})
         return json.loads(json.dumps(data, default=json_serial))
 
+    def set_criticity(self, criticity):
+        """Update the 'criticity' field"""
+        self.criticity = criticity
+        return super(Asset, self).save()
+
     def save(self, *args, **kwargs):
         """Update the 'updated_at' field on each updates."""
         if not self._state.adding:
