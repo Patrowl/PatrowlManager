@@ -50,7 +50,8 @@ function toggle(source, element) {
             <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
               <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
               <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
-              <li><a class="btn-update-criticity-selected" href="#">+ Update criticity of selected assets</a></li>
+              <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticity of selected assets</a></li>
+              <!-- <li><a class="btn-update-criticity-selected" href="#">+ Update criticity of selected assets</a></li> -->
               <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
             </ul>
           </div>
@@ -288,6 +289,41 @@ function toggle(source, element) {
     </div>
   </div>
 
+  <!-- Update Asset modal -->
+  <div class="modal fade" id="modal-update-assets" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary">
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel">Update Assets</h4>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div id="update-assets">
+            <dl class="dl-horizontal">
+              <dt>Criticity:</dt>
+              <dd>
+                <select id="update-asset-criticity">
+                  <option value='low'>Low</option>
+                  <option value='medium'>Medium</option>
+                  <option value='high'>High</option>
+                </select>
+              </dd>
+            </dl>
+          </div>
+          Confirm update?
+          <button type="button" class="btn btn-xs btn-danger btn-update-assets" data-dismiss="modal">Yes</button>
+          <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 
 <script>
@@ -380,29 +416,32 @@ function toggle(source, element) {
       });
     });
 
-    // Update criticity of selected assets
-    $("a.btn-update-criticity-selected").on('click', function(eventObject) {
+    // Update asset criticities
+    $("button.btn-update-assets").on('click', function (e) {
       assets_to_update = [];
-      criticity = window.prompt("Define new criticity: Low=0, Medium=1, High=2", "1");
       $("input[name='asset']").each(function(cbx){
         if (this.checked) {
-          assets_to_update.push(this.value)
+          assets_to_update.push(this.value);
         }
-      })
+      });
+      criticity = $("select#update-asset-criticity").val();
 
       if (assets_to_update.length != 0){
         var request = $.ajax({
-          url: "{% url 'update_criticity_assets_api' 0 %}".replace("0", criticity),
+          url: "{% url 'update_criticity_assets_api' %}",
           method: "POST",
           headers: {"X-CSRFToken": "{{ csrf_token }}"},
-          data: JSON.stringify(assets_to_update),
+          data: JSON.stringify({'assets': assets_to_update, 'criticity': criticity}),
+          // data: JSON.stringify(assets_to_update),
           contentType: "application/json"
         });
         request.done(function(response){
           if (response.status == 'success'){location.reload()}
         });
       }
+
     });
+
 
     // Delete selected assets
     $("a.btn-delete-selected").on('click', function(eventObject) {

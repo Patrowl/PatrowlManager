@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view
 
 from .models import Asset, AssetGroup, AssetCategory
 from .models import AssetOwner, AssetOwnerContact, AssetOwnerDocument
+from .models import ASSET_CRITICITIES
 from .forms import AssetOwnerContactForm, AssetOwnerDocumentForm
 from app.settings import MEDIA_ROOT
 from findings.models import Finding
@@ -231,21 +232,20 @@ def add_asset_api(request):
 
     return JsonResponse(asset.to_dict())
 
-@api_view(['POST'])
-def update_criticity_assets_api(request, criticity):
-    if criticity == '0':
-        criticity = 'low'
-    elif criticity == '1':
-        criticity = 'medium'
-    else:
-        criticity = 'high'
 
-    assets = request.data
+@api_view(['POST'])
+def update_criticity_assets_api(request):
+    data = request.data
+    assets = data['assets']
+    criticity = data['criticity']
+
     for asset_id in assets:
         a = Asset.objects.get(id=asset_id)
-        a.set_criticity(criticity)
+        if any(criticity in d for d in ASSET_CRITICITIES):
+            a.set_criticity(criticity)
 
     return JsonResponse({'status': 'success'})
+
 
 @api_view(['POST'])
 def delete_assets_api(request):
