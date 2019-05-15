@@ -217,8 +217,8 @@ def add_scan_def_view(request):
         scan_policies_json.append(p.as_dict())
 
     if request.method == 'GET' or ScanDefinitionForm(request.POST).errors:
-        if ScanDefinitionForm(request.POST).errors:
-            print (ScanDefinitionForm(request.POST).errors)
+        # if ScanDefinitionForm(request.POST).errors:
+        #     print (ScanDefinitionForm(request.POST).errors)
         form = ScanDefinitionForm()
 
     elif request.method == 'POST':
@@ -242,8 +242,8 @@ def add_scan_def_view(request):
                 scan_definition.scan_type = "scheduled"
                 try:
                     # check if it's future or not
-                    print "form.cleaned_data['scheduled_at']: ", form.cleaned_data['scheduled_at']
-                    print "timezone.now(): ", tz.now()
+                    # print "form.cleaned_data['scheduled_at']: ", form.cleaned_data['scheduled_at']
+                    # print "timezone.now(): ", tz.now()
                     #print "timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at']): ", timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at'])
                     if form.cleaned_data['scheduled_at'] > tz.now():
                         # @todo: validate datetime format

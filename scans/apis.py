@@ -9,7 +9,7 @@ from django_celery_beat.models import PeriodicTask
 from rest_framework.decorators import api_view
 
 from .models import Scan, ScanDefinition
-from .utils import _update_celerybeat, _run_scan, _search_scans
+from .utils import _update_celerybeat, _run_scan, _search_scans, _add_scan_def
 from engines.tasks import stopscan_task
 from findings.models import RawFinding
 
@@ -354,5 +354,14 @@ def run_scan_def_api(request, scan_def_id):
     if scan_def.scan_type in ["single", "scheduled"]:
         _run_scan(scan_def_id, request.user.id)
         return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({'status': 'failed'}, status=403)
+
+
+@api_view(['POST', 'PUT'])
+def add_scan_def_api(request):
+    scan_def = _add_scan_def(request.data, owner=request.user)
+    if scan_def:
+        return JsonResponse({'status': 'success', 'scan_def_id': scan_def.id})
     else:
         return JsonResponse({'status': 'failed'}, status=403)

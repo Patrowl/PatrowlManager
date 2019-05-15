@@ -151,7 +151,7 @@ class Finding(models.Model):
     vuln_refs   = JSONField(null=True, blank=True)
     links       = JSONField(null=True, blank=True)
     tags        = JSONField(null=True, blank=True)
-    status      = models.CharField(choices=FINDING_STATUS, max_length=10, default='new')
+    status      = models.CharField(choices=FINDING_STATUS, max_length=16, default='new')
     engine_type = models.CharField(max_length=20)
     found_at    = models.DateTimeField(default=timezone.now)
     comments    = models.TextField(default="n/a", null=True, blank=True)

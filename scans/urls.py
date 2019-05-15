@@ -42,6 +42,8 @@ urlpatterns = [
     url(r'^api/v1/defs/change_status/(?P<scan_def_id>[0-9]+)$', apis.toggle_scan_def_status_api, name='toggle_scan_def_status_api'),
     # ex: /scans/api/v1/defs/run/33
     url(r'^api/v1/defs/run/(?P<scan_def_id>[0-9]+)$', apis.run_scan_def_api, name='run_scan_def_api'),
+    # ex: /scans/api/v1/defs/add
+    url(r'^api/v1/defs/add$', apis.add_scan_def_api, name='add_scan_def_api'),
 
 
     ## WEB Views

@@ -578,7 +578,11 @@
                             n/a.
                           {% else %}
                             {% for key, value in finding.vuln_refs.items %}
-                              {{ key }}: {{ value }}<br/>
+                              {% if key == "CVE" %}
+                                {{ key }}: {{ value|joinby:"," }}<br/>
+                              {% else %}
+                                {{ key }}: {{ value }}<br/>
+                              {% endif %}
                             {% endfor %}
                           {% endif %}
                         </span>

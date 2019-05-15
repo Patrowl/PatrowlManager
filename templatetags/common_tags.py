@@ -1,7 +1,6 @@
 from django import template
 from django.utils import timezone
 import hashlib
-from datetime import datetime
 from assets.models import Asset, AssetGroup
 from settings.models import Setting
 
