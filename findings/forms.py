@@ -19,7 +19,7 @@ class ImportFindingsForm(forms.Form):
     min_level = forms.CharField(widget=forms.Select(
         attrs={'class': 'form-control form-control-sm'},
         choices=FINDING_SEVERITIES),
-        label='Minium severity')
+        label='Minimum severity')
     file = forms.FileField()
 
 
