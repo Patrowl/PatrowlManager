@@ -386,10 +386,6 @@ td.bg-grade-F-high {background-color: black; color: white;}
             <dt>7.0 <= #CVSS < 9.0: </dt><dd>{{cvss_scores.gte7}}</dd>
             <dt>5.0 <= #CVSS < 7.0 : </dt><dd>{{cvss_scores.5to7}}</dd>
             <dt>#CVSS < 5.0: </dt><dd>{{cvss_scores.lte5}}</dd>
-
-
-
-
           </dl>
         </div>
       </div>
@@ -400,7 +396,9 @@ td.bg-grade-F-high {background-color: black; color: white;}
           <h4>Top CVE</h4>
         </div>
         <div class="tile-body">
-          Todo.
+          {% for cve in cxe_stats.top_cve %}
+            <a href='/findings/list?_reference={{cve.0}}&_reference_cond=CVE'><span class="badge badge-secondary small">{{cve.0}}: #{{cve.1}}</span></a>
+          {% endfor %}
         </div>
       </div>
     </div>
@@ -410,7 +408,10 @@ td.bg-grade-F-high {background-color: black; color: white;}
           <h4>Top CWE</h4>
         </div>
         <div class="tile-body">
-          Todo.
+          {% for cwe in cxe_stats.top_cwe %}
+            <a href='/findings/list?_reference={{cwe.0}}&_reference_cond=CWE'><span class="badge badge-secondary small">{{cwe.0}}: #{{cwe.1}}</span></a>
+            <!-- <a href='https://cwe.mitre.org/data/definitions/{{cwe.0}}.html'><span class="badge badge-secondary small">{{cwe.0}}: #{{cwe.1}}</span></a> -->
+          {% endfor %}
         </div>
       </div>
     </div>

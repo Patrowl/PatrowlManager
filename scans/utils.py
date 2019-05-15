@@ -3,10 +3,12 @@
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from app.settings import SUPERVISORD_API_URL
 from .models import Scan, ScanDefinition, SCAN_STATUS
-from engines.models import EngineInstance
+from engines.models import EngineInstance, EnginePolicy
 from engines.tasks import startscan_task
+from assets.models import Asset, AssetGroup
 
 import xmlrpclib
 import uuid
@@ -140,3 +142,120 @@ def _search_scans(request):
         scans = Scan.objects.filter(**filters).exclude(**excludes)
 
     return scans
+
+
+def _add_scan_def(params, owner):
+    scan_definition = ScanDefinition()
+    scan_definition.owner = owner
+    scan_definition.status = "created"
+    scan_definition.enabled = False
+    if "engine_policy" in params.keys():
+        scan_definition.engine_policy = get_object_or_404(EnginePolicy, id=params['engine_policy'])
+        scan_definition.engine_type = scan_definition.engine_policy.engine
+    if "start_scan" in params.keys() and params["start_scan"] in ["now", "scheduled", "later"]:
+        scan_definition.enabled = params['start_scan'] == "now"
+    else:
+        return False
+    if "scan_type" in params.keys() and params["scan_type"] in ["single", "scheduled", "periodic"]:
+        scan_definition.scan_type = params['scan_type']
+        if params['start_scan'] == "scheduled":
+            try:
+                if params['scheduled_at'] > timezone.now():
+                    scan_definition.scheduled_at = params['scheduled_at']
+                    scan_definition.enabled = True
+            except Exception:
+                scan_definition.scheduled_at = None
+                scan_definition.enabled = False
+    else:
+        return False
+    if "title" in params.keys():
+        scan_definition.title = params['title']
+    else:
+        return False
+    if "description" in params.keys():
+        scan_definition.description = params['description']
+    else:
+        return False
+    if "engine_id" in params.keys() and int(params['engine_id']) > 0:
+        # todo: check if the engine is compliant with the scan policy
+        scan_definition.engine = EngineInstance.objects.get(id=params['engine_id'])
+
+    scan_definition.save()
+
+    assets_list = []
+    if "assets" in params.keys():
+        for asset_id in params.getlist("assets"):
+            asset = Asset.objects.get(id=asset_id)
+            scan_definition.assets_list.add(asset)
+            assets_list.append({
+                "id": asset.id,
+                "value": asset.value.strip(),
+                "criticity": asset.criticity,
+                "datatype": asset.type
+            })
+
+    if "assetgroups" in params.keys():
+        for assetgroup_id in params.getlist("assetgroups"):
+            assetgroup = AssetGroup.objects.get(id=assetgroup_id)
+            scan_definition.assetgroups_list.add(assetgroup)
+            for a in assetgroup.assets.all():
+                scan_definition.assets_list.add(a)
+                assets_list.append({
+                    "id": a.id,
+                    "value": a.value.strip(),
+                    "criticity": a.criticity,
+                    "datatype": a.type
+                })
+
+    scan_definition.save()
+
+    # Start the scan
+    if params['start_scan'] == "now":
+        # start the single scan now
+        _run_scan(scan_definition.id, owner.id)
+    elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
+        _run_scan(scan_definition.id, owner.id, eta=scan_definition.scheduled_at)
+
+    if params['scan_type'] == 'periodic':
+        parameters = {
+            "scan_params": {
+                "assets": assets_list,
+                # "assetgroups": assetgroups_list,
+                "options": scan_definition.engine_policy.options,
+            },
+            "scan_definition_id": scan_definition.id,
+            "engine_name": str(scan_definition.engine_type.name).lower(),
+            "owner_id": owner.id,
+        }
+        if params['engine_id'] != '' and int(params['engine_id']) > 0:
+            # todo: check if the engine is compliant with the scan policy
+            parameters.update({
+                "engine_id": EngineInstance.objects.get(id=params['engine_id']).id
+            })
+            parameters.update({
+                "scan_params": {
+                    "engine_id": EngineInstance.objects.get(id=params['engine_id']).id
+                }
+            })
+
+        schedule, created = IntervalSchedule.objects.get_or_create(
+            every=int(scan_definition.every),
+            period=scan_definition.period,
+        )
+
+        periodic_task = PeriodicTask.objects.create(
+            interval=schedule,
+            name='[PO] {}@{}'.format(scan_definition.title, scan_definition.id),
+            task='engines.tasks.start_periodic_scan_task',
+            args=json.dumps([parameters]),
+            queue='scan',
+            last_run_at=None
+        )
+
+        periodic_task.enabled = True
+        periodic_task.save()
+
+        scan_definition.periodic_task = periodic_task
+        _update_celerybeat()
+
+    return scan_definition

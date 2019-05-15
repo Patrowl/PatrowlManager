@@ -327,7 +327,7 @@ hr {
 
   // Export finding
   $('div.export-finding ul li a').on('click', function(e){
-    redir = "/findings/api/v1/export/{{finding.id}}?format="+e.target.getAttribute("export-format");
+    redir = "/findings/api/v1/export/{{finding.id}}?output="+e.target.getAttribute("export-format");
     if (qs('raw') == "true") {
       redir = redir+"&raw=true";
     }

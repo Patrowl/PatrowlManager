@@ -27,9 +27,10 @@ def _search_findings(request):
     # filter_by_asset_tags = request.GET.get('_tags', None)
     filter_by_scope = request.GET.get('_scope', None)
     filter_by_reference = request.GET.get('_reference', None)
+    filter_by_reference_id = request.GET.get('_reference_cond', None)
     # filter_by_reference_cond = request.GET.get('_reference_cond', None)
 
-    filter_limit = request.GET.get('limit', "100")
+    filter_limit = request.GET.get('limit', None)
 
     filters = {}
     excludes = {}
@@ -68,6 +69,11 @@ def _search_findings(request):
         elif filter_by_status_cond == "not_exact":
             excludes.update({"status__{}".format(filter_by_status_cond[4:]): filter_by_status})
 
+    # Filter by references
+    if filter_by_reference_id in ['CVE', 'CWE', 'CPE', 'MS', 'NESSUS', 'OSVDB', 'DIB']:
+        if filter_by_reference:
+            filters.update({"vuln_refs__{}__icontains".format(filter_by_reference_id): filter_by_reference})
+
     if filter_by_asset_id:
         filters.update({"asset_id": filter_by_asset_id})
     if filter_by_asset_group_id:
@@ -78,8 +84,6 @@ def _search_findings(request):
         filters.update({"engine_type": filter_by_engine})
     if filter_by_scope:
         filters.update({"scan__engine_policy__scopes__in": filter_by_scope})
-    if filter_by_reference:
-        filters.update({"vuln_refs__icontains": filter_by_reference})
 
     if str(filter_limit).isdigit():
         findings = Finding.objects.filter(**filters).exclude(**excludes)[:int(filter_limit)]

@@ -35,7 +35,7 @@ urlpatterns = [
     url(r'^logout$', auth_views.logout, {'next_page': '/login'}, name='logout'),
     url(r'^signup$', user_views.signup, name='signup'),
 
-    url(r'^admin/jsi18n/', i18n_javascript),
+    # url(r'^admin/jsi18n/', i18n_javascript),
     url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
 ]
 

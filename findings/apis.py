@@ -263,7 +263,7 @@ def export_finding_api(request, finding_id):
     else:
         finding = get_object_or_404(Finding, id=finding_id)
         prefix = ""
-    export_format = request.GET.get("format", 'csv')
+    export_format = request.GET.get("output", "csv")
 
     if not export_format or export_format not in allowed_formats:
         return JsonResponse({"status": "error", "reason": "bad format"})

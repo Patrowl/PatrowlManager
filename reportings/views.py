@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F
+from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.contrib.postgres.aggregates.general import ArrayAgg
 
 from assets.models import Asset, AssetGroup, ASSET_TYPES
 from findings.models import Finding
@@ -10,6 +12,7 @@ from rules.models import Rule
 import datetime
 import operator
 import copy
+import ast
 
 
 def homepage_dashboard_view(request):
@@ -128,6 +131,7 @@ def homepage_dashboard_view(request):
         for finding in findings.filter(severity="info"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
 
+    # CVSS
     cvss_scores = {'lte5': 0, '5to7': 0, 'gte7': 0, 'gte9': 0, 'eq10': 0}
     for finding in findings:
         if finding.risk_info["cvss_base_score"] < 5.0: cvss_scores.update({'lte5': cvss_scores['lte5']+1})
@@ -135,6 +139,43 @@ def homepage_dashboard_view(request):
         if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})
         if finding.risk_info["cvss_base_score"] >= 9.0 and finding.risk_info["cvss_base_score"] < 10: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
         if finding.risk_info["cvss_base_score"] == 10.0: cvss_scores.update({'eq10': cvss_scores['eq10']+1})
+
+    # CVE & CWE
+    cxe_stats = {}
+    cve_list = {}
+    cwe_list = {}
+
+    finding_cves_list = Finding.objects.exclude(
+            Q(vuln_refs__CVE__isnull=True)|
+            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive'])
+        ).annotate(
+            cvelist=KeyTextTransform("CVE", 'vuln_refs')
+        ).values('cvelist')
+    finding_cwes_list = Finding.objects.exclude(
+            Q(vuln_refs__CWE__isnull=True)|
+            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive'])
+        ).annotate(
+            cwelist=KeyTextTransform("CWE", 'vuln_refs')
+        ).values('cwelist')
+
+    for finding_cves in finding_cves_list:
+        for cve in ast.literal_eval(finding_cves['cvelist']):
+            if cve not in cve_list.keys():
+                cve_list.update({cve: 1})
+            else:
+                cve_list.update({cve: cve_list[cve]+1})
+
+    for cwe_data in finding_cwes_list:
+        cwe = cwe_data.values()[0]
+        if cwe not in cwe_list.keys():
+            cwe_list.update({cwe: 1})
+        else:
+            cwe_list.update({cwe: cwe_list[cwe]+1})
+
+    cxe_stats.update({
+        'top_cve': sorted(cve_list.items(), key=lambda x: x[1], reverse=True)[:10],
+        'top_cwe': sorted(cwe_list.items(), key=lambda x: x[1], reverse=True)[:10],
+    })
 
     return render(request, 'home-dashboard.html', {
         'global_stats': global_stats,
@@ -145,7 +186,8 @@ def homepage_dashboard_view(request):
         'top_critical_assets': top_critical_assets,
         'top_critical_assetgroups': top_critical_assetgroups,
         'top_critical_findings': top_critical_findings,
-        'cvss_scores': cvss_scores
+        'cvss_scores': cvss_scores,
+        'cxe_stats': cxe_stats
         })
 
 
@@ -237,4 +279,5 @@ def patch_management_view(request):
         "30days": dataset_30days.count(),
         "30missing": dataset_30missing.count(),
     })
-    return render(request, 'patch-management-dashboard.html', { 'data': data })
+
+    return render(request, 'patch-management-dashboard.html', {'data': data})
