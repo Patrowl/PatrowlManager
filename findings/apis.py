@@ -43,7 +43,7 @@ def get_finding_api(request, finding_id):
 
 @api_view(['POST'])
 def delete_findings_api(request):
-    findings = json.loads(request.body)
+    findings = request.data
     for finding_id in findings:
         f = Finding.objects.get(id=finding_id)
 
