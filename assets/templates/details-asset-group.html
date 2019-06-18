@@ -218,6 +218,21 @@ div.risk-trends {
   </div>
 </div>
 
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-11">
+      <div class="dropdown">
+        <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+          Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+          <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="container-fluid">
   <ul class="nav nav-tabs" id="menu_tabs_ul">
@@ -737,6 +752,31 @@ div.risk-trends {
   }
 
   $(function() {
+
+    // Delete selected assets
+    $("a.btn-delete-selected-assets").on('click', function(eventObject) {
+      assets_to_delete = []
+      $("input[name='asset']").each(function(cbx){
+        if (this.checked) {
+          assets_to_delete.push(this.value)
+        }
+      })
+
+      if (assets_to_delete.length != 0){
+        delete_url="{% url 'delete_assets_api' %}"
+        var request = $.ajax({
+          url: delete_url,
+          method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: JSON.stringify(assets_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
     // Delete selected findings
     $("a.btn-delete-selected").on('click', function(eventObject) {
       findings_to_delete = []

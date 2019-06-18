@@ -19,7 +19,7 @@ from copy import deepcopy
 NB_MAX_RETRIES = 5
 SLEEP_RETRY = 5
 PROXIES = settings.PROXIES
-
+TIMEOUT=600 # 10 minutes
 
 @shared_task(bind=True, acks_late=True)
 def test_task(self, queue_name):
@@ -39,7 +39,7 @@ def refresh_engines_status_task(self):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"status",
-                verify=False, timeout=5, proxies=PROXIES)
+                verify=False, timeout=TIMEOUT, proxies=PROXIES)
 
             if resp.status_code == 200:
                 engine.status = json.loads(resp.text)['status'].strip().upper()
@@ -60,7 +60,7 @@ def get_engine_status_task(self, engine_id):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"status",
-                verify=False, timeout=5, proxies=PROXIES)
+                verify=False, timeout=TIMEOUT, proxies=PROXIES)
 
             if resp.status_code == 200:
                 engine.status = json.loads(resp.text)['status'].strip().upper()
@@ -80,7 +80,7 @@ def get_engine_info_task(self, engine_id):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"info",
-                verify=False, timeout=5, proxies=PROXIES)
+                verify=False, timeout=TIMEOUT, proxies=PROXIES)
 
             if resp.status_code == 200:
                 engine.status = json.loads(resp.text)['status'].strip().upper()
@@ -374,7 +374,7 @@ def startscan_task(self, params):
             data=json.dumps(params['scan_params']),
             headers={'Content-type': 'application/json', 'Accept': 'application/json'},
             proxies=PROXIES,
-            timeout=30)
+            timeout=TIMEOUT)
 
         if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
             scan.status = "error"
@@ -387,7 +387,7 @@ def startscan_task(self, params):
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
-        Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong. Task aborted.".format(self.request.id),
+        Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong ({}). Task aborted.".format(self.request.id, e),
                      description=str(e), type="ERROR", severity="ERROR", scan=scan)
         # Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
         #              description=json.loads(resp.text)['status'], type="ERROR", severity="ERROR", scan=scan)
@@ -571,7 +571,7 @@ def start_periodic_scan_task(self, params):
                 'Content-type': 'application/json',
                 'Accept': 'application/json'},
             proxies=PROXIES,
-            timeout=5)
+            timeout=TIMEOUT)
         if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
             print("something goes wrong in 'startscan_task/scan' (request_status_code={}, scan_response={})",
                   resp.status_code, str(resp.text))
@@ -667,7 +667,7 @@ def _get_engine_status(engine):
     engine_status = "undefined"
 
     try:
-        resp = requests.get(url=str(engine.api_url)+"status", verify=False, proxies=PROXIES, timeout=5)
+        resp = requests.get(url=str(engine.api_url)+"status", verify=False, proxies=PROXIES, timeout=TIMEOUT)
 
         if resp.status_code == 200:
             engine_status = json.loads(resp.text)['status'].strip().upper()
@@ -686,7 +686,7 @@ def _get_scan_status(engine, scan_id):
     scan_status = "undefined"
 
     try:
-        resp = requests.get(url=str(engine.api_url)+"status/"+str(scan_id), verify=False, proxies=PROXIES, timeout=5)
+        resp = requests.get(url=str(engine.api_url)+"status/"+str(scan_id), verify=False, proxies=PROXIES, timeout=TIMEOUT)
         if resp.status_code == 200:
             scan_status = json.loads(resp.text)['status'].strip().upper()
         else:
@@ -697,8 +697,8 @@ def _get_scan_status(engine, scan_id):
     return scan_status
 
 
-def _create_asset_on_import(asset_value, scan, asset_type='unknown'):
-    Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}/{}'.".format(asset_value, asset_type), type="DEBUG", severity="INFO", scan=scan)
+def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None):
+    Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}/{} from parent {}'.".format(asset_value, asset_type, parent), type="DEBUG", severity="INFO", scan=scan)
 
     # create assets if data_type is ip-subnet or ip-range
     if scan and asset_type == 'ip':
@@ -753,6 +753,30 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown'):
                 ag.calc_risk_grade()
                 ag.save()
 
+    # Creation/Update of the AssetGroup
+    if parent is not None:
+       Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Looking for a group named : {}".format(parent), type="DEBUG", severity="INFO", scan=scan)
+       asset_group = AssetGroup.objects.filter(name="{} assets".format(parent)).first()
+       if asset_group is None:   # Create an asset group dynamically
+           Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Create a group named : {}".format(parent), type="DEBUG", severity="INFO", scan=scan)
+           assetgroup_args = {
+               'name': "{} assets".format(parent),
+               'criticity': criticity,
+               'description': "AssetGroup dynamically created",
+               'owner': owner
+           }
+           asset_group = AssetGroup(**assetgroup_args)
+           asset_group.save()
+
+       Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Add {} in group {}".format(asset, parent), type="DEBUG", severity="INFO", scan=scan)
+       # Add the asset to the new group
+       asset_group.assets.add(asset)
+       asset_group.save()
+
+       # Caculate the risk grade
+       asset_group.calc_risk_grade()
+       asset_group.save()
+
     return asset
 
 
@@ -772,7 +796,9 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         for addr in list(finding['target']['addr']):
             asset = Asset.objects.filter(value=addr).first()
             if asset is None:  # asset unknown by the manager
-                asset = _create_asset_on_import(asset_value=addr, scan=scan)
+                if "parent" not in finding["target"]:
+                    finding["target"]["parent"] = None
+                asset = _create_asset_on_import(asset_value=addr, scan=scan, parent=finding["target"]["parent"])
             if asset:
                 assets.append(asset)
             if asset and not scan.assets.filter(value=asset.value):

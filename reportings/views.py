@@ -159,11 +159,12 @@ def homepage_dashboard_view(request):
         ).values('cwelist')
 
     for finding_cves in finding_cves_list:
-        for cve in ast.literal_eval(finding_cves['cvelist']):
-            if cve not in cve_list.keys():
-                cve_list.update({cve: 1})
-            else:
-                cve_list.update({cve: cve_list[cve]+1})
+        if finding_cves['cvelist'] is not None:
+            for cve in ast.literal_eval(finding_cves['cvelist']):
+                if cve not in cve_list.keys():
+                    cve_list.update({cve: 1})
+                else:
+                    cve_list.update({cve: cve_list[cve]+1})
 
     for cwe_data in finding_cwes_list:
         cwe = cwe_data.values()[0]
