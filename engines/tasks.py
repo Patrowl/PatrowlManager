@@ -13,13 +13,21 @@ from assets.models import Asset, AssetGroup
 from scans.models import Scan, ScanDefinition
 from events.models import Event
 from common.utils import net
-import requests, json, time, datetime, random, uuid, hashlib, os
+import requests
+import json
+import time
+import datetime
+import random
+import uuid
+import hashlib
+import os
 from copy import deepcopy
 
 NB_MAX_RETRIES = 5
 SLEEP_RETRY = 5
 PROXIES = settings.PROXIES
-TIMEOUT=600 # 10 minutes
+TIMEOUT = settings.SCAN_TIMEOUT  # 10 minutes by default
+
 
 @shared_task(bind=True, acks_late=True)
 def test_task(self, queue_name):

@@ -643,14 +643,6 @@ ASSET_INVESTIGATION_LINKS = [
         "datatypes": ["url"]
     },
     {
-        "name": "Skeleton",
-        "datatypes": ["fqdn","ip","domain"]
-    },
-    {
-        "name": "CertStream",
-        "datatypes": ["fqdn","domain"]
-    },
-    {
         "name": "Netcraft",
         "link": "https://toolbar.netcraft.com/site_report?url=%asset%",
         "datatypes": ["url", "ip"]
