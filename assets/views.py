@@ -319,7 +319,9 @@ def detail_asset_view(request, asset_id):
             scope_list=ArrayAgg('scopes__name')
         ).order_by('severity_numm', 'type', 'updated_at')
 
-    findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0, 'cvss_gte_7': 0}
+    findings_stats = {
+        'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
+        'new': 0, 'ack': 0, 'cvss_gte_7': 0}
     engines_stats = {}
     references = {}
 
@@ -425,8 +427,7 @@ def detail_asset_view(request, asset_id):
 
 def detail_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
-    assets = asset_group.assets.all()
-    findings = Finding.objects.filter(asset__in=assets).annotate(severity_numm=Case(
+    findings = Finding.objects.filter(asset__in=asset_group.assets.all()).annotate(severity_numm=Case(
             When(severity="critical", then=Value("0")),
             When(severity="high", then=Value("1")),
             When(severity="medium", then=Value("2")),
@@ -450,7 +451,9 @@ def detail_asset_group_view(request, assetgroup_id):
             }
         })
 
-    findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
+    findings_stats = {
+        'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
+        'new': 0, 'ack': 0}
     engines_stats = {}
 
     for finding in findings:
@@ -496,7 +499,6 @@ def detail_asset_group_view(request, assetgroup_id):
     return render(request, 'details-asset-group.html', {
         'asset_group': asset_group,
         'asset_group_risk_grade': asset_group_risk_grade,
-        'assets': assets,
         'findings': findings,
         'findings_stats': findings_stats,
         'scans_stats': scans_stats,

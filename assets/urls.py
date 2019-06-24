@@ -51,6 +51,8 @@ urlpatterns = [
     url(r'^api/v1/delete$', apis.delete_assets_api, name='delete_assets_api'),
     # ex: /assets/api/v1/delete/2
     url(r'^api/v1/delete/(?P<asset_id>[0-9]+)$', apis.delete_asset_api, name='delete_asset_api'),
+    # ex: /assets/api/v1/groups/add
+    url(r'^api/v1/groups/add$', apis.add_asset_group_api, name='add_asset_group_api'),
     # ex: /assets/api/v1/groups/delete/2
     url(r'^api/v1/groups/delete/(?P<assetgroup_id>[0-9]+)$', apis.delete_assetgroup_api, name='delete_assetgroup_api'),
     # ex: /assets/api/v1/export/8
@@ -82,6 +84,10 @@ urlpatterns = [
     # ex: /assets/api/v1/asset_grade_refresh/2
     url(r'^api/v1/asset_grade_refresh(?P<asset_id>[0-9]+)$', apis.refresh_asset_grade_api, name='refresh_asset_grade_api'),
 
+    # ex: /assets/api/v1/groups/list
+    url(r'^api/v1/groups/list$', apis.list_asset_groups_api, name='list_asset_groups_api'),
+    # ex: /assets/api/v1/groups/by-id/2
+    url(r'^api/v1/groups/by-id/(?P<assetgroup_id>[0-9]+)$', apis.get_asset_group_api, name='get_asset_group_api'),
     # ex: /assets/api/v1/groups/details/3/add_tag
     url(r'^api/v1/groups/details/(?P<assetgroup_id>[0-9]+)/add_tag$', apis.add_asset_group_tags_api, name='add_asset_group_tags_api'),
     # ex: /assets/api/v1/groups/details/3/del_tag

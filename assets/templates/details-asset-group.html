@@ -246,7 +246,7 @@ div.risk-trends {
           </tr>
         </thead>
         <tbody>
-          {% for asset in asset_group.assets.all %}
+          {% for asset in asset_group.assets.all|sort_by:"value,type" %}
           <tr class='dblclickable-row' data-href='/assets/details/{{ asset.id }}'>
             <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
             <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value }})</a></td>
@@ -278,7 +278,7 @@ div.risk-trends {
               {% endif %}
             </td>
             {% if asset.criticity == 'low' %}
-            <td><span class="label label-info">Low</span></td>
+            <td><span class="label label-low">Low</span></td>
             {% elif asset.criticity == 'medium' %}
             <td><span class="label label-medium">Medium</span></td>
             {% elif asset.criticity == 'high' %}
@@ -384,7 +384,7 @@ div.risk-trends {
         </thead>
         <tbody>
           {% for finding in findings %}
-          {% if finding.severity != "info" %}
+          {% if finding.severity != "info" and finding.solution != "n/a" %}
           <tr>
             <td>
               {% if finding.severity == 'critical' %}

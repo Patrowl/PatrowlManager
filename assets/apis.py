@@ -34,6 +34,12 @@ def get_asset_api(request, asset_id):
 
 
 @api_view(['GET'])
+def get_asset_group_api(request, assetgroup_id):
+    assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
+    return JsonResponse(assetgroup.to_dict(), safe=False)
+
+
+@api_view(['GET'])
 def get_asset_findings_api(request, asset_id):
     asset = get_object_or_404(Asset, id=asset_id)
     findings = [f.to_dict() for f in asset.finding_set.all()]
@@ -159,6 +165,22 @@ def list_assets_api(request):
 
 
 @api_view(['GET'])
+def list_asset_groups_api(request):
+    q = request.GET.get("q", None)
+    if q:
+        assetgroups = list(AssetGroup.objects.filter(name__icontains=q)
+            .extra(select={'value': 'name'})
+            .annotate(format=Value("assetgroup", output_field=CharField()))
+            .values('id', 'value', 'format', 'name'))
+    else:
+        assetgroups = list(AssetGroup.objects
+            .extra(select={'value': 'name'})
+            .annotate(format=Value("assetgroup", output_field=CharField()))
+            .values('id', 'value', 'format', 'name'))
+    return JsonResponse(assetgroups, safe=False)
+
+
+@api_view(['GET'])
 def refresh_all_asset_grade_api(request):
     for asset in Asset.objects.all():
         asset.calc_risk_grade()
@@ -212,7 +234,7 @@ def export_assets_api(request, assetgroup_id=None):
     return response
 
 
-@api_view(['PUT'])
+@api_view(['PUT', 'POST'])
 def add_asset_api(request):
     new_asset_args = QueryDict(request.body)
     tags = new_asset_args.getlist('tags')
@@ -233,6 +255,36 @@ def add_asset_api(request):
     return JsonResponse(asset.to_dict())
 
 
+@api_view(['PUT', 'POST'])
+def add_asset_group_api(request):
+    new_assetgroup_args = QueryDict(request.body)
+    tags = new_assetgroup_args.getlist('tags')
+    assets = new_assetgroup_args.getlist('assets')
+    new_assetgroup_args_dict = QueryDict(request.body).dict()
+    new_assetgroup_args_dict.update({"owner": request.user})
+    new_assetgroup_args_dict.pop("tags", None)
+    new_assetgroup_args_dict.pop("assets", None)
+
+    assetgroup = AssetGroup(**new_assetgroup_args_dict)
+    assetgroup.save()
+
+    # Add assets
+    for assets in assets:
+        a = Asset.objects.filter(id=assets).first()
+        if a:
+            assetgroup.assets.add(a)
+    assetgroup.save()
+
+    # Add categories
+    for cat in tags:
+        c = AssetCategory.objects.filter(value=cat).first()
+        if c:
+            assetgroup.categories.add(c)
+    assetgroup.save()
+
+    return JsonResponse(assetgroup.to_dict())
+
+
 @api_view(['POST'])
 def update_criticity_assets_api(request):
     data = request.data
@@ -247,7 +299,7 @@ def update_criticity_assets_api(request):
     return JsonResponse({'status': 'success'})
 
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 def delete_assets_api(request):
     assets = request.data
     for asset_id in assets:
@@ -265,7 +317,7 @@ def delete_asset_api(request, asset_id):
     return JsonResponse({'status': 'success'})
 
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 def delete_assetgroup_api(request, assetgroup_id):
     assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
     assetgroup.delete()

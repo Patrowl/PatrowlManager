@@ -308,7 +308,7 @@ div.risk-trends {
         </thead>
         <tbody>
           {% for finding in findings %}
-          {% if finding.severity != "info" %}
+          {% if finding.severity != "info" and finding.solution != "n/a" %}
           <tr>
             <td>
               {% if finding.severity == 'critical' %}

@@ -159,6 +159,8 @@ def homepage_dashboard_view(request):
         ).values('cwelist')
 
     for finding_cves in finding_cves_list:
+        if finding_cves['cvelist'] is None:
+            continue
         for cve in ast.literal_eval(finding_cves['cvelist']):
             if cve not in cve_list.keys():
                 cve_list.update({cve: 1})

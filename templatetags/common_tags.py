@@ -55,7 +55,10 @@ def sort_by(queryset, order_args):
 @register.filter
 def joinby(value, arg):
     """Return the joined strings."""
-    return arg.join(value)
+    if value:
+        return arg.join(value)
+    else:
+        return ""
 
 
 @register.filter

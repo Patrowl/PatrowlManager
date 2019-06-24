@@ -142,8 +142,15 @@ def assetcat_delete_log(sender, **kwargs):
         type="DELETE", severity="DEBUG")
 
 
+# class AssetManager(models.Manager):
+#     def get_queryset(self):
+#         return super().get_queryset().filter(author='Roald Dahl')
+
+
 class Asset(models.Model):
     """Class definition of Asset."""
+
+    # objects = AssetManager()
 
     value       = models.CharField(max_length=256, unique=True, null=False)
     name        = models.CharField(max_length=256)
@@ -312,6 +319,13 @@ class AssetGroup(models.Model):
 
     def __str__(self):
         return "{}/{}".format(self.id, self.name)
+
+    def to_dict(self):
+        """Return JSONified class summary."""
+        data = model_to_dict(self, exclude=["categories", "assets"])
+        data.update({"categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()]})
+        data.update({"assets": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets.all()]})
+        return json.loads(json.dumps(data, default=json_serial))
 
     def save(self, *args, **kwargs):
         # update the 'updated_at' entry on each update except on creation

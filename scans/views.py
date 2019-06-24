@@ -209,7 +209,7 @@ def add_scan_def_view(request):
     form = None
     scan_cats = EnginePolicyScope.objects.all().values()
     scan_policies = list(EnginePolicy.objects.all())
-    scan_engines = Engine.objects.all().values()
+    scan_engines = Engine.objects.all().exclude(name="MANUAL").values()
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
 
     scan_policies_json = []
@@ -354,7 +354,7 @@ def edit_scan_def_view(request, scan_def_id):
     scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
     scan_cats = EnginePolicyScope.objects.all().values()
     scan_policies = list(EnginePolicy.objects.all())
-    scan_engines = Engine.objects.all().values()
+    scan_engines = Engine.objects.all().exclude(name="MANUAL").values()
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
 
     scan_policies_json = []
