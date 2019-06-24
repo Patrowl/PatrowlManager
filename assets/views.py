@@ -397,8 +397,9 @@ def detail_asset_view(request, asset_id):
     DEFAULT_LINKS = copy.deepcopy(ASSET_INVESTIGATION_LINKS)
     for i in DEFAULT_LINKS:
         if asset.type in i["datatypes"]:
-            i["link"] = i["link"].replace("%asset%", asset.value)
-            investigation_links.append(i)
+            if "links" in i.keys():
+                i["link"] = i["link"].replace("%asset%", asset.value)
+                investigation_links.append(i)
 
     # Calculate automatically risk grade
     asset.calc_risk_grade()

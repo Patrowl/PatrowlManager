@@ -168,7 +168,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -179,6 +178,8 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Scan timeout
+SCAN_TIMEOUT = os.environ.get('SCAN_TIMEOUT', 600)
 
 # RABBITMQ
 RABBIT_HOSTNAME = os.environ.get('RABBIT_PORT_5672_TCP', 'localhost:5672')
@@ -228,9 +229,3 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
 # Monitoring APIs
 SUPERVISORD_API_URL = 'http://localhost:9001/RPC2'
 CELERYFLOWER_API_URL = 'http://localhost:5555/api/'
-
-# Fix [Errno 32] Broken pipe
-# import SocketServer
-# from wsgiref import handlers
-# SocketServer.BaseServer.handle_error = lambda *args, **kwargs: None
-# handlers.BaseHandler.log_exception = lambda *args, **kwargs: None

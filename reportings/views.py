@@ -159,13 +159,12 @@ def homepage_dashboard_view(request):
         ).values('cwelist')
 
     for finding_cves in finding_cves_list:
-        if finding_cves['cvelist'] is None:
-            continue
-        for cve in ast.literal_eval(finding_cves['cvelist']):
-            if cve not in cve_list.keys():
-                cve_list.update({cve: 1})
-            else:
-                cve_list.update({cve: cve_list[cve]+1})
+        if finding_cves['cvelist'] is not None:
+            for cve in ast.literal_eval(finding_cves['cvelist']):
+                if cve not in cve_list.keys():
+                    cve_list.update({cve: 1})
+                else:
+                    cve_list.update({cve: cve_list[cve]+1})
 
     for cwe_data in finding_cwes_list:
         cwe = cwe_data.values()[0]
@@ -211,11 +210,10 @@ def patch_management_view(request):
     month_ago = ref_date-datetime.timedelta(days=30)
 
     # asset type filter (AssetCategory)
-    asset_tags = request.GET.get('asset_tags', None)
-    if asset_tags:
-        _asset_tags = []
-        for tag in AssetCategory.objects.filter(value__iexact=asset_tags):
-            print (tag)
+    # asset_tags = request.GET.get('asset_tags', None)
+    # if asset_tags:
+    #     for tag in AssetCategory.objects.filter(value__iexact=asset_tags):
+    #         print (tag)
 
 
     # Dataset 1: security fix applied 7 days max, CVSS >= 7.0
