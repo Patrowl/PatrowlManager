@@ -3,11 +3,11 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
 from app.settings import MEDIA_ROOT
-import jsonfield
 import os
 import base64
 
@@ -68,7 +68,6 @@ class EngineInstance(models.Model):
     api_key = models.CharField(max_length=100, null=True, blank=True)
     username = models.CharField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=100, null=True, blank=True)
-    options = jsonfield.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -151,7 +150,7 @@ class EnginePolicy(models.Model):
     name        = models.CharField(max_length=200)
     default     = models.BooleanField(default=False)
     description = models.CharField(max_length=200)
-    options     = jsonfield.JSONField(null=True, blank=True, default="{}")
+    options     = JSONField(null=True, blank=True, default=dict)
     file        = models.FileField(upload_to='./policies/', null=True, blank=True)
     status      = models.CharField(max_length=50)    #active / trashed
     is_default  = models.BooleanField(default=False)
@@ -172,7 +171,7 @@ class EnginePolicy(models.Model):
         if self.file.name:
             initial_path = self.file.path
 
-            # /media/policies/NESSUS/2/nessuspolicy.nessus
+            # ex: /media/policies/NESSUS/2/nessuspolicy.nessus
             new_name = '/'.join(['policies', self.engine.name, str(self.owner.id), os.path.basename(initial_path)])
             new_path = os.path.join(MEDIA_ROOT, 'policies',
                 self.engine.name, str(self.owner.id), os.path.basename(initial_path))

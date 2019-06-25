@@ -242,12 +242,10 @@ def add_scan_def_view(request):
                 scan_definition.scan_type = "scheduled"
                 try:
                     # check if it's future or not
-                    # print "form.cleaned_data['scheduled_at']: ", form.cleaned_data['scheduled_at']
-                    # print "timezone.now(): ", tz.now()
-                    #print "timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at']): ", timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at'])
+                    # print ("form.cleaned_data['scheduled_at']: ", form.cleaned_data['scheduled_at'])
+                    # print ("timezone.now(): ", tz.now())
+                    # print ("timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at']): ", timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at']))
                     if form.cleaned_data['scheduled_at'] > tz.now():
-                        # @todo: validate datetime format
-                        # scan_definition.scheduled_at = timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at'])
                         scan_definition.scheduled_at = form.cleaned_data['scheduled_at']
                         scan_definition.enabled = True
                 except Exception:
@@ -271,11 +269,9 @@ def add_scan_def_view(request):
                     "datatype": asset.type
                 })
 
-            # assetgroups_list = []
             for assetgroup_id in form.data.getlist('assetgroups_list'):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
                 scan_definition.assetgroups_list.add(assetgroup)
-                # assetgroups_list.append(assetgroup.name)
                 for a in assetgroup.assets.all():
                     scan_definition.assets_list.add(a)
                     assets_list.append({
@@ -291,7 +287,6 @@ def add_scan_def_view(request):
             parameters = {
                 "scan_params": {
                     "assets": assets_list,
-                    # "assetgroups": assetgroups_list,
                     "options": scan_definition.engine_policy.options,
                 },
                 "scan_definition_id": scan_definition.id,
@@ -420,10 +415,8 @@ def edit_scan_def_view(request, scan_def_id):
                 parameters = {
                     "scan_params": {
                         "assets": assets_list,
-                        # "assetgroups": assetgroups_list,
                         "options": scan_definition.engine_policy.options,
                     },
-                    # "scan_definition_id": str(scan_definition.id),
                     "scan_definition_id": scan_definition.id,
                     "engine_name": str(scan_definition.engine_type.name).lower(),
                     "owner_id": request.user.id,

@@ -107,7 +107,6 @@ class RawFinding(models.Model):
                 rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
             }
             if RawFinding.objects.filter(**kwargs):
-                #print "rule '{}' matches".format(rule.title)
                 nb_matches += 1
                 rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset)
         return nb_matches
