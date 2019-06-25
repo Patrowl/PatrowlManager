@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^', include('users.urls'), name='home'),
 
     url(r'^login$', user_views.login, name='login'),
-    url(r'^logout$', auth_views.logout, {'next_page': '/login'}, name='logout'),
+    url(r'^logout$', auth_views.auth_logout, {'next_page': '/login'}, name='logout'),
     url(r'^signup$', user_views.signup, name='signup'),
 
     # url(r'^admin/jsi18n/', i18n_javascript),

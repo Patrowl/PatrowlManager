@@ -93,7 +93,7 @@ def homepage_dashboard_view(request):
 
     # Format to list
     asset_grades_map_list = []
-    for key in sorted(asset_grades_map.iterkeys()):
+    for key in sorted(asset_grades_map.keys()):
         asset_grades_map_list.append({key: asset_grades_map[key]})
 
     # Asset groups
@@ -110,7 +110,7 @@ def homepage_dashboard_view(request):
         top_critical_assetgroups.append(AssetGroup.objects.get(id=assetgroup_id[0]))
 
     assetgroup_grades_map_list = []
-    for key in sorted(assetgroup_grades_map.iterkeys()):
+    for key in sorted(assetgroup_grades_map.keys()):
         assetgroup_grades_map_list.append({key: assetgroup_grades_map[key]})
 
     # Critical findings

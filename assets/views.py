@@ -422,7 +422,8 @@ def detail_asset_view(request, asset_id):
         'scan_defs': scan_defs,
         'investigation_links': investigation_links,
         'engines_stats': engines_stats,
-        'asset_scopes': sorted(engine_scopes.iteritems(), key=lambda (x, y): y['priority'])
+        'asset_scopes': sorted(iter(engine_scopes.items()), key=lambda x_y: x_y[1]['priority'])
+        # 'asset_scopes': sorted(engine_scopes.iteritems(), key=lambda (x, y): y['priority'])
         })
 
 
@@ -506,7 +507,8 @@ def detail_asset_group_view(request, assetgroup_id):
         'scans': scans,
         'scan_defs': scan_defs,
         'engines_stats': engines_stats,
-        'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda (x, y): y['priority'])
+        # 'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda (x, y): y['priority'])
+        'asset_scopes': sorted(iter(engine_scopes.items()), key=lambda x_y: x_y[1]['priority'])
         # 'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda x, y: y['priority'])
     })
 

@@ -10,14 +10,15 @@ from engines.models import EngineInstance, EnginePolicy
 from engines.tasks import startscan_task
 from assets.models import Asset, AssetGroup
 
-import xmlrpclib
+# import xmlrpclib
+import xmlrpc.client
 import uuid
 import random
 
 
 def _update_celerybeat():
     print("INFO: Updating Celery Beat Scheduler...")
-    server = xmlrpclib.Server(SUPERVISORD_API_URL)
+    server = xmlrpc.client.ServerProxy(SUPERVISORD_API_URL)
 
     try:
         if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['RUNNING', 'RESTARTING']:

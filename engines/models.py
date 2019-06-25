@@ -7,7 +7,9 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
 from app.settings import MEDIA_ROOT
-import jsonfield
+# import jsonfield
+from django.contrib.postgres.fields import JSONField
+
 import os
 import base64
 
@@ -56,7 +58,7 @@ def engine_delete_log(sender, **kwargs):
 
 
 class EngineInstance(models.Model):
-    engine = models.ForeignKey(Engine)
+    engine = models.ForeignKey(Engine, on_delete=models.CASCADE)
     # engine = models.ForeignKey(Engine, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, unique=True)
     version = models.CharField(max_length=20)
@@ -68,7 +70,7 @@ class EngineInstance(models.Model):
     api_key = models.CharField(max_length=100, null=True, blank=True)
     username = models.CharField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=100, null=True, blank=True)
-    options = jsonfield.JSONField(null=True, blank=True)
+    options = JSONField(null=True, blank=True, default=dict)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -151,7 +153,7 @@ class EnginePolicy(models.Model):
     name        = models.CharField(max_length=200)
     default     = models.BooleanField(default=False)
     description = models.CharField(max_length=200)
-    options     = jsonfield.JSONField(null=True, blank=True, default="{}")
+    options     = JSONField(null=True, blank=True, default=dict)
     file        = models.FileField(upload_to='./policies/', null=True, blank=True)
     status      = models.CharField(max_length=50)    #active / trashed
     is_default  = models.BooleanField(default=False)

@@ -2,6 +2,7 @@
 *.pyc
 __pycache__
 env
+env3
 db.sqlite3
 .DS_Store
 dump.rdb

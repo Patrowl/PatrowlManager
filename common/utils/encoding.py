@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 from uuid import UUID
-import htmlentitydefs
+import html.entities
 
 
 def unicode_escape(unistr):
@@ -14,9 +14,9 @@ def unicode_escape(unistr):
 
     escaped = ""
     for char in unistr:
-        if ord(char) in htmlentitydefs.codepoint2name:
-            name = htmlentitydefs.codepoint2name.get(ord(char))
-            entity = htmlentitydefs.name2codepoint.get(name)
+        if ord(char) in html.entities.codepoint2name:
+            name = html.entities.codepoint2name.get(ord(char))
+            entity = html.entities.name2codepoint.get(name)
             escaped += "&#" + str(entity)
 
         else:
