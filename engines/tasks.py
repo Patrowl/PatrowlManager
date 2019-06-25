@@ -709,8 +709,9 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
     Event.objects.create(message="[EngineTasks/_create_asset_on_import()] create: '{}/{} from parent {}'.".format(asset_value, asset_type, parent), type="DEBUG", severity="INFO", scan=scan)
 
     # create assets if data_type is ip-subnet or ip-range
-    if scan and asset_type == 'ip':
+    if scan and net.is_valid_ip(asset_value):
         assets = scan.assets.filter(type__in=['ip-subnet', 'ip-range'])
+        asset_type = "ip"
 
         # Search parent asset
         parent_asset = None
