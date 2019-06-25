@@ -43,6 +43,10 @@ TLP_COLORS = (
 )
 
 
+def get_default_risk_level():
+    return dict(info=0, low=0, medium=0, high=0, critical=0, total=0, grade="-")
+
+
 class AssetCategory(models.Model):
     parent   = models.ForeignKey('self', null=True, blank=None, default=None, related_name='children', on_delete=models.CASCADE)#, db_constraint=False)
     value    = models.CharField(max_length=256)

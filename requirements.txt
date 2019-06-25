@@ -23,9 +23,8 @@ futures==3.1.1
 gunicorn==19.9.0
 idna==2.5
 itypes==1.1.0
-Jinja2==2.10.1
-jsonfield==2.0.2
-kombu==4.6.3
+Jinja2>=2.10.1
+kombu==4.1.0
 libmagic==1.0
 MarkupSafe==1.1.0
 meld3==1.0.2

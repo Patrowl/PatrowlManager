@@ -3,13 +3,11 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from events.models import Event
 from app.settings import MEDIA_ROOT
-# import jsonfield
-from django.contrib.postgres.fields import JSONField
-
 import os
 import base64
 
@@ -70,7 +68,6 @@ class EngineInstance(models.Model):
     api_key = models.CharField(max_length=100, null=True, blank=True)
     username = models.CharField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=100, null=True, blank=True)
-    options = JSONField(null=True, blank=True, default=dict)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -174,7 +171,7 @@ class EnginePolicy(models.Model):
         if self.file.name:
             initial_path = self.file.path
 
-            # /media/policies/NESSUS/2/nessuspolicy.nessus
+            # ex: /media/policies/NESSUS/2/nessuspolicy.nessus
             new_name = '/'.join(['policies', self.engine.name, str(self.owner.id), os.path.basename(initial_path)])
             new_path = os.path.join(MEDIA_ROOT, 'policies',
                 self.engine.name, str(self.owner.id), os.path.basename(initial_path))
