@@ -69,7 +69,7 @@ def list_assets_view(request):
             ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
 
     # Pagination assets
-    nb_rows = request.GET.get('n', 16)
+    nb_rows = int(request.GET.get('n', 16))
     assets_paginator = Paginator(assets_list, nb_rows)
     page = request.GET.get('page')
     try:
@@ -422,8 +422,7 @@ def detail_asset_view(request, asset_id):
         'scan_defs': scan_defs,
         'investigation_links': investigation_links,
         'engines_stats': engines_stats,
-        'asset_scopes': sorted(iter(engine_scopes.items()), key=lambda x_y: x_y[1]['priority'])
-        # 'asset_scopes': sorted(engine_scopes.iteritems(), key=lambda (x, y): y['priority'])
+        'asset_scopes': list(engine_scopes.items())
         })
 
 
@@ -485,7 +484,7 @@ def detail_asset_group_view(request, assetgroup_id):
         'defined': len(scan_defs),
         'periodic': scan_defs.filter(scan_type='periodic').count(),
         'ondemand': scan_defs.filter(scan_type='single').count(),
-        'running': scan_defs.filter(status='started').count() #bug: a regrouper par assets
+        'running': scan_defs.filter(status='started').count()  # bug: a regrouper par assets
     }
 
     # calculate automatically risk grade
@@ -507,13 +506,11 @@ def detail_asset_group_view(request, assetgroup_id):
         'scans': scans,
         'scan_defs': scan_defs,
         'engines_stats': engines_stats,
-        # 'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda (x, y): y['priority'])
-        'asset_scopes': sorted(iter(engine_scopes.items()), key=lambda x_y: x_y[1]['priority'])
-        # 'asset_scopes': sorted(asset_scopes.iteritems(), key=lambda x, y: y['priority'])
+        'asset_scopes': list(asset_scopes.items())
     })
 
 
-## Asset Owners
+# Asset Owners
 def list_asset_owners_view(request):
     owners = []
     for owner in AssetOwner.objects.all():

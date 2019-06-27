@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:3
 MAINTAINER Patrowl.io "getsupport@patrowl.io"
 LABEL Name="Patrowl Manager" Version="1.0.0"
 

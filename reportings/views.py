@@ -167,7 +167,7 @@ def homepage_dashboard_view(request):
                     cve_list.update({cve: cve_list[cve]+1})
 
     for cwe_data in finding_cwes_list:
-        cwe = cwe_data.values()[0]
+        cwe = list(cwe_data.values())[0]
         if cwe not in cwe_list.keys():
             cwe_list.update({cwe: 1})
         else:

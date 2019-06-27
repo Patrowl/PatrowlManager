@@ -16,6 +16,7 @@ import base64
 def list_engines_view(request):
     engines = EngineInstance.objects.all().order_by('name')
     autorefresh_task = PeriodicTask.objects.filter(name='[PO] Auto-refresh engines status')
+    print(autorefresh_task)
     if autorefresh_task.count() > 0:
         autorefresh_status = autorefresh_task.first().enabled
     else:

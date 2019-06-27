@@ -19,7 +19,7 @@ def _search(kw):
     # search by asset value or description
     for asset_group in AssetGroup.objects.filter(
         Q(description__icontains=kw) | Q(name__icontains=kw)):
-        results.append({"type": "asset_group", "value": asset_group.name, "id": asset_group.id, "link": "{% url 'list_assets_view' %}"})
+        results.append({"type": "asset_group", "value": asset_group.name, "id": asset_group.id, "link": "/assets/groups/details/"+str(asset_group.id)})
 
     # search by asset owner name, url or comments
     for asset_owner in AssetOwner.objects.filter(Q(name__icontains=kw) | Q(url__icontains=kw) | Q(comments__icontains=kw)):

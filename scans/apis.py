@@ -113,23 +113,22 @@ def get_scans_stats_api(request):
     data = {}
     if not scope:
         scan_defs = ScanDefinition.objects.all()
-        scans = Scan.objects.all()
         data = {
             "nb_scans_defined": scan_defs.count(),
-            "nb_scans_performed": scans.count(),
+            "nb_scans_performed": Scan.objects.all().count(),
             "nb_periodic_scans": scan_defs.filter(scan_type="periodic").count(),
             "nb_active_periodic_scans": scan_defs.filter(scan_type="periodic", enabled=True).count()
         }
     elif scope == "scan_def":
         scan_id = request.GET.get('scan_id', None)
-        num_records = request.GET.get('num_records', 10)
+        num_records = int(request.GET.get('num_records', 10))
         if not scan_id:
             return JsonResponse({})
         # scan_def = get_object_or_404(ScanDefinition, id=scan_id)
         scans = reversed(Scan.objects.filter(scan_definition=scan_id).values('id', 'created_at', 'summary').order_by('-created_at')[:num_records])
         data = list(scans)
     elif scope == "scans":
-        num_records = request.GET.get('num_records', 10)
+        num_records = int(request.GET.get('num_records', 10))
         scans = reversed(Scan.objects.all().values('id', 'created_at', 'summary').order_by('-created_at')[:num_records])
         data = list(scans)
 
@@ -139,10 +138,7 @@ def get_scans_stats_api(request):
 @api_view(['GET'])
 def get_scans_heatmap_api(request):
     data = {}
-
     for scan in Scan.objects.all():
-        # expected format: {timestamp: value, timestamp2: value2 ...}
-        # data.update({scan.updated_at.astimezone(timezone('Europe/Paris')).strftime("%s"): 1})
         data.update({scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%s"): 1})
     return JsonResponse(data)
 
@@ -193,13 +189,13 @@ def get_scans_by_date_api(request):
     scans = Scan.objects.filter(updated_at__gte=date, updated_at__lte=stop_date)
     for scan in scans:
         data.append({
-            'scan_id': scan.id,
-             "status": scan.status,
-             "engine_type": scan.engine_type.name,
-             "title": scan.title,
-             "summary": json.dumps(scan.summary),
-             "updated_at": scan.updated_at,
-             "scan_definition_id": scan.scan_definition.id
+            "scan_id": scan.id,
+            "status": scan.status,
+            "engine_type": scan.engine_type.name,
+            "title": scan.title,
+            "summary": json.dumps(scan.summary),
+            "updated_at": scan.updated_at,
+            "scan_definition_id": scan.scan_definition.id
         })
     return JsonResponse(data, safe=False)
 

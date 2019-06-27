@@ -79,7 +79,7 @@ class RawFinding(models.Model):
         return (self.severity, self.confidence)
 
     def save(self, *args, **kwargs):
-        self.hash = hashlib.sha1(str(self.asset_name)+str(self.title)).hexdigest()
+        self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
         if self.severity == "info":
             self.severity_num = 1
         elif self.severity == "low":
@@ -174,7 +174,7 @@ class Finding(models.Model):
         return (self.severity, self.confidence)
 
     def save(self, *args, **kwargs):
-        self.hash = hashlib.sha1(str(self.asset_name)+str(self.title)).hexdigest()
+        self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
         if self.severity == "info":
             self.severity_num = 1
         elif self.severity == "low":

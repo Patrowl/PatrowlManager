@@ -10,7 +10,7 @@ register = template.Library()
 @register.filter
 def hash(value):
     """Return a 6-chars hash from input."""
-    return hashlib.md5(value).hexdigest()[:6]
+    return hashlib.md5(str(value).encode('utf-8')).hexdigest()[:6]
 
 
 @register.filter

@@ -886,7 +886,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
             # Check if this finding is new
             f = Finding.objects.filter(
-                hash=hashlib.sha1(str(asset.value)+str(finding['title'])).hexdigest()).first()
+                hash=hashlib.sha1(str(asset.value).encode('utf-8')+str(finding['title']).encode('utf-8')).hexdigest()).first()
             finding_state = "new"  # Default value
             if f:
                 f.checked_at = timezone.now()
