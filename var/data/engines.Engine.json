@@ -132,20 +132,30 @@
   "model": "engines.engine",
   "pk": 14,
   "fields": {
-    "name": "CERTSTREAM",
-    "description": "CertStream",
+    "name": "SKELETON",
+    "description": "Skeleton",
     "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
     "created_at": "2019-03-27T12:38:50.794Z",
     "updated_at": "2019-03-27T12:38:50.794Z"
   }
 }, {
   "model": "engines.engine",
-  "pk": 14,
+  "pk": 15,
+  "fields": {
+    "name": "CERTSTREAM",
+    "description": "CertStream",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
+    "created_at": "2019-06-12T12:38:50.794Z",
+    "updated_at": "2019-06-12T12:38:50.794Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 16,
   "fields": {
     "name": "EYEWITNESS",
     "description": "EyeWitness",
-    "allowed_asset_types": "[u'url']",
-    "created_at": "2019-03-27T12:38:50.794Z",
-    "updated_at": "2019-03-27T12:38:50.794Z"
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
+    "created_at": "2019-06-12T12:38:50.794Z",
+    "updated_at": "2019-06-12T12:38:50.794Z"
   }
 }]
