@@ -32,6 +32,7 @@ Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/mas
 
 # Roadmap
 - [X] API Documentation
+- [X] Python 3 migration
 - [ ] Transform all API calls to async tasks (limit Nginx 504 timeouts)
 - [X] Beautify scan creation and edition forms
 - [ ] Enhance finding states management

@@ -200,7 +200,8 @@ class Finding(models.Model):
         for rule in rules:
             kwargs = {
                 "id": self.id,
-                rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
+                # rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
+                rule.scope_attr+next(iter(rule.condition)): next(iter(rule.condition.values()))
             }
             if Finding.objects.filter(**kwargs):
                 nb_matches += 1

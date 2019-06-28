@@ -97,7 +97,7 @@ def add_rule_api(request):
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
-@csrf_exempt  # not secure
+# @csrf_exempt  # not secure
 def toggle_rule_status_api(request, rule_id):
     """API: Change status of an alerting rule."""
     rule = get_object_or_404(Rule, id=rule_id)

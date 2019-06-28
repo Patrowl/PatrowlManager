@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Starting Patrowl back-office server. MacOs compliant only.
-source env/bin/activate
+source env3/bin/activate
 if [ `ps waxu | grep -c postgres` -ne "1" ]; then
   echo "postgres db started. Nothing to do"
 else

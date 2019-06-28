@@ -270,6 +270,7 @@
       var request = $.ajax({
         url: "/rules/api/v1/change_status/"+rule_id,
         method: "GET",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           if (e.currentTarget.textContent == "Disabled") {
             $(e.currentTarget).removeClass("label-danger");

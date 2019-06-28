@@ -116,24 +116,24 @@ def homepage_dashboard_view(request):
     # Critical findings
     top_critical_findings = []
     MAX_CF = 6
-    for finding in findings.filter(severity="critical"):
+    for finding in findings.filter(severity="critical").only("id", "severity", "title", "asset_name"):
         if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="high"):
+        for finding in findings.filter(severity="high").only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="medium"):
+        for finding in findings.filter(severity="medium").only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="low"):
+        for finding in findings.filter(severity="low").only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="info"):
+        for finding in findings.filter(severity="info").only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
 
     # CVSS
     cvss_scores = {'lte5': 0, '5to7': 0, 'gte7': 0, 'gte9': 0, 'eq10': 0}
-    for finding in findings:
+    for finding in findings.only("risk_info"):
         if finding.risk_info["cvss_base_score"] < 5.0: cvss_scores.update({'lte5': cvss_scores['lte5']+1})
         if finding.risk_info["cvss_base_score"] >= 5.0 and finding.risk_info["cvss_base_score"] <= 7.0: cvss_scores.update({'5to7': cvss_scores['5to7']+1})
         if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})

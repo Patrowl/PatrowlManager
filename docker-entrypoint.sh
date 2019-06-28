@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source env/bin/activate
+source env3/bin/activate
 
 # Collect static files
 echo "[+] Collect static files"
@@ -31,4 +31,4 @@ supervisord -c var/etc/supervisord.conf
 
 # Start server
 echo "[+] Starting server"
-gunicorn -b 0.0.0.0:8003 app.wsgi:application --timeout 300 
+gunicorn -b 0.0.0.0:8003 app.wsgi:application --timeout 300
