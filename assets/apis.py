@@ -125,11 +125,7 @@ def get_asset_trends_api(request, asset_id):
             'new': 0,
             'risk_grade': 'n/a',
             'date': str(enddate.date())}
-        # for f in asset.finding_set.filter(created_at__lte=enddate):
-        #     findings_stats['total'] = findings_stats.get('total') + 1
-        #     findings_stats[f.severity] = findings_stats.get(f.severity) + 1
-        #     if f.status == 'new':
-        #         findings_stats['new'] = findings_stats.get('new') + 1
+
         for f in asset.finding_set.filter(created_at__lte=enddate).values("severity", "status"):
             findings_stats['total'] = findings_stats.get('total') + 1
             findings_stats[f["severity"]] = findings_stats.get(f["severity"]) + 1
@@ -138,7 +134,6 @@ def get_asset_trends_api(request, asset_id):
 
         if findings_stats['total'] != 0:
             findings_stats['risk_grade'] = grade_levels[asset.get_risk_grade(history=i)]
-            # findings_stats['risk_grade'] = grade_levels[asset.get_risk_grade(history=i)['grade']]
         else:
             findings_stats['risk_grade'] = 0
         data.append(findings_stats)

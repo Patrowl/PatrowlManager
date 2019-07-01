@@ -317,7 +317,12 @@ def detail_asset_view(request, asset_id):
             output_field=CharField())
         ).annotate(
             scope_list=ArrayAgg('scopes__name')
-        ).order_by('severity_numm', 'type', 'updated_at').only("severity", "status", "engine_type", "risk_info", "vuln_refs", "title", "id", "solution", "updated_at", "type")
+        ).order_by(
+            'severity_numm', 'type', 'updated_at'
+        ).only(
+            "severity", "status", "engine_type", "risk_info", "vuln_refs",
+            "title", "id", "solution", "updated_at", "type"
+        )
 
     findings_stats = {
         'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
@@ -428,14 +433,26 @@ def detail_asset_view(request, asset_id):
 
 def detail_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
-    findings = Finding.objects.filter(asset__in=asset_group.assets.all()).annotate(severity_numm=Case(
-            When(severity="critical", then=Value("0")),
-            When(severity="high", then=Value("1")),
-            When(severity="medium", then=Value("2")),
-            When(severity="low", then=Value("3")),
-            When(severity="info", then=Value("4")),
-            default=Value("1"),
-            output_field=CharField())).annotate(scope_list=ArrayAgg('scopes__name')).order_by('asset', 'severity_numm', 'type', 'updated_at')
+    findings = Finding.objects.filter(
+            asset__in=asset_group.assets.all()
+        ).annotate(
+            severity_numm=Case(
+                When(severity="critical", then=Value("0")),
+                When(severity="high", then=Value("1")),
+                When(severity="medium", then=Value("2")),
+                When(severity="low", then=Value("3")),
+                When(severity="info", then=Value("4")),
+                default=Value("1"),
+                output_field=CharField()
+            )
+        ).annotate(
+            scope_list=ArrayAgg('scopes__name')
+        ).order_by(
+            'asset', 'severity_numm', 'type', 'updated_at'
+        ).only(
+            "severity", "status", "engine_type", "risk_info", "vuln_refs",
+            "title", "id", "solution", "updated_at", "type", "asset_id",
+            "asset_name")
 
     asset_scopes = {}
     for scope in EnginePolicyScope.objects.all():
@@ -468,7 +485,6 @@ def detail_asset_group_view(request, assetgroup_id):
             if fs is not None:
                 c = asset_scopes[fs]
                 asset_scopes[fs].update({'total': c['total']+1, finding.severity: c[finding.severity]+1})
-
         if finding.engine_type not in engines_stats.keys():
             engines_stats.update({finding.engine_type: 0})
         engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
