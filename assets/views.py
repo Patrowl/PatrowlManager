@@ -317,7 +317,7 @@ def detail_asset_view(request, asset_id):
             output_field=CharField())
         ).annotate(
             scope_list=ArrayAgg('scopes__name')
-        ).order_by('severity_numm', 'type', 'updated_at')
+        ).order_by('severity_numm', 'type', 'updated_at').only("severity", "status", "engine_type", "risk_info", "vuln_refs", "title", "id", "solution", "updated_at", "type")
 
     findings_stats = {
         'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,

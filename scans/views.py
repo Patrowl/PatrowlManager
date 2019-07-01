@@ -83,16 +83,16 @@ def detail_scan_view(request, scan_id):
 
     # Search raw findings related to the asset
     if findings_filters == {}:
-        raw_findings = RawFinding.objects.filter(scan=scan).order_by('asset', 'severity', 'type', 'title')
+        raw_findings = RawFinding.objects.filter(scan=scan).order_by('asset', 'severity', 'type', 'title').only("id", "asset_name", "title", "severity", "status")
     else:
         findings_filters.update({"scan": scan})
-        raw_findings = RawFinding.objects.filter(**findings_filters).order_by('asset', 'severity', 'type', 'title')
+        raw_findings = RawFinding.objects.filter(**findings_filters).order_by('asset', 'severity', 'type', 'title').only("id", "asset_name", "title", "severity", "status")
 
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
     for a in assets:
         summary_assets.update({a.value: {"info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0}})
-    for f in raw_findings.filter(asset__in=assets):
+    for f in raw_findings.filter(asset__in=assets).only("asset_name", "severity"):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
             "total": summary_assets[f.asset_name]["total"] + 1
