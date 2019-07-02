@@ -151,7 +151,7 @@ def send_email_message(rule, message, description):
     contact_mail = Setting.objects.get(key="alerts.endpoint.email").value
     send_mail(
         '[Patrowl] New alert: '+message,
-        'Here is the message.',
+        'Message: {}\nDescription: {}'.format(message, description),
         'alerts@patrowl.io',
         [contact_mail],
         fail_silently=False,
