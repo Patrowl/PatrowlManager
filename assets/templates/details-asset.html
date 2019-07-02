@@ -257,7 +257,7 @@ div.risk-trends {
           {% for finding in findings %}
           <tr class='dblclickable-row' data-href='/findings/details/{{ finding.id }}'>
             <td><input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/></td>
-            <td>{{ finding.title }}</td>
+            <td>{{ finding.title|truncatechars:105 }}</td>
             <td>{{ finding.type }}</td>
             <td>
               {% if finding.severity == 'critical' %}

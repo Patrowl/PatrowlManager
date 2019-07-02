@@ -712,7 +712,7 @@ function toggle(source, element) {
   // Export finding
   $('button.btn-export-finding').on('click', function(e){
     finding_id = $("div#modal-finding-update").attr('finding-id');
-    redir = "/findings/api/v1/export/"+finding_id+"?raw=true&format="+e.target.getAttribute("export-type");
+    redir = "/findings/api/v1/export/"+finding_id+"?raw=true&output="+e.target.getAttribute("export-type");
     window.location = redir;
   });
 

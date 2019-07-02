@@ -13,7 +13,7 @@ django-celery-results==1.1.2
 django-cursor-pagination==0.1.3
 django-datetime-widget==0.9.3
 django-debug-toolbar==2.0
-django-extensions==1.8.1
+django-extensions==2.1.9
 django-rest-swagger==2.2.0
 django-timezone-field==3.0
 djangorestframework==3.9.4

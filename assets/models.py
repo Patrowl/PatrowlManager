@@ -344,13 +344,13 @@ class AssetGroup(models.Model):
         return ", ".join([asset.value for asset in self.assets.all()])
 
     def evaluate_risk(self):
-        criticity_factor = 0
-        if self.criticity == "low":
-            criticity_factor = 1
-        if self.criticity == "medium":
-            criticity_factor = 5
-        if self.criticity == "high":
-            criticity_factor = 10
+        # criticity_factor = 0
+        # if self.criticity == "low":
+        #     criticity_factor = 1
+        # if self.criticity == "medium":
+        #     criticity_factor = 5
+        # if self.criticity == "high":
+        #     criticity_factor = 10
 
         # Todo: update each asset
         return None

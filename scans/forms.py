@@ -107,7 +107,7 @@ class ScanDefinitionForm(forms.ModelForm):
         # if 'initial' in self.__dict__ and 'owner_id' in self.initial:
         #     oid = self.initial['owner_id']
 
-        policies = [(policy.id, policy.name) for policy in EnginePolicy.objects.all()]
+        policies = [(policy.id, policy.name) for policy in EnginePolicy.objects.all().only("name")]
         self.fields['engine_policy'].widget = forms.RadioSelect(choices=policies)
 
         assets = [(asset.id, asset.value) for asset in Asset.objects.all()]

@@ -2,6 +2,8 @@
 
 from django.http import JsonResponse, HttpResponse
 from wsgiref.util import FileWrapper
+from django.utils import timezone as tz
+
 from django.shortcuts import render, get_object_or_404
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
@@ -187,14 +189,20 @@ def get_scans_by_date_api(request):
         stop_date = date + timedelta(days=30)
 
     scans = Scan.objects.filter(updated_at__gte=date, updated_at__lte=stop_date)
+
     for scan in scans:
+        updated_at = scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%Y-%m-%d %H:%M:%S")
+        # if scan.updated_at.date() == timezone.now().date():
+        #     updated_at = timezone.localtime(scan.updated_at).strftime("%H:%M:%S")
+        # else:
+        #     updated_at = scan.updated_at.date().isoformat()
         data.append({
             "scan_id": scan.id,
             "status": scan.status,
             "engine_type": scan.engine_type.name,
             "title": scan.title,
             "summary": json.dumps(scan.summary),
-            "updated_at": scan.updated_at,
+            "updated_at": updated_at,
             "scan_definition_id": scan.scan_definition.id
         })
     return JsonResponse(data, safe=False)
@@ -264,7 +272,7 @@ def get_scan_report_json_api(request, scan_id):
     if not os.path.isfile(filename):
         return HttpResponse(status=404)
 
-    wrapper = FileWrapper(file(filename))
+    wrapper = FileWrapper(open(filename))
     response = HttpResponse(wrapper, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename=report_'+os.path.basename(filename)
     response['Content-Length'] = os.path.getsize(filename)

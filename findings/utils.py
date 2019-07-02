@@ -91,7 +91,7 @@ def _search_findings(request):
     else:
         findings = Finding.objects.filter(**filters).exclude(**excludes).order_by(
                  'asset_name', 'severity', 'status', 'type')
-    return findings
+    return findings.only("id", "asset_name", "title", "severity", "status", "engine_type", "updated_at")
 
 
 def _add_finding(request):

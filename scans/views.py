@@ -27,7 +27,6 @@ def detail_scan_view(request, scan_id):
     scan = get_object_or_404(Scan, id=scan_id)
     scan.update_sumary()
     scan.save()
-    scan_def = ScanDefinition.objects.get(id=scan.scan_definition.id)
 
     # Check search filters
     search_filters = request.GET.get("search", None)
@@ -63,13 +62,13 @@ def detail_scan_view(request, scan_id):
 
     # Search assets related to the scan
     if assets_filters == {}:
-        assets = scan.assets.all()
+        assets = scan.assets.all().only("id")
     else:
-        assets = scan.assets.filter(**assets_filters)
+        assets = scan.assets.filter(**assets_filters).only("id")
         findings_filters.update({"asset__in": assets})
 
     # Search asset groups related to the scan
-    assetgroups = scan_def.assetgroups_list.all()
+    assetgroups = scan.scan_definition.assetgroups_list.all()
 
     # Add the assets from the asset group to the existing list of assets
     if len(assetgroups) == 0:
@@ -91,8 +90,14 @@ def detail_scan_view(request, scan_id):
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
     for a in assets:
-        summary_assets.update({a.value: {"info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0, "total": 0}})
-    for f in raw_findings.filter(asset__in=assets).only("asset_name", "severity"):
+        summary_assets.update({
+            a.value: {
+                "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
+                "total": 0
+            }
+        })
+
+    for f in raw_findings.filter(asset__in=assets):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
             "total": summary_assets[f.asset_name]["total"] + 1
@@ -207,6 +212,7 @@ def delete_scan_def_view(request, scan_def_id):
 
 def add_scan_def_view(request):
     form = None
+    request_user_id = request.user.id
     scan_cats = EnginePolicyScope.objects.all().values()
     scan_policies = list(EnginePolicy.objects.all())
     scan_engines = Engine.objects.all().exclude(name="MANUAL").values()
@@ -214,7 +220,13 @@ def add_scan_def_view(request):
 
     scan_policies_json = []
     for p in scan_policies:
-        scan_policies_json.append(p.as_dict())
+        scan_policies_json.append({
+            "id": p.id,
+            "engine": p.engine.id,
+            "name": p.name,
+            "scopes": list(p.scopes.values_list("id", flat=True)),
+        })
+
 
     if request.method == 'GET' or ScanDefinitionForm(request.POST).errors:
         # if ScanDefinitionForm(request.POST).errors:
@@ -231,7 +243,7 @@ def add_scan_def_view(request):
             scan_definition.scan_type = form.cleaned_data['scan_type']
             scan_definition.title = form.cleaned_data['title']
             scan_definition.description = form.cleaned_data['description']
-            scan_definition.owner = User.objects.get(id=request.user.id)
+            scan_definition.owner = User.objects.get(id=request_user_id)
             scan_definition.status = "created"
             scan_definition.enabled = form.data['start_scan'] == "now"
             if form.cleaned_data['scan_type'] == 'periodic':
@@ -254,7 +266,7 @@ def add_scan_def_view(request):
 
             if int(form.data['engine_id']) > 0:
                 # todo: check if the engine is compliant with the scan policy
-                scan_definition.engine = EngineInstance.objects.get(id=form.data['engine_id'])
+                scan_definition.engine = EngineInstance.objects.get(id=int(form.data['engine_id']))
 
             scan_definition.save()
 
@@ -291,7 +303,7 @@ def add_scan_def_view(request):
                 },
                 "scan_definition_id": scan_definition.id,
                 "engine_name": str(scan_definition.engine_type.name).lower(),
-                "owner_id": request.user.id,
+                "owner_id": request_user_id,
             }
             if form.data['engine_id'] != '' and int(form.data['engine_id']) > 0:
                 # todo: check if the engine is compliant with the scan policy
@@ -328,9 +340,9 @@ def add_scan_def_view(request):
             else:  # Single later/now/scheduled
                 if form.data['start_scan'] == "now":
                     # start the single scan now
-                    _run_scan(scan_definition.id, request.user.id)
+                    _run_scan(scan_definition.id, request_user_id)
                 elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
-                    _run_scan(scan_definition.id, request.user.id, eta=scan_definition.scheduled_at)
+                    _run_scan(scan_definition.id, request_user_id, eta=scan_definition.scheduled_at)
 
             scan_definition.save()
 
@@ -346,6 +358,7 @@ def add_scan_def_view(request):
 
 
 def edit_scan_def_view(request, scan_def_id):
+    request_user_id = request.user.id
     scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
     scan_cats = EnginePolicyScope.objects.all().values()
     scan_policies = list(EnginePolicy.objects.all())
@@ -419,7 +432,7 @@ def edit_scan_def_view(request, scan_def_id):
                     },
                     "scan_definition_id": scan_definition.id,
                     "engine_name": str(scan_definition.engine_type.name).lower(),
-                    "owner_id": request.user.id,
+                    "owner_id": request_user_id,
                 }
                 if form.data['engine'] != '' and int(form.data['engine']) > 0:
                     parameters.update({

@@ -16,10 +16,11 @@ import ast
 
 
 def homepage_dashboard_view(request):
-    findings = Finding.objects.all()
+    findings = Finding.objects.all().only("status", "severity")
+    assets = Asset.objects.all()
     global_stats = {
         "assets": {
-            "total": Asset.objects.all().count(),
+            "total": assets.count(),
             "total_ag": AssetGroup.objects.all().count(),
         },
         "asset_types": {},
@@ -51,7 +52,7 @@ def homepage_dashboard_view(request):
 
     # update asset_types
     for at in ASSET_TYPES:
-        global_stats["asset_types"].update({at[0]: Asset.objects.filter(type=at[0]).count()})
+        global_stats["asset_types"].update({at[0]: assets.filter(type=at[0]).count()})
 
     # update nb_matches
     matches = 0
@@ -80,7 +81,7 @@ def homepage_dashboard_view(request):
 
     # Asset grades
     assets_risk_scores = {}
-    for asset in Asset.objects.all():
+    for asset in assets.only("risk_level", "criticity", "id"):
         asset_grades_map[asset.risk_level["grade"]].update({
             asset.criticity: asset_grades_map[asset.risk_level["grade"]][asset.criticity] + 1
         })
@@ -98,7 +99,8 @@ def homepage_dashboard_view(request):
 
     # Asset groups
     assetgroups_risk_scores = {}
-    for assetgroup in AssetGroup.objects.all():
+    ags = AssetGroup.objects.all().only("risk_level", "criticity", "id", "name")
+    for assetgroup in ags:
         assetgroup_grades_map[assetgroup.risk_level["grade"]].update({
             assetgroup.criticity: assetgroup_grades_map[assetgroup.risk_level["grade"]][assetgroup.criticity] + 1
         })
@@ -107,7 +109,8 @@ def homepage_dashboard_view(request):
     top_critical_assetgroups_scores = sorted(assetgroups_risk_scores.items(), key=operator.itemgetter(1))[::-1][:6]
     top_critical_assetgroups = []
     for assetgroup_id in top_critical_assetgroups_scores:
-        top_critical_assetgroups.append(AssetGroup.objects.get(id=assetgroup_id[0]))
+        # top_critical_assetgroups.append(AssetGroup.objects.get(id=assetgroup_id[0]))
+        top_critical_assetgroups.append(ags.get(id=assetgroup_id[0]))
 
     assetgroup_grades_map_list = []
     for key in sorted(assetgroup_grades_map.keys()):

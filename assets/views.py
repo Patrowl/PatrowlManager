@@ -81,15 +81,21 @@ def list_assets_view(request):
 
     # List asset groups
     asset_groups = []
-    for asset_group in AssetGroup.objects.all():
-        ag = model_to_dict(asset_group)
-        # extract asset names to diplay
-        asset_list = []
-        for asset in asset_group.assets.all():
-            asset_list.append(asset.value)
+    ags = AssetGroup.objects.all().annotate(
+            asset_list=ArrayAgg('assets__value')
+        ).only(
+            "id", "name", "assets", "criticity", "updated_at", "risk_level"
+        )
 
-        ag["assets_names"] = ", ".join(asset_list)
-        ag["risk_grade"] = asset_group.get_risk_grade()
+    for asset_group in ags:
+        ag = {
+            "id": asset_group.id,
+            "name": asset_group.name,
+            "criticity": asset_group.criticity,
+            "updated_at": asset_group.updated_at,
+            "assets_names": ", ".join(asset_group.asset_list),
+            "risk_grade": asset_group.risk_level['grade']
+        }
         asset_groups.append(ag)
 
     return render(
@@ -402,7 +408,7 @@ def detail_asset_view(request, asset_id):
     DEFAULT_LINKS = copy.deepcopy(ASSET_INVESTIGATION_LINKS)
     for i in DEFAULT_LINKS:
         if asset.type in i["datatypes"]:
-            if "links" in i.keys():
+            if "link" in [*i]:
                 i["link"] = i["link"].replace("%asset%", asset.value)
                 investigation_links.append(i)
 

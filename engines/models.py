@@ -207,6 +207,8 @@ class EnginePolicy(models.Model):
             self.file.close()
             file_b64 = {"filename": file_b64_name, "content": file_b64_content}
 
+        scopes = self.scopes.all().only("id", "name")
+
         return {
             'id': self.id,
             'name': self.name,
@@ -218,8 +220,8 @@ class EnginePolicy(models.Model):
             'options': self.options,
             'file': file_b64,
             'status': self.status,
-            'scopes': [s.id for s in self.scopes.all()],
-            'scope_names': [s.name for s in self.scopes.all()]
+            'scopes': list(scopes.values_list("id", flat=True)),
+            'scope_names': list(scopes.values_list("name", flat=True))
         }
 
 
