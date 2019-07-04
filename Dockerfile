@@ -15,6 +15,7 @@ RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
 RUN python --version
 RUN pip install --user virtualenv
+RUN /bin/bash/ -c "python3 -m virtualenv env3"
 RUN /bin/bash -c "source env3/bin/activate && pip3 install -r requirements.txt && deactivate"
 
 EXPOSE 8003
