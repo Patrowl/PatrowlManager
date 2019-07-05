@@ -128,10 +128,20 @@ def detail_scan_view(request, scan_id):
         "cvss_gte_70_pubdate_30d": raw_findings.filter(risk_info__cvss_base_score__gte=7.0, risk_info__vuln_publication_date__lte=month_ago.strftime('%Y/%m/%d')).count()
     }
 
+    # Pagination of assets
+    paginator_assets = Paginator(assets, 20)
+    page_assets = request.GET.get('p_assets', None)
+    try:
+        scan_assets = paginator_assets.page(page_assets)
+    except PageNotAnInteger:
+        scan_assets = paginator_assets.page(1)
+    except EmptyPage:
+        scan_assets = paginator_assets.page(paginator_assets.num_pages)
+
     # Pagination of findings
     scan_findings = raw_findings
     paginator_findings = Paginator(raw_findings, 50)
-    page_finding = request.GET.get('p_findings')
+    page_finding = request.GET.get('p_findings', None)
     try:
         scan_findings = paginator_findings.page(page_finding)
     except PageNotAnInteger:
@@ -142,7 +152,7 @@ def detail_scan_view(request, scan_id):
     # Pagination of events
     scan_events = scan.event_set.all().order_by('-id')
     paginator_events = Paginator(scan_events, 50)
-    page_event = request.GET.get('p_events')
+    page_event = request.GET.get('p_events', None)
     try:
         scan_events = paginator_events.page(page_event)
     except PageNotAnInteger:
@@ -154,7 +164,7 @@ def detail_scan_view(request, scan_id):
         'scan': scan,
         'summary_assets': summary_assets,
         'summary_assetgroups': summary_assetgroups,
-        'assets': assets,
+        'assets': scan_assets,
         'assetgroups': assetgroups,
         'other_assets': other_assets,
         'findings': scan_findings,
@@ -180,7 +190,19 @@ def list_scans_view(request):
 # Scan Definitions
 def list_scan_def_view(request):
     scans = Scan.objects.all()
-    scan_defs = ScanDefinition.objects.all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
+    scan_defs_all = ScanDefinition.objects.all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
+
+    # Pagination of findings
+    nb_items = int(request.GET.get('n', 50))
+    paginator_scans = Paginator(scan_defs_all, nb_items)
+    page_scan_defs = request.GET.get('p_scan_defs', None)
+    try:
+        scan_defs = paginator_scans.page(page_scan_defs)
+    except PageNotAnInteger:
+        scan_defs = paginator_scans.page(1)
+    except EmptyPage:
+        scan_defs = paginator_scans.page(paginator_scans.num_pages)
+
     return render(request, 'list-scan-definitions.html', {
         'scan_defs': scan_defs, 'scans': scans})
 
@@ -500,10 +522,14 @@ def compare_scans_view(request):
     scan_a = get_object_or_404(Scan, id=scan_a_id)
     scan_b = get_object_or_404(Scan, id=scan_b_id)
 
-    scan_a_missing_findings = scan_b.rawfinding_set.all().exclude(
-        hash__in=scan_a.rawfinding_set.values_list('hash'))
-    scan_b_missing_findings = scan_a.rawfinding_set.all().exclude(
-        hash__in=scan_b.rawfinding_set.values_list('hash'))
+    scan_a_missing_findings = list(
+        scan_b.rawfinding_set.all().values_list("id", flat=True).exclude(
+            hash__in=scan_a.rawfinding_set.values_list('hash')
+        ))
+    scan_b_missing_findings = list(
+        scan_a.rawfinding_set.all().values_list("id", flat=True).exclude(
+            hash__in=scan_b.rawfinding_set.values_list('hash'))
+        )
 
     return render(request, 'compare-scans.html', {
         'scan_a': scan_a,

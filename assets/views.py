@@ -439,22 +439,12 @@ def detail_asset_view(request, asset_id):
 
 def detail_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
-    findings = Finding.objects.filter(
+    findings = Finding.objects.severity_ordering().filter(
             asset__in=asset_group.assets.all()
-        ).annotate(
-            severity_numm=Case(
-                When(severity="critical", then=Value("0")),
-                When(severity="high", then=Value("1")),
-                When(severity="medium", then=Value("2")),
-                When(severity="low", then=Value("3")),
-                When(severity="info", then=Value("4")),
-                default=Value("1"),
-                output_field=CharField()
-            )
         ).annotate(
             scope_list=ArrayAgg('scopes__name')
         ).order_by(
-            'asset', 'severity_numm', 'type', 'updated_at'
+            '-severity_order', 'asset', 'type', 'updated_at'
         ).only(
             "severity", "status", "engine_type", "risk_info", "vuln_refs",
             "title", "id", "solution", "updated_at", "type", "asset_id",

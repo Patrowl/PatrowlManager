@@ -261,7 +261,7 @@ div.risk-trends {
           </tr>
         </thead>
         <tbody>
-          {% for asset in asset_group.assets.all|sort_by:"value,type" %}
+          {% for asset in asset_group.assets.all|sort_by:"-risk_level__grade,criticity,type" %}
           <tr class='dblclickable-row' data-href='/assets/details/{{ asset.id }}'>
             <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
             <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value }})</a></td>

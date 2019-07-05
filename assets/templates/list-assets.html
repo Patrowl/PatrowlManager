@@ -70,8 +70,8 @@ function toggle(source, element) {
             <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
               <li><a onclick="sortby('name', 'assets');">Name</a></li>
               <li><a onclick="sortby('criticity_num', 'assets');">Criticity</a></li>
-              <li><a onclick="sortby('-risk_level', 'assets');">Score</a></li>
-              <li><a onclick="sortby('criticity_num,-risk_level', 'assets');">Criticity + Score</a></li>
+              <li><a onclick="sortby('-risk_level__grade', 'assets');">Score</a></li>
+              <li><a onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticity + Score</a></li>
               <li><a onclick="sortby('type', 'assets');">Type</a></li>
               <li><a onclick="sortby('-updated_at', 'assets');">Last update</a></li>
             </ul>
@@ -89,7 +89,7 @@ function toggle(source, element) {
               <th data-field="name"  onclick="sortby('name', 'assets');">Name</th>
               <th data-field="categories">Tags</th>
               <th data-field="criticity" onclick="sortby('criticity_num', 'assets');">Criticity</th>
-              <th data-field="score" onclick="sortby('-risk_level', 'assets');">Score</th>
+              <th data-field="score" onclick="sortby('-risk_level__grade', 'assets');">Score</th>
               <th data-field="type" onclick="sortby('type', 'assets');">Type</th>
               <th data-field="updated_at" onclick="sortby('-updated_at', 'assets');">Last update</th>
               <th data-field="actions">Actions</th>

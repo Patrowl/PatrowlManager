@@ -1,23 +1,7 @@
 {% extends 'base.html' %}
 {% load patrowl_tags %}
 {% block content %}
-<style>
-.glyphicon-refresh-animate {
-    -animation: spin .7s infinite linear;
-    -webkit-animation: spin2 .7s infinite linear;
-}
 
-@-webkit-keyframes spin2 {
-    from { -webkit-transform: rotate(0deg);}
-    to { -webkit-transform: rotate(360deg);}
-}
-
-@keyframes spin {
-    from { transform: scale(1) rotate(0deg);}
-    to { transform: scale(1) rotate(360deg);}
-}
-
-</style>
 <ul class="breadcrumb">
   <li><a href="/scans/list">scans</a></li>
   <li class="active">definitions [<a href="/scans/defs/add">+ Add new</a>]</li>
@@ -76,6 +60,38 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- Scans Pagination -->
+  <div style="display: inline-flex;">
+    <ul class="pagination pagination-xs">
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage(1, 'scan_defs');">&laquo;&laquo;</a>
+      </li>
+      {% if scan_defs.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href= "#" onclick="gotopage({{ scan_defs.previous_page_number }}, 'scan_defs');">&laquo;</a>
+      </li>
+      {% endif %}
+      {% for pn in scan_defs.paginator.page_range %}
+      {% if pn == scan_defs.number %}
+      <li class="page-item active">
+      {% else %}
+      <li class="page-item">
+      {% endif %}
+        <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'scan_defs');">{{ pn }}</a>
+      </li>
+      {% endfor %}
+      {% if scan_defs.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage({{ scan_defs.next_page_number }}, 'scan_defs');">&raquo;</a>
+      </li>
+      {% endif %}
+      <li class="page-item">
+        <a class="page-link" href="#" onclick="gotopage({{ scan_defs.paginator.num_pages }}, 'scan_defs');">&raquo;&raquo;</a>
+      </li>
+    </ul>
+  </div>
+  <br/>
   <a href="/scans/defs/add">+ Add a new scan definition</a><br/>
   <a href="/scans/list">+ View performed scans</a><br/>
   <br/>
@@ -141,6 +157,14 @@
 </div>
 
 <script>
+
+  // Goto page
+  url = new URL(window.location.href);
+  var gotopage = function gotopage(page_num, target = "scan_defs") {
+    url.searchParams.set("p_scan_defs", page_num);
+    window.location = url.search;
+  };
+
   function toggle(source) {
     checkboxes = document.getElementsByName('scan');
     for(var i=0, n=checkboxes.length;i<n;i++) {

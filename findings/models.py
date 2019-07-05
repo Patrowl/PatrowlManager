@@ -39,6 +39,24 @@ FINDING_STATUS = (
 )
 
 
+class FindingManager(models.Manager):
+    def severity_ordering(self, *args, **kwargs):
+        """Sort patterns by preferred order of finding severities."""
+        qs = self.get_queryset().filter(*args, **kwargs)
+        qs = qs.annotate(severity_order=
+            models.Case(
+                models.When(severity='info', then=models.Value(0)),
+                models.When(severity='low', then=models.Value(1)),
+                models.When(severity='medium', then=models.Value(2)),
+                models.When(severity='high', then=models.Value(3)),
+                models.When(severity='critical', then=models.Value(4)),
+                default=models.Value(0),
+                output_field=models.IntegerField(), )
+            ).order_by('-severity_order', 'asset_name', 'title'
+        )
+        return qs
+
+
 class RawFinding(models.Model):
     # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='raw_findings')
     asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
@@ -68,6 +86,8 @@ class RawFinding(models.Model):
     comments    = models.TextField(default="n/a", null=True, blank=True)
     created_at  = models.DateTimeField(default=timezone.now)
     updated_at  = models.DateTimeField(default=timezone.now)
+
+    objects = FindingManager()
 
     class Meta:
         db_table = 'raw_findings'
@@ -157,6 +177,8 @@ class Finding(models.Model):
     checked_at  = models.DateTimeField(default=timezone.now)
     created_at  = models.DateTimeField(default=timezone.now)
     updated_at  = models.DateTimeField(default=timezone.now)
+
+    objects = FindingManager()
 
     class Meta:
         db_table = 'findings'

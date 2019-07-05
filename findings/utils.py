@@ -87,10 +87,10 @@ def _search_findings(request):
         filters.update({"scan__engine_policy__scopes__in": filter_by_scope})
 
     if str(filter_limit).isdigit():
-        findings = Finding.objects.filter(**filters).exclude(**excludes)[:int(filter_limit)]
+        findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes)[:int(filter_limit)]
     else:
-        findings = Finding.objects.filter(**filters).exclude(**excludes).order_by(
-                 'asset_name', 'severity', 'status', 'type')
+        findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes).order_by(
+                 '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
     return findings.only("id", "asset_name", "title", "severity", "status", "engine_type", "updated_at")
 
 

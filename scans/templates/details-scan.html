@@ -117,7 +117,7 @@ function toggle(source, element) {
               </tr>
             </thead>
             <tbody>
-            {% for asset in assets|sort_by:"criticity,value" %}
+            {% for asset in assets %}
             <tr>
             <!-- <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}?raw=true'> -->
               <td>{{ asset.value|truncatechars:35 }}</td>
@@ -165,6 +165,37 @@ function toggle(source, element) {
             {% endfor %}
             </tbody>
           </table>
+
+          <!-- Asset Pagination -->
+          <div style="display: inline-flex;">
+            <ul class="pagination pagination-xs">
+              <li class="page-item">
+                <a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a>
+              </li>
+              {% if assets.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href= "#" onclick="gotopage({{ assets.previous_page_number }}, 'assets');">&laquo;</a>
+              </li>
+              {% endif %}
+              {% for pn in assets.paginator.page_range %}
+              {% if pn == assets.number %}
+              <li class="page-item active">
+              {% else %}
+              <li class="page-item">
+              {% endif %}
+                <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'assets');">{{ pn }}</a>
+              </li>
+              {% endfor %}
+              {% if assets.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="#" onclick="gotopage({{ assets.next_page_number }}, 'assets');">&raquo;</a>
+              </li>
+              {% endif %}
+              <li class="page-item">
+                <a class="page-link" href="#" onclick="gotopage({{ assets.paginator.num_pages }}, 'assets');">&raquo;&raquo;</a>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <!-- Asset groups tab -->
@@ -281,7 +312,7 @@ function toggle(source, element) {
             </tbody>
           </table>
 
-          <!-- Pagination -->
+          <!-- Findings Pagination -->
           <div style="display: inline-flex;">
             <ul class="pagination pagination-xs">
               <li class="page-item">
@@ -338,7 +369,7 @@ function toggle(source, element) {
             </tbody>
           </table>
 
-          <!-- Pagination -->
+          <!-- Event Pagination -->
           <div style="display: inline-flex;">
             <ul class="pagination pagination-xs">
               <li class="page-item">
@@ -663,6 +694,9 @@ function toggle(source, element) {
     } else if (target == "findings") {
       url.searchParams.set("p_findings", page_num);
       new_hash = "#findings";
+    } else if (target == "assets") {
+      url.searchParams.set("p_assets", page_num);
+      new_hash = "#assets";
     }
     window.location = url.search+new_hash;
   };

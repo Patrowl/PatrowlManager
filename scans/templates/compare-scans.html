@@ -50,8 +50,8 @@
           </tr>
         </thead>
         <tbody>
-          {% for finding in scan.rawfinding_set.all|sort_by:'severity,asset_name,title' %}
-          {% if finding in scan_b_missing_findings%}
+          {% for finding in scan.rawfinding_set.severity_ordering %}
+          {% if finding.id in scan_b_missing_findings %}
           <tr style="border: 1px solid #18bc9c">
             <td class="bg-success">
           {% else %}
@@ -60,17 +60,19 @@
           {% endif %}
               <input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/>
             </td>
-            <td>{{finding.asset.value}}</td>
+            <td>{{finding.asset_name}}</td>
             <td><a href="/findings/details/{{finding.id}}?raw=true">{{finding.title}}</a></td>
             <td>
-              {% if finding.severity == 'critical' or finding.severity == 'high' %}
-              <span class="label label-danger">{{ finding.severity }}</span>
+              {% if finding.severity == 'critical' %}
+              <span class="label label-critical">{{ finding.severity }}</span>
+              {% elif finding.severity == 'high' %}
+              <span class="label label-high">{{ finding.severity }}</span>
               {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-              <span class="label label-warning">{{ finding.severity }}</span>
+              <span class="label label-medium">{{ finding.severity }}</span>
               {% elif finding.severity == 'low' %}
-              <span class="label label-primary">{{ finding.severity }}</span>
+              <span class="label label-low">{{ finding.severity }}</span>
               {% else %}
-              <span class="label label-default">{{ finding.severity }}</span>
+              <span class="label label-info">{{ finding.severity }}</span>
               {% endif %}
             </td>
           </tr>
@@ -117,9 +119,9 @@
             </tr>
           </thead>
           <tbody>
-            {% for finding in scan.rawfinding_set.all|sort_by:'severity,asset_name,title' %}
+            {% for finding in scan.rawfinding_set.severity_ordering %}
 
-            {% if finding in scan_a_missing_findings%}
+            {% if finding.id in scan_a_missing_findings %}
             <tr style="border: 1px solid #18bc9c">
               <td class="bg-success">
             {% else %}
@@ -128,17 +130,19 @@
             {% endif %}
                 <input type="checkbox" class="radio" name="finding" value="{{ finding.id }}"/>
               </td>
-              <td>{{finding.asset.value}}</td>
+              <td>{{finding.asset_name}}</td>
               <td><a href="/findings/details/{{finding.id}}?raw=true">{{finding.title}}</a></td>
               <td>
-                {% if finding.severity == 'critical' or finding.severity == 'high' %}
-                <span class="label label-danger">{{ finding.severity }}</span>
+                {% if finding.severity == 'critical' %}
+                <span class="label label-critical">{{ finding.severity }}</span>
+                {% elif finding.severity == 'high' %}
+                <span class="label label-high">{{ finding.severity }}</span>
                 {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-                <span class="label label-warning">{{ finding.severity }}</span>
+                <span class="label label-medium">{{ finding.severity }}</span>
                 {% elif finding.severity == 'low' %}
-                <span class="label label-primary">{{ finding.severity }}</span>
+                <span class="label label-low">{{ finding.severity }}</span>
                 {% else %}
-                <span class="label label-default">{{ finding.severity }}</span>
+                <span class="label label-info">{{ finding.severity }}</span>
                 {% endif %}
               </td>
             </tr>
@@ -171,13 +175,14 @@
     data: {
         datasets: [{
             backgroundColor: [
+                "#CC0500", // Critical - RED
                 "#FF0000", // High - RED
                 "#FF8000", // Medium - ORANGE
                 "#FFFF00", // Low - YELLOW
                 "#66D2FF"  // Info - BLUE
             ],
         }],
-        labels: ["High", "Medium", "Low", "Info"]
+        labels: ["Critical", "High", "Medium", "Low", "Info"]
     },
     options: {
       responsive: true,
@@ -193,7 +198,7 @@
   };
   xhr_a = $.get(getfindings_severities_url_a, function(resp) {
     config = jQuery.extend(true, {}, chart_fs_config);
-    config["data"]["datasets"][0]["data"] = new Array(resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
+    config["data"]["datasets"][0]["data"] = new Array(resp["nb_critical"], resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
     ctx = $("#chart-findings-summary-a");
     ctx.attr('width', 100);
     ctx.attr('height',100);
@@ -201,7 +206,7 @@
   });
   xhr_b = $.get(getfindings_severities_url_b, function(resp) {
     config = jQuery.extend(true, {}, chart_fs_config);
-    config["data"]["datasets"][0]["data"] = new Array(resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
+    config["data"]["datasets"][0]["data"] = new Array(resp["nb_critical"], resp["nb_high"], resp["nb_medium"], resp["nb_low"], resp["nb_info"])
     ctx = $("#chart-findings-summary-b");
     ctx.attr('width', 100);
     ctx.attr('height',100);
