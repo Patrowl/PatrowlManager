@@ -394,7 +394,10 @@ def startscan_task(self, params):
             scan.status = "error"
             scan.finished_at = timezone.now()
             scan.save()
-            Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
+            response_reason = 'Unknown'
+            if 'details' in json.loads(resp.text) and 'reason' in json.loads(resp.text)['details']:
+                response_reason = json.loads(resp.text)['details']['reason']
+            Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (response_status_code={}, response_status={}, response_details={}). Task aborted.".format(self.request.id, resp.status_code, json.loads(resp.text)['status'], response_reason),
                          description=str(resp.text), type="ERROR", severity="ERROR", scan=scan)
             return False
     except requests.exceptions.RequestException as e:

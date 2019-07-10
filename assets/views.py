@@ -88,12 +88,15 @@ def list_assets_view(request):
         )
 
     for asset_group in ags:
+        assets_names = ""
+        if asset_group.asset_list != [None]:
+            assets_names = ", ".join(asset_group.asset_list)
         ag = {
             "id": asset_group.id,
             "name": asset_group.name,
             "criticity": asset_group.criticity,
             "updated_at": asset_group.updated_at,
-            "assets_names": ", ".join(asset_group.asset_list),
+            "assets_names": assets_names,
             "risk_grade": asset_group.risk_level['grade']
         }
         asset_groups.append(ag)
