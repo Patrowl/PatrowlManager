@@ -151,7 +151,6 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                                 Event.objects.create(
                                     message="[EngineTasks/importfindings_task()] finding not added.",
                                     type="DEBUG", severity="INFO",
-                                    scan=scan,
                                     description="No ip address for asset {} found".format(asset.get('name'))
                                 )
                                 summary['missing'] += 1

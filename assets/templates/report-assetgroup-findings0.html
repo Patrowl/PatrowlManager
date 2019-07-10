@@ -398,12 +398,12 @@
                     <tr>
                       <td>
                         <table>
-                          {% for asset in assets %}
+                          {% for asset in asset_group.assets.all %}
                           <tr>
                             <td width="5%"><table style="table-layout: fixed;" width="10px" height="10px">
                               <tr><td class="nopadding classcell2"></td></tr>
                             </table></td>
-                            <td width="95%"><a href="#id_asset_{{ asset.id }}">{{ asset.value }}</a></td>
+                            <td width="95%"><a href="#id_asset_{{ asset.id }}">{{ asset }}</a></td>
                           </tr>
                           {% endfor %}
                         </table>
@@ -456,7 +456,7 @@
                   </table>
 
                   <h1 xmlns="" class="classchapter" id="id_findings">Findings by assets</h1>
-                  {% for asset in assets %}
+                  {% for asset in asset_group.assets.all %}
 
                   <h2 xmlns="" class="classh1" id="id_asset_{{asset.id}}" style="vertical-align: middle; background-color: #9ca9b5;">{{ asset.name }} ({{ asset.value }})</h2>
                   <h2 xmlns="" class="classh1" style="vertical-align: middle;">Asset information</h2>
@@ -508,7 +508,7 @@
                   </table>
 
                   <h2 xmlns="" class="classh1 " style="vertical-align: middle;">Results Details</h2>
-                  {% for finding in asset.finding_set.all|sort_by:"-severity_num" %}
+                  {% for finding in asset.finding_set.all %}
                   <span xmlns="" class="classh1_grey">
                     <h2>
                       <span class="classsection_sub">

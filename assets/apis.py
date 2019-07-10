@@ -467,35 +467,22 @@ def get_asset_report_json_api(request, asset_id):
 
 @api_view(['GET'])
 def get_asset_group_report_html_api(request, asset_group_id):
-    asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
+    # asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
+    asset_group = get_object_or_404(AssetGroup.objects.prefetch_related("assets"), id=asset_group_id)
+    assets = asset_group.assets.all().only(
+        "value", "name", "type", "criticity", "risk_level", "description",
+        "created_at")
 
-    for asset in asset_group.assets.all():
-        findings_tmp = list()
-        findings_stats = {}
-
-        # @todo: invert loops
-        for sev in ["critical", "high", "medium", "low", "info"]:
-            tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
-            findings_stats.update({sev: tmp.count()})
-            if tmp.count() > 0:
-                for f in tmp:
-                    tmp_f = model_to_dict(f, exclude=["scopes"])
-                    tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
-                    findings_tmp.append(tmp_f)
-
-        asset_dict = model_to_dict(asset, exclude=["categories"])
-        asset_tags = [tag.value for tag in asset.categories.all()]
-        asset_dict.update({"categories": asset_tags})
+    # OPTIMIZE: findings
 
     return render(request, 'report-assetgroup-findings.html', {
         'asset_group': asset_group,
-        'findings': findings_tmp,
-        'findings_stats': findings_stats})
+        'assets': assets})
 
 
 @api_view(['GET'])
 def get_asset_group_report_json_api(request, asset_group_id):
-    asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
+    asset_group = get_object_or_404(AssetGroup.objects.prefetch_related("assets"), id=asset_group_id)
 
     assets = list()
     for asset in asset_group.assets.all():
@@ -506,8 +493,9 @@ def get_asset_group_report_json_api(request, asset_group_id):
         # @todo: invert loops
         for sev in ["critical", "high", "medium", "low", "info"]:
             tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
-            findings_stats.update({sev: tmp.count()})
-            if tmp.count() > 0:
+            tmp_count = tmp.count()
+            findings_stats.update({sev: tmp_count})
+            if tmp_count > 0:
                 for f in tmp:
                     tmp_f = model_to_dict(f, exclude=["scopes"])
                     tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
@@ -521,6 +509,7 @@ def get_asset_group_report_json_api(request, asset_group_id):
             'findings': findings_tmp,
             'findings_stats': findings_stats
             })
+
 
     return JsonResponse(assets, safe=False)
 

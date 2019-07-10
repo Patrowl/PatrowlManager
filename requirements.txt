@@ -45,7 +45,7 @@ six==1.10.0
 sqlparse==0.2.3
 supervisor==4.0.3
 thehive4py==1.4.3
-tornado==4.5.1
+tornado==5.1.0
 tzlocal==1.5.1
 uritemplate==3.0.0
 urllib3==1.25.3

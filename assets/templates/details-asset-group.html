@@ -219,22 +219,6 @@ div.risk-trends {
 </div>
 
 <div class="container-fluid">
-  <div class="row">
-    <div class="col-md-11">
-      <div class="dropdown">
-        <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-          Actions
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-          <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="container-fluid">
   <ul class="nav nav-tabs" id="menu_tabs_ul">
     <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div">Assets</a></li>
     <li class="menu_findings"><a data-toggle="tab"  href="#findings_div">Findings</a></li>
@@ -246,7 +230,15 @@ div.risk-trends {
   </ul>
   <div class="tab-content">
     <div id="assets_div" class="tab-pane fade in active">
-
+      <div class="dropdown">
+        <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+          Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+          <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li>
+        </ul>
+      </div>
       <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
         <thead>
           <tr>
@@ -261,7 +253,8 @@ div.risk-trends {
           </tr>
         </thead>
         <tbody>
-          {% for asset in asset_group.assets.all|sort_by:"-risk_level__grade,criticity,type" %}
+          {# for asset in assets|sort_by:"-risk_level__grade,criticity,type" #}
+          {% for asset in assets %}
           <tr class='dblclickable-row' data-href='/assets/details/{{ asset.id }}'>
             <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
             <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value }})</a></td>
@@ -315,7 +308,47 @@ div.risk-trends {
           {% endfor %}
         </tbody>
       </table>
+
+      <!-- Asset Pagination -->
+      <div style="display: inline-flex;">
+        <ul class="pagination pagination-xs">
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a>
+          </li>
+          {% if assets.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href= "#" onclick="gotopage({{ assets.previous_page_number }}, 'assets');">&laquo;</a>
+          </li>
+          {% endif %}
+          {% for pn in assets.paginator.page_range %}
+          {% if pn == assets.number %}
+          <li class="page-item active">
+          {% else %}
+          <li class="page-item">
+          {% endif %}
+            <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'assets');">{{ pn }}</a>
+          </li>
+          {% endfor %}
+          {% if assets.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage({{ assets.next_page_number }}, 'assets');">&raquo;</a>
+          </li>
+          {% endif %}
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage({{ assets.paginator.num_pages }}, 'assets');">&raquo;&raquo;</a>
+          </li>
+        </ul>
+        <div style="margin: 21px;">
+          <select id="nb_assets_per_page" >
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="200">200</option>
+          </select>
+          &nbsp;assets per page
+        </div>
+      </div>
     </div>
+
     <div id="findings_div" class="tab-pane fade">
       <div class="dropdown">
         <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -383,6 +416,44 @@ div.risk-trends {
       {% endfor %}
       </tbody>
       </table>
+      <!-- Findings Pagination -->
+      <div style="display: inline-flex;">
+        <ul class="pagination pagination-xs">
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage(1, 'findings');">&laquo;&laquo;</a>
+          </li>
+          {% if findings.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href= "#" onclick="gotopage({{ findings.previous_page_number }}, 'findings');">&laquo;</a>
+          </li>
+          {% endif %}
+          {% for pn in findings.paginator.page_range %}
+          {% if pn == findings.number %}
+          <li class="page-item active">
+          {% else %}
+          <li class="page-item">
+          {% endif %}
+            <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'findings');">{{ pn }}</a>
+          </li>
+          {% endfor %}
+          {% if findings.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage({{ findings.next_page_number }}, 'findings');">&raquo;</a>
+          </li>
+          {% endif %}
+          <li class="page-item">
+            <a class="page-link" href="#" onclick="gotopage({{ findings.paginator.num_pages }}, 'findings');">&raquo;&raquo;</a>
+          </li>
+        </ul>
+        <div style="margin: 21px;">
+          <select id="nb_findings_per_page" >
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="200">200</option>
+          </select>
+          &nbsp;findings per page
+        </div>
+      </div>
     </div>
     <div id="remediations_div" class="tab-pane fade">
 
@@ -744,6 +815,52 @@ div.risk-trends {
 
 <script>
 
+  // Search bar & pagination
+  url = new URL(window.location.href);
+  var gotopage = function gotopage(page_num, target = "assets") {
+    new_hash = "";
+    if (target == "scans") {
+      url.searchParams.set("p_scans", page_num);
+      new_hash = "#scans_div";
+    } else if (target == "findings") {
+      url.searchParams.set("p_findings", page_num);
+      new_hash = "#findings_div";
+    } else if (target == "assets") {
+      url.searchParams.set("p_assets", page_num);
+      new_hash = "#assets_div";
+    } else if (target == "remediations") {
+      url.searchParams.set("p_remediations", page_num);
+      new_hash = "#remediations_div";
+    }
+    window.location = url.search+new_hash;
+  };
+
+  // Manage nb_rows_per_page
+  _nb_rows = url.searchParams.get("n_assets");
+  if (typeof _nb_rows === "undefined") {
+    _nb_rows = 10
+  } else {
+    $('#nb_assets_per_page option:eq('+_nb_rows+')').prop('selected', true);
+  }
+  _nb_rows = url.searchParams.get("n_findings");
+  if (typeof _nb_rows === "undefined") {
+    _nb_rows = 10
+  } else {
+    $('#nb_findings_per_page option:eq('+_nb_rows+')').prop('selected', true);
+  }
+
+  $('#nb_assets_per_page').change(function(e){
+    nb_rows = e.target.value;
+    url.searchParams.set("n_assets", nb_rows);
+    window.location = url.search;
+  });
+  $('#nb_findings_per_page').change(function(e){
+    nb_rows = e.target.value;
+    url.searchParams.set("n_findings", nb_rows);
+    window.location = url.search;
+  });
+
+  // Toggle checkboxes
   function toggle(source, element) {
     checkboxes = document.getElementsByName(element);
     for(var i=0, n=checkboxes.length;i<n;i++) {
@@ -894,10 +1011,19 @@ div.risk-trends {
       });
     });
 
-    // Fixing bootstrap tab issue
-    $('#menu_tabs_ul > li > a').click(function(e) {
+    // Goto selected #tab when page loads
+    var hash = window.location.hash;
+    hash && $('ul.nav li a[href="' + hash + '"]').tab('show');
+    // // Fixing bootstrap tab issue
+    $('#menu_tabs_ul a').click(function(e) {
+      // console.log(this);
       $(this).removeClass('active');
+      // console.log(this);
     });
+    // // Fixing bootstrap tab issue
+    // $('#menu_tabs_ul > li > a').click(function(e) {
+    //   $(this).removeClass('active');
+    // });
 
   });
 </script>

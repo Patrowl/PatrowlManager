@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.core.files import File
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import F
 from django_celery_beat.models import PeriodicTask
 from .models import Engine, EngineInstance, EnginePolicy, EnginePolicyScope
 from .forms import EnginePolicyForm, EngineInstanceForm, EngineForm, EnginePolicyImportForm
@@ -14,7 +15,11 @@ import base64
 
 
 def list_engines_view(request):
-    engines = EngineInstance.objects.all().order_by('name')
+    engines = EngineInstance.objects.all().only(
+        "name", "enabled", "status", "api_url", "updated_at"
+    ).annotate(
+        type=F("engine__name")
+    ).order_by('name')
     autorefresh_task = PeriodicTask.objects.filter(name='[PO] Auto-refresh engines status')
     if autorefresh_task.count() > 0:
         autorefresh_status = autorefresh_task.first().enabled
@@ -93,7 +98,9 @@ def edit_engine_view(request, engine_id):
 
 
 def list_policies_view(request):
-    policies = EnginePolicy.objects.all().order_by("engine__name", "name")
+    policies = EnginePolicy.objects.all().prefetch_related("scopes").annotate(
+        type=F("engine__name")
+    ).order_by("type", "name")
     return render(request, 'list-engine-policies.html', {'policies': policies})
 
 
@@ -247,7 +254,7 @@ def edit_policy_view(request, policy_id):
 
 
 def list_engine_types_view(request):
-    engines = Engine.objects.all().order_by("name")
+    engines = Engine.objects.all().prefetch_related("engineinstance_set").order_by("name")
     for eng in engines:
         if eng.allowed_asset_types:
             eng.allowed_asset_types = ", ".join(eval(eng.allowed_asset_types))

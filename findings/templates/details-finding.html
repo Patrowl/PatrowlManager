@@ -5,13 +5,10 @@
 <style>
 .dl-horizontal dd {
   margin-left: 100px;
-  /* font-size: small; */
 }
 .dl-horizontal dt {
   text-align: left;
-  /* font-weight: 100; */
   font-weight: 600;
-  /* font-size: small; */
 }
 hr {
   margin-top: 5px;
@@ -221,33 +218,33 @@ hr {
       <b>References</b>
       <hr class="my-1">
       <dl class="dl-horizontal">
-        {% if "cve" in finding.vuln_refs.keys %}
+        {% if "CVE" in finding.vuln_refs.keys %}
         <dt>CVE:</dt>
         <dd>
-          {% if finding.vuln_refs.cve|get_class == "list" %}
-            {% for v in finding.vuln_refs.cve %}
+          {% if finding.vuln_refs.CVE|get_class == "list" %}
+            {% for v in finding.vuln_refs.CVE %}
               <a target="_blank" href="https://nvd.nist.gov/vuln/detail/{{v}}">{{v}}</a>{% if not forloop.last %}, {% endif %}
             {% endfor %}
           {% else %}
-            <a target="_blank" href="https://nvd.nist.gov/vuln/detail/{{finding.vuln_refs.cve}}">{{finding.vuln_refs.cve}}</a>
+            <a target="_blank" href="https://nvd.nist.gov/vuln/detail/{{finding.vuln_refs.CVE}}">{{finding.vuln_refs.CVE}}</a>
           {% endif %}
         </dd>
         {% endif %}
 
-        {% if "bid" in finding.vuln_refs.keys %}
+        {% if "BID" in finding.vuln_refs.keys %}
         <dt>Bugtraq ID:</dt>
         <dd>
-          {% if finding.vuln_refs.bid|get_class == "list" %}
-            {% for v in finding.vuln_refs.bid %}
+          {% if finding.vuln_refs.BID|get_class == "list" %}
+            {% for v in finding.vuln_refs.BID %}
               <a target="_blank" href="https://www.securityfocus.com/bid/{{v}}">{{v}}</a>{% if not forloop.last %}, {% endif %}
             {% endfor %}
           {% else %}
-            <a target="_blank" href="https://www.securityfocus.com/bid/{{finding.vuln_refs.bid}}">{{finding.vuln_refs.bid}}</a>
+            <a target="_blank" href="https://www.securityfocus.com/bid/{{finding.vuln_refs.BID}}">{{finding.vuln_refs.BID}}</a>
           {% endif %}
         </dd>
         {% endif %}
 
-        {% with "cve bid" as list %}
+        {% with "CVE BID" as list %}
         {% for key, values in finding.vuln_refs.items %}
           {% if key not in list.split %}
           <dt>{{ key }}:</dt>

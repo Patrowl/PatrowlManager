@@ -439,6 +439,9 @@ def detail_asset_view(request, asset_id):
 
 def detail_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
+
+    assets_list = asset_group.assets.all().order_by("-risk_level__grade","criticity","type")
+
     findings = Finding.objects.severity_ordering().filter(
             asset__in=asset_group.assets.all()
         ).annotate(
@@ -509,10 +512,35 @@ def detail_asset_group_view(request, assetgroup_id):
         # 'year_ago': asset_group.get_risk_grade(history = 365)
     }
 
+    # Paginations
+    # Pagination assets
+    nb_rows = int(request.GET.get('n_assets', 25))
+    assets_paginator = Paginator(assets_list, nb_rows)
+    page = request.GET.get('p_assets')
+    try:
+        assets = assets_paginator.page(page)
+    except PageNotAnInteger:
+        assets = assets_paginator.page(1)
+    except EmptyPage:
+        assets = assets_paginator.page(assets_paginator.num_pages)
+
+    # Pagination findings
+    nb_rows = int(request.GET.get('n_findings', 50))
+    findings_paginator = Paginator(findings, nb_rows)
+    page = request.GET.get('p_findings')
+    try:
+        ag_findings = findings_paginator.page(page)
+    except PageNotAnInteger:
+        ag_findings = findings_paginator.page(1)
+    except EmptyPage:
+        ag_findings = findings_paginator.page(findings_paginator.num_pages)
+
     return render(request, 'details-asset-group.html', {
         'asset_group': asset_group,
         'asset_group_risk_grade': asset_group_risk_grade,
-        'findings': findings,
+        'assets': assets,
+        # 'findings': findings,
+        'findings': ag_findings,
         'findings_stats': findings_stats,
         'scans_stats': scans_stats,
         'scans': scans,

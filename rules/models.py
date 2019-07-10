@@ -214,6 +214,11 @@ def send_thehive_message(rule, message, asset, description):
             if response.status_code == 201:
                 alert_id = response.json()['id']
                 # todo: track theHive alerts
+                Event.objects.create(
+                    message="[Rule][send_thehive_message()] "
+                    "Alert sent to TheHive with message '{}' (alert id: {})".format(message, alert_id),
+                    type="DEBUG", severity="DEBUG"
+                )
             else:
                 Event.objects.create(
                     message="[Rule][send_thehive_message()] Unable to send "

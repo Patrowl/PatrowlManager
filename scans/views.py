@@ -8,7 +8,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, F
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
-from app.settings import TIME_ZONE
+# from app.settings import TIME_ZONE
 from .forms import ScanDefinitionForm
 from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan
@@ -17,7 +17,7 @@ from findings.models import RawFinding
 from assets.models import Asset, AssetGroup
 
 from datetime import timedelta, datetime
-from pytz import timezone
+# from pytz import timezone
 import shlex
 import json
 
@@ -62,13 +62,13 @@ def detail_scan_view(request, scan_id):
 
     # Search assets related to the scan
     if assets_filters == {}:
-        assets = scan.assets.all().only("id")
+        assets = scan.assets.all().only("id", "value", "criticity", "type")
     else:
-        assets = scan.assets.filter(**assets_filters).only("id")
+        assets = scan.assets.filter(**assets_filters).only("id", "value", "criticity", "type")
         findings_filters.update({"asset__in": assets})
 
     # Search asset groups related to the scan
-    assetgroups = scan.scan_definition.assetgroups_list.all()
+    assetgroups = scan.scan_definition.assetgroups_list.all().prefetch_related("assets")
 
     # Add the assets from the asset group to the existing list of assets
     if len(assetgroups) == 0:
@@ -82,10 +82,10 @@ def detail_scan_view(request, scan_id):
 
     # Search raw findings related to the asset
     if findings_filters == {}:
-        raw_findings = RawFinding.objects.filter(scan=scan).order_by('asset', 'severity', 'type', 'title').only("id", "asset_name", "title", "severity", "status")
+        raw_findings = RawFinding.objects.filter(scan=scan).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
     else:
         findings_filters.update({"scan": scan})
-        raw_findings = RawFinding.objects.filter(**findings_filters).order_by('asset', 'severity', 'type', 'title').only("id", "asset_name", "title", "severity", "status")
+        raw_findings = RawFinding.objects.filter(**findings_filters).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
 
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
@@ -97,7 +97,7 @@ def detail_scan_view(request, scan_id):
             }
         })
 
-    for f in raw_findings.filter(asset__in=assets):
+    for f in raw_findings.filter(asset__in=assets):#.only("asset_name", "severity"):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
             "total": summary_assets[f.asset_name]["total"] + 1
@@ -112,12 +112,13 @@ def detail_scan_view(request, scan_id):
                 "high": 0, "critical": 0, "total": 0
             }
         })
-        for f in raw_findings:
-            if f.asset.value in ag.assets.all().values_list('value', flat=True):
-                summary_assetgroups[ag.id].update({
-                    f.severity: summary_assetgroups[ag.id][f.severity] + 1,
-                    "total": summary_assetgroups[ag.id]["total"] + 1
-                })
+
+        for f in raw_findings.filter(asset__in=ag.assets.all()):
+            # if f.asset.value in ag.assets.all().values_list('value', flat=True):
+            summary_assetgroups[ag.id].update({
+                f.severity: summary_assetgroups[ag.id][f.severity] + 1,
+                "total": summary_assetgroups[ag.id]["total"] + 1
+            })
 
     # Generate findings stats
     month_ago = datetime.today()-timedelta(days=30)
@@ -174,7 +175,11 @@ def detail_scan_view(request, scan_id):
 
 def list_scans_view(request):
     """List performed scans."""
-    scan_list = Scan.objects.all().order_by('-finished_at')
+    scan_list = Scan.objects.all().annotate(
+        scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
+        ).only(
+        "engine_type", "title", "status", "summary", "updated_at"
+        ).order_by('-finished_at')
 
     paginator = Paginator(scan_list, 10)
     page = request.GET.get('page')
@@ -236,7 +241,7 @@ def add_scan_def_view(request):
     form = None
     request_user_id = request.user.id
     scan_cats = EnginePolicyScope.objects.all().values()
-    scan_policies = list(EnginePolicy.objects.all())
+    scan_policies = EnginePolicy.objects.all().prefetch_related("engine", "scopes")
     scan_engines = Engine.objects.all().exclude(name="MANUAL").values()
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
 
@@ -383,7 +388,7 @@ def edit_scan_def_view(request, scan_def_id):
     request_user_id = request.user.id
     scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
     scan_cats = EnginePolicyScope.objects.all().values()
-    scan_policies = list(EnginePolicy.objects.all())
+    scan_policies = list(EnginePolicy.objects.all().prefetch_related("engine", "scopes"))
     scan_engines = Engine.objects.all().exclude(name="MANUAL").values()
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
 

@@ -38,7 +38,7 @@
                   <dt>Name</dt><dd>{{engine.name}}</dd>
                   <dt>Description</dt><dd>{{engine.description}}</dd>
                   <dt>Engines instances</dt><dd>{{engine.engineinstance_set.all|join:", "}}</dd>
-                  <dt>Allowed assets</dt><dd>{{engine.allowed_asset_types}}</dd>
+                  <dt>Allowed assets</dt><dd>{{engine.allowed_asset_types|join:", "}}</dd>
                   <dt>Created at</dt><dd>{{engine.created_at|smartdate}}</dd>
               </div>
               <div class="modal-footer">

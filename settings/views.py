@@ -4,7 +4,6 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.db.models import F
-from rest_framework.authtoken.models import Token
 from .models import Setting
 from events.models import Event
 

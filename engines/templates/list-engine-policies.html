@@ -25,7 +25,7 @@
     {% for policy in policies %}
     <tr>
       <td><input type="checkbox" class="radio" name="policy" value="{{ policy.id }}"/></td>
-      <td>{{ policy.engine }}</td>
+      <td>{{ policy.type }}</td>
       <td>{{ policy.name }}
         {% if policy.file.name %}<span class="glyphicon glyphicon-file"></span>{% endif %}
       </td>
@@ -42,7 +42,7 @@
               </div>
               <div class="modal-body">
                 <p>{{ policy.description }}</p>
-                <p>Engine: {{ policy.engine }}</p>
+                <p>Engine: {{ policy.type }}</p>
                 <p>Options: {{ policy.options }}</p>
                 <p>Scopes: {{ policy.scopes.all|join:", " }}</p>
                 <p>Status: {{ policy.status }}</p>

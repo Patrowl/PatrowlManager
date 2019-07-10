@@ -102,8 +102,7 @@ table tr td.scan-progress {
     {% for scan in scans %}
       <tr class='dblclickable-row' data-href='/scans/details/{{scan.id}}'>
         <td><input type="checkbox" class="radio" name="scan" value="{{ scan.id }}"/></td>
-        <td>[{{ scan.engine_type }}] {{ scan.title }}</td>
-        <!-- <td><a href="/scans/defs/details/{{scan.scan_definition.id}}">[{{ scan.engine_type }}] {{ scan.title }}</a></td> -->
+        <td>[{{ scan.eng_type }}] {{ scan.title }}</td>
         {% if scan.status == "started" %}
         <td class="text-center"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="color:orange" title="Started"></span></td>
         {% elif scan.status == "stopping"  %}
@@ -159,10 +158,10 @@ table tr td.scan-progress {
           <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">
             <span class="glyphicon glyphicon-share"></span></button>
           {% endif %}
-          <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_definition.id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
+          <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_def_id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
             Run </button>
           <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
-            scan-id="{{ scan.id }}" scan-title="{{ scan.title }} [{{ scan.engine_type }}]">
+            scan-id="{{ scan.id }}" scan-title="{{ scan.title }} [{{ scan.eng_type }}]">
             <span class="glyphicon glyphicon-remove"></button>
         </td>
       </tr>

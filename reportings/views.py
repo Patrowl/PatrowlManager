@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count
+from django.db.models import Case, When, Sum
+from django.db import models
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
-from django.contrib.postgres.aggregates.general import ArrayAgg
 
 from assets.models import Asset, AssetGroup, ASSET_TYPES
 from findings.models import Finding
@@ -24,15 +25,7 @@ def homepage_dashboard_view(request):
             "total_ag": AssetGroup.objects.all().count(),
         },
         "asset_types": {},
-        "findings": {
-            "total": findings.count(),
-            "new": findings.filter(status='new').count(),
-            "critical": findings.filter(severity='critical').count(),
-            "high": findings.filter(severity='high').count(),
-            "medium": findings.filter(severity='medium').count(),
-            "low": findings.filter(severity='low').count(),
-            "info": findings.filter(severity='info').count(),
-        },
+        "findings": {},
         "scans": {
             "defined": ScanDefinition.objects.all().count(),
             "performed": Scan.objects.all().count(),
@@ -50,9 +43,35 @@ def homepage_dashboard_view(request):
         },
     }
 
-    # update asset_types
+    # asset types
+    asset_types_stats_params = {}
     for at in ASSET_TYPES:
-        global_stats["asset_types"].update({at[0]: assets.filter(type=at[0]).count()})
+        asset_types_stats_params.update(
+            {at[0]: Sum(
+                Case(When(type=at[0], then=1)),
+                output_field=models.IntegerField())
+            }
+        )
+    global_stats["asset_types"] = assets.aggregate(**asset_types_stats_params)
+
+    # finding counters
+    findings_stats = findings.aggregate(
+        nb_new=Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()),
+        nb_critical=Sum(Case(When(severity='critical', then=1)), output_field=models.IntegerField()),
+        nb_high=Sum(Case(When(severity='high', then=1)), output_field=models.IntegerField()),
+        nb_medium=Sum(Case(When(severity='medium', then=1)), output_field=models.IntegerField()),
+        nb_low=Sum(Case(When(severity='low', then=1)), output_field=models.IntegerField()),
+        nb_info=Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()),
+    )
+    global_stats["findings"] = {
+        "total": findings.count(),
+        "new": findings_stats["nb_new"],
+        "critical": findings_stats["nb_critical"],
+        "high": findings_stats["nb_high"],
+        "medium": findings_stats["nb_medium"],
+        "low": findings_stats["nb_low"],
+        "info": findings_stats["nb_info"],
+    }
 
     # update nb_matches
     matches = 0
@@ -88,9 +107,10 @@ def homepage_dashboard_view(request):
         assets_risk_scores.update({asset.id: asset.get_risk_score()})
 
     top_critical_assets_scores = sorted(assets_risk_scores.items(), key=operator.itemgetter(1))[::-1][:6]
-    top_critical_assets = []
-    for asset_id in top_critical_assets_scores:
-        top_critical_assets.append(Asset.objects.get(id=asset_id[0]))
+
+    tcas_id_list = [id for id, score in top_critical_assets_scores]
+    top_critical_assets = list(assets.filter(id__in=tcas_id_list))
+    top_critical_assets.sort(key=lambda t: tcas_id_list.index(t.id))
 
     # Format to list
     asset_grades_map_list = []
@@ -107,10 +127,9 @@ def homepage_dashboard_view(request):
         assetgroups_risk_scores.update({assetgroup.id: assetgroup.get_risk_score()})
 
     top_critical_assetgroups_scores = sorted(assetgroups_risk_scores.items(), key=operator.itemgetter(1))[::-1][:6]
-    top_critical_assetgroups = []
-    for assetgroup_id in top_critical_assetgroups_scores:
-        # top_critical_assetgroups.append(AssetGroup.objects.get(id=assetgroup_id[0]))
-        top_critical_assetgroups.append(ags.get(id=assetgroup_id[0]))
+    tcags_id_list = [id for id, score in top_critical_assetgroups_scores]
+    top_critical_assetgroups = list(ags.filter(id__in=tcags_id_list))
+    top_critical_assetgroups.sort(key=lambda t: tcags_id_list.index(t.id))
 
     assetgroup_grades_map_list = []
     for key in sorted(assetgroup_grades_map.keys()):
@@ -136,7 +155,13 @@ def homepage_dashboard_view(request):
 
     # CVSS
     cvss_scores = {'lte5': 0, '5to7': 0, 'gte7': 0, 'gte9': 0, 'eq10': 0}
-    for finding in findings.only("risk_info"):
+    # for finding in findings.only("risk_info"):
+    #     if finding.risk_info["cvss_base_score"] < 5.0: cvss_scores.update({'lte5': cvss_scores['lte5']+1})
+    #     if finding.risk_info["cvss_base_score"] >= 5.0 and finding.risk_info["cvss_base_score"] <= 7.0: cvss_scores.update({'5to7': cvss_scores['5to7']+1})
+    #     if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})
+    #     if finding.risk_info["cvss_base_score"] >= 9.0 and finding.risk_info["cvss_base_score"] < 10: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
+    #     if finding.risk_info["cvss_base_score"] == 10.0: cvss_scores.update({'eq10': cvss_scores['eq10']+1})
+    for finding in findings.prefetch_related("risk_info__cvss_base_score").only("risk_info"):
         if finding.risk_info["cvss_base_score"] < 5.0: cvss_scores.update({'lte5': cvss_scores['lte5']+1})
         if finding.risk_info["cvss_base_score"] >= 5.0 and finding.risk_info["cvss_base_score"] <= 7.0: cvss_scores.update({'5to7': cvss_scores['5to7']+1})
         if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})

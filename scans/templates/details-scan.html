@@ -82,12 +82,12 @@ function toggle(source, element) {
     <div class="col-sm-9">
       <div id="menu_tabs" class="container-fluid">
         <ul class="nav nav-tabs" id="menu_tabs_ul" style="display: flex;">
-          <li class="active"><a data-toggle="tab"  href="#assets">Assets <span class="badge badge-pill badge-primary"> {{assets.count}}</span></a></li>
+          <li class="active"><a data-toggle="tab"  href="#assets">Assets <span class="badge badge-pill badge-primary"> {{assets.paginator.count}}</span></a></li>
           {% if assetgroups.count > 0 %}
           <li><a data-toggle="tab" href="#assetgroups">Asset groups <span class="badge badge-pill badge-primary"> {{assetgroups.count}}</span></a></li>
           {% endif %}
           <li><a data-toggle="tab" href="#findings">Findings <span class="badge badge-pill badge-primary"> {{findings_stats.count}}</span></a></li>
-          <li><a data-toggle="tab" href="#events">Events <span class="badge badge-pill badge-primary"> {{scan.event_set.count}}</span></a></li>
+          <li><a data-toggle="tab" href="#events">Events <span class="badge badge-pill badge-primary"> {{scan_events.paginator.count}}</span></a></li>
           <!-- <li><a data-toggle="tab" href="#risks">Risk summary</a></li> -->
           <li style="width: 60%;">
             <div class="row" style="margin-top: 5px;">
@@ -119,7 +119,6 @@ function toggle(source, element) {
             <tbody>
             {% for asset in assets %}
             <tr>
-            <!-- <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}?raw=true'> -->
               <td>{{ asset.value|truncatechars:35 }}</td>
               <td>{{ asset.type }}</td>
               {% if asset.criticity == 'low' %}
@@ -158,9 +157,6 @@ function toggle(source, element) {
                   {% endwith %}
                 </div>
               </td>
-              <!-- <td>
-                <a href="#findings" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus-sign"></span></a>
-              </td> -->
             </tr>
             {% endfor %}
             </tbody>
