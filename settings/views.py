@@ -26,14 +26,14 @@ def show_settings_menu(request):
     else:
         page_events = int(page_events)
     if page_events > 0:
-        after = base64.b64encode(str((page_events-1)*nb_rows))
+        after = base64.b64encode(str((page_events-1)*nb_rows).encode()).decode("UTF-8")
     else:
-        after = base64.b64encode("0")
+        after = base64.b64encode(b"0").decode("UTF-8")
 
     events = events_paginator.page(first=nb_rows, after=after)
-    has_previous = after is not None and base64.b64decode(after) > "0"
+    has_previous = after is not None and base64.b64decode(after) > b"0"
     previous_decoded_cursor = "1"
-    if after is not None and base64.b64decode(after) > "0":
+    if after is not None and base64.b64decode(after) > b"0":
         previous_decoded_cursor = page_events - 1
     next_decoded_cursor = "1"
     if events.has_next:
