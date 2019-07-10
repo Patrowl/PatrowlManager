@@ -43,7 +43,7 @@ def test_task(self, queue_name):
 @shared_task(bind=True, acks_late=True)
 def refresh_engines_status_task(self):
     # print ("task: starting refresh_engines_status_task !")
-    for engine in EngineInstance.objects.filter(enabled=True):
+    for engine in EngineInstance.objects.filter(enabled=True).only("api_url", "status"):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"status",
@@ -64,7 +64,7 @@ def refresh_engines_status_task(self):
 @shared_task(bind=True, acks_late=True)
 def get_engine_status_task(self, engine_id):
     # print ("task: starting get_engine_status_task !")
-    for engine in EngineInstance.objects.filter(id=engine_id):
+    for engine in EngineInstance.objects.filter(id=engine_id).only("api_url", "status"):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"status",
@@ -84,7 +84,7 @@ def get_engine_status_task(self, engine_id):
 @shared_task(bind=True, acks_late=True)
 def get_engine_info_task(self, engine_id):
     # print ("task: starting get_engine_info_task !")
-    for engine in EngineInstance.objects.filter(id=engine_id):
+    for engine in EngineInstance.objects.filter(id=engine_id).only("api_url", "status"):
         try:
             resp = requests.get(
                 url=str(engine.api_url)+"info",
