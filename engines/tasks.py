@@ -337,8 +337,15 @@ def startscan_task(self, params):
     engine_inst = None
     # -0- select an engine instance
     if scan.scan_definition.engine is None:
-        engine_inst = random.choice(EngineInstance.objects.filter(
-            engine__name=str(scan.scan_definition.engine_type.name).upper(), status="READY", enabled=True))
+        engine_candidates = EngineInstance.objects.filter(
+            engine__name=str(scan.scan_definition.engine_type.name).upper(),
+            status="READY",
+            enabled=True)
+        if len(engine_candidates) > 0:
+            engine_inst = random.choice(engine_candidates)
+        else:
+            engine_inst = None
+            Event.objects.create(message="[EngineTasks/startscan_task/{}] BeforeScan - No engine '{}' available. Task aborted.".format(self.request.id, scan.scan_definition.engine_type.name), type="ERROR", severity="ERROR", scan=scan)
     else:
         engine_inst = scan.scan_definition.engine
         if engine_inst.status != "READY" or engine_inst.enabled is False:
@@ -346,7 +353,7 @@ def startscan_task(self, params):
             engine_inst = None
 
     # check if the selected engine instance is available
-    if not engine_inst:
+    if engine_inst is None:
         Event.objects.create(message="[EngineTasks/startscan_task/{}] BeforeScan - No engine '{}' available. Task aborted.".format(self.request.id, params['engine_name']), type="ERROR", severity="ERROR", scan=scan)
         scan.status = "error"
         scan.finished_at = timezone.now()
@@ -512,7 +519,12 @@ def start_periodic_scan_task(self, params):
             Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - Engine '{}' not available (status: {}, enabled: {}). Task aborted.".format(self.request.id, engine_inst.name, engine_inst.status, engine_inst.enabled), type="ERROR", severity="ERROR", scan=scan_def)
             engine_inst = None
     else:
-        engine_inst = random.choice(EngineInstance.objects.filter(engine__name=str(scan_def.engine_type.name).upper(), status="READY", enabled=True))
+        engine_candidates = EngineInstance.objects.filter(engine__name=str(scan_def.engine_type.name).upper(), status="READY", enabled=True)
+        if len(engine_candidates) > 0:
+            engine_inst = random.choice(engine_candidates)
+        else:
+            Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - No engine '{}' available. Task aborted.".format(self.request.id, scan_def.engine_type.name), type="ERROR", severity="ERROR", scan=scan_def)
+            engine_inst = None
 
     # -0- create the Scan entry in db
     scan = Scan.objects.create(
@@ -529,14 +541,6 @@ def start_periodic_scan_task(self, params):
     scan.save()
     Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Scan created.".format(self.request.id),
                  type="INFO", severity="INFO", scan=scan)
-
-    # Check if the assets list is not empty
-    if len(params['scan_params']['assets']) == 0:
-        Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - No assets set. Task aborted.".format(self.request.id), type="ERROR", severity="ERROR", scan=scan)
-        scan.status = "error"
-        scan.finished_at = timezone.now()
-        scan.save()
-        return False
 
     # check if the selected engine instance is available
     if not engine_inst:
@@ -555,6 +559,23 @@ def start_periodic_scan_task(self, params):
         for a in assetgroup.assets.all():
             scan.assets.add(a)
     scan.save()
+    assets_list = []
+    for asset in scan.assets.all():
+        assets_list.append({
+            "id": asset.id,
+            "value": asset.value.strip(),
+            "criticity": asset.criticity,
+            "datatype": asset.type
+        })
+    params['scan_params']['assets'] = assets_list
+
+    # Check if the assets list is not empty
+    if len(params['scan_params']['assets']) == 0:
+        Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - No assets set. Task aborted.".format(self.request.id), type="ERROR", severity="ERROR", scan=scan)
+        scan.status = "error"
+        scan.finished_at = timezone.now()
+        scan.save()
+        return False
 
     params['scan_params']['scan_id'] = str(scan.id)
 

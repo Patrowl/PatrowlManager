@@ -88,8 +88,8 @@ function toggle(source, element) {
               <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
               <th data-field="name"  onclick="sortby('name', 'assets');">Name</th>
               <th data-field="categories">Tags</th>
-              <th data-field="criticity" onclick="sortby('criticity_num', 'assets');">Criticity</th>
-              <th data-field="score" onclick="sortby('-risk_level__grade', 'assets');">Score</th>
+              <th data-field="criticity" onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticity</th>
+              <th data-field="score" onclick="sortby('-risk_level__grade,criticity_num', 'assets');">Score</th>
               <th data-field="type" onclick="sortby('type', 'assets');">Type</th>
               <th data-field="updated_at" onclick="sortby('-updated_at', 'assets');">Last update</th>
               <th data-field="actions">Actions</th>
