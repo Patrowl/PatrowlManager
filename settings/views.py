@@ -4,6 +4,7 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.db.models import F
+from django.db import connection
 from .models import Setting
 from events.models import Event
 
@@ -25,10 +26,10 @@ def show_settings_menu(request):
         page_events = 1
     else:
         page_events = int(page_events)
-    if page_events > 0:
+    if page_events > 1:
         after = base64.b64encode(str((page_events-1)*nb_rows).encode()).decode("UTF-8")
     else:
-        after = base64.b64encode(b"0").decode("UTF-8")
+        after = None
 
     events = events_paginator.page(first=nb_rows, after=after)
     has_previous = after is not None and base64.b64decode(after) > b"0"
@@ -39,12 +40,17 @@ def show_settings_menu(request):
     if events.has_next:
         next_decoded_cursor = page_events + 1
 
+    # Estimate number or events
+    cursor = connection.cursor()
+    cursor.execute("SELECT reltuples FROM pg_class WHERE relname = 'events'")
+    nb_events = int(cursor.fetchone()[0])
+
     return render(request, 'menu-settings.html', {
         'users': users,
         'settings': settings,
         'events': events,
         'events_page_info': {
-            'end_cursor': events_list.count()//nb_rows,
+            'end_cursor': nb_events//(nb_rows),
             'has_previous': has_previous,
             'has_next': events.has_next,
             'next_page_number': next_decoded_cursor,

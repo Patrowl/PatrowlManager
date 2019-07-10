@@ -52,7 +52,7 @@
         <tbody>
           {% for finding in scan.rawfinding_set.severity_ordering %}
           {% if finding.id in scan_b_missing_findings %}
-          <tr style="border: 1px solid #18bc9c">
+          <tr style="border: 1px solid #18bc9c; background-color: lightgray;">
             <td class="bg-success">
           {% else %}
           <tr>

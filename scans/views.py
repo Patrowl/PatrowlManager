@@ -97,7 +97,7 @@ def detail_scan_view(request, scan_id):
             }
         })
 
-    for f in raw_findings.filter(asset__in=assets):#.only("asset_name", "severity"):
+    for f in raw_findings.filter(asset__in=assets):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
             "total": summary_assets[f.asset_name]["total"] + 1
@@ -114,7 +114,6 @@ def detail_scan_view(request, scan_id):
         })
 
         for f in raw_findings.filter(asset__in=ag.assets.all()):
-            # if f.asset.value in ag.assets.all().values_list('value', flat=True):
             summary_assetgroups[ag.id].update({
                 f.severity: summary_assetgroups[ag.id][f.severity] + 1,
                 "total": summary_assetgroups[ag.id]["total"] + 1
