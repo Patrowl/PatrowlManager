@@ -1,5 +1,13 @@
+dist: xenial
 language: python
 python:
 - '3.7'
+install:
+- pip3 install -r requirements.txt
 script:
-  - pytest
+- docker --version
+- docker build --tag patrowl-manager .
+- docker-compose up -d
+- pytest
+after_script:
+- docker images
