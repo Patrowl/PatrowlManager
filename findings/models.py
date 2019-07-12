@@ -128,7 +128,7 @@ class RawFinding(models.Model):
             }
             if RawFinding.objects.filter(**kwargs):
                 nb_matches += 1
-                rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset)
+                rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
         return nb_matches
 
 
@@ -227,7 +227,7 @@ class Finding(models.Model):
             }
             if Finding.objects.filter(**kwargs):
                 nb_matches += 1
-                rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset)
+                rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
         return nb_matches
 
 
