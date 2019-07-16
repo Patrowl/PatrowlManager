@@ -25,7 +25,7 @@ def show_settings_menu(request):
         page_events = 1
     else:
         page_events = int(page_events)
-    if page_events > 0:
+    if page_events > 1:
         before = base64.b64encode(str((page_events-1)*nb_rows).encode()).decode("UTF-8")
     else:
         before = base64.b64encode(b"0").decode("UTF-8")
