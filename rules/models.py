@@ -149,8 +149,9 @@ def rule_delete_log(sender, **kwargs):
 
 def send_email_message(rule, message, description):
     contact_mail = Setting.objects.get(key="alerts.endpoint.email").value
-    Event.objects.create(message="[Rule] Rule '{}' email sent to {} (message={}, description={})".format(rule, contact_mail, message, description),
-                         type="CREATE", severity="DEBUG")
+    # Should be put in a log middleware
+    log_message = "[Rule] Rule '{}' email sent to {} (message={}, description={})".format(rule, contact_mail, message, description).replace("\n", "")
+    Event.objects.create(message=log_message, type="CREATE", severity="DEBUG")
     send_mail(
         '[Patrowl] New alert: '+message,
         'Message: {}\nDescription: {}'.format(message, description),
@@ -174,7 +175,7 @@ def send_slack_message(rule, message):
 
 
 def send_thehive_message(rule, message, asset, description):
-    Event.objects.create(message="[Rule] Rule '{}' TheHive alert creation (message={}, asset={}, description={})".format(rule, message, asset, description),
+    Event.objects.create(message="[Rule] Rule '{}' TheHive alert creation (asset={})".format(rule, asset),
                          type="CREATE", severity="DEBUG")
     thehive_apikey = Setting.objects.get(key="alerts.endpoint.thehive.apikey")
     thehive_url = Setting.objects.get(key="alerts.endpoint.thehive.url")
@@ -183,10 +184,9 @@ def send_thehive_message(rule, message, asset, description):
 
     api = TheHiveApi(thehive_url.value, thehive_apikey.value)
     sourceRef = str(uuid.uuid4())[0:6]
-    rule_severity = 0
-    if rule.severity == "Low":
-        rule_severity = 1
-    elif rule.severity == "Medium":
+    # Severity 1 is the lower severity for TheHive
+    rule_severity = 1
+    if rule.severity == "Medium":
         rule_severity = 2
     elif rule.severity == "High":
         rule_severity = 3
@@ -225,12 +225,12 @@ def send_thehive_message(rule, message, asset, description):
                 )
             else:
                 return_value = ""
-                if "message" in json.loads(response.text):
-                    # Limit length to 20 characters
-                    return_value = json.loads(response.text)["message"][:20]
+                if "errors" in json.loads(response.text):
+                    # Limit length to 40 characters
+                    return_value = json.loads(response.text)["errors"][0]["message"][:40]
                 Event.objects.create(
                     message="[Rule][send_thehive_message()] Unable to send "
-                    "alert to TheHive (status_code={}, return_value='{}', message ='{}')".format(response.status_code, return_value, message),
+                    "alert to TheHive (status_code={}, return_value='{}')".format(response.status_code, return_value),
                     type="ERROR", severity="ERROR"
                 )
         except Exception as e:
