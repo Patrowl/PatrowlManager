@@ -21,7 +21,6 @@ from common.utils import encoding
 import csv
 import copy
 
-
 def list_assets_view(request):
     # Check sorting options
     allowed_sort_options = ["id", "name", "criticity_num", "score", "type",
@@ -259,19 +258,21 @@ def bulkadd_asset_view(request):
     elif request.method == 'POST':
         form = AssetBulkForm(request.POST, request.FILES)
         if request.FILES:
-            records = csv.reader(request.FILES['file'], delimiter=';')
-            records.next()
+            csv_file = request.FILES['file']
+            decoded_file = csv_file.read().decode('utf-8').splitlines()
+            records = csv.DictReader(decoded_file, delimiter=';')
+            # Header is skiped automatically
             for line in records:
                 # Add assets
-                if Asset.objects.filter(value=line[0]).count() > 0:
+                if Asset.objects.filter(value=line['asset_value']).count() > 0:
                     continue
 
                 asset_args = {
-                    'value': line[0],
-                    'name': line[1],
-                    'type': line[2],
-                    'description': line[3],
-                    'criticity': line[4],
+                    'value': line['asset_value'],
+                    'name': line['asset_name'],
+                    'type': line['asset_type'],
+                    'description': line['asset_description'],
+                    'criticity': line['asset_criticity'],
                     'owner': User.objects.get(id=request.user.id),
                     'status': "new",
                 }
@@ -279,11 +280,11 @@ def bulkadd_asset_view(request):
                 asset.save()
 
                 # Add groups
-                if len(line) >= 6 and line[5] != "":
-                    ag = AssetGroup.objects.filter(name=str(line[5])).first()
+                if 'asset_groupname' in line and line['asset_groupname'] != "":
+                    ag = AssetGroup.objects.filter(name=str(line['asset_groupname'])).first()
                     if ag is None:  # Create new asset group
                         asset_args = {
-                            'name': line[5],
+                            'name': line['asset_groupname'],
                             'criticity': "low",
                             'description': "Created automatically on asset upload.",
                             'owner': request.user
