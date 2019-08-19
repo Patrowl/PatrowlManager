@@ -180,8 +180,8 @@ def send_finding_alerts_api(request, finding_id):
     elif request.GET.get("type", None) and request.GET.get("type") == "thehive":
         rule.target = "thehive"
         rule.notify(message=finding.title, asset=finding.asset, description=finding.description)
-    elif request.GET.get("type", None) and request.GET.get("type") == "mail":
-        rule.target = "mail"
+    elif request.GET.get("type", None) and request.GET.get("type") == "email":
+        rule.target = "email"
         rule.notify(message=finding.title, asset=finding.asset, description=finding.description)
 
     rule.delete()
