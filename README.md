@@ -5,6 +5,10 @@
 ![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=patrowl-manager&metric=alert_status)
 [![Build Status](https://travis-ci.com/Patrowl/PatrowlManager.svg?branch=master)](https://travis-ci.com/Patrowl/PatrowlManager)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/524eab1787ba4a8dbff03f6f59c93b33)](https://www.codacy.com/app/MaKyOtOx/PatrowlManager)
+[![Rawsec's CyberSecurity Inventory](https://inventory.rawsec.ml/img/badges/Rawsec-inventoried-FF5050_popout_without_logo.svg)](https://inventory.rawsec.ml/)
+
+
+
 
 # **PatrOwl**
 [PatrOwl](https://www.patrowl.io/) is a scalable, free and open-source solution for orchestrating Security Operations.  
