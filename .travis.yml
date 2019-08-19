@@ -6,7 +6,7 @@ install:
 - pip3 install -r requirements.txt
 script:
 - docker --version
-- docker build --tag patrowl-manager .
+# - docker build --tag patrowl-manager .
 - docker-compose up -d
 - pytest
 after_script:

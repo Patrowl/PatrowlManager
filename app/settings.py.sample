@@ -105,6 +105,7 @@ LOGIN_REQUIRED_URLS_EXCEPTIONS = (
 LOGIN_URL = '/login'
 LOGOUT_URL = '/logout'
 LOGIN_REDIRECT_URL = '/dashboard'
+LOGOUT_REDIRECT_URL = '/login'
 APPEND_SLASH = False
 
 ROOT_URLCONF = 'app.urls'

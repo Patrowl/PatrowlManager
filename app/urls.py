@@ -6,6 +6,7 @@ from django.urls import path
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import LogoutView
 from django.views.generic import RedirectView
 from rest_framework_swagger.views import get_swagger_view
 from users import views as user_views
@@ -33,7 +34,7 @@ urlpatterns = [
     url(r'^', include('users.urls'), name='home'),
 
     url(r'^login$', user_views.login, name='login'),
-    url(r'^logout$', auth_views.auth_logout, {'next_page': '/login'}, name='logout'),
+    url(r'^logout$', LogoutView.as_view(), {'next_page': settings.LOGOUT_REDIRECT_URL}, name='logout'),
     url(r'^signup$', user_views.signup, name='signup'),
 
     # url(r'^admin/jsi18n/', i18n_javascript),
