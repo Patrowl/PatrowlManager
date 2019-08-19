@@ -165,7 +165,7 @@ def edit_asset_view(request, asset_id):
     elif request.method == 'POST':
         form = AssetForm(request.POST, instance=asset)
         if form.is_valid():
-            asset.value = form.cleaned_data['value'].encode('utf-8')
+            # asset.value = form.cleaned_data['value']
             asset.name = form.cleaned_data['name']
             asset.type = form.cleaned_data['type']
             asset.description = form.cleaned_data['description']
