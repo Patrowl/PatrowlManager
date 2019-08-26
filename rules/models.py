@@ -149,9 +149,8 @@ def rule_delete_log(sender, **kwargs):
 
 def send_email_message(rule, message, description):
     contact_mail = Setting.objects.get(key="alerts.endpoint.email").value
-    # Should be put in a log middleware
     log_message = "[Rule] Rule '{}' email sent to {} (message={}, description={})".format(rule, contact_mail, message, description).replace("\n", "")
-    Event.objects.create(message=log_message, type="CREATE", severity="DEBUG")
+    Event.objects.create(message=log_message[:250], type="CREATE", severity="DEBUG")
     send_mail(
         '[Patrowl] New alert: '+message,
         'Message: {}\nDescription: {}'.format(message, description),
@@ -162,17 +161,24 @@ def send_email_message(rule, message, description):
 
 
 def send_slack_message(rule, message):
+    Event.objects.create(message="[Rule] Rule '{}' Slack alert creation (message={})".format(rule, message)[:250], type="CREATE", severity="DEBUG")
     slack_url = Setting.objects.get(key="alerts.endpoint.slack.webhook")
+    try:
+        slack_channel = Setting.objects.get(key="alerts.endpoint.slack.channel")
+    except:
+        slack_channel = None
     alert_message = "[Alert][Rule={}]{}".format(rule.title, message)
+    data_payload = {'text': alert_message}
+    if slack_channel:
+        data_payload["channel"] = slack_channel.value
     try:
         requests.post(
             slack_url.value,
-            data=json.dumps({'text': alert_message}),
+            data=json.dumps(data_payload),
             headers={'content-type': 'application/json'})
-    except Exception:
-        Event.objects.create(message="[Rule] Send slack message failed (id={})".format(rule.id),
+    except Exception as e:
+        Event.objects.create(message="err:{} [Rule] Send slack message failed (id={})".format(e, rule.id)[:250],
                      type="ERROR", severity="ERROR", description=alert_message)
-
 
 def send_thehive_message(rule, message, asset, description):
     Event.objects.create(message="[Rule] Rule '{}' TheHive alert creation (asset={})".format(rule, asset),
