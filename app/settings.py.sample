@@ -142,6 +142,9 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_ENV_POSTGRES_PASSWORD', 'PATROWL_DB_PASSWD_TO_CHANGE'),
         'HOST': os.environ.get('DB_PORT_5432_TCP_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT_5432_TCP_PORT', ''),
+        'OPTIONS' : {
+                'options': os.environ.get('DB_ENV_POSTGRES_OPTIONS', '')
+            },
     }
 }
 

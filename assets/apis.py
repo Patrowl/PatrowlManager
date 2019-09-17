@@ -18,7 +18,7 @@ from app.settings import MEDIA_ROOT
 from findings.models import Finding
 from events.models import Event
 
-import json
+# import json
 import csv
 import os
 import mimetypes
@@ -509,7 +509,6 @@ def get_asset_group_report_json_api(request, asset_group_id):
             'findings': findings_tmp,
             'findings_stats': findings_stats
             })
-
 
     return JsonResponse(assets, safe=False)
 

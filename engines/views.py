@@ -254,7 +254,7 @@ def edit_policy_view(request, policy_id):
 
 
 def list_engine_types_view(request):
-    engines = Engine.objects.all().prefetch_related("engineinstance_set").order_by("name")
+    engines = Engine.objects.all().exclude(name__in=["MANUAL", "SKELETON"]).prefetch_related("engineinstance_set").order_by("name")
     for eng in engines:
         if eng.allowed_asset_types:
             eng.allowed_asset_types = ", ".join(eval(eng.allowed_asset_types))

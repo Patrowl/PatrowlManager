@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from django.db.models import Q, Count
-from django.db.models import Case, When, Sum
+from django.db.models import Q, Count, Case, When, Sum
+from django.db.models.functions import Coalesce
 from django.db import models
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
 
@@ -56,12 +56,12 @@ def homepage_dashboard_view(request):
 
     # finding counters
     findings_stats = findings.aggregate(
-        nb_new=Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()),
-        nb_critical=Sum(Case(When(severity='critical', then=1)), output_field=models.IntegerField()),
-        nb_high=Sum(Case(When(severity='high', then=1)), output_field=models.IntegerField()),
-        nb_medium=Sum(Case(When(severity='medium', then=1)), output_field=models.IntegerField()),
-        nb_low=Sum(Case(When(severity='low', then=1)), output_field=models.IntegerField()),
-        nb_info=Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()),
+        nb_new=Coalesce(Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()), 0),
+        nb_critical=Coalesce(Sum(Case(When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
+        nb_high=Coalesce(Sum(Case(When(severity='high', then=1)), output_field=models.IntegerField()), 0),
+        nb_medium=Coalesce(Sum(Case(When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
+        nb_low=Coalesce(Sum(Case(When(severity='low', then=1)), output_field=models.IntegerField()), 0),
+        nb_info=Coalesce(Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()), 0),
     )
     global_stats["findings"] = {
         "total": findings.count(),
