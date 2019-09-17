@@ -230,7 +230,7 @@ def edit_policy_view(request, policy_id):
             policy.engine = form.cleaned_data['engine']
             policy.name = form.cleaned_data['name']
             policy.description = form.cleaned_data['description']
-            policy.scopes = form.cleaned_data['scopes']
+            # policy.scopes = form.cleaned_data['scopes']
             policy.is_default = form.cleaned_data['is_default'] is True
             policy.default = form.cleaned_data['is_default'] is True
             policy.status = "active"
@@ -243,6 +243,8 @@ def edit_policy_view(request, policy_id):
             if request.FILES:
                 policy.file = request.FILES['file']
 
+            policy.save()
+            policy.scopes.set(form.cleaned_data['scopes'])
             policy.save()
             messages.success(request, 'Update submission successful')
             return redirect('list_policies_view')

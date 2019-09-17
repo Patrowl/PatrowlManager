@@ -2,7 +2,8 @@ amqp==2.5.0
 Babel==2.4.0
 backports-abc==0.5
 billiard==3.6.0.0
-celery==4.3.0
+celery==4.4.0rc3
+#celery==4.3.0
 certifi==2017.4.17
 chardet==3.0.4
 coreapi==2.3.3

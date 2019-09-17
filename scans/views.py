@@ -92,6 +92,7 @@ def detail_scan_view(request, scan_id):
     for a in assets:
         summary_assets.update({
             a.value: {
+            # str(a.value): {
                 "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
                 "total": 0
             }
