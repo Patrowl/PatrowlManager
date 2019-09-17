@@ -401,6 +401,7 @@ def edit_scan_def_view(request, scan_def_id):
         form = ScanDefinitionForm(instance=scan_definition)
     elif request.method == 'POST':
         form = ScanDefinitionForm(request.POST)
+        print(form.data)
 
         if form.is_valid():
             scan_definition.title = form.cleaned_data['title']
@@ -409,9 +410,9 @@ def edit_scan_def_view(request, scan_def_id):
             scan_definition.enabled = form.cleaned_data['enabled'] is True
             scan_definition.engine_policy = form.cleaned_data['engine_policy']
             scan_definition.engine_type = scan_definition.engine_policy.engine
-            if len(form.data['engine']) > 0:
+            if int(form.data['engine_id']) > 0:
                 # todo: check if the engine is compliant with the scan policy
-                scan_definition.engine = EngineInstance.objects.get(id=form.data['engine'])
+                scan_definition.engine = EngineInstance.objects.get(id=form.data['engine_id'])
             else:
                 scan_definition.engine = None
 

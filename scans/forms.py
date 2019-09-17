@@ -36,12 +36,14 @@ dateTimeOptions = {
     'clearBtn': True
 }
 
+
 def validate_date(d):
     try:
         datetime.strptime(d, "%Y-%m-%d %H:%M:%f")
         return True
     except ValueError:
         return False
+
 
 class ScanCampaignForm(forms.ModelForm):
     class Meta:
