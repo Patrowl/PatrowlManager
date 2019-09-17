@@ -743,7 +743,7 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
                 parent_asset = pa
                 break
         if parent_asset:
-            name = "{} (from '{}')".format(asset_value, parent_asset.name)
+            name = asset_value
             criticity = parent_asset.criticity
             owner = parent_asset.owner
         else:
@@ -918,7 +918,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 f.save()
                 new_raw_finding.save()
             else:
-                # Create a new asset:
+                # Create a new finding:
                 Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] New finding: {} ({})".format(scan_id, finding['title'], asset.value), type="DEBUG", severity="INFO", scan=scan)
                 new_finding = Finding.objects.create(
                     raw_finding = new_raw_finding,
@@ -948,8 +948,10 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 new_finding.save()
 
                 # Evaluate alerting rules
-                new_finding.evaluate_alert_rules(trigger='auto')
-
+                try:
+                    new_finding.evaluate_alert_rules(trigger='auto')
+                except Exception as e:
+                    Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] error {}".format(e), type="DEBUG", severity="INFO", scan=scan)
     scan.save()
     scan.update_sumary()
 
@@ -961,6 +963,5 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     # @Todo: Revaluate the risk level of all asset groups
 
     scan.save()
-    # print("All findings are now imported")
     Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] Findings imported.".format(scan_id), type="DEBUG", severity="INFO", scan=scan)
     return True
