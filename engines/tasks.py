@@ -107,7 +107,7 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                  type="INFO", severity="INFO")
 
     level_to_value = {'info': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
-    value_to_level = {v: k for k, v in level_to_value.iteritems()}
+    value_to_level = {v: k for k, v in level_to_value.items()}
 
     min_level = level_to_value.get(min_level, 0)
 
