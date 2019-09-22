@@ -753,4 +753,9 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://www.threatminer.org/domain.php?q=%asset%",
         "datatypes": ["domain"]
     },
+    {
+        "name": "ProofPoint",
+        "link": "https://ipcheck.proofpoint.com/?ip=%asset%",
+        "datatypes": ["ip"]
+    },
     ]
