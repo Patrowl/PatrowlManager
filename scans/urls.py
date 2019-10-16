@@ -44,6 +44,8 @@ urlpatterns = [
     url(r'^api/v1/defs/run/(?P<scan_def_id>[0-9]+)$', apis.run_scan_def_api, name='run_scan_def_api'),
     # ex: /scans/api/v1/defs/add
     url(r'^api/v1/defs/add$', apis.add_scan_def_api, name='add_scan_def_api'),
+    # ex: /scans/api/v1/defs/delete/1
+    url(r'^api/v1/defs/delete/(?P<scan_id>[0-9]+)$', apis.delete_scan_def_api, name='delete_scan_def_api'),
 
 
     ## WEB Views
