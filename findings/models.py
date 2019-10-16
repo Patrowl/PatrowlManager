@@ -144,8 +144,8 @@ def rawfinding_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=RawFinding)
 def rawfinding_delete_log(sender, **kwargs):
-    Event.objects.create(message="[RawFinding] Raw finding '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    message = "[RawFinding] Raw finding '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)[:250]
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
 
 
 class Finding(models.Model):
