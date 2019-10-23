@@ -92,7 +92,6 @@ def detail_scan_view(request, scan_id):
     for a in assets:
         summary_assets.update({
             a.value: {
-            # str(a.value): {
                 "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
                 "total": 0
             }
@@ -401,7 +400,6 @@ def edit_scan_def_view(request, scan_def_id):
         form = ScanDefinitionForm(instance=scan_definition)
     elif request.method == 'POST':
         form = ScanDefinitionForm(request.POST)
-        print(form.data)
 
         if form.is_valid():
             scan_definition.title = form.cleaned_data['title']
@@ -410,9 +408,9 @@ def edit_scan_def_view(request, scan_def_id):
             scan_definition.enabled = form.cleaned_data['enabled'] is True
             scan_definition.engine_policy = form.cleaned_data['engine_policy']
             scan_definition.engine_type = scan_definition.engine_policy.engine
-            if int(form.data['engine_id']) > 0:
+            if form.cleaned_data['engine'] is not None and len(form.cleaned_data['engine']) > 0:
                 # todo: check if the engine is compliant with the scan policy
-                scan_definition.engine = EngineInstance.objects.get(id=form.data['engine_id'])
+                scan_definition.engine = EngineInstance.objects.get(id=form.data['engine'])
             else:
                 scan_definition.engine = None
 
@@ -462,7 +460,7 @@ def edit_scan_def_view(request, scan_def_id):
                     "engine_name": str(scan_definition.engine_type.name).lower(),
                     "owner_id": request_user_id,
                 }
-                if form.data['engine'] != '' and int(form.data['engine']) > 0:
+                if form.cleaned_data['engine'] is not None and form.data['engine'] != '' and int(form.data['engine']) > 0:
                     parameters.update({
                         "engine_id": EngineInstance.objects.get(id=form.data['engine']).id,
                         "scan_params": {
