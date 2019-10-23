@@ -46,7 +46,8 @@ simplejson==3.16.0
 singledispatch==3.4.0.3
 six==1.10.0
 sqlparse==0.3.0
-supervisor==4.0.3
+#supervisor==4.0.3
+supervisor==4.1.0
 thehive4py==1.4.3
 tornado==5.1
 tzlocal==1.5.1
