@@ -47,9 +47,9 @@ def homepage_dashboard_view(request):
     asset_types_stats_params = {}
     for at in ASSET_TYPES:
         asset_types_stats_params.update(
-            {at[0]: Sum(
+            {at[0]: Coalesce(Sum(
                 Case(When(type=at[0], then=1)),
-                output_field=models.IntegerField())
+                output_field=models.IntegerField()), 0)
             }
         )
     global_stats["asset_types"] = assets.aggregate(**asset_types_stats_params)

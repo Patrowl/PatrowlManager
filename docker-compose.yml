@@ -11,6 +11,7 @@ services:
 
   db:
     image: postgres:11-alpine
+    restart: always
     container_name: patrowl-postgres
     environment:
       - POSTGRES_DB=patrowl_db

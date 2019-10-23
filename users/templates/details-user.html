@@ -16,9 +16,9 @@
     <dt>Is Superuser?</dt><dd>{{ user.is_superuser }}</dd>
     <dt>Is Staff?</dt><dd>{{ user.is_staff }}</dd>
     <dt>Last Login</dt><dd>{{ user.last_login }}</dd>
-    <dt>Permissions</dt><dd>{{ user.permissions.all }}</dd>
-    <dt>Groups</dt><dd>{{ user.groups.all|join:", " }}</dd>
-    <dt>Group Permissions</dt><dd>{{ user.get_group_permissions|sort_by:""|join:"<br/>" }}</dd>
+    <!-- <dt>Permissions</dt><dd>{{ user.permissions.all }}</dd> -->
+    <!-- <dt>Groups</dt><dd>{{ user.groups.all|join:", " }}</dd> -->
+    <!-- <dt>Group Permissions</dt><dd>{{ user.get_group_permissions|sort_by:""|join:"<br/>" }}</dd> -->
   </dl>
 
   {% if messages %}

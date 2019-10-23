@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "[+] Wait for DB availability"
+while !</dev/tcp/db/5432; do sleep 1; done
+
 source env3/bin/activate
 
 # Collect static files
@@ -14,20 +17,30 @@ python manage.py makemigrations
 echo "[+] Apply database migrations"
 python manage.py migrate
 
-# Create the default admin user
-echo "[+] Create the default admin user"
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@dev.patrowl.io', 'Bonjour1!')" | python manage.py shell
+# Check for first install
+if [ -f status.created ]; then
+  # Create the default admin user
+  echo "[+] Create the default admin user"
+  echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@dev.patrowl.io', 'Bonjour1!')" | python manage.py shell
 
-# Populate the db with default data
-echo "[+] Populate the db with default data"
-python manage.py loaddata var/data/assets.AssetCategory.json
-python manage.py loaddata var/data/engines.Engine.json
-python manage.py loaddata var/data/engines.EnginePolicyScope.json
-python manage.py loaddata var/data/engines.EnginePolicy.json
+  # Populate the db with default data
+  echo "[+] Populate the db with default data"
+  python manage.py loaddata var/data/assets.AssetCategory.json
+  python manage.py loaddata var/data/engines.Engine.json
+  python manage.py loaddata var/data/engines.EnginePolicyScope.json
+  python manage.py loaddata var/data/engines.EnginePolicy.json
+
+  touch status.created
+fi
 
 # Start Supervisord (Celery workers)
 echo "[+] Start Supervisord (Celery workers)"
 supervisord -c var/etc/supervisord.conf
+
+# Configure engines and turn-on auto-refresh engine status
+if [ -f set_engines.py ]; then
+  python manage.py shell < set_engines.py
+fi
 
 # Start server
 echo "[+] Starting server"

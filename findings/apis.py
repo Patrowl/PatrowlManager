@@ -61,7 +61,7 @@ def export_findings_csv_api(request):
     writer = csv.writer(response, delimiter=';')
     writer.writerow([
         'asset_value', 'asset_type',
-        'engine_type', 'engine_name',
+        'engine_type',
         'scan_title', 'scan_policy',
         'finding_id', 'finding_type', 'finding_status', 'finding_tags',
         'finding_severity', 'finding_description', 'finding_solution',
@@ -80,7 +80,7 @@ def export_findings_csv_api(request):
 
         writer.writerow([
             finding.asset.value, finding.asset.type,
-            finding.scan.engine_type.name, finding.scan.engine.name,
+            finding.scan.engine_type.name,
             finding.scan.title, finding.scan.engine_policy.name,
             finding.id, finding.type, finding.status, ','.join(finding.tags),
             finding.severity, finding.description, finding.solution,
@@ -94,7 +94,6 @@ def export_findings_csv_api(request):
 
 @api_view(['POST'])
 def delete_rawfindings_api(request):
-    # findings = json.loads(request.body)
     findings = request.data
     for finding_id in findings:
         f = RawFinding.objects.get(id=finding_id)
@@ -108,7 +107,6 @@ def delete_rawfindings_api(request):
 
 @api_view(['POST'])
 def change_findings_status_api(request):
-    # findings = json.loads(request.body)
     findings = request.data
     for finding in findings:
         f = Finding.objects.filter(id=finding['ack']).first()
@@ -120,7 +118,6 @@ def change_findings_status_api(request):
 
 @api_view(['POST'])
 def change_rawfindings_status_api(request):
-    # findings = json.loads(request.body)
     findings = request.data
     for finding in findings:
         f = RawFinding.objects.filter(id=finding['ack']).first()
@@ -300,7 +297,7 @@ def export_finding_api(request, finding_id):
         writer = csv.writer(response, delimiter=';')
         writer.writerow([
             'asset_value', 'asset_type',
-            'engine_type', 'engine_name',
+            'engine_type',
             'scan_title', 'scan_policy',
             'finding_id', 'finding_type', 'finding_status', 'finding_tags',
             'finding_severity', 'finding_description', 'finding_solution',
@@ -313,7 +310,7 @@ def export_finding_api(request, finding_id):
             finding_links = None
         writer.writerow([
             finding.asset.value, finding.asset.type,
-            finding.scan.engine_type.name, finding.scan.engine.name,
+            finding.scan.engine_type.name,
             finding.scan.title, finding.scan.engine_policy.name,
             finding.id, finding.type, finding.status, ','.join(finding.tags),
             finding.severity, finding.description, finding.solution,

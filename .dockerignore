@@ -8,3 +8,4 @@ media/*
 *.pyc
 __pycache__
 env
+env3
