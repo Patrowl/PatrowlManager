@@ -7,7 +7,7 @@ certifi==2017.4.17
 chardet==3.0.4
 coreapi==2.3.3
 coreschema==0.0.4
-Django==2.2.5
+Django==2.2.6
 django-celery-beat==1.1.1
 django-celery-results==1.1.2
 django-cursor-pagination==0.1.4
@@ -33,7 +33,8 @@ meld3==1.0.2
 more-itertools==7.2.0
 netaddr==0.7.19
 openapi-codec==1.3.2
-psycopg2-binary==2.7.5
+psycopg2-binary==2.8.4
+#psycopg2-binary==2.7.5
 python-crontab==2.3.6
 python-dateutil==2.8.0
 python-magic==0.4.15
