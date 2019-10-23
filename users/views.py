@@ -106,20 +106,20 @@ def login(request):
         return render(request, 'login.html', {'form': default_form})
 
 
-@csrf_exempt
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login_d(request, user)
-            return redirect('homepage_dashboard_view')
-    else:
-        form = UserCreationForm()
-    return render(request, 'signup.html', {'form': form})
+# @csrf_exempt
+# def signup(request):
+#     if request.method == 'POST':
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             username = form.cleaned_data.get('username')
+#             raw_password = form.cleaned_data.get('password1')
+#             user = authenticate(username=username, password=raw_password)
+#             login_d(request, user)
+#             return redirect('homepage_dashboard_view')
+#     else:
+#         form = UserCreationForm()
+#     return render(request, 'signup.html', {'form': form})
 
 
 def user_details_view(request):

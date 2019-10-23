@@ -16,3 +16,5 @@ var/tmp/db.json
 .scannerwork
 .vscode
 staticfiles
+docker-compose.cloud.yml*
+docker-entrypoint.cloud.sh*

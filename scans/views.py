@@ -62,9 +62,9 @@ def detail_scan_view(request, scan_id):
 
     # Search assets related to the scan
     if assets_filters == {}:
-        assets = scan.assets.all().only("id", "value", "criticity", "type")
+        assets = scan.assets.all().only("id", "value", "criticity", "type").order_by("value")
     else:
-        assets = scan.assets.filter(**assets_filters).only("id", "value", "criticity", "type")
+        assets = scan.assets.filter(**assets_filters).only("id", "value", "criticity", "type").order_by("value")
         findings_filters.update({"asset__in": assets})
 
     # Search asset groups related to the scan

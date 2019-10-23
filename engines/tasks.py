@@ -158,25 +158,25 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                             if 'pluginName' in report_item.attrib:
                                 summary['total'] += 1
                                 finding = {
-                                            "target": {
-                                                "addr": [asset.get('host-ip', asset.get('name'))]
-                                            },
-                                            "metadata": {
-                                                "risk": {
-                                                    "cvss_base_score": "0.0"
-                                                },
-                                                "vuln_refs": {},
-                                                "links": list(),
-                                                "tags": list()
-                                            },
-                                            "title": report_item.attrib['pluginName'],
-                                            "type": "Vuln",
-                                            "confidence": "3",
-                                            "severity": "info",
-                                            "description": "n/a",
-                                            "solution": "n/a",
-                                            "raw": None
-                                        }
+                                    "target": {
+                                        "addr": [asset.get('host-ip', asset.get('name'))]
+                                    },
+                                    "metadata": {
+                                        "risk": {
+                                            "cvss_base_score": "0.0"
+                                        },
+                                        "vuln_refs": {},
+                                        "links": list(),
+                                        "tags": ["nessus"]
+                                    },
+                                    "title": report_item.attrib['pluginName'],
+                                    "type": "nessus_manual_import",
+                                    "confidence": "3",
+                                    "severity": "info",
+                                    "description": "n/a",
+                                    "solution": "n/a",
+                                    "raw": None
+                                }
                                 if int(report_item.attrib['severity']) < min_level:
                                     # if below min level descard finding
                                     summary['missing'] += 1
@@ -223,11 +223,11 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                                         finding['metadata']['risk']['patch_publication_date'] = param.text
 
                                     if param.tag == 'cve':
-                                        finding['metadata']['vuln_refs']['cve'] = param.text
+                                        finding['metadata']['vuln_refs']['CVE'] = param.text.split(', ')
                                     if param.tag == 'bid':
-                                        finding['metadata']['vuln_refs']['bid'] = param.text
+                                        finding['metadata']['vuln_refs']['BID'] = param.text.split(', ')
                                     if param.tag == 'xref':
-                                        finding['metadata']['vuln_refs'][param.text.split(':')[0]] = param.text.split(':')[1]
+                                        finding['metadata']['vuln_refs'][param.text.split(':')[0].upper()] = param.text.split(':')[1]
                                     if param.tag == 'see_also':
                                         for link in param.text.split('\n'):
                                             finding['metadata']['links'].append(link)
@@ -646,7 +646,6 @@ def start_periodic_scan_task(self, params):
               resp.status_code, json.loads(resp.text)['status'])
         return False
 
-
     # -5- import the results in DB
     try:
         _import_findings(findings=deepcopy(json.loads(resp.text)['issues']), scan=scan)
@@ -654,7 +653,6 @@ def start_periodic_scan_task(self, params):
         print (e.__doc__)
         print (e.message)
         return False
-
 
     # -6- get and store the report
     try:

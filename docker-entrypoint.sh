@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "[+] Wait for DB availability"
+while !</dev/tcp/db/5432; do sleep 1; done
+
 source env3/bin/activate
 
 # Collect static files
@@ -28,6 +31,11 @@ python manage.py loaddata var/data/engines.EnginePolicy.json
 # Start Supervisord (Celery workers)
 echo "[+] Start Supervisord (Celery workers)"
 supervisord -c var/etc/supervisord.conf
+
+# Configure engines and turn-on auto-refresh engine status
+if [ -f set_engines.py ]; then
+  python manage.py shell < set_engines.py
+fi
 
 # Start server
 echo "[+] Starting server"
