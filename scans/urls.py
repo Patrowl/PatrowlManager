@@ -8,6 +8,10 @@ urlpatterns = [
     ## JSON API
     # ex: /scans/api/v1/defs/list
     url(r'^api/v1/defs/list$', apis.get_scan_definitions_api, name='get_scan_definitions_api'),
+    # ex: /scans/api/v1/defs/export
+    url(r'^api/v1/defs/export$', apis.export_scan_definitions_api, name='export_scan_definitions_api'),
+    # ex: /scans/api/v1/defs/export/1
+    url(r'^api/v1/defs/export/(?P<scan_id>[0-9]+)$', apis.export_scan_definition_api, name='export_scan_definition_api'),
     # ex: /scans/api/v1/defs/by-id/1
     url(r'^api/v1/defs/by-id/(?P<scan_id>[0-9]+)$', apis.get_scan_definition_api, name='get_scan_definition_api'),
     # ex: /scans/api/v1/by-id/1

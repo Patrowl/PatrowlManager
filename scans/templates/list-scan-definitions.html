@@ -40,6 +40,8 @@
         <td>
           <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/edit/{{ scan_def.id }}'">
             <span class="glyphicon glyphicon-edit"></span></button>
+          <button type="button" class="btn btn-default btn-xs" onclick="location.href='{% url 'export_scan_definition_api' scan_def.id %}'">
+            <span class="glyphicon glyphicon-share"></span></button>
           {% if scan_def.scan_type == "periodic" %}
             {% if scan_def.enabled %}
             <button type="button" class="btn btn-warning btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
@@ -94,6 +96,9 @@
   <br/>
   <a href="/scans/defs/add">+ Add a new scan definition</a><br/>
   <a href="/scans/list">+ View performed scans</a><br/>
+  <!-- <a class="text-warning btn-export-selected" href="#">* Export selected</a> -->
+  <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
+  <!-- <a href="{# url 'import_scan_definitions_view' #}" class="text-warning"># Import </a><br/> -->
   <br/>
 
   {% if messages %}

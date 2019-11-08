@@ -43,6 +43,26 @@ def get_scan_definition_api(request, scan_id):
 
 
 @api_view(['GET'])
+def export_scan_definition_api(request, scan_id):
+    """Get selected scan."""
+    scan = get_object_or_404(ScanDefinition, id=scan_id)
+    response = JsonResponse(scan.to_dict())
+    response['Content-Disposition'] = 'attachment; filename=scandef_'+str(scan.id)+'.json'
+    return response
+
+
+@api_view(['GET'])
+def export_scan_definitions_api(request):
+    """Get selected scan."""
+    scans_list = []
+    for scan in ScanDefinition.objects.all():
+        scans_list.append(scan.to_dict())
+    response = JsonResponse(scans_list, safe=False)
+    response['Content-Disposition'] = 'attachment; filename=scandefs'
+    return response
+
+
+@api_view(['GET'])
 def get_scan_api(request, scan_id):
     """Get selected scan."""
     scan = get_object_or_404(Scan, id=scan_id)
