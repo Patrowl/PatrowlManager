@@ -205,7 +205,7 @@ def add_finding_view(request):
                 # 'scan': form.cleaned_data['scan']
             }
 
-            if not any(finding_args.risk_info):
+            if not finding_args["risk_info"]:
                 finding_args.update({
                     'risk_info': {
                         "cvss_base_score": 0.0,
