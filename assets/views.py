@@ -131,8 +131,10 @@ def add_asset_view(request):
             asset.save()
 
             # Add categories
-            for cat in form.data['categories']:
-                asset.categories.add(cat)
+            if form.data.getlist('categories'):
+                asset.categories.clear()
+                for cat_id in form.data.getlist('categories'):
+                    asset.categories.add(AssetCategory.objects.get(id=cat_id))
             asset.save()
 
             if asset.type in ['ip-range', 'ip-subnet']:
