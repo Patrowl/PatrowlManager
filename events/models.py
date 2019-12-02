@@ -42,4 +42,5 @@ class Event(models.Model):
 
     def save(self, *args, **kwargs):
         if self.severity in LOGGING_LEVEL.split(','):
+            self.message = self.message[:250]  # Just to be sure ...
             return super(Event, self).save(*args, **kwargs)

@@ -113,6 +113,11 @@ def add_asset_view(request):
         form = AssetForm()
     elif request.method == 'POST':
         form = AssetForm(request.POST)
+
+        if not Asset.is_savable():
+            messages.error(request, 'MAX_ASSETS reached. Contact Support team ;)')
+            return render(request, 'add-asset.html', {'form': form})
+
         if form.is_valid():
             asset_args = {
                 'value': encoding.unicode_escape(form.cleaned_data['value']),
@@ -149,7 +154,7 @@ def add_asset_view(request):
                 asset_group.calc_risk_grade()
                 asset_group.save()
 
-            messages.success(request, 'Creation submission successful')
+            messages.success(request, 'New asset created')
             return redirect('list_assets_view')
 
     return render(request, 'add-asset.html', {'form': form})

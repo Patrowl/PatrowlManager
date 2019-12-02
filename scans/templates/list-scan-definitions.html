@@ -11,6 +11,7 @@
   <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
     <thead>
       <tr>
+        <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
         <th>Title</th>
         <th># Scans</th>
         <th>Scan Type</th>
@@ -23,6 +24,7 @@
     <tbody>
       {% for scan_def in scan_defs %}
       <tr>
+        <td><input type="checkbox" class="radio" name="scan" value="{{ scan_def.id }}"/></td>
         <td><a href="/scans/defs/details/{{ scan_def.id }}" class="text-primary">{{ scan_def.title }}</a></td>
         <td>{{ scan_def.scan_count }}</td>
         <td>{{ scan_def.scan_type }}</td>
@@ -98,6 +100,7 @@
   <a href="/scans/list">+ View performed scans</a><br/>
   <!-- <a class="text-warning btn-export-selected" href="#">* Export selected</a> -->
   <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
+  <a class="btn-delete-selected text-danger" href="#">! Delete selected assets (no confirm)</a><br/>
   <!-- <a href="{# url 'import_scan_definitions_view' #}" class="text-warning"># Import </a><br/> -->
   <br/>
 
@@ -234,6 +237,29 @@
           location.reload();
         }
       });
+    });
+
+    // Delete selected assets
+    $("a.btn-delete-selected").on('click', function(eventObject) {
+      scans_to_delete = [];
+      $("input[name='scan']").each(function(cbx){
+        if (this.checked) {
+          scans_to_delete.push(this.value)
+        }
+      })
+
+      if (scans_to_delete.length != 0){
+        var request = $.ajax({
+          url: "{% url 'delete_scan_defs_api' %}",
+          method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: JSON.stringify(scans_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
     });
 
   });

@@ -31,7 +31,6 @@ TIMEOUT = settings.SCAN_TIMEOUT  # 10 minutes by default
 
 @shared_task(bind=True, acks_late=True)
 def test_task(self, queue_name):
-    # print ("task: test connexion on queue '{}'!".format(queue_name))
     Event.objects.create(
         message="[EngineTasks/test_task()] Test celery+RabbitMQ connexion on queue '{}'.".format(queue_name),
         type="DEBUG", severity="INFO",
@@ -42,7 +41,6 @@ def test_task(self, queue_name):
 
 @shared_task(bind=True, acks_late=True)
 def refresh_engines_status_task(self):
-    # print ("task: starting refresh_engines_status_task !")
     for engine in EngineInstance.objects.filter(enabled=True).only("api_url", "status"):
         try:
             resp = requests.get(
@@ -63,7 +61,6 @@ def refresh_engines_status_task(self):
 
 @shared_task(bind=True, acks_late=True)
 def get_engine_status_task(self, engine_id):
-    # print ("task: starting get_engine_status_task !")
     for engine in EngineInstance.objects.filter(id=engine_id).only("api_url", "status"):
         try:
             resp = requests.get(
@@ -83,7 +80,6 @@ def get_engine_status_task(self, engine_id):
 
 @shared_task(bind=True, acks_late=True)
 def get_engine_info_task(self, engine_id):
-    # print ("task: starting get_engine_info_task !")
     for engine in EngineInstance.objects.filter(id=engine_id).only("api_url", "status"):
         try:
             resp = requests.get(
@@ -150,7 +146,7 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                             if not net.is_valid_ip(asset.get('host-ip', asset.get('name'))):
                                 Event.objects.create(
                                     message="[EngineTasks/importfindings_task()] finding not added.",
-                                    type="DEBUG", severity="INFO",
+                                    type="DEBUG", severity="DEBUG",
                                     description="No ip address for asset {} found".format(asset.get('name'))
                                 )
                                 summary['missing'] += 1
@@ -293,8 +289,6 @@ def stopscan_task(self, scan_id):
             scan.status = "error"
             scan.finished_at = timezone.now()
             scan.save()
-            # print("ERROR: something goes wrong in 'stopscan_task' (request_status_code={}, engine_error={})",
-            #        resp.status_code, json.loads(resp.text)['reason'])
             Event.objects.create(message="[EngineTasks/stopscan_task/{}] Error when stopping scan.".format(self.request.id),
                 type="ERROR", severity="ERROR", scan=scan, description="STATUS CODE={}, {}".format(resp.status_code, json.loads(resp.text)))
             return False
@@ -316,8 +310,6 @@ def stopscan_task(self, scan_id):
 
 @shared_task(bind=True, acks_late=True)
 def startscan_task(self, params):
-    # print("----Entering startscan_task() with params: {}".format(params))
-
     scan = Scan.objects.get(id=params['scan_params']['scan_id'])
     scan.status = "started"
     scan.started_at = timezone.now()
@@ -368,7 +360,6 @@ def startscan_task(self, params):
     # -1- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES
     while _get_engine_status(engine=engine_inst) != "READY" and retries > 0:
-        # print("--waiting scanner ready: {}".format(_get_engine_status(engine=engine_inst)))
         time.sleep(1)
         retries -= 1
 
@@ -404,10 +395,9 @@ def startscan_task(self, params):
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
-        Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong ({}). Task aborted.".format(self.request.id, e),
+        Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong. Task aborted.".format(self.request.id),
                      description=str(e), type="ERROR", severity="ERROR", scan=scan)
-        # Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
-        #              description=json.loads(resp.text)['status'], type="ERROR", severity="ERROR", scan=scan)
+
         return False
 
     # -3- wait the engine come available for accepting scans (status=ready)
@@ -429,7 +419,6 @@ def startscan_task(self, params):
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
-        # print("ERROR: startscan_task/scaninprogress - max_retries ({}) reached.".format(retries))
         Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - max_retries ({}) reached. Task aborted.".format(self.request.id, retries),
             type="ERROR", severity="ERROR", scan=scan)
         return False
@@ -449,15 +438,15 @@ def startscan_task(self, params):
             scan.status = "error"
             scan.finished_at = timezone.now()
             scan.save()
-            Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in 'getfindings' call (request_status_code={}, engine_error={}). Task aborted.".format(self.request.id, resp.status_code, json.loads(resp.text)['reason']),
-                type="ERROR", severity="ERROR", scan=scan)
+            Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in 'getfindings' call (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
+                type="ERROR", severity="ERROR", scan=scan, description=json.loads(resp.text)['reason'])
             return False
     except Exception as e:
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
         Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in 'getfindings' call (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
-            type="ERROR", severity="ERROR", scan=scan, description="{}".format(e.message))
+            type="ERROR", severity="ERROR", scan=scan, description="{}".format(e))
         return False
 
 
@@ -691,8 +680,6 @@ def start_periodic_scan_task(self, params):
 
 
 def _get_engine_status(engine):
-    # print("I'm inside the _get_engine_status with args '{}'".format(engine))
-
     engine_status = "undefined"
 
     try:
@@ -711,7 +698,6 @@ def _get_engine_status(engine):
 
 
 def _get_scan_status(engine, scan_id):
-    # print("I'm inside the _get_scan_status with args 'engine={}, scan_id={}'".format(engine, scan_id))
     scan_status = "undefined"
 
     try:
@@ -756,7 +742,7 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
         elif net._is_valid_url(asset_value):
             asset_type = "url"
         else:
-            asset_type = "fqdn"  # default :/
+            asset_type = "keyword"  # default :/
         name = asset_value
         criticity = 'medium'
         owner = User.objects.filter(username='admin').first()
@@ -785,27 +771,27 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
 
     # Creation/Update of the AssetGroup
     if parent is not None:
-       Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Looking for a group named : {}".format(parent), type="DEBUG", severity="INFO", scan=scan)
-       asset_group = AssetGroup.objects.filter(name="{} assets".format(parent)).first()
-       if asset_group is None:   # Create an asset group dynamically
-           Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Create a group named : {}".format(parent), type="DEBUG", severity="INFO", scan=scan)
-           assetgroup_args = {
+        Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Looking for a group named : {}".format(parent), type="DEBUG", severity="INFO", scan=scan)
+        asset_group = AssetGroup.objects.filter(name="{} assets".format(parent)).first()
+        if asset_group is None:   # Create an asset group dynamically
+            Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Create a group named : {}".format(parent), type="DEBUG", severity="INFO", scan=scan)
+            assetgroup_args = {
                'name': "{} assets".format(parent),
                'criticity': criticity,
                'description': "AssetGroup dynamically created",
                'owner': owner
-           }
-           asset_group = AssetGroup(**assetgroup_args)
-           asset_group.save()
+            }
+            asset_group = AssetGroup(**assetgroup_args)
+            asset_group.save()
 
-       Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Add {} in group {}".format(asset, parent), type="DEBUG", severity="INFO", scan=scan)
-       # Add the asset to the new group
-       asset_group.assets.add(asset)
-       asset_group.save()
+        Event.objects.create(message="[EngineTasks/_create_asset_on_import()] Add {} in group {}".format(asset, parent), type="DEBUG", severity="INFO", scan=scan)
+        # Add the asset to the new group
+        asset_group.assets.add(asset)
+        asset_group.save()
 
-       # Caculate the risk grade
-       asset_group.calc_risk_grade()
-       asset_group.save()
+        # Caculate the risk grade
+        asset_group.calc_risk_grade()
+        asset_group.save()
 
     return asset
 
@@ -917,7 +903,10 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 new_raw_finding.save()
             else:
                 # Create a new finding:
-                Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] New finding: {} ({})".format(scan_id, finding['title'], asset.value), type="DEBUG", severity="INFO", scan=scan)
+                Event.objects.create(
+                    message="[EngineTasks/_import_findings()/scan_id={}] New finding: {}".format(scan_id, finding['title']),
+                    description="Asset: {}\nFinding: {}".format(asset.value, finding['title']),
+                    type="DEBUG", severity="INFO", scan=scan)
                 new_finding = Finding.objects.create(
                     raw_finding = new_raw_finding,
                     asset       = asset,
@@ -949,7 +938,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 try:
                     new_finding.evaluate_alert_rules(trigger='auto')
                 except Exception as e:
-                    Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] error {}".format(e), type="DEBUG", severity="INFO", scan=scan)
+                    Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] Error in alerting".format(scan_id),
+                        type="ERROR", severity="ERROR", scan=scan, description=str(e))
     scan.save()
     scan.update_sumary()
 
@@ -961,5 +951,5 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     # @Todo: Revaluate the risk level of all asset groups
 
     scan.save()
-    Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] Findings imported.".format(scan_id), type="DEBUG", severity="INFO", scan=scan)
+    Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] Findings imported.".format(scan_id), type="INFO", severity="INFO", scan=scan)
     return True

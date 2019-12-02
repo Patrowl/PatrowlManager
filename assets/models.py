@@ -7,13 +7,16 @@ from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
+from django.conf import settings
 
 from events.models import Event
 from common.utils.encoding import json_serial
+from common.utils.settings import is_restricted
 
 import datetime
 import os
 import json
+import logging
 
 ASSET_TYPES = (
     ('ip', 'ip'),
@@ -173,8 +176,14 @@ class Asset(models.Model):
 
     class Meta:
         """Metadata: DB name."""
-
         db_table = 'assets'
+
+    @classmethod
+    def is_savable(cls):
+        """Check if it is possible to add a new asset."""
+        if is_restricted() and Asset.objects.count() > settings.ASSETS_MAX:
+            return False
+        return True
 
     def __str__(self):
         """Return Stringified class summary."""
@@ -193,7 +202,11 @@ class Asset(models.Model):
 
     def save(self, *args, **kwargs):
         """Update the 'updated_at' field on each updates."""
-        if not self._state.adding:
+        if self._state.adding and self.is_savable() is False:
+            # Check usage restriction
+            logging.error("Too much asset created: > {}".format(settings.ASSETS_MAX))
+            return False
+        else:
             self.updated_at = timezone.now()
         return super(Asset, self).save(*args, **kwargs)
 

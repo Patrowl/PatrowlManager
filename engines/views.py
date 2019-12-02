@@ -210,7 +210,7 @@ def add_policy_view(request):
             if request.FILES:
                 policy.file = request.FILES['file']
             policy.save()
-            policy.scopes = form.cleaned_data['scopes']
+            policy.scopes.set(form.cleaned_data['scopes'])
             policy.save()
             messages.success(request, 'Creation submission successful')
             return HttpResponseRedirect('list')

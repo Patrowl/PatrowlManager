@@ -103,6 +103,15 @@ def delete_scan_def_api(request, scan_id):
     return JsonResponse({'status': 'success'})
 
 
+@api_view(['POST', 'DELETE'])
+def delete_scan_defs_api(request):
+    """Delete selected scan defs."""
+    scans = request.data
+    for scan_id in scans:
+        ScanDefinition.objects.get(id=scan_id).delete()
+    return JsonResponse({'status': 'success'})
+
+
 @api_view(['GET'])
 def stop_scan_api(request, scan_id):
     """Stop a scan."""

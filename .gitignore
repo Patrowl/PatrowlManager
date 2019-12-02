@@ -6,7 +6,7 @@ env3
 db.sqlite3
 .DS_Store
 dump.rdb
-settings.py
+app/settings.py
 media/imports/*
 media/owners_docs/*
 media/policies/*

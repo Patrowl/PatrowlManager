@@ -254,7 +254,7 @@ def duplicate_policy_api(request, policy_id):
 
     new_policy = EnginePolicy(**policy_args)
     new_policy.save()
-    new_policy.scopes = policy.scopes.all() #M2M field
+    new_policy.scopes.set(policy.scopes.all())
     new_policy.save()
     messages.success(request, 'Duplicate submission successful')
 

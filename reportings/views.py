@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
 
 from assets.models import Asset, AssetGroup, ASSET_TYPES
-from findings.models import Finding
+from findings.models import Finding, RawFinding
 from scans.models import Scan, ScanDefinition
 from engines.models import EngineInstance, EnginePolicy
 from rules.models import Rule
@@ -64,6 +64,7 @@ def homepage_dashboard_view(request):
         nb_info=Coalesce(Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()), 0),
     )
     global_stats["findings"] = {
+        "total_raw": RawFinding.objects.count(),
         "total": findings.count(),
         "new": findings_stats["nb_new"],
         "critical": findings_stats["nb_critical"],

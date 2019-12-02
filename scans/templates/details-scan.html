@@ -423,9 +423,14 @@ function toggle(source, element) {
         <dt>Assets:</dt><dd>
           {% if assetgroups|length > 0 %}
             {% for ag in assetgroups %}
-              {% for a in ag.assets.all %}
+              {% if ag.assets.all|join:", "|length > 128 %}
+                {{ ag.assets.all|join:", "|truncatechars:128 }} <a data-toggle="modal" data-target="#modal-showall-assets">show all</a><br/>
+              {% elif ag.assets.all|join:", "|length > 0 %}
+                {{ ag.assets.all|join:", " }}<br/>
+              {% endif %}
+              <!-- {% for a in ag.assets.all %}
                 <a href="/assets/details/{{a.id}}">{{a.value}}</a>{% if not forloop.last %},{% endif %}
-              {% endfor %}<br/>
+              {% endfor %}<br/> -->
             {% endfor %}
           {% endif %}
           {% for a in other_assets %}
@@ -502,7 +507,14 @@ function toggle(source, element) {
       <div class="modal-body">
         <!-- Content -->
         <div id="showall-assets">
-          {{ scan.assets }}
+          {% if assetgroups|length > 0 %}
+            {% for ag in assetgroups %}
+                {{ ag.assets.all|join:", " }}
+            {% endfor %}
+          {% endif %}
+          {% for a in other_assets %}
+            {{a.value|truncatechars:30}}{% if not forloop.last %},{% endif %}
+          {% endfor %}
         </div>
         <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Close</button>
       </div>

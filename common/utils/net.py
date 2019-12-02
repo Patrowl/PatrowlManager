@@ -72,7 +72,7 @@ def _is_valid_domain(domain):
         r'([a-zA-Z0-9][-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9]))\.'
         r'([a-zA-Z]{2,13}|[a-zA-Z0-9-]{2,30}.[a-zA-Z]{2,3})$'
     )
-    return pattern.match(domain)
+    return pattern.match(str(domain))
 
 
 def _is_valid_url(url):
@@ -119,4 +119,4 @@ def _is_valid_url(url):
         u"$",
         re.UNICODE | re.IGNORECASE
     )
-    return pattern.match(url)
+    return pattern.match(str(url))
