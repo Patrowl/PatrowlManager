@@ -18,6 +18,8 @@ urlpatterns = [
         name='user_details_view'),
     url(r'^add$', views.add_user_view,
         name='add_user_view'),
+    url(r'^editpw$', views.edit_user_password_view,
+        name='edit_user_password_view'),
 
     # REST-API Endpoints
     url(r'^users/api/v1/details/(?P<user_id>[0-9]+)$',

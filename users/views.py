@@ -3,7 +3,8 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as login_d
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
@@ -158,3 +159,20 @@ def add_user_view(request):
             return redirect(reverse('show_settings_menu') + "#users")
 
     return render(request, 'add-user.html', {'form': form})
+
+
+def edit_user_password_view(request):
+    form = None
+    if request.method == 'GET':
+        form = PasswordChangeForm(user=request.user)
+    elif request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('show_settings_menu')
+        else:
+            messages.error(request, 'Please correct the error below.')
+
+    return render(request, 'edit-user-password.html', {'form': form})
