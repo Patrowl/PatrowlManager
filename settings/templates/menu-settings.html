@@ -148,37 +148,35 @@
       <!-- Pagination -->
       <div style="display: inline-flex;">
         <ul class="pagination pagination-xs">
-          <li class="page-item">
-            <a class="page-link" href="#" onclick="gotopage(1, 'events');">&laquo;&laquo;</a>
-          </li>
-          {% if events_page_info.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href= "#" onclick="gotopage({{ events_page_info.previous_page_number }}, 'events');">&laquo;</a>
-          </li>
+          {% if events.number == 1 %}
+            <li class="disabled"><span>⇤</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'events');">⇤</a></li>
           {% endif %}
-          <li class="page-item">
-            <input type="text" class="input-xs">{{ pn }}</input>
-          </li>
+          {% if events.has_previous %}
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{events.previous_page_number}}, 'events');">&laquo;</a></li>
+          {% else %}
+            <li class="disabled"><span>&laquo;</span></li>
+          {% endif %}
+          {% for i in events.paginator|proper_paginate:events.number %}
+            {% if events.number == i %}
+                <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'events');">{{ i }}</a></li>
+            {% endif %}
+          {% endfor %}
           {% if events.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="#" onclick="gotopage({{ events_page_info.next_page_number }}, 'events');">&raquo;</a>
-          </li>
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{events.next_page_number}}, 'events');">&raquo;</a></li>
+          {% else %}
+            <li class="disabled"><span>&raquo;</span></li>
           {% endif %}
-          <li class="page-item">
-            <a class="page-link" href="#" onclick="gotopage('{{ events_page_info.end_cursor }}', 'events');">&raquo;&raquo;</a>
-          </li>
+          {% if events.number == events.paginator.num_pages %}
+            <li class="disabled"><span>⇥</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{events.paginator.num_pages}}, 'events');">⇥</a></li>
+          {% endif %}
         </ul>
-        <div style="margin: 21px;">
-          <select id="nb_rows_per_page" >
-            <option value="10" selected>10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="200">200</option>
-          </select>
-          events per page
-        </div>
       </div>
-
     </div>
   </div>
 </div>

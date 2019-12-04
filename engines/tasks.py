@@ -114,7 +114,7 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
             "missing": 0, "new": 0, "total": 0
         }
 
-        Event.objects.create(message='[EngineTasks/importfindings_task()] engine: nessus', type="INFO", severity="INFO")
+        Event.objects.create(message='[EngineTasks/importfindings_task()] engine: nessus', type="INFO", severity="DEBUG")
         try:
             import cElementTree as ET
         except ImportError:
@@ -297,14 +297,14 @@ def stopscan_task(self, scan_id):
         scan.finished_at = timezone.now()
         scan.save()
         Event.objects.create(message="[EngineTasks/stopscan_task/{}] Error when stopping scan (exception).".format(self.request.id),
-                     type="ERROR", severity="ERROR", scan=scan, description="{}".format(e.message))
+            type="ERROR", severity="ERROR", scan=scan, description="{}".format(e.message))
         return False
 
     scan.status = "stopped"
     scan.finished_at = timezone.now()
     scan.save()
     Event.objects.create(message="[EngineTasks/stopscan_task/{}] Scan successfully stopped.".format(self.request.id),
-                 type="INFO", severity="INFO", scan=scan)
+        type="INFO", severity="INFO", scan=scan)
     return True
 
 
@@ -316,7 +316,7 @@ def startscan_task(self, params):
     scan.save()
 
     Event.objects.create(message="[EngineTasks/startscan_task/{}] Task started.".format(self.request.id),
-                 type="INFO", severity="INFO", scan=scan)
+        type="INFO", severity="INFO", scan=scan)
 
     # Check if the assets list is not empty
     if len(params['scan_params']['assets']) == 0:
@@ -389,14 +389,14 @@ def startscan_task(self, params):
             if 'details' in json.loads(resp.text) and 'reason' in json.loads(resp.text)['details']:
                 response_reason = json.loads(resp.text)['details']['reason']
             Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (response_status_code={}, response_status={}, response_details={}). Task aborted.".format(self.request.id, resp.status_code, json.loads(resp.text)['status'], response_reason),
-                         description=str(resp.text), type="ERROR", severity="ERROR", scan=scan)
+                description=str(resp.text), type="ERROR", severity="ERROR", scan=scan)
             return False
     except requests.exceptions.RequestException as e:
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
         Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong. Task aborted.".format(self.request.id),
-                     description=str(e), type="ERROR", severity="ERROR", scan=scan)
+            description=str(e), type="ERROR", severity="ERROR", scan=scan)
 
         return False
 
@@ -424,12 +424,12 @@ def startscan_task(self, params):
         return False
 
     Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - scan report is now available: {}.".format(self.request.id, str(engine_inst.api_url)+"getreport/"+str(scan.id)),
-                         type="DEBUG", severity="INFO", scan=scan)
+                         type="DEBUG", severity="DEBUG", scan=scan)
     Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - findings are now available: {}.".format(self.request.id, str(engine_inst.api_url)+"getfindings/"+str(scan.id)),
-                         type="DEBUG", severity="INFO", scan=scan)
+                         type="DEBUG", severity="DEBUG", scan=scan)
 
     #Todo: change to wait the report becomes available
-    time.sleep(5) # wait the scan process finish to write the report
+    time.sleep(5)  # wait the scan process finish to write the report
 
     # -4- get the results (findings)
     try:
@@ -439,14 +439,14 @@ def startscan_task(self, params):
             scan.finished_at = timezone.now()
             scan.save()
             Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in 'getfindings' call (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
-                type="ERROR", severity="ERROR", scan=scan, description=json.loads(resp.text)['reason'])
+                type="ERROR", severity="ERROR", scan=scan, description="{}".format(resp.text))
             return False
     except Exception as e:
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
         Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in 'getfindings' call (request_status_code={}). Task aborted.".format(self.request.id, resp.status_code),
-            type="ERROR", severity="ERROR", scan=scan, description="{}".format(e))
+            type="ERROR", severity="ERROR", scan=scan, description="{}\n{}".format(e, resp.text))
         return False
 
 

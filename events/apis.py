@@ -15,7 +15,7 @@ def list_events_api(request):
     for e in Event.objects.all().order_by('-id')[:100]:
         events.append(model_to_dict(e))
 
-    return JsonResponse(events, json_dumps_params={'indent': 2}, safe=False)
+    return JsonResponse(events, safe=False)
 
 
 @api_view(['DELETE'])

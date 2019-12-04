@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'search',
     'reportings',
     'settings',
-    'debug_toolbar',
+    # 'debug_toolbar',
     'django_celery_results',
     'django_celery_beat',
 ]
