@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from django.urls import path
 from django.conf.urls import url
-from . import views, apis
+from . import views, apis, serializers
 
 
 urlpatterns = [
@@ -57,4 +58,10 @@ urlpatterns = [
     url(r'^api/v1/by-id/(?P<finding_id>[0-9]+)$', apis.get_finding_api, name='get_finding_byid_api'),
     # ex: /findings/api/v1/raw/8
     url(r'^api/v1/raw/(?P<finding_id>[0-9]+)$', apis.get_raw_finding_api, name='get_raw_finding_api'),
+]
+
+# Serialized data
+urlpatterns += [
+    path('api/list', serializers.FindingList.as_view()),
+    path('api/raw/list', serializers.RawFindingList.as_view()),
 ]

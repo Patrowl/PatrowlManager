@@ -150,7 +150,7 @@ def rawfinding_delete_log(sender, **kwargs):
 
 class Finding(models.Model):
     raw_finding = models.ForeignKey(RawFinding, models.SET_NULL, blank=True, null=True)
-    asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    asset       = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='findings')
     asset_name  = models.CharField(max_length=256) #todo: delete this
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
     scan        = models.ForeignKey(Scan, on_delete=models.CASCADE, blank=True, null=True)
@@ -162,7 +162,7 @@ class Finding(models.Model):
     confidence  = models.CharField(max_length=10)
     severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)  # info, low, medium, high, critical
     severity_num= models.IntegerField(default=1, blank=True, null=True)  # info, low, medium, high, critical
-    scopes      = models.ManyToManyField(EnginePolicyScope, blank=True)
+    scopes      = models.ManyToManyField(EnginePolicyScope, blank=True, related_name='finding_scopes')
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)
     raw_data    = JSONField(null=True, blank=True)

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from django.urls import path
 from django.conf.urls import url
-from . import views, apis
+from . import views, apis, serializers
 
 
 urlpatterns = [
@@ -17,4 +18,9 @@ urlpatterns = [
     # ex: /events/delete [POST]
     url(r'^delete/(?P<event_id>[0-9]+)$',
         views.delete_event_view, name='delete_event_view'),
+]
+
+# Serialized data
+urlpatterns += [
+    path('api/list', serializers.EventListCreate.as_view()),
 ]

@@ -455,7 +455,7 @@ def startscan_task(self, params):
         _import_findings(findings=deepcopy(json.loads(resp.text)['issues']), scan=scan)
 
     except Exception as e:
-        Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in '_import_findings' call. Task aborted.".format(self.request.id), description="{}".format(e.message),
+        Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - something goes wrong in '_import_findings' call. Task aborted.".format(self.request.id), description="{}".format(e),
             type="ERROR", severity="ERROR", scan=scan)
         scan.status = "error"
         scan.finished_at = timezone.now()
