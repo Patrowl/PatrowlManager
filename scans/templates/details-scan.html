@@ -29,16 +29,16 @@ table tr td.scan-progress {
 }
 
 tr.event {
-  border-style: solid;
+  border-left-style: solid;
   border-width: 2px;
   border-left-width: 10px;
   font-size: small;
 }
 
-tr.event-INFO { border-color: deepskyblue; }
-tr.event-WARNING { border-color: orange; }
-tr.event-ERROR { border-color: red; }
-tr.event-DEBUG { border-color: lightslategray; }
+tr.event-INFO { border-left-color: deepskyblue; }
+tr.event-WARNING { border-left-color: orange; }
+tr.event-ERROR { border-left-color: red; }
+tr.event-DEBUG { border-left-color: lightslategray; }
 
 .tile-content {
   margin: 0px -5px;
@@ -359,7 +359,7 @@ function toggle(source, element) {
                 <td>{{ event.severity }}</td>
                 <td title="{{ event.description }}">{{ event.message }}</td>
                 <td><strong>{{ event.type }}</strong></td>
-                <td>{{ event.created_at|date:"c" }}</td>
+                <td>{{ event.created_at| date:"Y/m/d\-H:i:s" }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -396,20 +396,7 @@ function toggle(source, element) {
             </ul>
           </div>
         </div>
-        <!-- <div id="risks" class="tab-pane fade">
-          <div class="row-tiles">
-            <div class="tile col-sm-3">
-              <div class="tile-content">
-                <div class="tile-header with-border">
-                  <h4>CVSS > 7.0 </h4>
-                </div>
-                <div class="tile-body">
-                  coucou
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> -->
+
       </div>
     </div>
 

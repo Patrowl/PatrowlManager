@@ -84,3 +84,5 @@ class RawFindingSerializer(serializers.ModelSerializer):
 class RawFindingList(generics.ListCreateAPIView):
     queryset = RawFinding.objects.all()
     serializer_class = RawFindingSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('title', 'severity', 'engine_type')
