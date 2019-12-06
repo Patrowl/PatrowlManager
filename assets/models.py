@@ -771,4 +771,9 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://ipcheck.proofpoint.com/?ip=%asset%",
         "datatypes": ["ip"]
     },
+    {
+        "name": "RiskIQ",
+        "link": "https://community.riskiq.com/search/%asset%",
+        "datatypes": ["domain", "ip", "fqdn"]
+    },
     ]
