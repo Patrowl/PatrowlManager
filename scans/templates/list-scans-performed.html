@@ -177,42 +177,34 @@ table tr td.scan-progress {
 
   <div style="display: inline-flex;">
     <ul class="pagination pagination-xs">
-      <li class="page-item">
-        <a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a>
-      </li>
-      {% if scans.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href= "#" onclick="gotopage({{ scans.previous_page_number }});">&laquo;</a>
-      </li>
-      {% endif %}
-      {{scans.paginator.items}}
-      {% for pn in scans.paginator.page_range %}
-      {% if pn == scans.number %}
-      <li class="page-item active">
+      {% if scans.number == 1 %}
+        <li class="disabled"><span>&laquo;&laquo;</span></li>
       {% else %}
-      <li class="page-item">
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a></li>
       {% endif %}
-        <a class="page-link" href="#" onclick="gotopage({{ pn }});">{{ pn }}</a>
-      </li>
+      {% if scans.has_previous %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scans.previous_page_number}});">&laquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&laquo;</span></li>
+      {% endif %}
+      {% for i in scans.paginator|proper_paginate:scans.number %}
+        {% if scans.number == i %}
+            <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}});">{{ i }}</a></li>
+        {% endif %}
       {% endfor %}
       {% if scans.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="#" onclick="gotopage({{ scans.next_page_number }});">&raquo;</a>
-      </li>
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scans.next_page_number}});">&raquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&raquo;</span></li>
       {% endif %}
-      <li class="page-item">
-        <a class="page-link" href="#" onclick="gotopage({{ scans.paginator.num_pages }});">&raquo;&raquo;</a>
-      </li>
+      {% if scans.number == scans.paginator.num_pages %}
+        <li class="disabled"><span>&raquo;&raquo;</span></li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scans.paginator.num_pages}});">&raquo;&raquo;</a></li>
+      {% endif %}
     </ul>
-    <!-- <div style="margin: 21px;">
-      <select id="nb_rows_per_page" >
-        <option value="10" selected>10</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="200">200</option>
-      </select>
-      scans per page
-    </div> -->
   </div>
 
 

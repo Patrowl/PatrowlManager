@@ -68,31 +68,33 @@
   <!-- Scans Pagination -->
   <div style="display: inline-flex;">
     <ul class="pagination pagination-xs">
-      <li class="page-item">
-        <a class="page-link" href="#" onclick="gotopage(1, 'scan_defs');">&laquo;&laquo;</a>
-      </li>
-      {% if scan_defs.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href= "#" onclick="gotopage({{ scan_defs.previous_page_number }}, 'scan_defs');">&laquo;</a>
-      </li>
-      {% endif %}
-      {% for pn in scan_defs.paginator.page_range %}
-      {% if pn == scan_defs.number %}
-      <li class="page-item active">
+      {% if scan_defs.number == 1 %}
+        <li class="disabled"><span>&laquo;&laquo;</span></li>
       {% else %}
-      <li class="page-item">
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'scan_defs');">&laquo;&laquo;</a></li>
       {% endif %}
-        <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'scan_defs');">{{ pn }}</a>
-      </li>
+      {% if scan_defs.has_previous %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scan_defs.previous_page_number}}, 'scan_defs');">&laquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&laquo;</span></li>
+      {% endif %}
+      {% for i in scan_defs.paginator|proper_paginate:scan_defs.number %}
+        {% if scan_defs.number == i %}
+            <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'scan_defs');">{{ i }}</a></li>
+        {% endif %}
       {% endfor %}
       {% if scan_defs.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="#" onclick="gotopage({{ scan_defs.next_page_number }}, 'scan_defs');">&raquo;</a>
-      </li>
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scan_defs.next_page_number}}, 'scan_defs');">&raquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&raquo;</span></li>
       {% endif %}
-      <li class="page-item">
-        <a class="page-link" href="#" onclick="gotopage({{ scan_defs.paginator.num_pages }}, 'scan_defs');">&raquo;&raquo;</a>
-      </li>
+      {% if scan_defs.number == scan_defs.paginator.num_pages %}
+        <li class="disabled"><span>&raquo;&raquo;</span></li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scan_defs.paginator.num_pages}}, 'scan_defs');">&raquo;&raquo;</a></li>
+      {% endif %}
     </ul>
   </div>
   <br/>

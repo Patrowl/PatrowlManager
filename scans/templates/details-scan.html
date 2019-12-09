@@ -165,31 +165,33 @@ function toggle(source, element) {
           <!-- Asset Pagination -->
           <div style="display: inline-flex;">
             <ul class="pagination pagination-xs">
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a>
-              </li>
-              {% if assets.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href= "#" onclick="gotopage({{ assets.previous_page_number }}, 'assets');">&laquo;</a>
-              </li>
-              {% endif %}
-              {% for pn in assets.paginator.page_range %}
-              {% if pn == assets.number %}
-              <li class="page-item active">
+              {% if assets.number == 1 %}
+                <li class="disabled"><span>&laquo;&laquo;</span></li>
               {% else %}
-              <li class="page-item">
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a></li>
               {% endif %}
-                <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'assets');">{{ pn }}</a>
-              </li>
+              {% if assets.has_previous %}
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.previous_page_number}}, 'assets');">&laquo;</a></li>
+              {% else %}
+                <li class="disabled"><span>&laquo;</span></li>
+              {% endif %}
+              {% for i in assets.paginator|proper_paginate:assets.number %}
+                {% if assets.number == i %}
+                    <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'assets');">{{ i }}</a></li>
+                {% endif %}
               {% endfor %}
               {% if assets.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage({{ assets.next_page_number }}, 'assets');">&raquo;</a>
-              </li>
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.next_page_number}}, 'assets');">&raquo;</a></li>
+              {% else %}
+                <li class="disabled"><span>&raquo;</span></li>
               {% endif %}
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage({{ assets.paginator.num_pages }}, 'assets');">&raquo;&raquo;</a>
-              </li>
+              {% if assets.number == assets.paginator.num_pages %}
+                <li class="disabled"><span>&raquo;&raquo;</span></li>
+              {% else %}
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.paginator.num_pages}}, 'assets');">&raquo;&raquo;</a></li>
+              {% endif %}
             </ul>
           </div>
         </div>
@@ -311,31 +313,33 @@ function toggle(source, element) {
           <!-- Findings Pagination -->
           <div style="display: inline-flex;">
             <ul class="pagination pagination-xs">
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage(1, 'findings');">&laquo;&laquo;</a>
-              </li>
-              {% if findings.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href= "#" onclick="gotopage({{ findings.previous_page_number }}, 'findings');">&laquo;</a>
-              </li>
-              {% endif %}
-              {% for pn in findings.paginator.page_range %}
-              {% if pn == findings.number %}
-              <li class="page-item active">
+              {% if findings.number == 1 %}
+                <li class="disabled"><span>&laquo;&laquo;</span></li>
               {% else %}
-              <li class="page-item">
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'findings');">&laquo;&laquo;</a></li>
               {% endif %}
-                <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'findings');">{{ pn }}</a>
-              </li>
+              {% if findings.has_previous %}
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{findings.previous_page_number}}, 'findings');">&laquo;</a></li>
+              {% else %}
+                <li class="disabled"><span>&laquo;</span></li>
+              {% endif %}
+              {% for i in findings.paginator|proper_paginate:findings.number %}
+                {% if findings.number == i %}
+                    <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'findings');">{{ i }}</a></li>
+                {% endif %}
               {% endfor %}
               {% if findings.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage({{ findings.next_page_number }}, 'findings');">&raquo;</a>
-              </li>
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{findings.next_page_number}}, 'findings');">&raquo;</a></li>
+              {% else %}
+                <li class="disabled"><span>&raquo;</span></li>
               {% endif %}
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage({{ findings.paginator.num_pages }}, 'findings');">&raquo;&raquo;</a>
-              </li>
+              {% if findings.number == findings.paginator.num_pages %}
+                <li class="disabled"><span>&raquo;&raquo;</span></li>
+              {% else %}
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{findings.paginator.num_pages}}, 'findings');">&raquo;&raquo;</a></li>
+              {% endif %}
             </ul>
           </div>
         </div>
@@ -368,31 +372,33 @@ function toggle(source, element) {
           <!-- Event Pagination -->
           <div style="display: inline-flex;">
             <ul class="pagination pagination-xs">
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage(1, 'events');">&laquo;&laquo;</a>
-              </li>
-              {% if scan_events.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href= "#" onclick="gotopage({{ scan_events.previous_page_number }}, 'events');">&laquo;</a>
-              </li>
-              {% endif %}
-              {% for pn in scan_events.paginator.page_range %}
-              {% if pn == scan_events.number %}
-              <li class="page-item active">
+              {% if scan_events.number == 1 %}
+                <li class="disabled"><span>&laquo;&laquo;</span></li>
               {% else %}
-              <li class="page-item">
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'events');">&laquo;&laquo;</a></li>
               {% endif %}
-                <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'events');">{{ pn }}</a>
-              </li>
+              {% if scan_events.has_previous %}
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scan_events.previous_page_number}}, 'events');">&laquo;</a></li>
+              {% else %}
+                <li class="disabled"><span>&laquo;</span></li>
+              {% endif %}
+              {% for i in scan_events.paginator|proper_paginate:scan_events.number %}
+                {% if scan_events.number == i %}
+                    <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'events');">{{ i }}</a></li>
+                {% endif %}
               {% endfor %}
               {% if scan_events.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage({{ scan_events.next_page_number }}, 'events');">&raquo;</a>
-              </li>
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scan_events.next_page_number}}, 'events');">&raquo;</a></li>
+              {% else %}
+                <li class="disabled"><span>&raquo;</span></li>
               {% endif %}
-              <li class="page-item">
-                <a class="page-link" href="#" onclick="gotopage({{ scan_events.paginator.num_pages }}, 'events');">&raquo;&raquo;</a>
-              </li>
+              {% if scan_events.number == scan_events.paginator.num_pages %}
+                <li class="disabled"><span>&raquo;&raquo;</span></li>
+              {% else %}
+                <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{scan_events.paginator.num_pages}}, 'events');">&raquo;&raquo;</a></li>
+              {% endif %}
             </ul>
           </div>
         </div>
@@ -407,23 +413,7 @@ function toggle(source, element) {
       <dl class="dl-horizontal">
         <dt>Title:</dt><dd><a href="/scans/defs/details/{{scan.scan_definition.id}}">{{ scan.title }}</a></dd>
         <!-- <dt>Scan ID:</dt><dd>{{ scan.id }}</dd> -->
-        <dt>Assets:</dt><dd>
-          {% if assetgroups|length > 0 %}
-            {% for ag in assetgroups %}
-              {% if ag.assets.all|join:", "|length > 128 %}
-                {{ ag.assets.all|join:", "|truncatechars:128 }} <a data-toggle="modal" data-target="#modal-showall-assets">show all</a><br/>
-              {% elif ag.assets.all|join:", "|length > 0 %}
-                {{ ag.assets.all|join:", " }}<br/>
-              {% endif %}
-              <!-- {% for a in ag.assets.all %}
-                <a href="/assets/details/{{a.id}}">{{a.value}}</a>{% if not forloop.last %},{% endif %}
-              {% endfor %}<br/> -->
-            {% endfor %}
-          {% endif %}
-          {% for a in other_assets %}
-            <a href="/assets/details/{{a.id}}">{{a.value|truncatechars:30}}</a>{% if not forloop.last %},{% endif %}
-          {% endfor %}
-        </dd>
+        <dt>Assets:</dt><dd><a data-toggle="modal" data-target="#modal-showall-assets">show all</a><br/></dd>
         <dt>Engine:</dt><dd>{{ scan.engine.name }} ({{ scan.engine_type.name }})</dd>
         <dt>Status:</dt><dd>
           {% if scan.status == "finished" %}
@@ -533,34 +523,34 @@ function toggle(source, element) {
             <th>Examples</th>
           </tr>
           <tr>
-            <td>a<br/>assets<br/>a.value<br/>assets.value</td>
+            <td>a<br/>assets<br/>a.value<br/>asset.value</td>
             <td>Filter on asset values.</td>
-            <td><i>a:google</i><br/><i>a:"xxx yyy"</i><br/><i>assets.value="https://patrowl.io"</i></td>
+            <td><i>a:google</i><br/><i>a:"xxx yyy"</i><br/><i>asset.value:"https://patrowl.io"</i></td>
           </tr>
           <tr>
-            <td>a.type<br/>assets.type</td>
+            <td>a.type<br/>asset.type</td>
             <td>Filter on asset types ('ip', 'domain', 'fqdn', 'url', 'keyword').</td>
-            <td><i>a.type:ip</i><br/><i>assets.type="domain"</i></td>
+            <td><i>a.type:ip</i><br/><i>asset.type:"domain"</i></td>
           </tr>
           <tr>
-            <td>a.criticity<br/>assets.criticity</td>
+            <td>a.criticity<br/>asset.criticity</td>
             <td>Filter on asset criticity ('low', 'medium', 'high').</td>
-            <td><i>a.criticity:low</i><br/><i>assets.criticity="high"</i></td>
+            <td><i>a.criticity:low</i><br/><i>asset.criticity:"high"</i></td>
           </tr>
           <tr>
-            <td>f<br/>findings<br/>f.title<br/>findings.title</td>
+            <td>f<br/>findings<br/>f.title<br/>finding.title</td>
             <td>Filter on findings titles.</td>
-            <td><i>f:Certificates</i><br/><i>findings.title:"SSL Certificates"</i></td>
+            <td><i>f:Certificates</i><br/><i>finding.title:"SSL Certificates"</i></td>
           </tr>
           <tr>
-            <td>f.severity<br/>findings.severity</td>
+            <td>f.severity<br/>finding.severity</td>
             <td>Filter on finding severity ('low', 'medium', 'high', 'critical').</td>
-            <td><i>a.severity:low</i><br/><i>findings.severity="high"</i></td>
+            <td><i>a.severity:low</i><br/><i>finding.severity:"high"</i></td>
           </tr>
           <tr>
-            <td>f.status<br/>findings.status</td>
+            <td>f.status<br/>finding.status</td>
             <td>Filter on finding status ('new', 'ack', 'high).</td>
-            <td><i>a.status:ack</i><br/><i>findings.status="new"</i></td>
+            <td><i>a.status:ack</i><br/><i>finding.status:"new"</i></td>
           </tr>
         </table>
         <br/>

@@ -2,23 +2,6 @@
 {% load patrowl_tags %}
 {% block content %}
 
-<style>
-.fileinput-button {
-  position: relative;
-  overflow: hidden;
-  display: inline-block;
-}
-.fileinput-button input {
-  position: absolute;
-  top: 0;
-  -ms-filter: 'alpha(opacity=0)';
-  font-size: 200px !important;
-  direction: ltr;
-  cursor: pointer;
-}
-
-</style>
-
 <ul class="breadcrumb">
   <li class="active"><a href="/settings/">settings</a></li>
 </ul>
@@ -66,7 +49,7 @@
           <div class="col-sm-6">
             <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modal-add-setting">
               + Add new setting </button>
-            <span class="btn btn-xs btn-default fileinput-button">
+            <span class="btn btn-xs btn-default">
               <i class="glyphicon glyphicon-plus"></i>
               <span>Import settings</span>
               <input id="fileupload" type="file" name="files[]" multiple>
@@ -149,9 +132,9 @@
       <div style="display: inline-flex;">
         <ul class="pagination pagination-xs">
           {% if events.number == 1 %}
-            <li class="disabled"><span>⇤</span></li>
+            <li class="disabled"><span>&laquo;&laquo;</span></li>
           {% else %}
-            <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'events');">⇤</a></li>
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'events');">&laquo;&laquo;</a></li>
           {% endif %}
           {% if events.has_previous %}
             <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{events.previous_page_number}}, 'events');">&laquo;</a></li>
@@ -171,9 +154,9 @@
             <li class="disabled"><span>&raquo;</span></li>
           {% endif %}
           {% if events.number == events.paginator.num_pages %}
-            <li class="disabled"><span>⇥</span></li>
+            <li class="disabled"><span>&raquo;&raquo;</span></li>
           {% else %}
-            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{events.paginator.num_pages}}, 'events');">⇥</a></li>
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{events.paginator.num_pages}}, 'events');">&raquo;&raquo;</a></li>
           {% endif %}
         </ul>
       </div>

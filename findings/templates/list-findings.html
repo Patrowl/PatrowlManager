@@ -131,31 +131,35 @@ function toggle(source, element) {
 
 	<div style="display: inline-flex;">
 		<ul class="pagination pagination-xs">
-			<li class="page-item">
-				<a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a>
-			</li>
+			{% if findings.number == 1 %}
+				<li class="disabled"><span>⇤</span></li>
+			{% else %}
+				<li class="page-item"><a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a></li>
+			{% endif %}
 			{% if findings.has_previous %}
 			<li class="page-item">
 				<a class="page-link" href= "#" onclick="gotopage({{ findings.previous_page_number }});">&laquo;</a>
 			</li>
-			{% endif %}
-			{% for pn in findings.paginator.page_range %}
-			{% if pn == findings.number %}
-			<li class="page-item active">
 			{% else %}
-			<li class="page-item">
+				<li class="disabled"><span>&laquo;</span></li>
 			{% endif %}
-				<a class="page-link" href="#" onclick="gotopage({{ pn }});">{{ pn }}</a>
-			</li>
+			{% for i in findings.paginator|proper_paginate:findings.number %}
+				{% if findings.number == i %}
+						<li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+				{% else %}
+						<li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}});">{{ i }}</a></li>
+				{% endif %}
 			{% endfor %}
 			{% if findings.has_next %}
-			<li class="page-item">
-				<a class="page-link" href="#" onclick="gotopage({{ findings.next_page_number }});">&raquo;</a>
-			</li>
+				<li class="page-item"><a class="page-link" href="#" onclick="gotopage({{findings.next_page_number}});">&raquo;</a></li>
+			{% else %}
+				<li class="disabled"><span>&raquo;</span></li>
 			{% endif %}
-			<li class="page-item">
-				<a class="page-link" href="#" onclick="gotopage({{ findings.paginator.num_pages }});">&raquo;&raquo;</a>
-			</li>
+			{% if findings.number == findings.paginator.num_pages %}
+				<li class="disabled"><span>&raquo;&raquo;</span></li>
+			{% else %}
+				<li class="page-item"><a class="page-link" href="#" onclick="gotopage({{findings.paginator.num_pages}});">&raquo;&raquo;</a></li>
+			{% endif %}
 		</ul>
 		<div style="margin: 21px;">
 			<select id="nb_rows_per_page" >
@@ -170,9 +174,9 @@ function toggle(source, element) {
 
   {% if messages %}
   <ul class="messages">
-      {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-      {% endfor %}
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
   </ul>
   {% endif %}
 </div>

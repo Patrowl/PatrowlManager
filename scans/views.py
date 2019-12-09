@@ -56,7 +56,7 @@ def detail_scan_view(request, scan_id):
             elif fil.startswith("finding.status:") or fil.startswith("f.status:"):
                 findings_filters.update({"status__icontains": fil.split(':')[1]})
             elif fil.startswith("finding.severity:") or fil.startswith("f.severity:"):
-                findings_filters.update({"severity__icontains": fil.split(':')[1]})
+                findings_filters.update({"severity__iexact": fil.split(':')[1]})
             else:
                 assets_filters.update({"value__icontains": fil})
                 findings_filters.update({"title__icontains": fil})
@@ -82,12 +82,13 @@ def detail_scan_view(request, scan_id):
                     other_assets.append(asset)
 
     # Search raw findings related to the asset
+    print(findings_filters)
     if findings_filters == {}:
         raw_findings = RawFinding.objects.filter(scan=scan).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
     else:
         findings_filters.update({"scan": scan})
         raw_findings = RawFinding.objects.filter(**findings_filters).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
-
+    print(raw_findings)
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
     for a in assets:
@@ -256,8 +257,6 @@ def add_scan_def_view(request):
 
 
     if request.method == 'GET' or ScanDefinitionForm(request.POST).errors:
-        # if ScanDefinitionForm(request.POST).errors:
-        #     print (ScanDefinitionForm(request.POST).errors)
         form = ScanDefinitionForm()
 
     elif request.method == 'POST':

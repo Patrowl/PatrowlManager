@@ -128,31 +128,36 @@ function toggle(source, element) {
         <!-- Pagination -->
         <div style="display: inline-flex;">
           <ul class="pagination pagination-xs">
-            <li class="page-item">
-              <a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a>
-            </li>
+            {% if assets.number == 1 %}
+              <li class="disabled"><span>&laquo;&laquo;</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a></li>
+            {% endif %}
             {% if assets.has_previous %}
             <li class="page-item">
               <a class="page-link" href= "#" onclick="gotopage({{ assets.previous_page_number }}, 'assets');">&laquo;</a>
             </li>
-            {% endif %}
-            {% for pn in assets.paginator.page_range %}
-            {% if pn == assets.number %}
-            <li class="page-item active">
             {% else %}
-            <li class="page-item">
+            <li class="disabled"><span>&laquo;</span></li>
             {% endif %}
-              <a class="page-link" href="#" onclick="gotopage({{ pn }}, 'assets');">{{ pn }}</a>
-            </li>
+
+            {% for i in assets.paginator|proper_paginate:assets.number %}
+              {% if assets.number == i %}
+                  <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+              {% else %}
+                  <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'assets');">{{ i }}</a></li>
+              {% endif %}
             {% endfor %}
             {% if assets.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="#" onclick="gotopage({{ assets.next_page_number }}, 'assets');">&raquo;</a>
-            </li>
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.next_page_number}}, 'assets');">&raquo;</a></li>
+            {% else %}
+              <li class="disabled"><span>&raquo;</span></li>
             {% endif %}
-            <li class="page-item">
-              <a class="page-link" href="#" onclick="gotopage({{ assets.paginator.num_pages }}, 'assets');">&raquo;&raquo;</a>
-            </li>
+            {% if assets.number == assets.paginator.num_pages %}
+              <li class="disabled"><span>⇥</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.paginator.num_pages}}, 'assets');">&raquo;&raquo;</a></li>
+            {% endif %}
           </ul>
           <div style="margin: 21px;">
             <select id="nb_rows_per_page" >
@@ -164,8 +169,8 @@ function toggle(source, element) {
             assets per page
           </div>
         </div>
-
       </div>
+      
       <div id="assetgroups_div" class="tab-pane fade">
         <!-- <h2>Asset Groups</h2> -->
 
