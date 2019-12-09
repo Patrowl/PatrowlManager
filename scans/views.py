@@ -82,13 +82,12 @@ def detail_scan_view(request, scan_id):
                     other_assets.append(asset)
 
     # Search raw findings related to the asset
-    print(findings_filters)
     if findings_filters == {}:
         raw_findings = RawFinding.objects.filter(scan=scan).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
     else:
         findings_filters.update({"scan": scan})
         raw_findings = RawFinding.objects.filter(**findings_filters).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
-    print(raw_findings)
+
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
     for a in assets:
