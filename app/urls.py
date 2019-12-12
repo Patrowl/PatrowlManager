@@ -5,12 +5,17 @@ from django.conf.urls import include, url
 from django.urls import path
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.contrib.auth import views as auth_views
+# from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView
 from django.views.generic import RedirectView
 from rest_framework_swagger.views import get_swagger_view
+# from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 from users import views as user_views
-
 
 def i18n_javascript(request):
     return admin.site.i18n_javascript(request)
@@ -20,6 +25,9 @@ api_schema_view = get_swagger_view(title='PatrOwl Manager REST-API')
 
 urlpatterns = [
     url(r'^apis-doc', api_schema_view),
+    url(r'^auth-jwt/obtain_jwt_token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    url(r'^auth-jwt/refresh_jwt_token/', TokenRefreshView.as_view(), name='token_refresh'),
+    url(r'^auth-jwt/verify/', TokenVerifyView.as_view(), name='token_verify'),
     url(r'^admin/', admin.site.urls),
     url(r'^engines/', include('engines.urls')),
     url(r'^findings/', include('findings.urls')),

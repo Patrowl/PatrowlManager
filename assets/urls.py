@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-
+from django.urls import path
 from django.conf.urls import url
-from . import views, apis
+from . import views, apis, serializers
 
 
 urlpatterns = [
@@ -108,4 +108,8 @@ urlpatterns = [
     url(r'^api/v1/owners/addcontact/(?P<asset_owner_id>[0-9]+)$', apis.add_asset_owner_contact_api, name='add_asset_owner_contact_api'),
     # ex: /assets/api/v1/owners/editcom/8
     url(r'^api/v1/owners/editcom/(?P<asset_owner_id>[0-9]+)$', apis.edit_asset_owner_comments_api, name='edit_asset_owner_comments_api'),
+]
+
+urlpatterns += [
+    path('api/list', serializers.AssetList.as_view()),
 ]

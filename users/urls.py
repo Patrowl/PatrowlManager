@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from django.urls import path
 from django.conf.urls import url
-from . import views, apis
+from . import views, apis, serializers
 from reportings import views as rep_views
 
 
@@ -40,4 +41,10 @@ urlpatterns = [
         apis.delete_curruser_authtoken_api, name='delete_curruser_authtoken_api'),
     url(r'^users/api/v1/authtoken/delete/(?P<user_id>[0-9]+)$',
         apis.delete_user_authtoken_api, name='delete_user_authtoken_api'),
+]
+
+# Serialized data
+urlpatterns += [
+    path('api/list', serializers.UserList.as_view()),
+    path('api/current', serializers.CurrentUserView.as_view()),
 ]

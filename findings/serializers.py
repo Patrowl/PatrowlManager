@@ -44,7 +44,7 @@ class FindingSerializer(serializers.ModelSerializer):
         ]
 
 
-class FindingList(generics.ListCreateAPIView):
+class FindingList(generics.ListAPIView):
     queryset = Finding.objects.all()
     serializer_class = FindingSerializer
     filter_backends = (filters.DjangoFilterBackend,)
