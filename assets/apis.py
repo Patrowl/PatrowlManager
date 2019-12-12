@@ -32,12 +32,13 @@ def get_asset_api(request, asset_id):
     asset = get_object_or_404(Asset, id=asset_id)
     return JsonResponse(asset.to_dict(), safe=False)
 
+
 @api_view(['GET'])
 def ack_asset_api(request, asset_id):
     asset = get_object_or_404(Asset, id=asset_id)
-    a = Asset.objects.get(id=asset_id)
-    a.set_status('ack')
+    asset.set_status('ack')
     return JsonResponse({'status': 'success'})
+
 
 @api_view(['GET'])
 def get_asset_group_api(request, assetgroup_id):
