@@ -115,6 +115,12 @@ def change_findings_status_api(request):
 
     return JsonResponse({'status': 'success'})
 
+@api_view(['GET'])
+def ack_findings_status_api(request, finding_id):
+    f = Finding.objects.filter(id=finding_id).first()
+    f.status = "ack"
+    f.save()
+    return JsonResponse({'status': 'success'})
 
 @api_view(['POST'])
 def change_rawfindings_status_api(request):
