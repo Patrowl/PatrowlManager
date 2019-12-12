@@ -200,6 +200,11 @@ class Asset(models.Model):
         self.criticity = criticity
         return super(Asset, self).save()
 
+    def set_status(self, status):
+        """Update the 'status' field"""
+        self.status = status
+        return super(Asset, self).save()
+
     def save(self, *args, **kwargs):
         """Update the 'updated_at' field on each updates."""
         if self._state.adding and self.is_savable() is False:

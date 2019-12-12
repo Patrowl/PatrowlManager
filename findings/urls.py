@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'^api/v1/rdelete$', apis.delete_rawfindings_api, name='delete_rawfindings_api'),
     # ex: /findings/api/v1/status (POST params)
     url(r'^api/v1/status$', apis.change_findings_status_api, name='change_findings_status_api'),
+    # ex: /findings/api/v1/2/ack
+    url(r'^api/v1/(?P<finding_id>[0-9]+)/ack$', apis.ack_findings_status_api, name='ack_findings_status_api'),
     # ex: /findings/api/v1/rstatus (POST params)
     url(r'^api/v1/rstatus$', apis.change_rawfindings_status_api, name='change_rawfindings_status_api'),
     # ex: /findings/export (POST params)

@@ -41,6 +41,8 @@ urlpatterns = [
     url(r'^api/v1/by-id/(?P<asset_id>[0-9]+)/findings$', apis.get_asset_findings_api, name='get_asset_findings_api'),
     # ex: /assets/api/v1/list
     url(r'^api/v1/list$', apis.list_assets_api, name='list_assets_api'),
+    # ex: /assets/api/v1/by-id/2/ack
+    url(r'^api/v1/by-id/(?P<asset_id>[0-9]+)/ack$', apis.ack_asset_api, name='ack_asset_api'),
     # ex: /assets/api/v1/export
     url(r'^api/v1/export$', apis.export_assets_api, name='export_assets_api'),
     # ex: /assets/api/v1/add
