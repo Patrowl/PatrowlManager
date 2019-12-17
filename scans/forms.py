@@ -112,8 +112,8 @@ class ScanDefinitionForm(forms.ModelForm):
         policies = [(policy.id, policy.name) for policy in EnginePolicy.objects.all().only("name")]
         self.fields['engine_policy'].widget = forms.RadioSelect(choices=policies)
 
-        assets = [(asset.id, asset.value) for asset in Asset.objects.all()]
+        assets = [(asset.id, asset.value) for asset in Asset.objects.all().only('id', 'value')]
         self.fields['assets_list'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
-        assetgroups = [(a.id, a.name) for a in AssetGroup.objects.all()]
+        assetgroups = [(a.id, a.name) for a in AssetGroup.objects.all().only('id', 'name')]
         self.fields['assetgroups_list'].widget = forms.CheckboxSelectMultiple(choices=assetgroups)

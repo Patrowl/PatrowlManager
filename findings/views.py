@@ -4,6 +4,7 @@ from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import F
 from .models import Finding, RawFinding
 from .forms import ImportFindingsForm, FindingForm
 from .utils import _search_findings
@@ -117,24 +118,17 @@ def details_finding_view(request, finding_id):
             }
         })
 
-        # Identify finding occurrences in related scan results (excluding the 1st)
-        for scan in finding.scan.scan_definition.scan_set.filter(status="finished").exclude(id=finding.scan.id):
-            finding_notfound = True
-            for f in scan.rawfinding_set.all():
-                if f.hash == finding.hash:
-                    finding_notfound = False
-                    tracking_timeline.update({f.created_at: {
-                        "level": "info",
-                        "message": "Identified in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
-                break
-            if finding_notfound:
-                tracking_timeline.update({scan.created_at: {
-                    "level": "warning",
-                    "message": "Not in scan <a href='/scans/details/{}'>{}</a>".format(scan.id, scan)}})
+    # Identify finding occurrences in related scan results (excluding the 1st)
+    for f in RawFinding.objects.filter(hash=finding.hash).annotate(scan_title=F('scan__title')):
+        tracking_timeline.update({f.created_at: {
+            "level": "info",
+            "message": "Identified in scan <a href='/scans/details/{}'>{}</a>".format(f.scan_id, f.scan_title)}})
 
     # Identify changes
     for event in Event.objects.filter(finding=finding):
-        tracking_timeline.update({event.created_at: {"level": "info", "message": event.message}})
+        tracking_timeline.update({
+            event.created_at: {"level": "info", "message": event.message}
+        })
 
     return render(request, 'details-finding.html', {
         'finding': finding,

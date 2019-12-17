@@ -102,7 +102,7 @@ def detail_scan_view(request, scan_id):
         summary_assets[f.asset_name].update({
             f.severity: summary_assets[f.asset_name][f.severity] + 1,
             "total": summary_assets[f.asset_name]["total"] + 1
-           })
+        })
 
     # Generate summary info on asset groups (for progress bars)
     summary_assetgroups = {}

@@ -64,7 +64,8 @@ def homepage_dashboard_view(request):
         nb_info=Coalesce(Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()), 0),
     )
     global_stats["findings"] = {
-        "total_raw": RawFinding.objects.count(),
+        # "total_raw": RawFinding.objects.count(),
+        # "total_raw": RawFinding.objects.count(),
         "total": findings.count(),
         "new": findings_stats["nb_new"],
         "critical": findings_stats["nb_critical"],

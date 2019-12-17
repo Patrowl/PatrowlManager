@@ -115,12 +115,14 @@ def change_findings_status_api(request):
 
     return JsonResponse({'status': 'success'})
 
+
 @api_view(['GET'])
 def ack_findings_status_api(request, finding_id):
     f = Finding.objects.filter(id=finding_id).first()
     f.status = "ack"
     f.save()
     return JsonResponse({'status': 'success'})
+
 
 @api_view(['POST'])
 def change_rawfindings_status_api(request):
@@ -229,7 +231,7 @@ def update_finding_api(request, finding_id):
         finding = get_object_or_404(Finding, id=finding_id)
 
     allowed_fields = [f.name for f in Finding._meta.get_fields()]
-    for field_key in request.GET.iterkeys():
+    for field_key in iter(request.GET.keys()):
         if field_key in allowed_fields:
             if is_raw:
                 Event.objects.create(message="Finding updated on field {}: from '{}' to '{}'".format(

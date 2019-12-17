@@ -1,21 +1,34 @@
 # -*- coding: utf-8 -*-
 
 from rest_framework import serializers, generics
-from django_filters import rest_framework as filters
-from .models import Asset
 from common.utils.pagination import StandardResultsSetPagination
+from django.utils.translation import gettext_lazy as _
+from django_filters import rest_framework as filters
+from django_filters import FilterSet, OrderingFilter
+from .models import Asset
 
-from django_filters import CharFilter, FilterSet
 
 class AssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset
         fields = ('id', 'value', 'name', 'type', 'owner', 'description',
-                  'status', 'created_at', 'updated_at')
+            'criticity', 'status', 'created_at', 'updated_at')
 
 
 class AssetFilter(FilterSet):
-    # name = CharFilter(lookup_expr='icontains')
+    sorted_by = OrderingFilter(
+        # tuple-mapping retains order
+        choices=(
+            ('value', _('Value')),
+            ('-value', _('Value (desc)')),
+            ('name', _('Name')),
+            ('-name', _('Name (desc)')),
+            ('criticity', _('Criticity')),
+            ('-criticity', _('Criticity (desc)')),
+            ('type', _('Type')),
+            ('-type', _('Type (desc)')),
+        )
+    )
 
     class Meta:
         model = Asset
@@ -27,7 +40,6 @@ class AssetFilter(FilterSet):
 
 
 class AssetList(generics.ListAPIView):
-    # queryset = Asset.objects.all()
     serializer_class = AssetSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = AssetFilter

@@ -1,10 +1,12 @@
 from rest_framework import serializers, generics
 from django_filters import rest_framework as filters
+from django_filters import FilterSet, OrderingFilter
+from django.utils.translation import gettext_lazy as _
 from .models import Finding, RawFinding
 
 
 class FindingSerializer(serializers.ModelSerializer):
-    scopes_list = serializers.SerializerMethodField()
+    # scopes_list = serializers.SerializerMethodField()
 
     def get_scopes_list(self, instance):
         names = []
@@ -40,13 +42,40 @@ class FindingSerializer(serializers.ModelSerializer):
             'raw_finding_id',
             'scan_id',
             # 'scopes',
-            'scopes_list'
+            # 'scopes_list'
         ]
 
 
+class FindingFilter(FilterSet):
+    sorted_by = OrderingFilter(
+        # tuple-mapping retains order
+        choices=(
+            ('title', _('Title')),
+            ('-title', _('Title (desc)')),
+            ('asset_name', _('Asset')),
+            ('-asset_name', _('Asset (desc)')),
+            ('severity', _('Severity')),
+            ('-severity', _('Severity (desc)')),
+            ('status', _('Status')),
+            ('-status', _('Status (desc)')),
+            ('engine_type', _('Engine')),
+            ('-engine_type', _('Engine (desc)')),
+        )
+    )
+
+    class Meta:
+        model = Finding
+        fields = {
+            'title': ['icontains'],
+            'description': ['icontains'],
+            'asset_name': ['icontains'],
+        }
+
+
 class FindingList(generics.ListAPIView):
-    queryset = Finding.objects.all()
+    queryset = Finding.objects.all().order_by('title')
     serializer_class = FindingSerializer
+    filterset_class = FindingFilter
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ('title', 'severity', 'engine_type')
 
@@ -82,7 +111,8 @@ class RawFindingSerializer(serializers.ModelSerializer):
 
 
 class RawFindingList(generics.ListCreateAPIView):
-    queryset = RawFinding.objects.all()
+    queryset = RawFinding.objects.all().order_by('title')
     serializer_class = RawFindingSerializer
+    filterset_class = FindingFilter
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ('title', 'severity', 'engine_type')

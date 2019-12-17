@@ -67,7 +67,7 @@ class RawFinding(models.Model):
     owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256)
     type        = models.CharField(max_length=50)
-    hash        = models.CharField(max_length=256)
+    hash        = models.CharField(max_length=256, default='')
     confidence  = models.CharField(max_length=10)
     severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)
     severity_num= models.IntegerField(default=1, blank=True, null=True)
@@ -99,7 +99,8 @@ class RawFinding(models.Model):
         return (self.severity, self.confidence)
 
     def save(self, *args, **kwargs):
-        self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
+        if self.hash == '':
+            self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
         if self.severity == "info":
             self.severity_num = 1
         elif self.severity == "low":

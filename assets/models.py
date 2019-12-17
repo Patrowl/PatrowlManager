@@ -386,13 +386,13 @@ class AssetGroup(models.Model):
         findings = []
         if not history:
             for a in self.assets.all():
-                for f in a.finding_set.all():
+                for f in a.finding_set.all().only('id', 'severity'):
                     findings.append(f)
         else:
             startdate = datetime.datetime.today()
             enddate = startdate - datetime.timedelta(days=history)
             for a in self.assets.all():
-                for f in a.finding_set.filter(created_at__lte=enddate):
+                for f in a.finding_set.filter(created_at__lte=enddate).only('id', 'severity'):
                     findings.append(f)
 
         for finding in findings:
@@ -636,16 +636,16 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://censys.io/certificates?q=parsed.names%3A%20%asset%",
         "datatypes": ["domain"]
     },
-    {
-        "name": "Cymon",
-        "link": "https://cymon.io/domain/%asset%",
-        "datatypes": ["domain"]
-    },
-    {
-        "name": "Cymon",
-        "link": "https://cymon.io/%asset%",
-        "datatypes": ["ip"]
-    },
+    # {
+    #     "name": "Cymon",
+    #     "link": "https://cymon.io/domain/%asset%",
+    #     "datatypes": ["domain"]
+    # },
+    # {
+    #     "name": "Cymon",
+    #     "link": "https://cymon.io/%asset%",
+    #     "datatypes": ["ip"]
+    # },
     {
         "name": "DNSLytics",
         "link": "https://dnslytics.com/domain/%asset%",
@@ -656,16 +656,16 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://dnslytics.com/ip/%asset%",
         "datatypes": ["ip"]
     },
-    {
-        "name": "HerdProtect",
-        "link": "http://www.herdprotect.com/ip-address-%asset%.aspx",
-        "datatypes": ["ip"]
-    },
-    {
-        "name": "HerdProtect",
-        "link": "http://www.herdprotect.com/domain-%asset%.aspx",
-        "datatypes": ["domain"]
-    },
+    # {
+    #     "name": "HerdProtect",
+    #     "link": "http://www.herdprotect.com/ip-address-%asset%.aspx",
+    #     "datatypes": ["ip"]
+    # },
+    # {
+    #     "name": "HerdProtect",
+    #     "link": "http://www.herdprotect.com/domain-%asset%.aspx",
+    #     "datatypes": ["domain"]
+    # },
     {
         "name": "Quttera",
         "link": "https://quttera.com/sitescan/%asset%",
