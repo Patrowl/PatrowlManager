@@ -2,6 +2,7 @@
 
 import os
 import datetime
+from datetime import timedelta
 
 with open("VERSION") as v_file:
     PATROWL_VERSION = v_file.read()
