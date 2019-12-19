@@ -117,7 +117,7 @@ def _add_finding(request):
             'engine_type': 'MANUAL'
             # 'scan': form.cleaned_data['scan']
         }
-        if not any(finding_args.risk_info):
+        if finding_args['risk_info'] is None or not any(finding_args.risk_info):
             finding_args.update({
                 'risk_info': {
                     "cvss_base_score": 0.0,
