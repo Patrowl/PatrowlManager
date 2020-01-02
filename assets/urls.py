@@ -57,6 +57,8 @@ urlpatterns = [
     url(r'^api/v1/groups/add$', apis.add_asset_group_api, name='add_asset_group_api'),
     # ex: /assets/api/v1/groups/delete/2
     url(r'^api/v1/groups/delete/(?P<assetgroup_id>[0-9]+)$', apis.delete_assetgroup_api, name='delete_assetgroup_api'),
+    # ex: /assets/api/v1/groups/edit/2
+    url(r'^api/v1/groups/edit/(?P<assetgroup_id>[0-9]+)$', apis.edit_assetgroup_api, name='edit_assetgroup_api'),
     # ex: /assets/api/v1/export/8
     url(r'^api/v1/export/(?P<assetgroup_id>[0-9]+)$', apis.export_assets_api, name='export_assets_api'),
     # ex: /assets/api/v1/details/3

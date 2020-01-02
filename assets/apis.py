@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view
 from .models import Asset, AssetGroup, AssetCategory
 from .models import AssetOwner, AssetOwnerContact, AssetOwnerDocument
 from .models import ASSET_CRITICITIES
-from .forms import AssetOwnerContactForm, AssetOwnerDocumentForm
+from .forms import AssetOwnerContactForm, AssetOwnerDocumentForm, AssetGroupForm
 from app.settings import MEDIA_ROOT
 from findings.models import Finding
 from events.models import Event
@@ -329,6 +329,26 @@ def delete_assetgroup_api(request, assetgroup_id):
     assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
     assetgroup.delete()
 
+    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+
+
+@api_view(['POST'])
+def edit_assetgroup_api(request, assetgroup_id):
+    asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
+    form = AssetGroupForm(request.POST, instance=asset_group)
+    if asset_group.name != form.data['name']:
+        asset_group.name = form.data['name']
+    asset_group.description = form.data['description']
+    asset_group.criticity = form.data['criticity']
+    asset_group.assets.clear()
+    for asset_id in form.data.getlist('assets'):
+        asset_group.assets.add(Asset.objects.get(id=asset_id))
+    asset_group.evaluate_risk()
+    asset_group.save()
+    
+    asset_group.calc_risk_grade()
+    asset_group.save()
+    
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
