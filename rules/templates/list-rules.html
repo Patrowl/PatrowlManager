@@ -95,8 +95,8 @@
             {% endfor %}
           </select>
         </td>
-        <td><!-- Scope -->
-          <select id="scope_id" name="scope" class="form-control form-control-sm">
+        <td><!-- Severity -->
+          <select id="severity_id" name="severity" class="form-control form-control-sm">
             {% for severity_id, severity_value in form_options.rule_severities %}
               <option value="{{ severity_id }}">{{severity_value}}</option>
             {% endfor %}
@@ -235,6 +235,7 @@
         "condition": $("#condition_id").val(),
         "criteria": $("#criteria_id").val(),
         "trigger": $("#trigger_id").val(),
+        "severity": $("#severity_id").val(),
         "target": $("#target_id").val(),
         "enable": $("#enable_id").val()
       }
