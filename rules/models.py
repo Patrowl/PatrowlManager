@@ -165,7 +165,7 @@ def send_slack_message(rule, message):
     slack_url = Setting.objects.get(key="alerts.endpoint.slack.webhook")
     try:
         slack_channel = Setting.objects.get(key="alerts.endpoint.slack.channel")
-    except:
+    except Exception:
         slack_channel = None
     alert_message = "[Alert][Rule={}]{}".format(rule.title, message)
     data_payload = {'text': alert_message}
@@ -179,6 +179,7 @@ def send_slack_message(rule, message):
     except Exception as e:
         Event.objects.create(message="err:{} [Rule] Send slack message failed (id={})".format(e, rule.id)[:250],
                      type="ERROR", severity="ERROR", description=alert_message)
+
 
 def send_thehive_message(rule, message, asset, description):
     Event.objects.create(message="[Rule] Rule '{}' TheHive alert creation (asset={})".format(rule, asset),

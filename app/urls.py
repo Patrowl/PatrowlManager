@@ -17,6 +17,7 @@ from rest_framework_simplejwt.views import (
 )
 from users import views as user_views
 
+
 def i18n_javascript(request):
     return admin.site.i18n_javascript(request)
 
