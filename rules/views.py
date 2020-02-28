@@ -86,6 +86,7 @@ def add_rule_api(request):
         "scope_attr": params["scope_attr"],
         "condition": {params["condition"]: params["criteria"]},
         "enabled": params["enable"] == "enabled",
+        "severity": params["severity"],
         "trigger": params["trigger"],
         "target": params["target"],
         "owner": request.user
