@@ -1,7 +1,8 @@
 #!/bin/bash
+export DB_HOST=${DB_HOST:-db}
 
 echo "[+] Wait for DB availability"
-while !</dev/tcp/db/5432; do sleep 1; done
+while !</dev/tcp/$DB_HOST/5432; do sleep 1; done
 
 source env3/bin/activate
 
