@@ -195,7 +195,7 @@ def send_thehive_message(rule, message, asset, description):
     rule_severity = 1
     if rule.severity == "Medium":
         rule_severity = 2
-    elif rule.severity == "High":
+    elif rule.severity in ["High", "Critical"]:
         rule_severity = 3
 
     tlp = 0
