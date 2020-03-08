@@ -32,7 +32,7 @@ def list_findings_api(request):
 @api_view(['POST'])
 def add_finding_api(request):
     finding = _add_finding(request)
-    return JsonResponse(finding)
+    return JsonResponse(finding.to_dict())
 
 
 @api_view(['GET'])
@@ -249,10 +249,15 @@ def update_finding_api(request, finding_id):
                     _finding.save()
 
             else:
+                field_value = request.GET.get(field_key)
                 Event.objects.create(message="Finding updated on field {}: from '{}' to '{}'".format(
-                    field_key, getattr(finding, field_key), request.GET.get(field_key)
+                    field_key, getattr(finding, field_key), field_value
                 ), type="UPDATE", severity="INFO", finding=finding)
-                setattr(finding, field_key, request.GET.get(field_key))
+                # scan value need to be a Scan() object, empty value is None
+                if not field_value and field_key == 'scan':
+                    field_value = None
+                    setattr(finding, 'engine_type', 'MANUAL')
+                setattr(finding, field_key, field_value)
 
     finding.save()
 
