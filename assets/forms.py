@@ -19,8 +19,8 @@ class AssetForm(forms.ModelForm):
             'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '10'})
         }
 
-    all_categories = [ac.value for ac in AssetCategory.objects.all()]
-    categories = forms.SelectMultiple(choices=all_categories,)
+    # all_categories = [ac.value for ac in AssetCategory.objects.all()]
+    # categories = forms.SelectMultiple(choices=all_categories,)
     type = forms.CharField(widget=forms.Select(choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'}))
     criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))
 
