@@ -26,10 +26,12 @@ python manage.py migrate
 if [ ! -f status.created ]; then
   # Create the default admin user
   echo "[+] Create the default admin user"
-  echo "\
-from django.contrib.auth import get_user_model; \
-User = get_user_model(); \
-User.objects.create_superuser('admin', 'admin@dev.patrowl.io', 'Bonjour1!') if User.objects.count() == 0 else pass" | python manage.py shell
+#  echo "\
+#from django.contrib.auth import get_user_model; \
+#User = get_user_model(); \
+#User.objects.create_superuser('admin', 'admin@dev.patrowl.io', 'Bonjour1!') if User.objects.count() == 0 else pass" | python manage.py shell
+  echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@dev.patrowl.io', 'Bonjour1!')" | python manage.py shell
+
   # Populate the db with default data
   echo "[+] Populate the db with default data"
   python manage.py loaddata var/data/assets.AssetCategory.json
