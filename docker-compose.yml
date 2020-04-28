@@ -21,8 +21,7 @@ services:
       - '5432'
     volumes:
       - ./var/db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
-    # volumes:
-    #   - postgres_data:/var/lib/postgresql/data/
+    #   - ./pg_data:/var/lib/postgresql/data/
 
   web:
     container_name: patrowl-django
