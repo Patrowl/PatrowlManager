@@ -128,9 +128,12 @@ def ack_findings_status_api(request, finding_id):
 def change_rawfindings_status_api(request):
     findings = request.data
     for finding in findings:
-        f = RawFinding.objects.filter(id=finding['ack']).first()
-        f.status = "ack"
-        f.save()
+        rf = RawFinding.objects.filter(id=finding['ack']).first()
+        rf.status = "ack"
+        rf.save()
+        for f in rf.finding_set.all():
+            f.status = "ack"
+            f.save()
 
     return JsonResponse({'status': 'success'})
 
