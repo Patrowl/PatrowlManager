@@ -781,4 +781,9 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://community.riskiq.com/search/%asset%",
         "datatypes": ["domain", "ip", "fqdn"]
     },
+    {
+        "name": "Url Scan",
+        "link": "https://urlscan.io/search/#%asset%",
+        "datatypes": ["domain", "fqdn"]
+    },
     ]
