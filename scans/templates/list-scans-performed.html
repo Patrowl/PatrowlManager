@@ -57,12 +57,32 @@ table tr td.scan-progress {
 .modal.right.fade.in .modal-dialog {
 	right: 0;
 }
+
+input:checked + label {
+    background: #f0ad4e;
+    border-radius: 3px;
+    width: 60px;
+    text-align: center;
+}
 </style>
 <ul class="breadcrumb">
   <li><a href="/scans/list">scans</a></li>
   <li class="active">scans performed [<a href="javascript:goBack()">back</a>]</li>
 </ul>
 
+<div class="container">
+  <div class="pull-left">
+      <span>Scope:</span>
+      <input type='radio' value='hour' id="hour" name='scope' checked="checked" style="visibility: hidden"/>
+      <label for="hour">Hour</label>
+      <input type='radio' value='day' id="day" name='scope' style="visibility: hidden"/>
+      <label for="day">Day</label>
+      <input type='radio' value='week' id="week" name='scope'  style="visibility: hidden"/>
+      <label for="week">Week</label>
+      <input type='radio' value='month' id="month" name='scope'  style="visibility: hidden"/>
+      <label for="month">Month</label>
+  </div>
+</div>
 <div class="container">
   <div class="pull-left">
     <button id="cal-heatmap-repeat" class="btn btn-xs btn-default" style="margin-bottom: 10px;" onclick="location.reload()">
@@ -370,9 +390,10 @@ table tr td.scan-progress {
       $("div.container.all-scans table tbody").find("tr").remove();
       $("div.pagination").addClass("hidden");
 
+      scope = $('input[name="scope"]:checked').val();
       tzoffset = (new Date()).getTimezoneOffset() * 60000;
       date_tz = (new Date(date - tzoffset)).toISOString().split('.')[0]+"Z";
-      scan_url = "/scans/api/v1/listbydate?date=" + date_tz + "&scope=hour";
+      scan_url = "/scans/api/v1/listbydate?date=" + date_tz + "&scope=" + scope;
 
       xhr = $.get(scan_url, function(data) {
         for (i = 0; i < data.length; ++i){
