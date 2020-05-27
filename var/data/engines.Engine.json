@@ -1,1 +1,191 @@
-[{"model": "engines.engine", "pk": 1, "fields": {"name": "NMAP", "description": "nmap", "allowed_asset_types": "[u'ip', u'ip-range', u'ip-subnet', u'fqdn', u'domain']", "created_at": "2017-07-09T16:41:41.473Z", "updated_at": "2019-04-08T07:19:57.575Z"}}, {"model": "engines.engine", "pk": 2, "fields": {"name": "NESSUS", "description": "ed", "allowed_asset_types": "[u'ip', u'fqdn', u'domain']", "created_at": "2017-07-12T19:57:30.467Z", "updated_at": "2017-07-12T19:57:30.467Z"}}, {"model": "engines.engine", "pk": 3, "fields": {"name": "ARACHNI", "description": "ARACHNI", "allowed_asset_types": "[u'url']", "created_at": "2017-07-16T08:49:16.107Z", "updated_at": "2017-07-23T12:42:44.202Z"}}, {"model": "engines.engine", "pk": 4, "fields": {"name": "VIRUSTOTAL", "description": "VT", "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']", "created_at": "2017-07-27T10:39:08.453Z", "updated_at": "2017-07-27T10:39:08.453Z"}}, {"model": "engines.engine", "pk": 5, "fields": {"name": "OWL_DNS", "description": "dns", "allowed_asset_types": "[u'ip', u'fqdn', u'domain']", "created_at": "2017-07-27T10:39:30.935Z", "updated_at": "2017-07-27T10:39:30.936Z"}}, {"model": "engines.engine", "pk": 6, "fields": {"name": "SSLLABS", "description": "SSLLABS", "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']", "created_at": "2017-07-27T10:39:48.520Z", "updated_at": "2017-07-27T10:39:48.520Z"}}, {"model": "engines.engine", "pk": 7, "fields": {"name": "URLVOID", "description": "URLVOID", "allowed_asset_types": "[u'url']", "created_at": "2017-07-27T10:40:10.816Z", "updated_at": "2017-07-27T10:40:10.816Z"}}, {"model": "engines.engine", "pk": 8, "fields": {"name": "CORTEX", "description": "CORTEX", "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']", "created_at": "2017-07-27T10:40:10.816Z", "updated_at": "2017-07-27T10:40:10.816Z"}}, {"model": "engines.engine", "pk": 9, "fields": {"name": "OWL_CODE", "description": "OWL_CODE", "allowed_asset_types": "[u'url', u'path']", "created_at": "2018-10-03T07:45:53.228Z", "updated_at": "2018-10-03T07:45:53.228Z"}}, {"model": "engines.engine", "pk": 10, "fields": {"name": "OWL_LEAKS", "description": "OWL_LEAKS", "allowed_asset_types": "[u'ip', u'ip-subnet', u'fqdn', u'domain', u'url', u'keyword', u'person']", "created_at": "2018-10-03T07:46:28.228Z", "updated_at": "2018-10-03T07:46:28.228Z"}}, {"model": "engines.engine", "pk": 11, "fields": {"name": "SSLSCAN", "description": "sslscan", "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']", "created_at": "2018-10-12T09:50:42.326Z", "updated_at": "2018-10-12T09:50:55.632Z"}}, {"model": "engines.engine", "pk": 12, "fields": {"name": "OPENVAS", "description": "openvas", "allowed_asset_types": "[u'ip', u'ip-subnet', u'fqdn', u'domain', u'url']", "created_at": "2019-02-13T12:17:29.523Z", "updated_at": "2019-02-13T12:17:29.523Z"}}, {"model": "engines.engine", "pk": 13, "fields": {"name": "MANUAL", "description": "Manual import. **Do not remove**", "allowed_asset_types": "[u'ip', u'ip-range', u'ip-subnet', u'fqdn', u'domain', u'url', u'keyword', u'person', u'organisation', u'path', u'application']", "created_at": "2019-03-27T12:38:50.794Z", "updated_at": "2019-03-27T12:38:50.794Z"}}, {"model": "engines.engine", "pk": 14, "fields": {"name": "SKELETON", "description": "Skeleton", "allowed_asset_types": "[u'ip', u'fqdn', u'domain']", "created_at": "2019-03-27T12:38:50.794Z", "updated_at": "2019-03-27T12:38:50.794Z"}}, {"model": "engines.engine", "pk": 15, "fields": {"name": "CERTSTREAM", "description": "CertStream", "allowed_asset_types": "[u'ip', u'fqdn', u'domain']", "created_at": "2019-06-12T12:38:50.794Z", "updated_at": "2019-06-12T12:38:50.794Z"}}, {"model": "engines.engine", "pk": 16, "fields": {"name": "EYEWITNESS", "description": "EyeWitness", "allowed_asset_types": "[u'ip', u'fqdn', u'domain']", "created_at": "2019-06-12T12:38:50.794Z", "updated_at": "2019-06-12T12:38:50.794Z"}}, {"model": "engines.engine", "pk": 17, "fields": {"name": "OWL_REQUEST", "description": "OWL_REQUEST", "allowed_asset_types": "['url']", "created_at": "2019-11-22T13:51:08.580Z", "updated_at": "2019-11-22T13:51:08.580Z"}}, {"model": "engines.engine", "pk": 18, "fields": {"name": "SONARQUBE", "description": "sqd", "allowed_asset_types": "['url', 'path']", "created_at": "2019-11-29T10:36:45.777Z", "updated_at": "2019-11-29T10:36:45.777Z"}}, {"model": "engines.engine", "pk": 19, "fields": {"name": "DROOPESCAN", "description": "droopescan", "allowed_asset_types": "[u'url']", "created_at": "2020-03-26T15:53:10.644Z", "updated_at": "2020-03-26T15:53:10.644Z"}}]
+[{
+  "model": "engines.engine",
+  "pk": 1,
+  "fields": {
+    "name": "NMAP",
+    "description": "nmap",
+    "allowed_asset_types": "[u'ip', u'ip-range', u'ip-subnet', u'fqdn', u'domain']",
+    "created_at": "2017-07-09T16:41:41.473Z",
+    "updated_at": "2019-04-08T07:19:57.575Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 2,
+  "fields": {
+    "name": "NESSUS",
+    "description": "ed",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
+    "created_at": "2017-07-12T19:57:30.467Z",
+    "updated_at": "2017-07-12T19:57:30.467Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 3,
+  "fields": {
+    "name": "ARACHNI",
+    "description": "ARACHNI",
+    "allowed_asset_types": "[u'url']",
+    "created_at": "2017-07-16T08:49:16.107Z",
+    "updated_at": "2017-07-23T12:42:44.202Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 4,
+  "fields": {
+    "name": "VIRUSTOTAL",
+    "description": "VT",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']",
+    "created_at": "2017-07-27T10:39:08.453Z",
+    "updated_at": "2017-07-27T10:39:08.453Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 5,
+  "fields": {
+    "name": "OWL_DNS",
+    "description": "dns",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
+    "created_at": "2017-07-27T10:39:30.935Z",
+    "updated_at": "2017-07-27T10:39:30.936Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 6,
+  "fields": {
+    "name": "SSLLABS",
+    "description": "SSLLABS",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']",
+    "created_at": "2017-07-27T10:39:48.520Z",
+    "updated_at": "2017-07-27T10:39:48.520Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 7,
+  "fields": {
+    "name": "URLVOID",
+    "description": "URLVOID",
+    "allowed_asset_types": "[u'url']",
+    "created_at": "2017-07-27T10:40:10.816Z",
+    "updated_at": "2017-07-27T10:40:10.816Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 8,
+  "fields": {
+    "name": "CORTEX",
+    "description": "CORTEX",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']",
+    "created_at": "2017-07-27T10:40:10.816Z",
+    "updated_at": "2017-07-27T10:40:10.816Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 9,
+  "fields": {
+    "name": "OWL_CODE",
+    "description": "OWL_CODE",
+    "allowed_asset_types": "[u'url', u'path']",
+    "created_at": "2018-10-03T07:45:53.228Z",
+    "updated_at": "2018-10-03T07:45:53.228Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 10,
+  "fields": {
+    "name": "OWL_LEAKS",
+    "description": "OWL_LEAKS",
+    "allowed_asset_types": "[u'ip', u'ip-subnet', u'fqdn', u'domain', u'url', u'keyword', u'person']",
+    "created_at": "2018-10-03T07:46:28.228Z",
+    "updated_at": "2018-10-03T07:46:28.228Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 11,
+  "fields": {
+    "name": "SSLSCAN",
+    "description": "sslscan",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']",
+    "created_at": "2018-10-12T09:50:42.326Z",
+    "updated_at": "2018-10-12T09:50:55.632Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 12,
+  "fields": {
+    "name": "OPENVAS",
+    "description": "openvas",
+    "allowed_asset_types": "[u'ip', u'ip-subnet', u'fqdn', u'domain', u'url']",
+    "created_at": "2019-02-13T12:17:29.523Z",
+    "updated_at": "2019-02-13T12:17:29.523Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 13,
+  "fields": {
+    "name": "MANUAL",
+    "description": "Manual import. **Do not remove**",
+    "allowed_asset_types": "[u'ip', u'ip-range', u'ip-subnet', u'fqdn', u'domain', u'url', u'keyword', u'person', u'organisation', u'path', u'application']",
+    "created_at": "2019-03-27T12:38:50.794Z",
+    "updated_at": "2019-03-27T12:38:50.794Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 14,
+  "fields": {
+    "name": "SKELETON",
+    "description": "Skeleton",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
+    "created_at": "2019-03-27T12:38:50.794Z",
+    "updated_at": "2019-03-27T12:38:50.794Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 15,
+  "fields": {
+    "name": "CERTSTREAM",
+    "description": "CertStream",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
+    "created_at": "2019-06-12T12:38:50.794Z",
+    "updated_at": "2019-06-12T12:38:50.794Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 16,
+  "fields": {
+    "name": "EYEWITNESS",
+    "description": "EyeWitness",
+    "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
+    "created_at": "2019-06-12T12:38:50.794Z",
+    "updated_at": "2019-06-12T12:38:50.794Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 17,
+  "fields": {
+    "name": "OWL_REQUEST",
+    "description": "OWL_REQUEST",
+    "allowed_asset_types": "['url']",
+    "created_at": "2019-11-22T13:51:08.580Z",
+    "updated_at": "2019-11-22T13:51:08.580Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 18,
+  "fields": {
+    "name": "SONARQUBE",
+    "description": "sqd",
+    "allowed_asset_types": "['url', 'path']",
+    "created_at": "2019-11-29T10:36:45.777Z",
+    "updated_at": "2019-11-29T10:36:45.777Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 19,
+  "fields": {
+    "name": "DROOPESCAN",
+    "description": "droopescan",
+    "allowed_asset_types": "[u'url']",
+    "created_at": "2020-03-26T15:53:10.644Z",
+    "updated_at": "2020-03-26T15:53:10.644Z"
+  }
+}]

@@ -7,6 +7,7 @@ db.sqlite3
 .DS_Store
 dump.rdb
 app/settings.py
+app/settings-*.py
 media/imports/*
 media/owners_docs/*
 media/policies/*

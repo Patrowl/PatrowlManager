@@ -1,1 +1,73 @@
-[{"model": "engines.enginepolicyscope", "pk": 1, "fields": {"name": "Network Infrastructure", "priority": null, "created_at": "2017-07-09T16:42:12Z", "updated_at": "2017-07-09T16:42:12Z"}}, {"model": "engines.enginepolicyscope", "pk": 2, "fields": {"name": "System infrastructure", "priority": null, "created_at": "2017-07-16T08:51:44Z", "updated_at": "2017-07-27T10:34:54.561Z"}}, {"model": "engines.enginepolicyscope", "pk": 3, "fields": {"name": "Domain", "priority": null, "created_at": "2017-07-27T10:34:56Z", "updated_at": "2017-07-27T10:34:56Z"}}, {"model": "engines.enginepolicyscope", "pk": 4, "fields": {"name": "Web App", "priority": null, "created_at": "2017-07-27T10:35:09Z", "updated_at": "2017-07-27T10:35:09Z"}}, {"model": "engines.enginepolicyscope", "pk": 5, "fields": {"name": "HTTPS & Certificates", "priority": null, "created_at": "2017-07-27T10:35:20Z", "updated_at": "2017-07-27T10:35:20Z"}}, {"model": "engines.enginepolicyscope", "pk": 6, "fields": {"name": "E-Reputation", "priority": null, "created_at": "2017-07-27T10:35:32Z", "updated_at": "2017-07-27T10:35:32Z"}}, {"model": "engines.enginepolicyscope", "pk": 7, "fields": {"name": "Malware", "priority": null, "created_at": "2017-07-27T10:35:41Z", "updated_at": "2017-07-27T10:35:41Z"}}, {"model": "engines.enginepolicyscope", "pk": 8, "fields": {"name": "Availability", "priority": null, "created_at": "2017-07-27T10:35:47Z", "updated_at": "2017-07-27T10:35:47Z"}}]
+[{
+  "model": "engines.enginepolicyscope",
+  "pk": 1,
+  "fields": {
+    "name": "Network Infrastructure",
+    "priority": null,
+    "created_at": "2017-07-09T16:42:12Z",
+    "updated_at": "2017-07-09T16:42:12Z"
+  }
+}, {
+  "model": "engines.enginepolicyscope",
+  "pk": 2,
+  "fields": {
+    "name": "System infrastructure",
+    "priority": null,
+    "created_at": "2017-07-16T08:51:44Z",
+    "updated_at": "2017-07-27T10:34:54.561Z"
+  }
+}, {
+  "model": "engines.enginepolicyscope",
+  "pk": 3,
+  "fields": {
+    "name": "Domain",
+    "priority": null,
+    "created_at": "2017-07-27T10:34:56Z",
+    "updated_at": "2017-07-27T10:34:56Z"
+  }
+}, {
+  "model": "engines.enginepolicyscope",
+  "pk": 4,
+  "fields": {
+    "name": "Web App",
+    "priority": null,
+    "created_at": "2017-07-27T10:35:09Z",
+    "updated_at": "2017-07-27T10:35:09Z"
+  }
+}, {
+  "model": "engines.enginepolicyscope",
+  "pk": 5,
+  "fields": {
+    "name": "HTTPS & Certificates",
+    "priority": null,
+    "created_at": "2017-07-27T10:35:20Z",
+    "updated_at": "2017-07-27T10:35:20Z"
+  }
+}, {
+  "model": "engines.enginepolicyscope",
+  "pk": 6,
+  "fields": {
+    "name": "E-Reputation",
+    "priority": null,
+    "created_at": "2017-07-27T10:35:32Z",
+    "updated_at": "2017-07-27T10:35:32Z"
+  }
+}, {
+  "model": "engines.enginepolicyscope",
+  "pk": 7,
+  "fields": {
+    "name": "Malware",
+    "priority": null,
+    "created_at": "2017-07-27T10:35:41Z",
+    "updated_at": "2017-07-27T10:35:41Z"
+  }
+}, {
+  "model": "engines.enginepolicyscope",
+  "pk": 8,
+  "fields": {
+    "name": "Availability",
+    "priority": null,
+    "created_at": "2017-07-27T10:35:47Z",
+    "updated_at": "2017-07-27T10:35:47Z"
+  }
+}]
