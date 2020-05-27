@@ -1,12 +1,14 @@
 #!/bin/bash
 export DB_HOST=${DB_HOST:-db}
+export DB_PORT=${DB_PORT:-5432}
 export RABBITMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
+export RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
 
 echo "[+] Wait for DB availability"
-while !</dev/tcp/$DB_HOST/5432; do sleep 1; done
+while !</dev/tcp/$DB_HOST/$DB_PORT; do sleep 1; done
 
 echo "[+] Wait for RabbitMQ availability"
-while !</dev/tcp/$RABBITMQ_HOST/5672; do sleep 1; done
+while !</dev/tcp/$RABBITMQ_HOST/$RABBITMQ_PORT; do sleep 1; done
 
 source env3/bin/activate
 
