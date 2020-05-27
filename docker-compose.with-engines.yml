@@ -1,0 +1,79 @@
+version: '3'
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-alpine
+    container_name: patrowl-rabbitmq
+    environment:
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error}]
+    expose:
+      - '5672'
+
+  db:
+    image: postgres:11-alpine
+    restart: always
+    container_name: patrowl-postgres
+    environment:
+      - POSTGRES_DB=patrowl_db
+      - POSTGRES_USER=PATROWL_DB_USER
+      - POSTGRES_PASSWORD=PATROWL_DB_PASSWD_TO_CHANGE
+    expose:
+      - '5432'
+    volumes:
+      - ./var/db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    #   - ./pg_data:/var/lib/postgresql/data/
+
+  web:
+    container_name: patrowl-django
+    build: .
+    image: patrowl/patrowl-manager-community-edition:latest
+    environment:
+      - DB_PORT_5432_TCP_HOST=db
+      - DEBUG=True
+      - RABBIT_PORT_5672_TCP=rabbitmq:5672
+    depends_on:
+      - db
+      - rabbitmq
+    expose:
+      - "8003"
+    volumes:
+      - ./staticfiles:/opt/patrowl-manager/staticfiles
+      - ./media:/opt/patrowl-manager/media
+    links:
+      - db
+      - rabbitmq
+    entrypoint: ./docker-entrypoint.with-engines.sh
+
+  nginx:
+    image: nginx:latest
+    container_name: patrowl-nginx
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./staticfiles:/opt/patrowl-manager/staticfiles
+      - ./media:/opt/patrowl-manager/media
+      - ./var/log:/opt/patrowl-manager/var/log
+      - ./nginx_docker.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
+
+  engine-nmap:
+    image: patrowl/engine-nmap
+    restart: always
+    container_name: patrowl-nmap
+    expose:
+      - '5001'
+
+  engine-sslscan:
+    image: patrowl/engine-sslscan
+    restart: always
+    container_name: patrowl-sslscan
+    expose:
+      - '5014'
+
+  engine-owl_dns:
+    image: patrowl/engine-owl_dns
+    restart: always
+    container_name: patrowl-owl_dns
+    expose:
+      - '5006'

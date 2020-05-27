@@ -42,6 +42,16 @@ if not User.objects.filter(username='admin').exists(): \r\
   python manage.py loaddata var/data/engines.EnginePolicyScope.json
   python manage.py loaddata var/data/engines.EnginePolicy.json
 
+  echo "[+] Configure the engines nmap, sslscan and owl_dns"
+  echo -e "\r\
+from engines.models import Engine, EngineInstance\r\
+try:\r\
+    EngineInstance(engine=Engine.objects.filter(name=\"NMAP\").first(), name=\"nmap-local-001\", api_url=\"http://engine-nmap:5001/engines/nmap/\").save()\r\
+    EngineInstance(engine=Engine.objects.filter(name=\"SSLSCAN\").first(), name=\"sslscan-local-001\", api_url=\"http://engine-sslscan:5014/engines/sslscan/\").save()\r\
+    EngineInstance(engine=Engine.objects.filter(name=\"OWL_DNS\").first(), name=\"owl_dns-local-001\", api_url=\"http://engine-owl_dns:5006/engines/owl_dns/\").save()\r\
+except Exception:\r\
+    pass" | python manage.py shell
+
   touch status.created
 fi
 
