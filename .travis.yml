@@ -8,6 +8,7 @@ script:
 - docker --version
 # - docker build --tag patrowl-manager .
 - docker-compose up -d
+- docker-compose up -f docker-compose.with-engines.yml
 - pytest
 after_script:
 - docker images
