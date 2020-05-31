@@ -102,8 +102,9 @@ def toggle_engine_status_api(request, engine_id):
 def get_engine_info_api(request, engine_id):
     inst = get_object_or_404(EngineInstance, id=engine_id)
     get_engine_info_task.apply_async(
-        args=[inst.id], queue='default', retry=False, ignore_result=False)
-    # args=[inst.id], queue='default', retry=False, ignore_result=True)
+        args=[inst.id], queue='default', retry=False, ignore_result=False
+    )
+
     return JsonResponse({"status": "enqueued"})
 
 
@@ -113,13 +114,25 @@ def info_engine_api(request, engine_id):
 
     engine_infos = None
     current_scans = None
+    nb_scans = None
+
     try:
         resp = requests.get(url=str(engine.api_url)+"info", verify=False, timeout=20)
+        engine_infos = json.loads(resp.text)
 
-        if resp.status_code == 200:
-            engine_infos = json.loads(resp.text)
-    except requests.exceptions.RequestException:
-        pass
+        if resp.status_code != 200:
+            raise ConnectionError("http status code {}".format(resp.status_code))
+
+        if not "engine_config" in engine_infos or not "status" in engine_infos["engine_config"]:
+            # Todo: check engine.info response contains all mandatories fields
+            raise SyntaxError("tag \"status\" not found in response")
+
+    except Exception as ex:
+        engine.set_status("ERROR")
+        engine_infos = {"status":"ERROR", "details": {
+            "request": "{}".format(str(engine.api_url)+"info"),
+            "reason": "{} thrown {}".format(ex.__class__.__name__,ex)
+        }}
 
     nb_scans = Scan.objects.filter(engine=engine).count()
 
