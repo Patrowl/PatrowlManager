@@ -301,7 +301,7 @@ function InitForm(){
   engine_list = {{scan_engines_json|safe}}
   $('select#id_engine').append("<option value='-1' selected>---- random (by default) ----</option>");
   for (i = 0; i< engine_list.length; i++){
-    /*
+
     if(engine_list[i]["engine__name"] == "{{scan_def.engine_type.name}}"){
       $('select#id_engine').append($('<option>', {
           value: engine_list[i]['id'],
@@ -309,7 +309,7 @@ function InitForm(){
         })
       );
     }
-      */
+
   }
   if("{{scan_def.engine}}" != "None"){
     $("select#id_engine option[value='{{scan_def.engine.id}}']").attr('selected','selected');
