@@ -33,7 +33,7 @@
       {% if engine.status == 'READY' %}
       <td><span class="glyphicon glyphicon-ok" style="color:green"></span> Ready</td>
       {% else %}
-      <td><span class="glyphicon glyphicon-remove" style="color:red"></span> Error</td>
+      <td><span class="glyphicon glyphicon-remove" style="color:red"></span> {{ engine.status }}</td>
       {% endif %}
       <td>{{ engine.api_url }}</td>
       <td>{{ engine.updated_at|smartdate }}</td>
@@ -46,7 +46,7 @@
           <span class="glyphicon glyphicon-repeat"></span></button>
         <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-engine"
            engine-id="{{ engine.id }}" engine-name="{{ engine.name }}@{{ engine.api_url}}">
-          <span class="glyphicon glyphicon-remove"></button>
+          <span class="glyphicon glyphicon-remove"></span></button>
         {% if engine.enabled %}
         <button type="button" class="btn btn-warning dropdown-toggle btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
           Disable</button>
@@ -70,7 +70,7 @@
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
   </ul>
   {% endif %}
@@ -121,7 +121,7 @@
         <div id="info-engine">
           <!-- Content -->
         </div>
-        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Cancel</a></button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
@@ -145,25 +145,29 @@
         success: function(data, textStatus, jqXHR){
           info_data = "Engine: <b>"+data["engine"]["name"]+"</b><br/>";
           info_data+= "API URL: <b>"+data["engine"]["api_url"]+"</b><br/>";
-          info_data+= "Nb scans: <b>"+data["nb_scans"]+"</b><br/>";
 
           if(data["engine_infos"]["status"] == "ERROR") {
             info_data+= "Oper status: <b>ERROR</b><br/>";
+            if(data["engine_infos"]["details"]){
+              info_data+= "Request: <b>"+data["engine_infos"]["details"]["request"]+"</b></br>"
+              info_data+= "Reason: <b>"+data["engine_infos"]["details"]["reason"]+"</b></br>"
+            }
           } else {
+            info_data+= "Nb scans: <b>"+data["nb_scans"]+"</b><br/>";
             info_data+= "Oper status: <b>"+data["engine_infos"]["engine_config"]["status"]+"</b><br/>";
             info_data+= "Version: <b>"+data["engine_infos"]["engine_config"]["version"]+"</b><br/>";
             info_data+= "Description: <b>"+data["engine_infos"]["engine_config"]["description"]+"</b><br/>";
-          }
 
-          current_scans=data["current_scans"];
-          if (current_scans == null || Object.keys(current_scans).length === 0) {
-            info_data+= "Current scans: <b>no scan in progress</b><br/>";
-          } else {
-            info_data+= "Current scans: <br/>";
-            for (var scan in current_scans){
-              if (current_scans.hasOwnProperty(scan)) {
-                scan_id = Object.keys(current_scans[scan])[0];
-                info_data+= " * id="+scan_id+", started_at: "+new Date(current_scans[scan][scan_id]["started_at"])+", status: "+current_scans[scan][scan_id]["status"]+" <br/>";
+            current_scans=data["current_scans"];
+            if (current_scans == null || Object.keys(current_scans).length === 0) {
+              info_data+= "Current scans: <b>no scan in progress</b><br/>";
+            } else {
+              info_data+= "Current scans: <br/>";
+              for (var scan in current_scans){
+                if (current_scans.hasOwnProperty(scan)) {
+                  scan_id = Object.keys(current_scans[scan])[0];
+                  info_data+= " * id="+scan_id+", started_at: "+new Date(current_scans[scan][scan_id]["started_at"])+", status: "+current_scans[scan][scan_id]["status"]+" <br/>";
+                }
               }
             }
           }
