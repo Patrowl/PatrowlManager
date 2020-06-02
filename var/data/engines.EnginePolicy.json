@@ -968,4 +968,38 @@
     "updated_at": "2019-11-29T10:37:32.713Z",
     "scopes": [2]
   }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 57,
+  "fields": {
+    "engine": 20,
+    "owner": 1,
+    "name": "Web Scan",
+    "default": false,
+    "description": "ZAP Web Scan default policy",
+    "options": {},
+    "file": "",
+    "status": "",
+    "is_default": false,
+    "created_at": "2019-11-29T10:37:32.657Z",
+    "updated_at": "2019-11-29T10:37:32.713Z",
+    "scopes": [4]
+  }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 58,
+  "fields": {
+    "engine": 21,
+    "owner": 1,
+    "name": "Web Scan",
+    "default": false,
+    "description": "Nikto Web Scan default policy",
+    "options": {},
+    "file": "",
+    "status": "",
+    "is_default": false,
+    "created_at": "2019-11-29T10:37:32.657Z",
+    "updated_at": "2019-11-29T10:37:32.713Z",
+    "scopes": [4]
+  }
 }]
