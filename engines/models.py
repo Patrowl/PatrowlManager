@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from events.models import Event
+# from events.models import Event
 from app.settings import MEDIA_ROOT
 import os
 import base64
@@ -41,6 +41,7 @@ class Engine(models.Model):
 
 @receiver(post_save, sender=Engine)
 def engine_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[Engine] New engine created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -51,6 +52,7 @@ def engine_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=Engine)
 def engine_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[Engine] Engine '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
         type="DELETE", severity="DEBUG")
 
@@ -92,6 +94,7 @@ class EngineInstance(models.Model):
 
 @receiver(post_save, sender=EngineInstance)
 def engineinstance_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[EngineInstance] New engine instance created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
             type="CREATE", severity="DEBUG")
@@ -102,6 +105,7 @@ def engineinstance_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=EngineInstance)
 def engineinstance_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[EngineInstance] Engine instance '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
         type="DELETE", severity="DEBUG")
 
@@ -133,6 +137,7 @@ class EnginePolicyScope(models.Model):
 
 @receiver(post_save, sender=EnginePolicyScope)
 def enginepolicyscope_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[EnginePolicyScope] New engine policy scope created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -143,6 +148,7 @@ def enginepolicyscope_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=EnginePolicyScope)
 def enginepolicyscope_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[EnginePolicyScope] Engine policy scope '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 
@@ -230,6 +236,7 @@ class EnginePolicy(models.Model):
 
 @receiver(post_save, sender=EnginePolicy)
 def enginepolicy_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[EnginePolicy] New engine policy created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
             type="CREATE", severity="DEBUG")
@@ -240,5 +247,6 @@ def enginepolicy_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=EnginePolicy)
 def enginepolicy_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[EnginePolicy] Engine policy '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
         type="DELETE", severity="DEBUG")

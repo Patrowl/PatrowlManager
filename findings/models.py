@@ -9,10 +9,10 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
 # from events.models import Event
-from assets.models import Asset
-from scans.models import Scan
+# from assets.models import Asset
+# from scans.models import Scan
 from rules.models import Rule
-from engines.models import EnginePolicyScope
+# from engines.models import EnginePolicyScope
 from common.utils.encoding import json_serial
 
 import json
@@ -57,12 +57,12 @@ class FindingManager(models.Manager):
 
 
 class RawFinding(models.Model):
-    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='raw_findings')
-    asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    asset       = models.ForeignKey('assets.Asset', on_delete=models.CASCADE)
     asset_name  = models.CharField(max_length=256)
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
-    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE, related_name='raw_findings')
-    scan        = models.ForeignKey(Scan, on_delete=models.CASCADE)
+    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE)
+    scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE)
     owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256)
     type        = models.CharField(max_length=50)
@@ -70,9 +70,11 @@ class RawFinding(models.Model):
     confidence  = models.CharField(max_length=10)
     severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)
     severity_num= models.IntegerField(default=1, blank=True, null=True)
-    scopes      = models.ManyToManyField(EnginePolicyScope, blank=True)
+    # scopes      = models.ManyToManyField(EnginePolicyScope, blank=True)
+    scopes      = models.ManyToManyField('engines.EnginePolicyScope', blank=True)
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)
+    score    = models.IntegerField(default=0, null=True, blank=True)
     raw_data    = JSONField(null=True, blank=True)
     risk_info   = JSONField(null=True, blank=True)
     vuln_refs   = JSONField(null=True, blank=True)
@@ -154,12 +156,12 @@ def rawfinding_delete_log(sender, **kwargs):
 
 class Finding(models.Model):
     raw_finding = models.ForeignKey(RawFinding, models.SET_NULL, blank=True, null=True)
-    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='findings')
-    asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    asset       = models.ForeignKey('assets.Asset', on_delete=models.CASCADE)
     asset_name  = models.CharField(max_length=256) #todo: delete this
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
-    scan        = models.ForeignKey(Scan, on_delete=models.CASCADE, blank=True, null=True)
-    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE)
+    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE, blank=True, null=True)
+    scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE, blank=True, null=True)
     owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256, default='title')
     type        = models.CharField(max_length=50)
@@ -167,9 +169,11 @@ class Finding(models.Model):
     confidence  = models.CharField(max_length=10)
     severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)  # info, low, medium, high, critical
     severity_num= models.IntegerField(default=1, blank=True, null=True)  # info, low, medium, high, critical
-    scopes      = models.ManyToManyField(EnginePolicyScope, blank=True, related_name='finding_scopes')
+    # scopes      = models.ManyToManyField(EnginePolicyScope, blank=True, related_name='finding_scopes')
+    scopes      = models.ManyToManyField('engines.EnginePolicyScope', blank=True, related_name='finding_scopes')
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)
+    score       = models.IntegerField(default=0, null=True, blank=True)
     raw_data    = JSONField(null=True, blank=True)
     risk_info   = JSONField(null=True, blank=True)
     vuln_refs   = JSONField(null=True, blank=True)
@@ -252,6 +256,7 @@ def finding_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=Finding)
 def finding_delete_log(sender, **kwargs):
+    from assets.models import Asset
     from events.models import Event
     asset = Asset.objects.get(id=kwargs['instance'].asset_id)
     asset.calc_risk_grade()

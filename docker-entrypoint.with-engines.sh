@@ -18,6 +18,12 @@ python manage.py collectstatic --noinput
 
 # Apply database migrations
 echo "[+] Make database migrations"
+python manage.py makemigrations scans
+echo " - findings"
+python manage.py makemigrations findings
+echo " - events"
+python manage.py makemigrations events
+echo " - ... and all the rest"
 python manage.py makemigrations
 
 # Apply database migrations

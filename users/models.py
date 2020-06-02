@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from events.models import Event
+# from events.models import Event
 
 USER_STATUS = (
     ('ACTIVE', 'ACTIVE'),
@@ -38,6 +38,7 @@ class Profile(models.Model):
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
+    from events.models import Event
     if created:
         Profile.objects.create(user=instance, status='ACTIVE', bio="n/a", department="n/a")
         Event.objects.create(message="[User] New user created (id={}): {}".format(instance.id, instance),
@@ -51,5 +52,6 @@ def save_user_profile(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=User)
 def delete_user_profile(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[User] User '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
