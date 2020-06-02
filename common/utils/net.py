@@ -41,8 +41,9 @@ def is_ipaddr_in_subnet(ip, subnet):
     return False
 
 
-def is_ipaddr_in_range(ip, range): # only support range for last digits
-    if not is_valid_ip_range(range): return False
+def is_ipaddr_in_range(ip, range):  # only support range for last digits
+    if not is_valid_ip_range(range):
+        return False
 
     start_range, end_range = range.split("-")
     if '.' not in end_range:

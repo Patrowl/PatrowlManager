@@ -9,7 +9,7 @@ from .models import Finding, RawFinding
 from .forms import ImportFindingsForm, FindingForm
 from .utils import _search_findings
 from assets.models import Asset
-from events.models import Event
+# from events.models import Event
 from engines.tasks import importfindings_task
 import os
 import time
@@ -94,6 +94,7 @@ def import_findings_view(request):
 
 
 def details_finding_view(request, finding_id):
+    from events.models import Event
     finding = None
 
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":

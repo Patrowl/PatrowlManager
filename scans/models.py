@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django_celery_beat.models import PeriodicTask
 
-from events.models import Event
+# from events.models import Event
 from assets.models import Asset, AssetGroup
 from engines.models import Engine, EnginePolicy, EngineInstance
 from common.utils.encoding import json_serial
@@ -58,7 +58,7 @@ class ScanDefinition(models.Model):
 
     def __str__(self):
         return "{}/{}".format(self.id, self.title)
-    
+
     def to_dict(self):
         data = model_to_dict(self, exclude=["assets_list", "assetgroups_list"])
         data.update({"assets_list": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets_list.all()]})
@@ -74,6 +74,7 @@ class ScanDefinition(models.Model):
 
 @receiver(post_save, sender=ScanDefinition)
 def scandef_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[ScanDefinition] New scan defition created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -84,6 +85,7 @@ def scandef_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=ScanDefinition)
 def scandef_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[ScanDefinition] Scan definition '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 
@@ -148,6 +150,7 @@ class Scan(models.Model):
 
 @receiver(post_save, sender=Scan)
 def scan_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[Scan] New scan created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -158,6 +161,7 @@ def scan_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=Scan)
 def scan_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[Scan] Scan '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 
@@ -191,6 +195,7 @@ class ScanCampaign(models.Model):
 
 @receiver(post_save, sender=ScanCampaign)
 def scancampaign_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[ScanCampaign] New scan campaign created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -201,5 +206,6 @@ def scancampaign_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=ScanCampaign)
 def scancampaign_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[ScanCampaign] Scan campaign '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")

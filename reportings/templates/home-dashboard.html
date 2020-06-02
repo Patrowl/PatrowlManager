@@ -119,12 +119,23 @@ td.bg-grade-F-high {background-color: black; color: white;}
         <small>Defined: {{global_stats.scans.defined}}</small>
       </div>
     </div>
-    <div class="tile col-sm-15" ondblclick="window.location='/rules/list'">
+    <!-- <div class="tile col-sm-15" ondblclick="window.location='/rules/list'">
       <div class="tile-content">
         <h2 class="text-center strong">{{global_stats.rules.active}}</h2>
         <h6 class="text-muted text-center">Active rules</h6>
         <small>Defined: {{global_stats.rules.total}}</small><br/>
         <small>Notified: {{global_stats.rules.nb_matches}}</small><br/>
+      </div>
+    </div> -->
+    <div class="tile col-sm-15" ondblclick="window.location='/events/alerts/list'">
+      <div class="tile-content">
+        <h2 class="text-center strong">{{global_stats.alerts.total_new}}</h2>
+        <h6 class="text-muted text-center">New alerts</h6>
+        <span class="badge badge-secondary small">info: {{ global_stats.alerts.new_info}}</span>
+        <span class="badge badge-secondary small">low: {{ global_stats.alerts.new_low}}</span>
+        <span class="badge badge-secondary small">medium: {{ global_stats.alerts.new_medium}}</span>
+        <span class="badge badge-secondary small">high: {{ global_stats.alerts.new_high}}</span>
+        <span class="badge badge-secondary small">critical: {{ global_stats.alerts.new_critical}}</span>
       </div>
     </div>
     <div class="tile col-sm-15" ondblclick="window.location='/engines/list'">

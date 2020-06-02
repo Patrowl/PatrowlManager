@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<style>
+  tr.patrowlalert {
+    border-left-style: solid;
+    border-width: 2px;
+    border-left-width: 10px;
+    /* font-size: small; */
+  }
+
+  tr.patrowlalert-info { border-left-color: #3498db; }
+  tr.patrowlalert-low { border-left-color: #ffcb0d; }
+  tr.patrowlalert-medium { border-left-color: #f9a009; }
+  tr.patrowlalert-high { border-left-color: #df3d03; }
+  tr.patrowlalert-critical { border-left-color: #cc0500; }
+
+  input:checked + label {
+      background: #2c3e50;
+      border-radius: 3px;
+      width: 70px;
+      text-align: center;
+      color: #ffffff;
+  }
+</style>
+
+<ul class="breadcrumb">
+  <li><a href="/events/alerts/list">Alerts</a></li>
+  <li class="active">list</li>
+</ul>
+
+<div class="container-fluid">
+  <div class="pull-left">
+      <span>Status filter:</span>
+      <input type='radio' value='reset' id="reset" name='status' style="visibility: hidden" onclick="changeStatusFilter(this);"/>
+      <label for="reset">Reset</label>
+      <input type='radio' value='new' id="new" name='status' style="visibility: hidden" onclick="changeStatusFilter(this);"/>
+      <label for="new">New</label>
+      <input type='radio' value='read' id="read" name='status' style="visibility: hidden" onclick="changeStatusFilter(this);"/>
+      <label for="read">Read</label>
+      <input type='radio' value='archived' id="archived" name='status'  style="visibility: hidden" onclick="changeStatusFilter(this);"/>
+      <label for="archived">Archived</label>
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="pull-left">
+      <span>Severity filter:</span>
+      <input type='radio' value='all' id="all" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
+      <label for="all">All</label>
+      <input type='radio' value='info' id="info" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
+      <label for="info">Info</label>
+      <input type='radio' value='low' id="low" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
+      <label for="low">Low</label>
+      <input type='radio' value='medium' id="medium" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
+      <label for="medium">Medium</label>
+      <input type='radio' value='high' id="high" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
+      <label for="high">High</label>
+      <input type='radio' value='critical' id="critical" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
+      <label for="critical">Critical</label>
+  </div>
+</div>
+
+<div class="container-fluid">
+  <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+    <thead>
+      <tr>
+        <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'alert')" /></th>
+        <th>Message</th>
+        <th>Status</th>
+        <th>Severity</th>
+        <th>Finding link</th>
+        <th>Scan link</th>
+        <th>Last update</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alert in alerts %}
+      <tr class="patrowlalert patrowlalert-{{alert.severity}}">
+        <td><input type="checkbox" class="radio" name="alert" value="{{ alert.id }}"/></td>
+        <td>
+          {{ alert.message }} on
+          <a href="/assets/details/{{ alert.metadata.asset_id}}">{{ alert.metadata.asset_name}}</a>: {{ alert.metadata.finding_title}}
+          <!-- - <a href="/findings/details/{{ alert.metadata.finding_id}}?raw=true">finding</a>
+          - <a href="/scans/details/{{ alert.metadata.scan_id}}">scan</a> -->
+        </td>
+        {% if alert.status == 'new' %}
+        <td class="text-danger">{{ alert.status }}</td>
+        {% else %}
+        <td>{{ alert.status }}</td>
+        {% endif %}
+        {% if alert.severity == 'critical' %}
+        <td><span class="label label-critical">{{ alert.severity }}</span></td>
+        {% elif alert.severity == 'high' %}
+        <td><span class="label label-high">{{ alert.severity }}</span></td>
+        {% elif alert.severity == 'medium' or alert.severity == 'moderate' %}
+        <td><span class="label label-medium">{{ alert.severity }}</span></td>
+        {% elif alert.severity == 'low' %}
+        <td><span class="label label-low">{{ alert.severity }}</span></td>
+        {% else %}
+        <td><span class="label label-info">{{ alert.severity }}</span></td>
+        {% endif %}
+        <td><span class='glyphicon glyphicon-share-alt'></span><a href="/findings/details/{{ alert.metadata.finding_id}}?raw=true">Finding</a></td>
+        <td><span class='glyphicon glyphicon-share-alt'></span><a href="/scans/details/{{ alert.metadata.scan_id}}">Scan</a></td>
+        <td>{{ alert.updated_at|smartdate }}</td>
+        <td>
+          <!-- <div class="btn-group" role="group" aria-label="Basic example"> -->
+          {% if alert.status == "new" %}
+          <button
+            type="button"
+            class="btn btn-warning btn-xs btn-read"
+            data-toggle="tooltip" data-placement="top" title="Mark as read"
+            alert-id="{{ alert.id }}">
+            R</button>
+          {% endif %}
+          {% if alert.status == "new" or alert.status == "read" %}
+          <button
+            type="button"
+            data-toggle="tooltip" data-placement="top" title="Archive alert"
+            class="btn btn-danger btn-xs btn-archive"
+            alert-id="{{ alert.id }}">
+            A</button>
+          {% endif %}
+          <!-- </div> -->
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Alerts Pagination -->
+  <div style="display: inline-flex;">
+    <ul class="pagination pagination-xs">
+      {% if alerts.number == 1 %}
+        <li class="disabled"><span>&laquo;&laquo;</span></li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'alerts');">&laquo;&laquo;</a></li>
+      {% endif %}
+      {% if alerts.has_previous %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{alerts.previous_page_number}}, 'alerts');">&laquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&laquo;</span></li>
+      {% endif %}
+      {% for i in alerts.paginator|proper_paginate:alerts.number %}
+        {% if alerts.number == i %}
+            <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'alerts');">{{ i }}</a></li>
+        {% endif %}
+      {% endfor %}
+      {% if alerts.has_next %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{alerts.next_page_number}}, 'alerts');">&raquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&raquo;</span></li>
+      {% endif %}
+      {% if alerts.number == alerts.paginator.num_pages %}
+        <li class="disabled"><span>&raquo;&raquo;</span></li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{alerts.paginator.num_pages}}, 'alerts');">&raquo;&raquo;</a></li>
+      {% endif %}
+    </ul>
+  </div>
+  <br/>
+
+  <a class="btn-read-selected text-warning" href="#">* Ack selected alerts</a><br/>
+  <a class="btn-archive-selected text-danger" href="#">! Archive selected alerts</a><br/>
+  <br/>
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<script>
+
+  // Goto page
+  url = new URL(window.location.href);
+
+  // Set the status filter
+  status = url.searchParams.get('status');
+  if ( ['new', 'read', 'archived'].indexOf(status) >= 0 ) {
+    $('input[name="status"][id="'+status+'"]').prop("checked", true );
+  } else {
+    $('input[name="status"][id="reset"]').prop("checked", true );
+  }
+
+  // Set the severity filter
+  severity = url.searchParams.get('severity');
+  if ( ['info', 'low', 'medium', 'high', 'critical'].indexOf(severity) >= 0 ) {
+    $('input[name="severity"][id="'+severity+'"]').prop("checked", true );
+  } else {
+    $('input[name="severity"][id="all"]').prop("checked", true );
+  }
+
+  var gotopage = function gotopage(page_num, target = "alerts") {
+    url.searchParams.set("p_alerts", page_num);
+    window.location = url.search;
+  };
+
+  function toggle(source) {
+    checkboxes = document.getElementsByName('alert');
+    for(var i=0, n=checkboxes.length;i<n;i++) {
+      checkboxes[i].checked = source.checked;
+    }
+  }
+
+  function changeStatusFilter(item) {
+    url.searchParams.set("status", item.value);
+    window.location = url.search;
+  }
+
+  function changeSeverityFilter(item) {
+    url.searchParams.set("severity", item.value);
+    window.location = url.search;
+  }
+
+  $(function() {
+
+    // Mark selected assets as 'read'
+    $("a.btn-read-selected").on('click', function(eventObject) {
+      alerts_to_ack = [];
+      $("input[name='alert']").each(function(cbx){
+        if (this.checked) {
+          alerts_to_ack.push(this.value)
+        }
+      })
+      if (alerts_to_ack.length != 0){
+        var request = $.ajax({
+          url: "{% url 'ack_alerts_api' %}",
+          method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: JSON.stringify(alerts_to_ack),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    $("button.btn-read").on('click', function(eventObject) {
+      alerts_to_ack = [];
+      alerts_to_ack.push(eventObject.currentTarget.attributes['alert-id'].value);
+      var request = $.ajax({
+        url: "{% url 'ack_alerts_api' %}",
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        data: JSON.stringify(alerts_to_ack),
+        contentType: "application/json"
+      });
+      request.done(function(response){
+        if (response.status == 'success'){location.reload()}
+      });
+    });
+
+    // Archive selected assets
+    $("a.btn-archive-selected").on('click', function(eventObject) {
+      alerts_to_archive = [];
+      $("input[name='alert']").each(function(cbx){
+        if (this.checked) {
+          alerts_to_archive.push(this.value)
+        }
+      })
+
+      if (alerts_to_archive.length != 0){
+        var request = $.ajax({
+          url: "{% url 'archive_alerts_api' %}",
+          method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: JSON.stringify(alerts_to_archive),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    $("button.btn-archive").on('click', function(eventObject) {
+      alerts_to_archive = [];
+      alerts_to_archive.push(eventObject.currentTarget.attributes['alert-id'].value);
+      var request = $.ajax({
+        url: "{% url 'archive_alerts_api' %}",
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        data: JSON.stringify(alerts_to_archive),
+        contentType: "application/json"
+      });
+      request.done(function(response){
+        if (response.status == 'success'){location.reload()}
+      });
+    });
+
+  });
+</script>
+
+{% endblock %}
