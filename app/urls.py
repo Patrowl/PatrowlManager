@@ -26,6 +26,7 @@ api_schema_view = get_swagger_view(title='PatrOwl Manager REST-API')
 
 urlpatterns = [
     url(r'^apis-doc', api_schema_view),
+    url(r'^ht/', include('health_check.urls')),
     url(r'^auth-jwt/obtain_jwt_token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     url(r'^auth-jwt/refresh_jwt_token/', TokenRefreshView.as_view(), name='token_refresh'),
     url(r'^auth-jwt/verify/', TokenVerifyView.as_view(), name='token_verify'),

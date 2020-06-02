@@ -70,7 +70,16 @@ INSTALLED_APPS = [
     # 'debug_toolbar',
     'django_celery_results',
     'django_celery_beat',
+    'health_check',
+    'health_check.contrib.celery',
+    'health_check.contrib.psutil',
+    'health_check.contrib.rabbitmq',
 ]
+
+HEALTH_CHECK = {
+    'DISK_USAGE_MAX': 90,
+    'MEMORY_MIN': 256,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

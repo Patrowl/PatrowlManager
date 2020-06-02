@@ -42,9 +42,9 @@ Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/mas
 - [ ] Enhance finding states management
 - [ ] Enhance user management
 - [ ] Support scan campaigns (multiple scan definition)
-- [ ] Support django-health-check
+- [X] Support django-health-check
 - [ ] Support cache
-- [ ] Optimize global performances
+- [X] Optimize global performances
 - [ ] Refactor static files (remove unused ?)
 - [X] Continuous Docker image deployment (DockerHub)
 
@@ -62,7 +62,7 @@ Looking for advanced support, training, integration, custom developments, dual-l
 Please disclose any security-related issues or vulnerabilities by emailing security@patrowl.io, instead of using the public issue tracker.
 
 # Copyright
-Copyright (C) 2018-2019 Nicolas MATTIOCCO ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
+Copyright (C) 2018-2020 Nicolas MATTIOCCO ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
 
 # Travis build status
 | Branch  | Status  |
