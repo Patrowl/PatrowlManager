@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'datetimewidget',
+    #'events',
     'engines',
     'findings',
     'assets',

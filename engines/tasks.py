@@ -7,11 +7,12 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from celery import shared_task
 from celery.task.control import revoke
-from .models import EngineInstance, Engine, EnginePolicyScope, EnginePolicy
+from .models import EngineInstance, Engine, EnginePolicy
 from findings.models import Finding, RawFinding
 from assets.models import Asset, AssetGroup
 from scans.models import Scan, ScanDefinition
 from events.models import Event
+from events.utils import new_finding_alert, missing_finding_alert
 from common.utils import net
 import requests
 import json
@@ -380,7 +381,8 @@ def startscan_task(self, params):
             proxies=PROXIES,
             timeout=TIMEOUT)
 
-        if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
+        # if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
+        if resp.status_code != 200 or json.loads(resp.text)['status'] not in ["accepted", "ACCEPTED"]:
             scan.status = "error"
             scan.finished_at = timezone.now()
             scan.save()
@@ -591,7 +593,8 @@ def start_periodic_scan_task(self, params):
                 'Accept': 'application/json'},
             proxies=PROXIES,
             timeout=TIMEOUT)
-        if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
+        # if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
+        if resp.status_code != 200 or json.loads(resp.text)['status'] not in ["accepted", "ACCEPTED"]:
             print("something goes wrong in 'startscan_task/scan' (request_status_code={}, scan_response={})",
                   resp.status_code, str(resp.text))
             return False
@@ -796,7 +799,6 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
 
 
 def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owner_id=None):
-    from timeit import default_timer as timer
 
     scan_id = None
     if scan:
@@ -808,11 +810,8 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
 
     scopes = scan.engine_policy.scopes.all()
     fid = 0
-    timer_finding_in_findings = timer()
     for finding in findings:
         fid += 1
-        timer_finding_iteration = timer()
-        print("[DEBUG] New finding iteration: {}".format(fid))
         # get the hostnames received and check if they are known in the user' assets
         assets = []
 
@@ -855,7 +854,7 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
                 cvss_base_score = 4.0
             risk_info.update({"cvss_base_score": cvss_base_score})
         else:
-            # ensure it's a float
+            # Ensure it's a float
             risk_info.update({"cvss_base_score": float(risk_info["cvss_base_score"])})
         if 'vuln_publication_date' not in risk_info.keys():
             risk_info.update({"vuln_publication_date": datetime.datetime.today().strftime('%Y/%m/%d')})
@@ -865,12 +864,6 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
             raw_data = finding['raw']
 
         for asset in assets:
-            # update scan_summary
-            # scan_summary.update({
-            #     "total": scan_summary['total'] + 1,
-            #     finding['severity']: scan_summary[finding['severity']] + 1
-            # })
-
             # Store finding in the RawFinding table
             new_raw_finding = RawFinding.objects.create(
                 asset       = asset,
@@ -900,9 +893,6 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
             new_raw_finding.save()
 
             # Check if this finding is new
-            # f = Finding.objects.filter(
-            #     hash=hashlib.sha1(str(asset.value).encode('utf-8')+str(finding['title']).encode('utf-8')).hexdigest()).first()
-
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
             if f:
@@ -912,6 +902,10 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
                 new_raw_finding.save()
             else:
                 # Create a new finding:
+                # Raise an alert
+                new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+
+                # Create an event if logging level OK
                 Event.objects.create(
                     message="[EngineTasks/_import_findings()/scan_id={}] New finding: {}".format(scan_id, finding['title']),
                     description="Asset: {}\nFinding: {}".format(asset.value, finding['title']),
@@ -950,23 +944,14 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
                     Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] Error in alerting".format(scan_id),
                         type="ERROR", severity="ERROR", scan=scan, description=str(e))
 
-        print("[DEBUG][fid={}] End of finding iteration. Elapsed: {}".format(fid, timer() - timer_finding_iteration))
-
-    print("[DEBUG] End of finding_in_findings. Elapsed: {}".format(timer() - timer_finding_in_findings))
-
-    print("[DEBUG] Start of scan_update_sumary.")
-    timer_scan_update_sumary = timer()
     scan.save()
     scan.update_sumary()
-    print("[DEBUG] End of scan_update_sumary. Elapsed: {}".format(timer() - timer_scan_update_sumary))
 
-    print("[DEBUG] Start of asset_calc_risk_grade.")
-    timer_asset_calc_risk_grade = timer()
+    # Search missing findings
+
+    # Reevaluate the risk level of the asset on new risk
     for a in scan.assets.all():
-        # Reevaluate the risk level of the asset on new risk
-        # a.evaluate_risk()
         a.calc_risk_grade(update_groups=True)
-    print("[DEBUG] End of asset_calc_risk_grade. Elapsed: {}".format(timer() - timer_asset_calc_risk_grade))
 
     # @Todo: Revaluate the risk level of all asset groups
 
@@ -986,6 +971,9 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
     # Initialize scan_scopes
     scan_scopes = scan.engine_policy.scopes.all()
+
+    # Initilize the array containing same findings
+    known_findings_list = []
 
     for finding in findings:
         # get the hostnames received and check if they are known in the user' assets
@@ -1040,12 +1028,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             raw_data = finding['raw']
 
         for asset in assets:
-            # update scan_summary
-            # scan_summary.update({
-            #     "total": scan_summary['total'] + 1,
-            #     finding['severity']: scan_summary[finding['severity']] + 1
-            # })
-
             # Store finding in the RawFinding table
             new_raw_finding = RawFinding.objects.create(
                 asset       = asset,
@@ -1065,7 +1047,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 links       = links,
                 tags        = tags,
                 raw_data    = raw_data
-                #found_at = ???
             )
             new_raw_finding.save()
 
@@ -1074,18 +1055,21 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 new_raw_finding.scopes.add(scope.id)
             new_raw_finding.save()
 
-            # Check if this finding is new
-            # f = Finding.objects.filter(
-            #     hash=hashlib.sha1(str(asset.value).encode('utf-8')+str(finding['title']).encode('utf-8')).hexdigest()).first()
+            # Check if this finding is new (don't already exists)
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
             if f:
+                # We already see you
                 f.checked_at = timezone.now()
                 f.save()
                 new_raw_finding.status = f.status
                 new_raw_finding.save()
+                known_findings_list.append(new_raw_finding.hash)
             else:
-                # Create a new finding:
+                # Raise an alert
+                new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+
+                # Create an event if logging level OK
                 Event.objects.create(
                     message="[EngineTasks/_import_findings()/scan_id={}] New finding: {}".format(scan_id, finding['title']),
                     description="Asset: {}\nFinding: {}".format(asset.value, finding['title']),
@@ -1126,10 +1110,17 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     scan.save()
     scan.update_sumary()
 
+    # Reevaluate the risk level of the asset on new risk
     for a in scan.assets.all():
-        # Reevaluate the risk level of the asset on new risk
-        # a.evaluate_risk()
         a.calc_risk_grade(update_groups=True)
+
+    # Search missing findings
+    # - check if a previous scan exists
+    last_scan = scan.scan_definition.scan_set.exclude(id=scan.id).order_by('-id').first()
+    if last_scan is not None:
+        # Loop in missing findings
+        for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
+            missing_finding_alert(mf.id, scan.id, mf.severity)
 
     # @Todo: Revaluate the risk level of all asset groups
 

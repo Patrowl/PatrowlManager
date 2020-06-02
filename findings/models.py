@@ -8,7 +8,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
-from events.models import Event
+# from events.models import Event
 from assets.models import Asset
 from scans.models import Scan
 from rules.models import Rule
@@ -52,8 +52,7 @@ class FindingManager(models.Manager):
                 models.When(severity='critical', then=models.Value(4)),
                 default=models.Value(0),
                 output_field=models.IntegerField(), )
-            ).order_by('-severity_order', 'asset_name', 'title'
-        )
+            ).order_by('-severity_order', 'asset_name', 'title')
         return qs
 
 
@@ -109,6 +108,8 @@ class RawFinding(models.Model):
             self.severity_num = 3
         elif self.severity == "high":
             self.severity_num = 4
+        elif self.severity == "critical":
+            self.severity_num = 5
         else:
             self.severity_num = 0
         # update the 'updated_at' entry on each update except on creation
@@ -135,6 +136,7 @@ class RawFinding(models.Model):
 
 @receiver(post_save, sender=RawFinding)
 def rawfinding_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[RawFinding] New raw finding created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -145,6 +147,7 @@ def rawfinding_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=RawFinding)
 def rawfinding_delete_log(sender, **kwargs):
+    from events.models import Event
     message = "[RawFinding] Raw finding '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)[:250]
     Event.objects.create(message=message, type="DELETE", severity="DEBUG")
 
@@ -207,6 +210,8 @@ class Finding(models.Model):
             self.severity_num = 3
         elif self.severity == "high":
             self.severity_num = 4
+        elif self.severity == "critical":
+            self.severity_num = 5
         else:
             self.severity_num = 0
 
@@ -235,6 +240,7 @@ class Finding(models.Model):
 
 @receiver(post_save, sender=Finding)
 def finding_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[Finding] New finding created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -246,6 +252,7 @@ def finding_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=Finding)
 def finding_delete_log(sender, **kwargs):
+    from events.models import Event
     asset = Asset.objects.get(id=kwargs['instance'].asset_id)
     asset.calc_risk_grade()
 

@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django.conf import settings
 
-from events.models import Event
+# from events.models import Event
 from common.utils.encoding import json_serial
 from common.utils.settings import is_restricted
 
@@ -135,6 +135,7 @@ class AssetCategory(models.Model):
 
 @receiver(post_save, sender=AssetCategory)
 def assetcat_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[AssetCategory] New asset category created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
             type="CREATE", severity="DEBUG")
@@ -145,6 +146,7 @@ def assetcat_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=AssetCategory)
 def assetcat_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[AssetCategory] Asset category '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
         type="DELETE", severity="DEBUG")
 
@@ -313,6 +315,7 @@ class Asset(models.Model):
 
 @receiver(post_save, sender=Asset)
 def asset_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[Asset] New asset created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -323,6 +326,7 @@ def asset_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=Asset)
 def asset_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[Asset] Asset '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 
@@ -449,6 +453,7 @@ class AssetGroup(models.Model):
 
 @receiver(post_save, sender=AssetGroup)
 def assetgroup_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[AssetGroup] New asset group created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -459,6 +464,7 @@ def assetgroup_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=AssetGroup)
 def assetgroup_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[AssetGroup] Asset Group '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 
@@ -490,6 +496,7 @@ class AssetOwnerContact(models.Model):
 
 @receiver(post_save, sender=AssetOwnerContact)
 def assetownercontact_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[AssetOwnerContact] New asset owner contact created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -497,8 +504,10 @@ def assetownercontact_create_update_log(sender, **kwargs):
         Event.objects.create(message="[AssetOwnerContact] Asset owner contact '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
 
+
 @receiver(post_delete, sender=AssetOwnerContact)
 def assetownercontact_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[AssetOwnerContact] Asset owner contact '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 
@@ -534,6 +543,7 @@ class AssetOwnerDocument(models.Model):
 
 @receiver(post_save, sender=AssetOwnerDocument)
 def assetownerdoc_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[AssetOwnerDocument] New asset owner document created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -541,8 +551,10 @@ def assetownerdoc_create_update_log(sender, **kwargs):
         Event.objects.create(message="[AssetOwnerDocument] Asset owner document '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
                              type="UPDATE", severity="DEBUG")
 
+
 @receiver(post_delete, sender=AssetOwnerDocument)
 def assetownerdoc_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[AssetOwnerDocument] Asset owner document '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 
@@ -591,6 +603,7 @@ class AssetOwner(models.Model):
 
 @receiver(post_save, sender=AssetOwner)
 def assetowner_create_update_log(sender, **kwargs):
+    from events.models import Event
     if kwargs['created']:
         Event.objects.create(message="[AssetOwner] New asset owner created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
                              type="CREATE", severity="DEBUG")
@@ -601,6 +614,7 @@ def assetowner_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=AssetOwner)
 def assetowner_delete_log(sender, **kwargs):
+    from events.models import Event
     Event.objects.create(message="[AssetOwner] Asset owner '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
 

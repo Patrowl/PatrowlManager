@@ -289,7 +289,7 @@ function InitForm(){
   UpdatePolicieslist({{ scan_def.engine_type_id }})
 
   // - Filter by category
-  // @todo
+  // Todo: Filter by category
 
   // - Scan policy
   $("input:radio[name='scan_type'][value='{{scan_def.scan_type}}']").attr("checked", "checked");
@@ -301,7 +301,6 @@ function InitForm(){
   engine_list = {{scan_engines_json|safe}}
   $('select#id_engine').append("<option value='-1' selected>---- random (by default) ----</option>");
   for (i = 0; i< engine_list.length; i++){
-
     if(engine_list[i]["engine__name"] == "{{scan_def.engine_type.name}}"){
       $('select#id_engine').append($('<option>', {
           value: engine_list[i]['id'],

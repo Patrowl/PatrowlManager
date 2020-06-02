@@ -13,6 +13,8 @@ urlpatterns = [
     # ex: /events/api/v1/delete/2
     url(r'^api/v1/delete/(?P<event_id>[0-9]+)$',
         apis.delete_event_api, name='delete_event_api'),
+    url(r'^api/v1/alerts/ack$', apis.ack_alerts_api, name='ack_alerts_api'),
+    url(r'^api/v1/alerts/archive$', apis.archive_alerts_api, name='archive_alerts_api'),
 
     # WEB Views
     # ex: /events/delete [POST]
@@ -22,5 +24,7 @@ urlpatterns = [
 
 # Serialized data
 urlpatterns += [
+    path('alerts/list', views.list_alerts_view, name='list_alerts_view'),
     path('api/list', serializers.EventListCreate.as_view()),
+    path('api/alerts/list', serializers.AlertListCreate.as_view()),
 ]

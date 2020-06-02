@@ -1,5 +1,5 @@
 from rest_framework import serializers, generics
-from .models import Event
+from .models import Event, Alert
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -24,3 +24,22 @@ class EventSerializer(serializers.ModelSerializer):
 class EventListCreate(generics.ListCreateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
+
+class AlertSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alert
+        # fields = '__all__'
+        fields = [
+            'id',
+            'message',
+            'severity',
+            'status',
+            'created_at',
+            'updated_at',
+        ]
+
+
+class AlertListCreate(generics.ListCreateAPIView):
+    queryset = Alert.objects.all()
+    serializer_class = AlertSerializer

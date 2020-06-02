@@ -9,6 +9,7 @@ from findings.models import Finding, RawFinding
 from scans.models import Scan, ScanDefinition
 from engines.models import EngineInstance, EnginePolicy
 from rules.models import Rule
+from events.models import Alert
 
 import datetime
 import operator
@@ -41,6 +42,14 @@ def homepage_dashboard_view(request):
             "active": Rule.objects.filter(enabled=True).count(),
             "nb_matches": 0,
         },
+        "alerts": {
+            "total_new": Alert.objects.filter(status="new").count(),
+            "new_info": Alert.objects.filter(status="new", severity="info").count(),
+            "new_low": Alert.objects.filter(status="new", severity="low").count(),
+            "new_medium": Alert.objects.filter(status="new", severity="medium").count(),
+            "new_high": Alert.objects.filter(status="new", severity="high").count(),
+            "new_critical": Alert.objects.filter(status="new", severity="critical").count(),
+        },
     }
 
     # asset types
@@ -66,7 +75,8 @@ def homepage_dashboard_view(request):
     global_stats["findings"] = {
         # "total_raw": RawFinding.objects.count(),
         # "total_raw": RawFinding.objects.count(),
-        "total": findings.count(),
+        # "total": findings.count(),
+        "total": findings_stats["nb_critical"]+findings_stats["nb_high"]+findings_stats["nb_medium"]+findings_stats["nb_low"]+findings_stats["nb_info"],
         "new": findings_stats["nb_new"],
         "critical": findings_stats["nb_critical"],
         "high": findings_stats["nb_high"],
