@@ -7,6 +7,9 @@ from datetime import timedelta
 with open("VERSION") as v_file:
     PATROWL_VERSION = v_file.read()
 
+# GUI update frequency (ms)
+PATROWL_REFRESH_ENGINE = os.environ.get('PATROWL_REFRESH_ENGINE', 7000)
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

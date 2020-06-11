@@ -80,6 +80,9 @@
       // Refresh engines status only if the user is authenticated
       {% if user.is_authenticated %}
       refresh_engines_status();
+      if({{ PATROWL_REFRESH_ENGINE }}>0){
+        setInterval(function() {refresh_engines_status();},({{ PATROWL_REFRESH_ENGINE }}>5000)?{{ PATROWL_REFRESH_ENGINE }}:5000);
+      }
       {% endif %}
 
       // On-demand refresh
@@ -123,10 +126,8 @@
         if (running_scans > 1) {$('span.running-scans').append('&nbsp;-&nbsp;' + running_scans+' scans running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
       });
     }
-    setInterval(function() {
-      //refresh_engines_status();
-      setTimeout(refresh_engines_status(), 4000);
-    }, 5000);
+
+
 
   </script>
   {% endif %}
