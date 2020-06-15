@@ -389,6 +389,9 @@ def startscan_task(self, params):
             response_reason = 'Unknown'
             if 'details' in json.loads(resp.text) and 'reason' in json.loads(resp.text)['details']:
                 response_reason = json.loads(resp.text)['details']['reason']
+            elif 'reason' in json.loads(resp.text):
+                response_reason = json.loads(resp.text)['reason']
+
             Event.objects.create(message="[EngineTasks/startscan_task/{}] DuringScan - something goes wrong (response_status_code={}, response_status={}, response_details={}). Task aborted.".format(self.request.id, resp.status_code, json.loads(resp.text)['status'], response_reason),
                 description=str(resp.text), type="ERROR", severity="ERROR", scan=scan)
             return False
