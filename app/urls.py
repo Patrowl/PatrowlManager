@@ -5,11 +5,9 @@ from django.conf.urls import include, url
 from django.urls import path
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-# from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView
 from django.views.generic import RedirectView
 from rest_framework_swagger.views import get_swagger_view
-# from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -47,14 +45,24 @@ urlpatterns = [
     url(r'^logout$', LogoutView.as_view(), {'next_page': settings.LOGOUT_REDIRECT_URL}, name='logout'),
     # url(r'^signup$', user_views.signup, name='signup'),
 
-    # url(r'^admin/jsi18n/', i18n_javascript),
     url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
 ]
 
-# debug toolbar & download file
+# Debug toolbar & download file
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
+
 urlpatterns += staticfiles_urlpatterns()
+
+# Add PRO edition urls
+if settings.PRO_EDITION:
+    # print("urls-PRO_EDITION", settings.PRO_EDITION)
+    try:
+        from pro.urls import pro_urlpatterns
+        # print("urls-pro_urlpatterns", pro_urlpatterns)
+        urlpatterns += pro_urlpatterns
+    except ImportError as e:
+        print(e)

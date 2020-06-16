@@ -4,9 +4,8 @@ from rest_framework import serializers, generics, views, response, permissions
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-
-from rest_framework.decorators import api_view
+# from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+# from rest_framework.decorators import api_view
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -32,5 +31,5 @@ class CurrentUserView(views.APIView):
     def get(self, request):
         serializer = UserSerializer(request.user, context={'request': request})
         # print(serializer)
-        print(self.check_object_permissions(self.request, serializer))
+        # print(self.check_object_permissions(self.request, serializer))
         return response.Response(serializer.data)

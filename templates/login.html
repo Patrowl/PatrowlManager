@@ -29,7 +29,7 @@
                         </p>
                         <p class="bs-component">
                             <center>
-                                <input class="btn btn-success btn-sm" type="submit" value="login" />
+                                <input class="btn btn-success btn-sm" type="submit" value="Login" />
                             </center>
                         </p>
                         <input type="hidden" name="next" value="{{ next }}" />
@@ -38,6 +38,22 @@
             </div>
         </div>
     </div>
+    {% if PRO_EDITION == True and LOGIN_SSO_URL != "" %}
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <div class="login-panel panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Sign In with SSO</h3>
+                </div>
+                <div class="panel-body">
+                  <center>
+                      <a href="{{LOGIN_SSO_URL}}" class="btn btn-sm btn-success">Login</a>
+                  </center>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

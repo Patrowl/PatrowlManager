@@ -9,3 +9,6 @@ media/*
 __pycache__
 env
 env3
+
+pro/*
+env3pro

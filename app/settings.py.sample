@@ -58,13 +58,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'datetimewidget',
-    #'events',
     'scans',
     'engines',
     'findings',
     'assets',
     'users',
-    #'scans',
     'events',
     'rules',
     'search',
@@ -156,7 +154,12 @@ LOGIN_REQUIRED_URLS_EXCEPTIONS = (
     r'/signup$',
     r'/static/(.*)$',
     r'/(.*)/api/(.*)$',
+    r'/admin/jsi18n/(.*)$',
 )
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 LOGIN_URL = '/login'
 LOGOUT_URL = '/logout'
@@ -292,3 +295,19 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
 # Monitoring APIs
 SUPERVISORD_API_URL = 'http://localhost:9001/RPC2'
 CELERYFLOWER_API_URL = 'http://localhost:5555/api/'
+
+
+## Pro edition - Load extra settings
+PRO_EDITION = os.environ.get('PRO_EDITION', "").lower() in ['true', '1', 'yes']
+if PRO_EDITION is True and os.path.isdir('pro'):
+    try:
+        from pro.settings import *
+        INSTALLED_APPS += PRO_INSTALLED_APPS
+        MIDDLEWARE += PRO_MIDDLEWARE
+        AUTHENTICATION_BACKENDS += PRO_AUTHENTICATION_BACKENDS
+        L_LRUE = list(LOGIN_REQUIRED_URLS_EXCEPTIONS)
+        L_LRUE.append(PRO_LOGIN_REQUIRED_URLS_EXCEPTIONS)
+        LOGIN_REQUIRED_URLS_EXCEPTIONS = tuple(L_LRUE)
+
+    except ImportError:
+        pass

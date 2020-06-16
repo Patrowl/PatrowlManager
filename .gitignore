@@ -19,3 +19,7 @@ var/tmp/db.json
 staticfiles
 docker-compose.cloud.yml*
 docker-entrypoint.cloud.sh*
+
+# Exclude PRO files :)
+pro
+env3pro/
