@@ -208,4 +208,14 @@
     "created_at": "2020-03-26T15:53:10.644Z",
     "updated_at": "2020-03-26T15:53:10.644Z"
   }
+}, {
+  "model": "engines.engine",
+  "pk": 22,
+  "fields": {
+    "name": "APIVOID",
+    "description": "Reputation Scanner",
+    "allowed_asset_types": "[u'domain']",
+    "created_at": "2020-06-16T00:00:00.000Z",
+    "updated_at": "2020-06-16T00:00:00.000Z"
+  }
 }]
