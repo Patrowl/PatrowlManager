@@ -29,13 +29,13 @@ import urllib
 # Assets
 @api_view(['GET'])
 def get_asset_api(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     return JsonResponse(asset.to_dict(), safe=False)
 
 
 @api_view(['GET'])
 def ack_asset_api(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     asset.set_status('ack')
     return JsonResponse({'status': 'success'})
 
@@ -48,14 +48,14 @@ def get_asset_group_api(request, assetgroup_id):
 
 @api_view(['GET'])
 def get_asset_findings_api(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     findings = [f.to_dict() for f in asset.finding_set.all()]
     return JsonResponse(findings, safe=False)
 
 
 @api_view(['GET'])
 def get_assets_stats_api(request):
-    assets = Asset.objects.all()
+    assets = Asset.objects.for_user(request.user).all()
     data = {
         "nb_assets": assets.count(),
         "nb_assets_high": assets.filter(criticity="high").count(),
@@ -67,7 +67,7 @@ def get_assets_stats_api(request):
 
 @api_view(['GET'])
 def get_asset_details_api(request, asset_name):
-    asset = get_object_or_404(Asset, value=asset_name)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), value=asset_name)
 
     # Asset details
     response = model_to_dict(asset, fields=[field.name for field in asset._meta.fields])
@@ -105,7 +105,7 @@ def get_asset_details_api(request, asset_name):
 
 @api_view(['GET'])
 def get_asset_trends_api(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     data = []
     ticks_by_period = {'week': 7, 'month': 30, 'trimester': 120, 'year': 365}
     grade_levels = {'A': 6, 'B': 5, 'C': 4, 'D': 3, 'E': 2, 'F': 1, 'n/a': 0}
@@ -153,6 +153,7 @@ def list_assets_api(request):
     q = request.GET.get("q", None)
     if q:
         assets = list(Asset.objects
+            .for_user(request.user)
             .filter(Q(value__icontains=q) | Q(name__icontains=q))
             .annotate(format=Value("asset", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
@@ -162,6 +163,7 @@ def list_assets_api(request):
             .values('id', 'value', 'format', 'name'))
     else:
         assets = list(Asset.objects
+            .for_user(request.user)
             .annotate(format=Value("asset", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
         assetgroups = list(AssetGroup.objects
@@ -189,7 +191,7 @@ def list_asset_groups_api(request):
 
 @api_view(['GET'])
 def refresh_all_asset_grade_api(request):
-    for asset in Asset.objects.all():
+    for asset in Asset.objects.for_user(request.user).all():
         asset.calc_risk_grade()
     for assetgroup in AssetGroup.objects.all():
         assetgroup.calc_risk_grade()
@@ -199,11 +201,11 @@ def refresh_all_asset_grade_api(request):
 @api_view(['GET'])
 def refresh_asset_grade_api(request, asset_id=None):
     if asset_id:
-        asset = get_object_or_404(Asset, id=asset_id)
+        asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
         asset.calc_risk_grade()
     else:
         # update all
-        for asset in Asset.objects.all():
+        for asset in Asset.objects.for_user(request.user).all():
             asset.calc_risk_grade()
     return redirect('list_assets_view')
 
@@ -232,8 +234,7 @@ def export_assets_api(request, assetgroup_id=None):
         for asset in asset_group.assets.all():
             assets.append(asset)
     else:
-        # assets = Asset.objects.filter(owner_id=request.user.id)
-        assets = Asset.objects.all()
+        assets = Asset.objects.for_user(request.user).all()
 
     writer.writerow(['asset_value', 'asset_name', 'asset_type', 'asset_description', 'asset_criticity', 'asset_tags'])
     for asset in assets:
@@ -299,7 +300,7 @@ def update_criticity_assets_api(request):
     criticity = data['criticity']
 
     for asset_id in assets:
-        a = Asset.objects.get(id=asset_id)
+        a = Asset.objects.for_user(request.user).get(id=asset_id)
         if any(criticity in d for d in ASSET_CRITICITIES):
             a.set_criticity(criticity)
 
@@ -310,7 +311,7 @@ def update_criticity_assets_api(request):
 def delete_assets_api(request):
     assets = request.data
     for asset_id in assets:
-        a = Asset.objects.get(id=asset_id)
+        a = Asset.objects.for_user(request.user).get(id=asset_id)
         a.delete()
 
     return JsonResponse({'status': 'success'})
@@ -345,10 +346,10 @@ def edit_assetgroup_api(request, assetgroup_id):
         asset_group.assets.add(Asset.objects.get(id=asset_id))
     asset_group.evaluate_risk()
     asset_group.save()
-    
+
     asset_group.calc_risk_grade()
     asset_group.save()
-    
+
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
@@ -392,7 +393,7 @@ def _add_asset_tags(asset, new_value):
 @api_view(['POST'])
 def add_asset_tags_api(request, asset_id):
     if request.method == 'POST':
-        asset = get_object_or_404(Asset, id=asset_id)
+        asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
         new_tag = _add_asset_tags(asset, request.POST.getlist('input-search-tags')[0])
         asset.categories.add(new_tag)
         asset.save()
@@ -446,7 +447,7 @@ def delete_asset_group_tags_api(request, assetgroup_id):
 
 @api_view(['GET'])
 def get_asset_report_html_api(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
 
     findings_tmp = list()
     findings_stats = {}
@@ -467,7 +468,7 @@ def get_asset_report_html_api(request, asset_id):
 
 @api_view(['GET'])
 def get_asset_report_json_api(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
 
     findings_tmp = list()
     findings_stats = {}

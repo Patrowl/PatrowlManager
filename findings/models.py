@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
@@ -39,7 +40,19 @@ FINDING_STATUS = (
 )
 
 
+class FindingQuerySet(models.QuerySet):
+    def for_user(self, user):
+        if settings.PRO_EDITION and not user.is_superuser:
+            return self.filter(asset_teams__in=user.users_team.all())
+        return self
+
+
 class FindingManager(models.Manager):
+    """Class definition of FindingManager."""
+
+    def get_queryset(self):
+        return FindingQuerySet(self.model, using=self._db)  # Important!
+
     def severity_ordering(self, *args, **kwargs):
         """Sort patterns by preferred order of finding severities."""
         qs = self.get_queryset().filter(*args, **kwargs)
@@ -55,13 +68,18 @@ class FindingManager(models.Manager):
             ).order_by('-severity_order', 'asset_name', 'title')
         return qs
 
+    def for_user(self, user):
+        """Check if user is allowed to manage the object."""
+        # if settings.PRO_EDITION and not user.is_superuser:
+        #     return super().get_queryset().filter(asset_teams__in=user.users_team.all())
+        # return super().get_queryset()
+        return self.get_queryset().for_user(user)
+
 
 class RawFinding(models.Model):
-    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
     asset       = models.ForeignKey('assets.Asset', on_delete=models.CASCADE)
     asset_name  = models.CharField(max_length=256)
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
-    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE)
     scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE)
     owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256)
@@ -70,7 +88,6 @@ class RawFinding(models.Model):
     confidence  = models.CharField(max_length=10)
     severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)
     severity_num= models.IntegerField(default=1, blank=True, null=True)
-    # scopes      = models.ManyToManyField(EnginePolicyScope, blank=True)
     scopes      = models.ManyToManyField('engines.EnginePolicyScope', blank=True)
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)
@@ -156,11 +173,9 @@ def rawfinding_delete_log(sender, **kwargs):
 
 class Finding(models.Model):
     raw_finding = models.ForeignKey(RawFinding, models.SET_NULL, blank=True, null=True)
-    # asset       = models.ForeignKey(Asset, on_delete=models.CASCADE)
     asset       = models.ForeignKey('assets.Asset', on_delete=models.CASCADE)
     asset_name  = models.CharField(max_length=256) #todo: delete this
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
-    # scan        = models.ForeignKey(Scan, on_delete=models.CASCADE, blank=True, null=True)
     scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE, blank=True, null=True)
     owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256, default='title')
@@ -169,7 +184,6 @@ class Finding(models.Model):
     confidence  = models.CharField(max_length=10)
     severity    = models.CharField(choices=FINDING_SEVERITIES, default='info', max_length=10)  # info, low, medium, high, critical
     severity_num= models.IntegerField(default=1, blank=True, null=True)  # info, low, medium, high, critical
-    # scopes      = models.ManyToManyField(EnginePolicyScope, blank=True, related_name='finding_scopes')
     scopes      = models.ManyToManyField('engines.EnginePolicyScope', blank=True, related_name='finding_scopes')
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)

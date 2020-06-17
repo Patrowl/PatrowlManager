@@ -155,6 +155,7 @@ LOGIN_REQUIRED_URLS_EXCEPTIONS = (
     r'/static/(.*)$',
     r'/(.*)/api/(.*)$',
     r'/admin/jsi18n/(.*)$',
+    r'/api-pro/(.*)$',
 )
 
 AUTHENTICATION_BACKENDS = [

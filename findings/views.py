@@ -9,7 +9,6 @@ from .models import Finding, RawFinding
 from .forms import ImportFindingsForm, FindingForm
 from .utils import _search_findings
 from assets.models import Asset
-# from events.models import Event
 from engines.tasks import importfindings_task
 import os
 import time
@@ -47,20 +46,19 @@ def list_asset_findings_view(request, asset_name):
     if filter_by_status and filter_by_status in ["new", "ack"]:
         filters.update({"status": filter_by_status})
 
-    findings = Finding.objects.filter(**filters).order_by(
+    findings = Finding.objects.for_user(request.user).filter(**filters).order_by(
              'asset_name', 'severity', 'status', 'type')
 
     return render(request, 'list-findings.html', {'findings': findings})
 
 
 def delete_finding_view(request, finding_id):
-    finding = get_object_or_404(Finding, id=finding_id)
+    finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
     asset_id = finding.asset.id
     finding.delete()
 
-    # reevaluate related asset critity
-    # Asset.objects.get(owner_id=request.user.id, asset_id=finding.asset_id).evaluate_risk()
-    Asset.objects.get(id=asset_id).evaluate_risk()
+    # Reevaluate related asset critity
+    Asset.objects.for_user(request.user).get(id=asset_id).evaluate_risk()
     messages.success(request, 'Finding successfully deleted!')
     return redirect('list_findings_view')
 

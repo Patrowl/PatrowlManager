@@ -19,7 +19,7 @@ import ast
 
 def homepage_dashboard_view(request):
     findings = Finding.objects.all().only("status", "severity")
-    assets = Asset.objects.all()
+    assets = Asset.objects.for_user(request.user).all()
     global_stats = {
         "assets": {
             "total": assets.count(),

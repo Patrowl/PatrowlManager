@@ -61,3 +61,5 @@ django-cors-headers==3.2.0
 djangorestframework-simplejwt==4.4.0
 django-health-check==3.12.1
 psutil==5.7.0
+django-organizations==1.1.2
+django-annoying==0.10.6

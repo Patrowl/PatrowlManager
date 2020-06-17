@@ -12,7 +12,7 @@ class AssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset
         fields = ('id', 'value', 'name', 'type', 'owner', 'description',
-            'criticity', 'status', 'created_at', 'updated_at')
+            'criticity', 'status', 'created_at', 'updated_at', 'teams')
 
 
 class AssetFilter(FilterSet):
@@ -47,4 +47,4 @@ class AssetList(generics.ListAPIView):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        return Asset.objects.all().order_by('value')
+        return Asset.objects.for_user(self.request.user).all().order_by('value')

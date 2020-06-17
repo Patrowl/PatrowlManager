@@ -6,10 +6,6 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django_celery_beat.models import PeriodicTask
-
-# from events.models import Event
-# from assets.models import Asset, AssetGroup
-# from engines.models import Engine, EnginePolicy, EngineInstance
 from common.utils.encoding import json_serial
 
 import os
@@ -33,9 +29,7 @@ SCAN_TYPES = (
 
 class ScanDefinition(models.Model):
     scan_type        = models.CharField(choices=SCAN_TYPES, default='single', max_length=10)
-    # assets_list      = models.ManyToManyField(Asset,  blank=True)
     assets_list      = models.ManyToManyField('assets.Asset',  blank=True)
-    # assetgroups_list = models.ManyToManyField(AssetGroup, blank=True)
     assetgroups_list = models.ManyToManyField('assets.AssetGroup', blank=True)
     title            = models.CharField(max_length=256)
     description      = models.CharField(max_length=256, blank=True)
@@ -45,11 +39,8 @@ class ScanDefinition(models.Model):
     periodic_task    = models.ForeignKey(PeriodicTask, null=True, blank=True, on_delete=models.CASCADE)
     #scheduled_task   = models.UUIDField(editable=True, null=True, blank=True)
     status           = models.CharField(max_length=20, null=True, blank=True)
-    # engine_type      = models.ForeignKey(Engine, null=True, on_delete=models.SET_NULL)
     engine_type      = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
-    # engine           = models.ForeignKey(EngineInstance, null=True, blank=True, on_delete=models.SET_NULL) #Force scan instance
     engine           = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL) #Force scan instance
-    # engine_policy    = models.ForeignKey(EnginePolicy, null=True, on_delete=models.SET_NULL)
     engine_policy    = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
     owner            = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     timeout_delay    = models.IntegerField(null=True, blank=True)
@@ -97,18 +88,13 @@ def scandef_delete_log(sender, **kwargs):
 
 class Scan(models.Model):
     scan_settings   = models.CharField(max_length=256, null=True, blank=True)
-    # scan_definition = models.ForeignKey(ScanDefinition, null=True, on_delete=models.SET_NULL)
     scan_definition = models.ForeignKey(ScanDefinition, null=True, on_delete=models.CASCADE)
-    # assets          = models.ManyToManyField(Asset)
     assets          = models.ManyToManyField('assets.Asset')
     task_id         = models.UUIDField(editable=True, null=True, blank=True)
     title           = models.CharField(max_length=256)
     status          = models.CharField(max_length=20)
-    # engine          = models.ForeignKey(EngineInstance, null=True, blank=True, on_delete=models.SET_NULL)
     engine          = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL)
-    # engine_type     = models.ForeignKey(Engine,null=True, on_delete=models.SET_NULL)
     engine_type     = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
-    # engine_policy   = models.ForeignKey(EnginePolicy, null=True, on_delete=models.SET_NULL)
     engine_policy   = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
     owner           = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     summary         = JSONField(null=True, blank=True)

@@ -54,7 +54,7 @@ def list_assets_view(request):
             filter_opts = filter_opts + str(criteria.strip())
 
     # Query
-    assets_list = Asset.objects.filter(**filter_fields).filter(
+    assets_list = Asset.objects.for_user(request.user).filter(**filter_fields).filter(
         Q(value__icontains=filter_opts) |
         Q(name__icontains=filter_opts) |
         Q(description__icontains=filter_opts)
@@ -164,7 +164,7 @@ def add_asset_view(request):
 
 
 def edit_asset_view(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
 
     form = AssetForm()
     if request.method == 'GET':
@@ -272,7 +272,8 @@ def bulkadd_asset_view(request):
             # Header is skiped automatically
             for line in records:
                 # Add assets
-                if Asset.objects.filter(value=line['asset_value']).count() > 0:
+                # if Asset.objects.filter(value=line['asset_value']).count() > 0:
+                if Asset.objects.for_user(request.user).filter(value=line['asset_value']).count() > 0:
                     continue
 
                 asset_args = {
@@ -317,13 +318,13 @@ def bulkadd_asset_view(request):
 
 # todo: change to asset_id
 def evaluate_asset_risk_view(request, asset_name):
-    asset = get_object_or_404(Asset, value=asset_name)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), value=asset_name)
     data = asset.evaluate_risk()
     return JsonResponse(data, safe=False)
 
 
 def detail_asset_view(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     findings = Finding.objects.filter(asset=asset).annotate(
         severity_numm=Case(
             When(severity="critical", then=Value("0")),
@@ -595,7 +596,8 @@ def add_asset_owner_view(request):
             owner = AssetOwner(**owner_args)
             owner.save()
             for asset_id in form.data.getlist('assets'):
-                owner.assets.add(Asset.objects.get(id=asset_id))
+                # owner.assets.add(Asset.objects.get(id=asset_id))
+                owner.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
             owner.save()
             messages.success(request, 'Creation submission successful')
 

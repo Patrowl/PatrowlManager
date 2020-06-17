@@ -186,7 +186,8 @@ def _add_scan_def(params, owner):
     assets_list = []
     if "assets" in params.keys():
         for asset_id in params.getlist("assets"):
-            asset = Asset.objects.get(id=asset_id)
+            # asset = Asset.objects.get(id=asset_id)
+            asset = Asset.objects.for_user(owner).get(id=asset_id)
             scan_definition.assets_list.add(asset)
             assets_list.append({
                 "id": asset.id,

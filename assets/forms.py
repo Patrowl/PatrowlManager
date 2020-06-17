@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django import forms
-from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument, AssetCategory
+from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument
 from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES
 
 assets = []
@@ -52,6 +52,7 @@ class AssetGroupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AssetGroupForm, self).__init__(*args, **kwargs)
 
+        # @Todo: RBAC_CHECK
         assets = [(asset.id, asset.value) for asset in Asset.objects.all()]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
@@ -91,7 +92,7 @@ class AssetOwnerContactForm(forms.ModelForm):
     class Meta:
         model = AssetOwnerContact
         fields = ['name', 'department', 'title', 'email', 'phone',
-                  'address', 'url' , 'comments']
+                  'address', 'url', 'comments']
         widgets = {
             'comments': forms.Textarea
         }

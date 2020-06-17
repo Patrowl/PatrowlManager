@@ -255,11 +255,14 @@ def add_scan_def_view(request):
         })
 
 
-    if request.method == 'GET' or ScanDefinitionForm(request.POST).errors:
-        form = ScanDefinitionForm()
+    # if request.method == 'GET' or ScanDefinitionForm(request.POST).errors:
+    if request.method == 'GET' or ScanDefinitionForm(request.POST, user=request.user).errors:
+        # form = ScanDefinitionForm()
+        form = ScanDefinitionForm(user=request.user)
 
     elif request.method == 'POST':
-        form = ScanDefinitionForm(request.POST)
+        # form = ScanDefinitionForm(request.POST)
+        form = ScanDefinitionForm(request.POST, user=request.user)
 
         if form.is_valid():
             scan_definition = ScanDefinition()
@@ -268,7 +271,8 @@ def add_scan_def_view(request):
             scan_definition.scan_type = form.cleaned_data['scan_type']
             scan_definition.title = form.cleaned_data['title']
             scan_definition.description = form.cleaned_data['description']
-            scan_definition.owner = User.objects.get(id=request_user_id)
+            # scan_definition.owner = User.objects.get(id=request_user_id)
+            scan_definition.owner = request.user
             scan_definition.status = "created"
             scan_definition.enabled = form.data['start_scan'] == "now"
             if form.cleaned_data['scan_type'] == 'periodic':
@@ -297,7 +301,8 @@ def add_scan_def_view(request):
 
             assets_list = []
             for asset_id in form.data.getlist('assets_list'):
-                asset = Asset.objects.get(id=asset_id)
+                # asset = Asset.objects.get(id=asset_id)
+                asset = Asset.objects.for_user(request.user).get(id=asset_id)
                 scan_definition.assets_list.add(asset)
                 assets_list.append({
                     "id": asset.id,
@@ -396,9 +401,11 @@ def edit_scan_def_view(request, scan_def_id):
 
     form = None
     if request.method == 'GET':
-        form = ScanDefinitionForm(instance=scan_definition)
+        # form = ScanDefinitionForm(instance=scan_definition )
+        form = ScanDefinitionForm(instance=scan_definition, user=request.user)
     elif request.method == 'POST':
-        form = ScanDefinitionForm(request.POST)
+        # form = ScanDefinitionForm(request.POST)
+        form = ScanDefinitionForm(request.POST, user=request.user)
 
         if form.is_valid():
             scan_definition.title = form.cleaned_data['title']
@@ -417,7 +424,8 @@ def edit_scan_def_view(request, scan_def_id):
             scan_definition.assetgroups_list.clear()
             assets_list = []
             for asset_id in form.data.getlist('assets_list'):
-                asset = Asset.objects.get(id=asset_id)
+                # asset = Asset.objects.get(id=asset_id)
+                asset = Asset.objects.for_user(request.user).get(id=asset_id)
                 scan_definition.assets_list.add(asset)
                 assets_list.append({
                     "id": asset.id,

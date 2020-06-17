@@ -2,9 +2,11 @@
 
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
+from django.db.models import Q
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django.conf import settings
@@ -51,8 +53,10 @@ def get_default_risk_level():
 
 
 class AssetCategory(models.Model):
-    parent   = models.ForeignKey('self', null=True, blank=None, default=None, related_name='children', on_delete=models.CASCADE)#, db_constraint=False)
-    value    = models.CharField(max_length=256)
+    parent = models.ForeignKey(
+        'self', null=True, blank=None, default=None,
+        related_name='children', on_delete=models.CASCADE)
+    value = models.CharField(max_length=256)
     comments = models.CharField(max_length=256, null=True, blank=None, default="n/a")
 
     class Meta:
@@ -151,30 +155,43 @@ def assetcat_delete_log(sender, **kwargs):
         type="DELETE", severity="DEBUG")
 
 
-# class AssetManager(models.Manager):
-#     def get_queryset(self):
-#         return super().get_queryset().filter(author='Roald Dahl')
-
 def get_default_risk_level():
     return dict(info=0, low= 0, medium= 0, high= 0, critical=0, total=0, grade="-")
+
+
+class AssetManager(models.Manager):
+    """Class definition of AssetManager."""
+
+    def for_user(self, user):
+        """Check if user is allowed to manage the object."""
+        if settings.PRO_EDITION and not user.is_superuser:
+            return super().get_queryset().filter(
+                Q(teams__in=user.users_team.all()) |
+                Q(owner=user)
+            )
+        return super().get_queryset()
 
 
 class Asset(models.Model):
     """Class definition of Asset."""
 
-    # objects = AssetManager()
+    # Manager
+    objects = AssetManager()
 
+    # Attributes
     value       = models.CharField(max_length=256, unique=True, null=False)
     name        = models.CharField(max_length=256)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
     risk_level  = JSONField(default=get_default_risk_level)
-    owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    # owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner       = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True, default="new")
     categories  = models.ManyToManyField(AssetCategory)
     created_at  = models.DateTimeField(default=timezone.now)
     updated_at  = models.DateTimeField(default=timezone.now)
+    teams       = models.ManyToManyField('users.team', blank=True)
 
     class Meta:
         """Metadata: DB name."""
@@ -193,8 +210,11 @@ class Asset(models.Model):
 
     def to_dict(self):
         """Return JSONified class summary."""
-        data = model_to_dict(self, exclude=["categories"])
-        data.update({"categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()]})
+        data = model_to_dict(self, exclude=["categories", "teams"])
+        data.update({
+            "categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()],
+            "teams": [model_to_dict(t, fields=["name", "id"]) for t in self.teams.all()],
+        })
         return json.loads(json.dumps(data, default=json_serial))
 
     def set_criticity(self, criticity):
@@ -331,17 +351,36 @@ def asset_delete_log(sender, **kwargs):
                  type="DELETE", severity="DEBUG")
 
 
+class AssetGroupManager(models.Manager):
+    """Class definition of AssetGroupManager."""
+    def for_user(self, user):
+        """Check if user is allowed to manage the object."""
+        if settings.PRO_EDITION and not user.is_superuser:
+            return super().get_queryset().filter(
+                Q(teams__in=user.users_team.all()) |
+                Q(owner=user)
+            )
+        return super().get_queryset()
+
+
 class AssetGroup(models.Model):
+    """Class definition of AssetGroup."""
+
+    # Manager
+    objects = AssetGroupManager()
+
+    # Attributes
     assets      = models.ManyToManyField(Asset)
     name        = models.CharField(max_length=256, unique=True)
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='None', max_length=10)
     risk_level  = JSONField(default=get_default_risk_level)
-    owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True)
     categories  = models.ManyToManyField(AssetCategory)
     created_at  = models.DateTimeField(default=timezone.now)
     updated_at  = models.DateTimeField(default=timezone.now)
+    teams       = models.ManyToManyField('users.team', blank=True)
 
     class Meta:
         db_table = 'asset_groups'
@@ -351,9 +390,14 @@ class AssetGroup(models.Model):
 
     def to_dict(self):
         """Return JSONified class summary."""
-        data = model_to_dict(self, exclude=["categories", "assets"])
-        data.update({"categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()]})
-        data.update({"assets": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets.all()]})
+        data = model_to_dict(self, exclude=["categories", "assets", "teams"])
+        # data.update({"categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()]})
+        # data.update({"assets": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets.all()]})
+        data.update({
+            "categories": [model_to_dict(c, fields=["value", "id"]) for c in self.categories.all()],
+            "assets": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets.all()],
+            "teams": [model_to_dict(t, fields=["id", "name"]) for t in self.teams.all()]
+        })
         return json.loads(json.dumps(data, default=json_serial))
 
     def save(self, *args, **kwargs):
@@ -374,7 +418,7 @@ class AssetGroup(models.Model):
         # if self.criticity == "high":
         #     criticity_factor = 10
 
-        # Todo: update each asset
+        # @Todo: update each asset
         return None
 
     def get_risk_grade(self, history=None):
@@ -384,7 +428,7 @@ class AssetGroup(models.Model):
 
     def calc_risk_grade(self, history=None):
         risk_level = {
-            "info": 0, "low": 0, "medium": 0, "high": 0,
+            "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
             "total": 0, "grade": "-"}
 
         findings = []
@@ -478,7 +522,8 @@ class AssetOwnerContact(models.Model):
     address    = models.CharField(max_length=256, null=True, blank=True)
     url        = models.URLField(null=True, blank=True)
     comments   = models.CharField(max_length=256, null=True, blank=True)
-    owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    # owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner      = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -519,7 +564,8 @@ class AssetOwnerDocument(models.Model):
     filepath   = models.CharField(max_length=256, null=True, blank=True)
     tlp_color  = models.CharField(choices=TLP_COLORS, default='red', max_length=10)
     comments   = models.CharField(max_length=256, null=True, blank=True)
-    owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    # owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner      = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -563,7 +609,8 @@ class AssetOwner(models.Model):
     assets     = models.ManyToManyField(Asset)
     contacts   = models.ManyToManyField(AssetOwnerContact)
     documents  = models.ManyToManyField(AssetOwnerDocument)
-    owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    # owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner      = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     name       = models.CharField(max_length=256)
     url        = models.URLField(null=True, blank=True)
     comments   = models.CharField(max_length=256, null=True, blank=True)
@@ -650,16 +697,6 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://censys.io/certificates?q=parsed.names%3A%20%asset%",
         "datatypes": ["domain"]
     },
-    # {
-    #     "name": "Cymon",
-    #     "link": "https://cymon.io/domain/%asset%",
-    #     "datatypes": ["domain"]
-    # },
-    # {
-    #     "name": "Cymon",
-    #     "link": "https://cymon.io/%asset%",
-    #     "datatypes": ["ip"]
-    # },
     {
         "name": "DNSLytics",
         "link": "https://dnslytics.com/domain/%asset%",
@@ -670,16 +707,11 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://dnslytics.com/ip/%asset%",
         "datatypes": ["ip"]
     },
-    # {
-    #     "name": "HerdProtect",
-    #     "link": "http://www.herdprotect.com/ip-address-%asset%.aspx",
-    #     "datatypes": ["ip"]
-    # },
-    # {
-    #     "name": "HerdProtect",
-    #     "link": "http://www.herdprotect.com/domain-%asset%.aspx",
-    #     "datatypes": ["domain"]
-    # },
+    {
+        "name": "HerdProtect",
+        "link": "https://www.herdprotect.com/domain-%asset%.aspx",
+        "datatypes": ["domain"]
+    },
     {
         "name": "Quttera",
         "link": "https://quttera.com/sitescan/%asset%",
@@ -800,4 +832,4 @@ ASSET_INVESTIGATION_LINKS = [
         "link": "https://urlscan.io/search/#%asset%",
         "datatypes": ["domain", "fqdn"]
     },
-    ]
+]

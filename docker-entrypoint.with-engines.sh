@@ -34,12 +34,10 @@ python manage.py migrate
 if [ ! -f status.created ]; then
   # Create the default admin user
   echo "[+] Create the default admin user (if needeed)"
-  # Be careful with Python identation and echo command
-  echo -e "\r\
-from django.contrib.auth import get_user_model\r\
-User = get_user_model()\r\
-if not User.objects.filter(username='admin').exists(): \r\
-  User.objects.create_superuser('admin', 'admin@dev.patrowl.io', 'Bonjour1!')" | python manage.py shell
+  python manage.py shell < var/bin/create_default_admin.py
+
+  echo "[+] Create default team if needed"
+  python manage.py shell < var/bin/create_default_team.py
 
   # Populate the db with default data
   echo "[+] Populate the db with default data"

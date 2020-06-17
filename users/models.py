@@ -4,11 +4,14 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from organizations.abstract import (AbstractOrganization,
+                                    AbstractOrganizationUser,
+                                    AbstractOrganizationOwner)
 
-# from events.models import Event
 
 USER_STATUS = (
     ('ACTIVE', 'ACTIVE'),
@@ -17,7 +20,8 @@ USER_STATUS = (
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     status = models.CharField(choices=USER_STATUS, default='ACTIVE', max_length=10)
     bio = models.TextField(max_length=500, blank=True)
     department = models.CharField(max_length=100, blank=True)
@@ -36,7 +40,8 @@ class Profile(models.Model):
         return self
 
 
-@receiver(post_save, sender=User)
+# @receiver(post_save, sender=User)
+@receiver(post_save, sender=get_user_model())
 def create_user_profile(sender, instance, created, **kwargs):
     from events.models import Event
     if created:
@@ -45,13 +50,33 @@ def create_user_profile(sender, instance, created, **kwargs):
                              type="CREATE", severity="DEBUG")
 
 
-@receiver(post_save, sender=User)
+# @receiver(post_save, sender=User)
+@receiver(post_save, sender=get_user_model())
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-@receiver(post_delete, sender=User)
+# @receiver(post_delete, sender=User)
+@receiver(post_delete, sender=get_user_model())
 def delete_user_profile(sender, **kwargs):
     from events.models import Event
     Event.objects.create(message="[User] User '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
+
+
+class Team(AbstractOrganization):
+    class Meta:
+        db_table = 'teams'
+
+    def __str__(self):
+        return "{}/{}".format(self.id, self.name)
+
+
+class TeamUser(AbstractOrganizationUser):
+    class Meta:
+        db_table = 'team_users'
+
+
+class TeamOwner(AbstractOrganizationOwner):
+    class Meta:
+        db_table = 'team_owners'

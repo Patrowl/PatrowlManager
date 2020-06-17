@@ -101,18 +101,14 @@ class ScanDefinitionForm(forms.ModelForm):
                 raise forms.ValidationError("Bad datetime format")
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(ScanDefinitionForm, self).__init__(*args, **kwargs)
-
-        # self.fields['scheduled_at'].widget = widgets.AdminSplitDateTime()
-
-        # oid = None
-        # if 'initial' in self.__dict__ and 'owner_id' in self.initial:
-        #     oid = self.initial['owner_id']
 
         policies = [(policy.id, policy.name) for policy in EnginePolicy.objects.all().only("name")]
         self.fields['engine_policy'].widget = forms.RadioSelect(choices=policies)
 
-        assets = [(asset.id, asset.value) for asset in Asset.objects.all().only('id', 'value')]
+        # assets = [(asset.id, asset.value) for asset in Asset.objects.all().only('id', 'value')]
+        assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all().only('id', 'value')]
         self.fields['assets_list'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
         assetgroups = [(a.id, a.name) for a in AssetGroup.objects.all().only('id', 'name')]
