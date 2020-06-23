@@ -5,7 +5,7 @@ from common.utils.pagination import StandardResultsSetPagination
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 from django_filters import FilterSet, OrderingFilter
-from .models import Asset
+from .models import Asset, AssetGroup
 
 
 class AssetSerializer(serializers.ModelSerializer):
@@ -48,3 +48,39 @@ class AssetList(generics.ListAPIView):
 
     def get_queryset(self):
         return Asset.objects.for_user(self.request.user).all().order_by('value')
+
+
+class AssetGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssetGroup
+        fields = ('id', 'name', 'owner', 'description', 'assets',
+            'criticity', 'created_at', 'updated_at', 'teams')
+
+
+class AssetGroupFilter(FilterSet):
+    sorted_by = OrderingFilter(
+        choices=(
+            ('name', _('Name')),
+            ('-name', _('Name (desc)')),
+            ('criticity', _('Criticity')),
+            ('-criticity', _('Criticity (desc)')),
+        )
+    )
+
+    class Meta:
+        model = AssetGroup
+        fields = {
+            'name': ['icontains'],
+            'description': ['icontains'],
+        }
+
+
+class AssetGroupList(generics.ListAPIView):
+    serializer_class = AssetGroupSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AssetGroupFilter
+    filterset_fields = ('id', 'name', 'criticity')
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        return AssetGroup.objects.for_user(self.request.user).all().order_by('name')

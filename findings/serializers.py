@@ -73,11 +73,14 @@ class FindingFilter(FilterSet):
 
 
 class FindingList(generics.ListAPIView):
-    queryset = Finding.objects.all().order_by('title')
+    # queryset = Finding.objects.all().order_by('title')
     serializer_class = FindingSerializer
     filterset_class = FindingFilter
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ('title', 'severity', 'engine_type')
+
+    def get_queryset(self):
+        return Finding.objects.for_user(self.request.user).all().order_by('title')
 
 
 class RawFindingSerializer(serializers.ModelSerializer):
@@ -111,8 +114,11 @@ class RawFindingSerializer(serializers.ModelSerializer):
 
 
 class RawFindingList(generics.ListCreateAPIView):
-    queryset = RawFinding.objects.all().order_by('title')
+    # queryset = RawFinding.objects.all().order_by('title')
     serializer_class = RawFindingSerializer
     filterset_class = FindingFilter
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ('title', 'severity', 'engine_type')
+
+    def get_queryset(self):
+        return RawFinding.objects.for_user(self.request.user).all().order_by('title')

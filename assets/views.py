@@ -80,7 +80,7 @@ def list_assets_view(request):
 
     # List asset groups
     asset_groups = []
-    ags = AssetGroup.objects.all().annotate(
+    ags = AssetGroup.objects.for_user(request.user).all().annotate(
             asset_list=ArrayAgg('assets__value')
         ).only(
             "id", "name", "assets", "criticity", "updated_at", "risk_level"
@@ -110,9 +110,9 @@ def add_asset_view(request):
     form = None
 
     if request.method == 'GET':
-        form = AssetForm()
+        form = AssetForm(user=request.user)
     elif request.method == 'POST':
-        form = AssetForm(request.POST)
+        form = AssetForm(request.POST, user=request.user)
 
         if not Asset.is_savable():
             messages.error(request, 'MAX_ASSETS reached. Contact Support team ;)')
@@ -130,12 +130,18 @@ def add_asset_view(request):
             asset = Asset(**asset_args)
             asset.save()
 
-            # Add categories
+            # Add categories (M2M)
             if len(form.cleaned_data['categories']) == 0:
                 asset.categories.add(AssetCategory.objects.get(id=1))
             else:
                 for cat in form.cleaned_data['categories']:
                     asset.categories.add(cat)
+
+            # Add teams (M2M)
+            for team in form.cleaned_data['teams']:
+                asset.teams.add(team)
+
+            # Save categories and teams
             asset.save()
 
             if asset.type in ['ip-range', 'ip-subnet']:
@@ -151,6 +157,10 @@ def add_asset_view(request):
 
                 # Add the asset to the new group
                 asset_group.assets.add(asset)
+
+                # Add the teams to the new group
+                for team in form.cleaned_data['teams']:
+                    asset_group.teams.add(team)
                 asset_group.save()
 
                 # Caculate the risk grade
@@ -166,11 +176,11 @@ def add_asset_view(request):
 def edit_asset_view(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
 
-    form = AssetForm()
+    form = AssetForm(user=request.user)
     if request.method == 'GET':
-        form = AssetForm(instance=asset)
+        form = AssetForm(instance=asset, user=request.user)
     elif request.method == 'POST':
-        form = AssetForm(request.POST, instance=asset)
+        form = AssetForm(request.POST, instance=asset, user=request.user)
         if form.is_valid():
             # asset.value = form.cleaned_data['value']
             asset.name = form.cleaned_data['name']
@@ -179,10 +189,22 @@ def edit_asset_view(request, asset_id):
             asset.criticity = form.cleaned_data['criticity']
             asset.evaluate_risk()
 
-            if form.data.getlist('categories'):
-                asset.categories.clear()
+            # Update categories (M2M)
+            # if form.data.getlist('categories'):
+            asset.categories.clear()
+            if len(form.cleaned_data['categories']) == 0:
+                # Add a default category
+                asset.categories.add(AssetCategory.objects.get(id=1))
+            else:
                 for cat_id in form.data.getlist('categories'):
                     asset.categories.add(AssetCategory.objects.get(id=cat_id))
+
+            # Update teams (M2M)
+            asset.teams.clear()
+            for team in form.cleaned_data['teams']:
+                asset.teams.add(team)
+
+            # Save categories and teams
             asset.save()
 
             messages.success(request, 'Update submission successful')
@@ -195,9 +217,9 @@ def add_asset_group_view(request):
     form = None
 
     if request.method == 'GET':
-        form = AssetGroupForm()
+        form = AssetGroupForm(user=request.user)
     elif request.method == 'POST':
-        form = AssetGroupForm(request.POST)
+        form = AssetGroupForm(request.POST, user=request.user)
         if form.is_valid():
             asset_args = {
                 'name': form.cleaned_data['name'],
@@ -209,12 +231,17 @@ def add_asset_group_view(request):
             asset_group.save()
 
             for asset_id in form.data.getlist('assets'):
-                asset_group.assets.add(Asset.objects.get(id=asset_id))
+                asset_group.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
             asset_group.save()
 
             # Add categories
             for cat in form.data['categories']:
                 asset_group.categories.add(cat)
+
+            # Add the teams to the new group
+            for team in form.cleaned_data['teams']:
+                asset_group.teams.add(team)
+
             asset_group.save()
 
             asset_group.calc_risk_grade()
@@ -226,22 +253,29 @@ def add_asset_group_view(request):
 
 
 def edit_asset_group_view(request, assetgroup_id):
-    asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
 
-    form = AssetGroupForm()
+    form = AssetGroupForm(user=request.user)
     if request.method == 'GET':
-        form = AssetGroupForm(instance=asset_group)
+        form = AssetGroupForm(instance=asset_group, user=request.user)
     elif request.method == 'POST':
-        # form = AssetGroupForm(request.POST)
-        form = AssetGroupForm(request.POST, instance=asset_group)
+        form = AssetGroupForm(request.POST, instance=asset_group, user=request.user)
         if form.is_valid():
             if asset_group.name != form.cleaned_data['name']:
                 asset_group.name = form.cleaned_data['name']
             asset_group.description = form.cleaned_data['description']
             asset_group.criticity = form.cleaned_data['criticity']
+
+            # Update assets
             asset_group.assets.clear()
             for asset_id in form.data.getlist('assets'):
-                asset_group.assets.add(Asset.objects.get(id=asset_id))
+                asset_group.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
+
+            # Update the teams
+            asset_group.teams.clear()
+            for team in form.cleaned_data['teams']:
+                asset_group.teams.add(team)
+
             asset_group.evaluate_risk()
             asset_group.save()
 
@@ -282,7 +316,7 @@ def bulkadd_asset_view(request):
                     'type': line['asset_type'],
                     'description': line['asset_description'],
                     'criticity': line['asset_criticity'],
-                    'owner': User.objects.get(id=request.user.id),
+                    'owner': request.user,
                     'status': "new",
                 }
                 asset = Asset(**asset_args)
@@ -290,7 +324,7 @@ def bulkadd_asset_view(request):
 
                 # Add groups
                 if 'asset_groupname' in line and line['asset_groupname'] != "":
-                    ag = AssetGroup.objects.filter(name=str(line['asset_groupname'])).first()
+                    ag = AssetGroup.objects.for_user(request.user).filter(name=str(line['asset_groupname'])).first()
                     if ag is None:  # Create new asset group
                         asset_args = {
                             'name': line['asset_groupname'],
@@ -412,7 +446,7 @@ def detail_asset_view(request, asset_id):
         'lasts': Scan.objects.filter(assets__in=[asset]).order_by('-created_at')[:3]
     }
 
-    asset_groups = list(AssetGroup.objects.filter(assets__in=[asset]).only("id"))
+    asset_groups = list(AssetGroup.objects.for_user(request.user).filter(assets__in=[asset]).only("id"))
     scan_defs = ScanDefinition.objects.filter(Q(assets_list__in=[asset]) | Q(assetgroups_list__in=asset_groups)).annotate(engine_type_name=F('engine_type__name')).annotate(scan_set_count=Count('scan'))
     scans = Scan.objects.filter(assets__in=[asset]).values("id", "title", "status", "summary", "updated_at").annotate(engine_type_name=F('engine_type__name'))
 
@@ -451,7 +485,7 @@ def detail_asset_view(request, asset_id):
 
 
 def detail_asset_group_view(request, assetgroup_id):
-    asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
 
     assets_list = asset_group.assets.all().order_by("-risk_level__grade","criticity","type")
 
@@ -582,9 +616,9 @@ def add_asset_owner_view(request):
         form = AssetOwnerForm()
     elif request.method == 'POST':
         form = AssetOwnerForm(request.POST)
-
-        if form.errors:
-            print (form.errors)
+        #
+        # if form.errors:
+        #     print(form.errors)
 
         if form.is_valid():
             owner_args = {

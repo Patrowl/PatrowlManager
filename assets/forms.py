@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from django import forms
+from django.conf import settings
 from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument
 from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES
+from users.models import Team
 
 assets = []
 
@@ -10,23 +12,29 @@ assets = []
 class AssetForm(forms.ModelForm):
     class Meta:
         model = Asset
-        fields = ['id', 'value', 'name', 'type', 'description', 'criticity', 'categories']
+        fields = ['id', 'value', 'name', 'type', 'description', 'criticity', 'categories', 'teams']
         widgets = {
             'id': forms.HiddenInput(),
             'value': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
-            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '10'})
+            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'}),
+            'teams': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
         }
 
-    # all_categories = [ac.value for ac in AssetCategory.objects.all()]
-    # categories = forms.SelectMultiple(choices=all_categories,)
     type = forms.CharField(widget=forms.Select(choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'}))
     criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(AssetForm, self).__init__(*args, **kwargs)
 
+        # Check allowed teams (Available in Pro Edition)
+        if settings.PRO_EDITION and not self.user.is_superuser:
+            # List related TeamUsers with admin privileges
+            uta = self.user.users_teamuser.filter(is_admin=True)
+            # Update the list of available Teams
+            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=uta)
         # disable the value update (/!\ still bypassable)
         if self.initial != {} and 'value' in self.initial.keys():
             self.fields['value'].widget.attrs['readonly'] = True
@@ -40,20 +48,22 @@ class AssetBulkForm(forms.Form):
 class AssetGroupForm(forms.ModelForm):
     class Meta:
         model = AssetGroup
-        fields = ['id', 'name', 'description', 'criticity', 'assets', 'categories']
+        fields = ['id', 'name', 'description', 'criticity', 'assets', 'categories', 'teams']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
             'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm'}),
+            'teams': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
         }
 
     criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(AssetGroupForm, self).__init__(*args, **kwargs)
 
         # @Todo: RBAC_CHECK
-        assets = [(asset.id, asset.value) for asset in Asset.objects.all()]
+        assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all().order_by('value')]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
 

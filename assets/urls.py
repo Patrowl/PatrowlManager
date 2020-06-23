@@ -116,4 +116,5 @@ urlpatterns = [
 
 urlpatterns += [
     path('api/list', serializers.AssetList.as_view()),
+    path('api/groups/list', serializers.AssetGroupList.as_view()),
 ]

@@ -43,7 +43,7 @@ FINDING_STATUS = (
 class FindingQuerySet(models.QuerySet):
     def for_user(self, user):
         if settings.PRO_EDITION and not user.is_superuser:
-            return self.filter(asset_teams__in=user.users_team.all())
+            return self.filter(asset__teams__in=user.users_team.all())
         return self
 
 

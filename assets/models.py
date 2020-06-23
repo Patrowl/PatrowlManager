@@ -349,6 +349,7 @@ def asset_delete_log(sender, **kwargs):
 
 class AssetGroupManager(models.Manager):
     """Class definition of AssetGroupManager."""
+    
     def for_user(self, user):
         """Check if user is allowed to manage the object."""
         if settings.PRO_EDITION and not user.is_superuser:

@@ -42,7 +42,7 @@ def ack_asset_api(request, asset_id):
 
 @api_view(['GET'])
 def get_asset_group_api(request, assetgroup_id):
-    assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
     return JsonResponse(assetgroup.to_dict(), safe=False)
 
 
@@ -158,6 +158,7 @@ def list_assets_api(request):
             .annotate(format=Value("asset", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
         assetgroups = list(AssetGroup.objects.filter(name__icontains=q)
+            .for_user(request.user)
             .extra(select={'value': 'name'})
             .annotate(format=Value("assetgroup", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
@@ -167,6 +168,7 @@ def list_assets_api(request):
             .annotate(format=Value("asset", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
         assetgroups = list(AssetGroup.objects
+            .for_user(request.user)
             .extra(select={'value': 'name'})
             .annotate(format=Value("assetgroup", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
@@ -178,11 +180,13 @@ def list_asset_groups_api(request):
     q = request.GET.get("q", None)
     if q:
         assetgroups = list(AssetGroup.objects.filter(name__icontains=q)
+            .for_user(request.user)
             .extra(select={'value': 'name'})
             .annotate(format=Value("assetgroup", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
     else:
         assetgroups = list(AssetGroup.objects
+            .for_user(request.user)
             .extra(select={'value': 'name'})
             .annotate(format=Value("assetgroup", output_field=CharField()))
             .values('id', 'value', 'format', 'name'))
@@ -193,7 +197,7 @@ def list_asset_groups_api(request):
 def refresh_all_asset_grade_api(request):
     for asset in Asset.objects.for_user(request.user).all():
         asset.calc_risk_grade()
-    for assetgroup in AssetGroup.objects.all():
+    for assetgroup in AssetGroup.objects.for_user(request.user).all():
         assetgroup.calc_risk_grade()
     return redirect('list_assets_view')
 
@@ -213,11 +217,11 @@ def refresh_asset_grade_api(request, asset_id=None):
 @api_view(['GET'])
 def refresh_assetgroup_grade_api(request, assetgroup_id=None):
     if assetgroup_id:
-        assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
+        assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
         assetgroup_id.calc_risk_grade()
     else:
         # update all
-        for assetgroup in AssetGroup.objects.all():
+        for assetgroup in AssetGroup.objects.for_user(request.user).all():
             assetgroup.calc_risk_grade()
     return JsonResponse({"status": "success"}, safe=False)
 
@@ -230,7 +234,7 @@ def export_assets_api(request, assetgroup_id=None):
 
     assets = []
     if assetgroup_id:
-        asset_group = AssetGroup.objects.get(id=assetgroup_id)
+        asset_group = AssetGroup.objects.for_user(request.user).get(id=assetgroup_id)
         for asset in asset_group.assets.all():
             assets.append(asset)
     else:
@@ -277,8 +281,8 @@ def add_asset_group_api(request):
     assetgroup.save()
 
     # Add assets
-    for assets in assets:
-        a = Asset.objects.filter(id=assets).first()
+    for asset in assets:
+        a = Asset.objects.for_user(request.user).filter(id=asset).first()
         if a:
             assetgroup.assets.add(a)
     assetgroup.save()
@@ -319,7 +323,7 @@ def delete_assets_api(request):
 
 @api_view(['POST', 'DELETE'])
 def delete_asset_api(request, asset_id):
-    asset = get_object_or_404(Asset, id=asset_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     asset.delete()
 
     return JsonResponse({'status': 'success'})
@@ -327,7 +331,7 @@ def delete_asset_api(request, asset_id):
 
 @api_view(['POST', 'DELETE'])
 def delete_assetgroup_api(request, assetgroup_id):
-    assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
     assetgroup.delete()
 
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
@@ -335,7 +339,7 @@ def delete_assetgroup_api(request, assetgroup_id):
 
 @api_view(['POST'])
 def edit_assetgroup_api(request, assetgroup_id):
-    asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
     form = AssetGroupForm(request.POST, instance=asset_group)
     if asset_group.name != form.data['name']:
         asset_group.name = form.data['name']
@@ -343,7 +347,7 @@ def edit_assetgroup_api(request, assetgroup_id):
     asset_group.criticity = form.data['criticity']
     asset_group.assets.clear()
     for asset_id in form.data.getlist('assets'):
-        asset_group.assets.add(Asset.objects.get(id=asset_id))
+        asset_group.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
     asset_group.evaluate_risk()
     asset_group.save()
 
@@ -404,7 +408,7 @@ def add_asset_tags_api(request, asset_id):
 @api_view(['POST'])
 def add_asset_group_tags_api(request, assetgroup_id):
     if request.method == 'POST':
-        asset_group = get_object_or_404(AssetGroup, id=assetgroup_id)
+        asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
         new_tag = _add_asset_tags(asset_group, request.POST.getlist('input-search-tags')[0])
         asset_group.categories.add(new_tag)
 
@@ -422,7 +426,7 @@ def delete_asset_tags_api(request, asset_id):
         return redirect('detail_asset_view', asset_id=asset_id)
 
     if request.method == 'POST':
-        asset = get_object_or_404(Asset, id=asset_id)
+        asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
         asset.categories.remove(tag)  # @todo: check error cases
 
     return redirect('detail_asset_view', asset_id=asset_id)
@@ -439,7 +443,7 @@ def delete_asset_group_tags_api(request, assetgroup_id):
         return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
 
     if request.method == 'POST':
-        assetgroup = get_object_or_404(AssetGroup, id=assetgroup_id)
+        assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
         assetgroup.categories.remove(tag)  # @todo: check error cases
 
     return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
@@ -496,7 +500,7 @@ def get_asset_report_json_api(request, asset_id):
 @api_view(['GET'])
 def get_asset_group_report_html_api(request, asset_group_id):
     # asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
-    asset_group = get_object_or_404(AssetGroup.objects.prefetch_related("assets"), id=asset_group_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
     assets = asset_group.assets.all().only(
         "value", "name", "type", "criticity", "risk_level", "description",
         "created_at")
@@ -510,7 +514,7 @@ def get_asset_group_report_html_api(request, asset_group_id):
 
 @api_view(['GET'])
 def get_asset_group_report_json_api(request, asset_group_id):
-    asset_group = get_object_or_404(AssetGroup.objects.prefetch_related("assets"), id=asset_group_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
 
     assets = list()
     for asset in asset_group.assets.all():
