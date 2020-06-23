@@ -155,10 +155,6 @@ def assetcat_delete_log(sender, **kwargs):
         type="DELETE", severity="DEBUG")
 
 
-def get_default_risk_level():
-    return dict(info=0, low= 0, medium= 0, high= 0, critical=0, total=0, grade="-")
-
-
 class AssetManager(models.Manager):
     """Class definition of AssetManager."""
 
@@ -166,7 +162,7 @@ class AssetManager(models.Manager):
         """Check if user is allowed to manage the object."""
         if settings.PRO_EDITION and not user.is_superuser:
             return super().get_queryset().filter(
-                Q(teams__in=user.users_team.all()) |
+                Q(teams__in=user.users_team.all(), teams__is_active=True) |
                 Q(owner=user)
             )
         return super().get_queryset()
@@ -357,7 +353,7 @@ class AssetGroupManager(models.Manager):
         """Check if user is allowed to manage the object."""
         if settings.PRO_EDITION and not user.is_superuser:
             return super().get_queryset().filter(
-                Q(teams__in=user.users_team.all()) |
+                Q(teams__in=user.users_team.all(), teams__is_active=True) |
                 Q(owner=user)
             )
         return super().get_queryset()

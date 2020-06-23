@@ -7,7 +7,6 @@ from .models import Finding, RawFinding
 from .utils import _search_findings, _add_finding
 from assets.models import Asset
 from scans.models import Scan, ScanDefinition
-from events.models import Event
 from rules.models import Rule
 from rest_framework.decorators import api_view
 from common.utils.encoding import json_serial
@@ -17,7 +16,7 @@ import csv
 
 @api_view(['GET'])
 def get_raw_finding_api(request, finding_id):
-    finding = get_object_or_404(Finding, id=finding_id)
+    finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
     return JsonResponse(finding.raw_data, safe=False)
 
 
@@ -37,7 +36,7 @@ def add_finding_api(request):
 
 @api_view(['GET'])
 def get_finding_api(request, finding_id):
-    finding = get_object_or_404(Finding, id=finding_id)
+    finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
     return JsonResponse(finding.to_dict())
 
 
@@ -45,10 +44,10 @@ def get_finding_api(request, finding_id):
 def delete_findings_api(request):
     findings = request.data
     for finding_id in findings:
-        f = Finding.objects.get(id=finding_id)
+        f = Finding.objects.for_user(request.user).get(id=finding_id)
 
         # reevaluate related asset critity
-        Asset.objects.get(id=f.asset.id).evaluate_risk()
+        Asset.objects.for_user(request.user).get(id=f.asset.id).evaluate_risk()
         f.delete()
 
     return JsonResponse({'status': 'success'})
@@ -72,7 +71,7 @@ def export_findings_csv_api(request):
     # findings = json.loads(request.body)
     findings = request.data
     for finding_id in findings:
-        finding = Finding.objects.get(id=finding_id)
+        finding = Finding.objects.for_user(request.user).get(id=finding_id)
         if 'links' in finding.risk_info.keys():
             finding_links = ", ".join(finding.risk_info['links'])
         else:
@@ -96,10 +95,10 @@ def export_findings_csv_api(request):
 def delete_rawfindings_api(request):
     findings = request.data
     for finding_id in findings:
-        f = RawFinding.objects.get(id=finding_id)
+        f = RawFinding.objects.for_user(request.user).get(id=finding_id)
 
         # reevaluate related asset critity
-        Asset.objects.get(id=f.asset.id).evaluate_risk()
+        Asset.objects.for_user(request.user).get(id=f.asset.id).evaluate_risk()
         f.delete()
 
     return JsonResponse({'status': 'success'})
@@ -109,7 +108,7 @@ def delete_rawfindings_api(request):
 def change_findings_status_api(request):
     findings = request.data
     for finding in findings:
-        f = Finding.objects.filter(id=finding['ack']).first()
+        f = Finding.objects.for_user(request.user).filter(id=finding['ack']).first()
         f.status = "ack"
         f.save()
 
@@ -118,7 +117,7 @@ def change_findings_status_api(request):
 
 @api_view(['GET'])
 def ack_findings_status_api(request, finding_id):
-    f = Finding.objects.filter(id=finding_id).first()
+    f = Finding.objects.for_user(request.user).filter(id=finding_id).first()
     f.status = "ack"
     f.save()
     return JsonResponse({'status': 'success'})
@@ -128,7 +127,7 @@ def ack_findings_status_api(request, finding_id):
 def change_rawfindings_status_api(request):
     findings = request.data
     for finding in findings:
-        rf = RawFinding.objects.filter(id=finding['ack']).first()
+        rf = RawFinding.objects.for_user(request.user).filter(id=finding['ack']).first()
         rf.status = "ack"
         rf.save()
         for f in rf.finding_set.all():
@@ -143,17 +142,17 @@ def get_findings_stats_api(request):
     scope = request.GET.get('scope', None)
     data = {}
     if not scope:
-        findings = Finding.objects.all()
+        findings = Finding.objects.for_user(request.user).all()
     else:
         scan_id = request.GET.get('scan_id', None)
         if not scan_id:
             return JsonResponse({})
         if scope == "scan_def":
             get_object_or_404(ScanDefinition, id=scan_id)
-            findings = RawFinding.objects.filter(scan__scan_definition_id=scan_id)
+            findings = RawFinding.objects.for_user(request.user).filter(scan__scan_definition_id=scan_id)
         elif scope == "scan":
             scan = get_object_or_404(Scan, id=scan_id)
-            findings = RawFinding.objects.filter(scan=scan)
+            findings = RawFinding.objects.for_user(request.user).filter(scan=scan)
 
     data = {
         "nb_findings": findings.count(),
@@ -176,9 +175,9 @@ def get_findings_stats_api(request):
 @api_view(['GET'])
 def send_finding_alerts_api(request, finding_id):
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":
-        finding = get_object_or_404(RawFinding, id=finding_id)
+        finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
     else:
-        finding = get_object_or_404(Finding, id=finding_id)
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
 
     # Create a new rule
     rule = Rule(title="manual", severity=finding.severity.capitalize(), owner_id=request.user.id)
@@ -200,9 +199,9 @@ def send_finding_alerts_api(request, finding_id):
 @api_view(['GET'])
 def generate_finding_alerts_api(request, finding_id):
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":
-        finding = get_object_or_404(RawFinding, id=finding_id)
+        finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
     else:
-        finding = get_object_or_404(Finding, id=finding_id)
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
 
     nb_matches = finding.evaluate_alert_rules()
     return JsonResponse({"status": "success", "nb_matches": nb_matches})
@@ -215,9 +214,9 @@ def update_finding_comments_api(request, finding_id):
         return JsonResponse({"status": "error", "reason": "invalid parameter"})
 
     if request.POST.get("raw", None) and request.POST.get("raw") == "true":
-        finding = get_object_or_404(RawFinding, id=finding_id)
+        finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
     else:
-        finding = get_object_or_404(Finding, id=finding_id)
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
 
     finding.comments = new_comments
     finding.save()
@@ -226,12 +225,13 @@ def update_finding_comments_api(request, finding_id):
 
 @api_view(['GET'])
 def update_finding_api(request, finding_id):
+    from events.models import Event
     is_raw = False
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":
-        finding = get_object_or_404(RawFinding, id=finding_id)
+        finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
         is_raw = True
     else:
-        finding = get_object_or_404(Finding, id=finding_id)
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
 
     allowed_fields = [f.name for f in Finding._meta.get_fields()]
     for field_key in iter(request.GET.keys()):
@@ -244,7 +244,7 @@ def update_finding_api(request, finding_id):
 
                 # Update the related Finding too
                 if field_key != "status":
-                    _finding = Finding.objects.get(title=finding.title, asset=finding.asset)
+                    _finding = Finding.objects.for_user(request.user).get(title=finding.title, asset=finding.asset)
                     Event.objects.create(message="Finding updated on field {}: from '{}' to '{}'".format(
                         field_key, getattr(finding, field_key), request.GET.get(field_key)
                     ), type="UPDATE", severity="INFO", finding=_finding)
@@ -271,10 +271,10 @@ def update_finding_api(request, finding_id):
 def export_finding_api(request, finding_id):
     allowed_formats = ['json', 'html', 'stix', 'pdf', 'csv']
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":
-        finding = get_object_or_404(RawFinding, id=finding_id)
+        finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
         prefix = "raw-"
     else:
-        finding = get_object_or_404(Finding, id=finding_id)
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
         prefix = ""
     export_format = request.GET.get("output", "csv")
 

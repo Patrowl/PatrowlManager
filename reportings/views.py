@@ -18,7 +18,7 @@ import ast
 
 
 def homepage_dashboard_view(request):
-    findings = Finding.objects.all().only("status", "severity")
+    findings = Finding.objects.for_user(request.user).all().only("status", "severity")
     assets = Asset.objects.for_user(request.user).all()
     global_stats = {
         "assets": {
@@ -92,7 +92,7 @@ def homepage_dashboard_view(request):
     global_stats["rules"].update({"nb_matches": matches})
 
     # Last 6 findings
-    last_findings = Finding.objects.all().order_by('-id')[:6][::-1]
+    last_findings = Finding.objects.for_user(request.user).all().order_by('-id')[:6][::-1]
 
     # Last 6 scans
     last_scans = Scan.objects.all().order_by('-started_at')[:6]
@@ -185,13 +185,13 @@ def homepage_dashboard_view(request):
     cve_list = {}
     cwe_list = {}
 
-    finding_cves_list = Finding.objects.exclude(
+    finding_cves_list = Finding.objects.for_user(request.user).exclude(
             Q(vuln_refs__CVE__isnull=True)|
             Q(status__in=['mitigated', 'patched', 'closed', 'false-positive'])
         ).annotate(
             cvelist=KeyTextTransform("CVE", 'vuln_refs')
         ).values('cvelist')
-    finding_cwes_list = Finding.objects.exclude(
+    finding_cwes_list = Finding.objects.for_user(request.user).exclude(
             Q(vuln_refs__CWE__isnull=True)|
             Q(status__in=['mitigated', 'patched', 'closed', 'false-positive'])
         ).annotate(
@@ -270,7 +270,7 @@ def patch_management_view(request):
         "vmware_esx_local_security_checks",
         "windows_:_microsoft_bulletins",
     ]
-    dataset_7days = Asset.objects.filter(
+    dataset_7days = Asset.objects.for_user(request.user).filter(
         Q(rawfinding__created_at__gt=seven_days_ago) &
         Q(rawfinding__risk_info__vuln_publication_date__gte=seven_days_ago.strftime('%Y/%m/%d')) &
         Q(rawfinding__risk_info__cvss_base_score__gte=7.0) &
@@ -286,7 +286,7 @@ def patch_management_view(request):
         63756, # AIX 5.2 TL 0 : reboot - http://www.tenable.com/plugins/index.php?view=single&id=63756
         63757, # AIX 5.3 TL 0 : reboot http://www.tenable.com/plugins/index.php?view=single&id=63757
         ]
-    dataset_7days_reboot = Asset.objects.filter(
+    dataset_7days_reboot = Asset.objects.for_user(request.user).filter(
         Q(rawfinding__created_at__gt=seven_days_ago) &
         Q(rawfinding__risk_info__vuln_publication_date__gte=seven_days_ago.strftime('%Y/%m/%d')) &
         Q(rawfinding__risk_info__cvss_base_score__gte=7.0) &
@@ -296,7 +296,7 @@ def patch_management_view(request):
     ).distinct()
 
     # Dataset 3: 30 days ago
-    dataset_30days = Asset.objects.filter(
+    dataset_30days = Asset.objects.for_user(request.user).filter(
         Q(rawfinding__created_at__gt=month_ago) &
         Q(rawfinding__risk_info__vuln_publication_date__gte=month_ago.strftime('%Y/%m/%d')) &
         Q(rawfinding__risk_info__cvss_base_score__gte=7.0) &
@@ -305,7 +305,7 @@ def patch_management_view(request):
     ).distinct()
 
     # Dataset 4: more than 30 missing patches (CVSS >= 7.0)
-    dataset_30missing = Asset.objects.filter(
+    dataset_30missing = Asset.objects.for_user(request.user).filter(
         #Q(rawfinding__created_at__gt=month_ago) &
         Q(rawfinding__risk_info__vuln_publication_date__gte=month_ago.strftime('%Y/%m/%d')) &
         Q(rawfinding__risk_info__cvss_base_score__gte=7.0) &

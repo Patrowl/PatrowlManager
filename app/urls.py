@@ -62,7 +62,6 @@ if settings.PRO_EDITION:
     # print("urls-PRO_EDITION", settings.PRO_EDITION)
     try:
         from pro.urls import pro_urlpatterns
-        # print("urls-pro_urlpatterns", pro_urlpatterns)
         urlpatterns += pro_urlpatterns
     except ImportError as e:
         print(e)

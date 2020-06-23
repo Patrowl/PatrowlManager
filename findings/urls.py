@@ -64,6 +64,6 @@ urlpatterns = [
 
 # Serialized data
 urlpatterns += [
-    path('api/list', serializers.FindingList.as_view()),
-    path('api/raw/list', serializers.RawFindingList.as_view()),
+    # path('api/list', serializers.FindingList.as_view()),
+    # path('api/raw/list', serializers.RawFindingList.as_view()),
 ]

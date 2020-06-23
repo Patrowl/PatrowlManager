@@ -70,9 +70,6 @@ class FindingManager(models.Manager):
 
     def for_user(self, user):
         """Check if user is allowed to manage the object."""
-        # if settings.PRO_EDITION and not user.is_superuser:
-        #     return super().get_queryset().filter(asset_teams__in=user.users_team.all())
-        # return super().get_queryset()
         return self.get_queryset().for_user(user)
 
 

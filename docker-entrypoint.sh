@@ -24,6 +24,8 @@ python manage.py collectstatic --noinput
 # python manage.py migrate --fake
 
 echo "[+] Make database migrations"
+# echo " - users"
+# python manage.py makemigrations users
 echo " - scans"
 python manage.py makemigrations scans
 echo " - findings"

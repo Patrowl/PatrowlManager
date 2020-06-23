@@ -3,37 +3,6 @@
 {% block content %}
 
 <style>
-.modal.right .modal-dialog {
-		position: fixed;
-		margin: auto;
-		width: 700px;
-		height: 100%;
-		-webkit-transform: translate3d(0%, 0, 0);
-		    -ms-transform: translate3d(0%, 0, 0);
-		     -o-transform: translate3d(0%, 0, 0);
-		        transform: translate3d(0%, 0, 0);
-	}
-
-.modal.right .modal-content {
-		/*height: 100%;*/
-		overflow-y: auto;
-	}
-
-.modal.right .modal-body {
-		padding: 15px 15px 20px;
-	}
-
-.modal.right.fade .modal-dialog {
-		right: -320px;
-		-webkit-transition: opacity 0.3s linear, right 0.3s ease-out;
-		   -moz-transition: opacity 0.3s linear, right 0.3s ease-out;
-		     -o-transition: opacity 0.3s linear, right 0.3s ease-out;
-		        transition: opacity 0.3s linear, right 0.3s ease-out;
-	}
-
-.modal.right.fade.in .modal-dialog {
-	right: 0;
-}
 
 ul.ui-autocomplete {
   position: fixed;
@@ -552,7 +521,7 @@ function toggle(source, element) {
         }
       });
       if(findings_to_compare.length == 2){
-        window.location.href ="/findings/compare?raw=true&finding_a_id="+findings_to_compare[0]+"&finding_b_id="+findings_to_compare[1];
+        window.location.href ="/findings/compare?finding_a_id="+findings_to_compare[0]+"&finding_b_id="+findings_to_compare[1];
       }
     });
 

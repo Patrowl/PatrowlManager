@@ -30,8 +30,7 @@ SECURE_SSL_REDIRECT = False # Dev/test environment
 #X_FRAME_OPTIONS = 'DENY'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = os.environ.get('DEBUG', True)    # Dev/test environment
-DEBUG = os.environ.get('DEBUG', False)   # Production environment
+DEBUG = os.environ.get('DEBUG', '').lower() in ['true', '1', 'yes']   # Production environment
 
 ALLOWED_HOSTS = ['*'] # /!\ Not safe for production environment
 
@@ -58,6 +57,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'datetimewidget',
+    'organizations',
+    'annoying',
+
     'scans',
     'engines',
     'findings',

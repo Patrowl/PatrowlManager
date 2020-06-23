@@ -118,7 +118,7 @@ def details_finding_view(request, finding_id):
         })
 
     # Identify finding occurrences in related scan results (excluding the 1st)
-    for f in RawFinding.objects.filter(hash=finding.hash).annotate(scan_title=F('scan__title')):
+    for f in RawFinding.objects.for_user(request.user).filter(hash=finding.hash).annotate(scan_title=F('scan__title')):
         tracking_timeline.update({f.created_at: {
             "level": "info",
             "message": "Identified in scan <a href='/scans/details/{}'>{}</a>".format(f.scan_id, f.scan_title)}})
@@ -139,9 +139,9 @@ def edit_finding_view(request, finding_id):
     form = None
     is_raw_finding = request.GET.get("raw", None) and request.GET.get("raw") == "true"
     if is_raw_finding:
-        finding = get_object_or_404(RawFinding, id=finding_id)
+        finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
     else:
-        finding = get_object_or_404(Finding, id=finding_id)
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
 
     form = FindingForm()
     if request.method == 'GET':
@@ -218,11 +218,11 @@ def compare_findings_view(request):
     finding_b_id = request.GET.get("finding_b_id", None)
     raw_finding = request.GET.get("raw", None)
     if raw_finding:
-        finding_a = get_object_or_404(RawFinding, id=finding_a_id)
-        finding_b = get_object_or_404(RawFinding, id=finding_b_id)
+        finding_a = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_a_id)
+        finding_b = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_b_id)
     else:
-        finding_a = get_object_or_404(Finding, id=finding_a_id)
-        finding_b = get_object_or_404(Finding, id=finding_b_id)
+        finding_a = get_object_or_404(Finding.objects.for_user(request.user), id=finding_a_id)
+        finding_b = get_object_or_404(Finding.objects.for_user(request.user), id=finding_b_id)
 
     return render(request, 'compare-findings.html', {
         'finding_a': finding_a,

@@ -12,7 +12,7 @@
   <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
 
   <!-- Patrowl CSS - Include with every page -->
-  <link href="{% static 'css/patrowl.css' %}" rel="stylesheet">
+  <link href="{% static 'css/patrowlmanager.css' %}" rel="stylesheet">
 
   <!-- Core CSS - Include with every page -->
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
@@ -30,7 +30,11 @@
 
   <!-- DataTables -->
   <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-  <link href="{% static 'css/jquery.dataTables.min.css' %}" rel="stylesheet">
+  <!-- <link href="{% static 'css/jquery.dataTables.min.css' %}" rel="stylesheet"> -->
+  <link href="{% static 'css/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+  <script src="{% static 'js/dataTables.buttons.min.js' %}"></script>
+  <script src="{% static 'js/dataTables.select.min.js' %}"></script>
+  <link href="{% static 'css/select.dataTables.min.css' %}" rel="stylesheet">
 
   <!-- DateTime picker -->
   <link href="/static/css/datetimepicker.css" type="text/css" media="all" rel="stylesheet" />
@@ -389,6 +393,13 @@
               <li><a href="/settings/"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
 
               <li class="divider"></li>
+              {% if PRO_EDITION %}
+              <li><a href="/teams/list"><span class="glyphicon glyphicon-th-large"></span> Teams</a></li>
+              {% else %}
+              <li><a href="https://patrowl.io/get-started"><span class="glyphicon glyphicon-th-large"></span> Teams (PRO EDITION)</a></li>
+              {% endif %}
+
+              <li class="divider"></li>
               <li><a href="/users/details"><span class="glyphicon glyphicon-user"></span> My account</a></li>
               <!-- <li><a href="/admin/auth/user/{{ user.id }}/password/"><span class="glyphicon glyphicon-lock"></span> Change password</a></li> -->
               <li><a href="/users/editpw"><span class="glyphicon glyphicon-lock"></span> Change my password</a></li>
@@ -416,9 +427,12 @@
       <div class="container-fluid">
         <div class="col-sm-6">
           <span class="text-muted">PatrOwl Manager 2018-2020 - version: {{ PATROWL_VERSION }}</span>
-          <a href="https://github.com/Patrowl/PatrowlManager"><i class="text-muted fab fa-github fa-lg" aria-hidden="true"></i></a>
-          <a href="https://twitter.com/patrowl_io"><i class="text-muted fab fa-twitter fa-lg" aria-hidden="true"></i></a>
-          <a href="https://www.linkedin.com/company/patrowl/"><i class="text-muted fab fa-linkedin fa-lg" aria-hidden="true"></i></a>
+          <a href="https://github.com/Patrowl/PatrowlManager"><i class="text-muted fab fa-github fa-lg"></i></a>
+          <a href="https://twitter.com/patrowl_io"><i class="text-muted fab fa-twitter fa-lg"></i></a>
+          <a href="https://www.linkedin.com/company/patrowl/"><i class="text-muted fab fa-linkedin fa-lg"></i></a>
+          {% if PRO_EDITION == False %}
+            <a href="https://patrowl.io/get-started"><span class="label label-warning">Pro Edition available</span></a>
+          {% endif %}
         </div>
         {% if user.is_authenticated %}
         <div class="col-sm-6">
