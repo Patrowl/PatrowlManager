@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
@@ -155,7 +155,7 @@ def enginepolicyscope_delete_log(sender, **kwargs):
 
 class EnginePolicy(models.Model):
     engine      = models.ForeignKey(Engine, on_delete=models.CASCADE)
-    owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     name        = models.CharField(max_length=200)
     default     = models.BooleanField(default=False)
     description = models.CharField(max_length=200)

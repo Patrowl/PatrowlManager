@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 from django.conf import settings
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from celery import shared_task
 from celery.task.control import revoke
@@ -250,7 +250,7 @@ def importfindings_task(self, report_filename, owner_id, engine, min_level):
                                        summary=summary,
                                        engine_type=nessus_engine,
                                        engine_policy=nessus_import_policy,
-                                       owner=User.objects.filter(id=owner_id).first(),
+                                       owner=get_user_model().objects.filter(id=owner_id).first(),
                                        scan_definition=scan_definition)
             scan.save()
             _import_findings(findings=data, scan=scan)
@@ -735,7 +735,7 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
         else:
             name = asset_value
             criticity = 'medium'
-            owner = User.objects.filter(username='admin').first()
+            owner = get_user_model().objects.filter(username='admin').first()
     else:
         if net.is_valid_ip(asset_value):
             asset_type = "ip"
@@ -747,7 +747,7 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
             asset_type = "keyword"  # default :/
         name = asset_value
         criticity = 'medium'
-        owner = User.objects.filter(username='admin').first()
+        owner = get_user_model().objects.filter(username='admin').first()
 
     # Create the new asset ...
     asset_args = {

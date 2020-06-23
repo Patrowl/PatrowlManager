@@ -3,7 +3,7 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
@@ -78,7 +78,7 @@ class RawFinding(models.Model):
     asset_name  = models.CharField(max_length=256)
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
     scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE)
-    owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    owner       = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256)
     type        = models.CharField(max_length=50)
     hash        = models.CharField(max_length=256, default='')
@@ -174,7 +174,7 @@ class Finding(models.Model):
     asset_name  = models.CharField(max_length=256) #todo: delete this
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
     scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE, blank=True, null=True)
-    owner       = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    owner       = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     title       = models.CharField(max_length=256, default='title')
     type        = models.CharField(max_length=50)
     hash        = models.CharField(max_length=256)

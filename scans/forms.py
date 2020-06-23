@@ -53,15 +53,13 @@ class ScanCampaignForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea,
             'enabled': forms.CheckboxInput(),
-            # 'scheduled_at': DateTimeWidget(attrs={'id':"id_scheduled_at"}, options=dateTimeOptions, usel10n=True)
         }
 
     scan_def_list = forms.CharField(label="Select scans")
-    # scan_type = forms.CharField(widget=forms.Select(choices=SCAN_TYPES))
-    # period = forms.CharField(widget=forms.Select(choices=PERIOD_CHOICES))
     scheduled_at = forms.DateTimeField(required=False, widget=DateTimeWidget(attrs={'id':"id_scheduled_at"}, options=dateTimeOptions, usel10n=True))
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(ScanCampaignForm, self).__init__(*args, **kwargs)
 
         oid = None
@@ -79,19 +77,13 @@ class ScanDefinitionForm(forms.ModelForm):
         fields = ['scan_type', 'title', 'engine', 'engine_policy',
                   'description', 'every', 'period', 'enabled',
                   'scheduled_at', 'assetgroups_list', 'assets_list']
-        # exclude = ('scheduled_at',)
         widgets = {
-            # 'scan_definition_id': forms.HiddenInput(),
-            # 'owner_id': forms.HiddenInput(),
             'title': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
             'enabled': forms.CheckboxInput(attrs={'checked': '', 'class': 'form-control form-control-sm'}),
             'scheduled_at': DateTimeWidget(attrs={'id': "id_scheduled_at", 'class': 'form-control form-control-sm'}, options=dateTimeOptions)
         }
 
-    # engine_type = forms.CharField(widget=forms.Select(choices=engines))
-    # engine_policy_id = forms.IntegerField(widget=forms.Select(choices=policies))
-    # period = forms.CharField(widget=forms.Select(choices=PERIOD_CHOICES))
     scan_type = forms.CharField(widget=forms.Select(choices=SCAN_TYPES, attrs={'class': 'form-control form-control-sm'}))
 
     def clean(self):
@@ -107,7 +99,6 @@ class ScanDefinitionForm(forms.ModelForm):
         policies = [(policy.id, policy.name) for policy in EnginePolicy.objects.all().only("name")]
         self.fields['engine_policy'].widget = forms.RadioSelect(choices=policies)
 
-        # assets = [(asset.id, asset.value) for asset in Asset.objects.all().only('id', 'value')]
         assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all().only('id', 'value')]
         self.fields['assets_list'].widget = forms.CheckboxSelectMultiple(choices=assets)
 

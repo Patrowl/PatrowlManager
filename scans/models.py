@@ -1,8 +1,10 @@
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
+from django.db.models import Q
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django_celery_beat.models import PeriodicTask
@@ -27,7 +29,25 @@ SCAN_TYPES = (
 )
 
 
+class ScanDefinitionManager(models.Manager):
+    """Class definition of ScanDefinitionManager."""
+
+    def for_user(self, user):
+        """Check if user is allowed to manage the object."""
+        if settings.PRO_EDITION and not user.is_superuser:
+            return super().get_queryset().filter(
+                Q(teams__in=user.users_team.all(), teams__is_active=True) |
+                Q(owner=user)
+            )
+        return super().get_queryset()
+
+
 class ScanDefinition(models.Model):
+
+    # Manager
+    objects = ScanDefinitionManager()
+
+    # Attributes
     scan_type        = models.CharField(choices=SCAN_TYPES, default='single', max_length=10)
     assets_list      = models.ManyToManyField('assets.Asset',  blank=True)
     assetgroups_list = models.ManyToManyField('assets.AssetGroup', blank=True)
@@ -42,12 +62,13 @@ class ScanDefinition(models.Model):
     engine_type      = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
     engine           = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL) #Force scan instance
     engine_policy    = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
-    owner            = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner            = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     timeout_delay    = models.IntegerField(null=True, blank=True)
     scheduled_at     = models.DateTimeField(null=True, blank=True)
     expire_at        = models.DateTimeField(null=True, blank=True)
     created_at       = models.DateTimeField(default=timezone.now)
     updated_at       = models.DateTimeField(default=timezone.now)
+    teams            = models.ManyToManyField('users.team', blank=True)
 
     class Meta:
         db_table = 'scan_definitions'
@@ -59,6 +80,7 @@ class ScanDefinition(models.Model):
         data = model_to_dict(self, exclude=["assets_list", "assetgroups_list"])
         data.update({"assets_list": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets_list.all()]})
         data.update({"assetgroups_list": [model_to_dict(a, fields=["id", "name"]) for a in self.assetgroups_list.all()]})
+        data.update({"teams": [model_to_dict(t, fields=["name", "id"]) for t in self.teams.all()]})
         return json.loads(json.dumps(data, default=json_serial))
 
     def save(self, *args, **kwargs):
@@ -96,7 +118,7 @@ class Scan(models.Model):
     engine          = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL)
     engine_type     = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
     engine_policy   = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
-    owner           = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner           = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     summary         = JSONField(null=True, blank=True)
     timeout_delay   = models.IntegerField(null=True, blank=True)
     report_filepath = models.CharField(max_length=256, null=True, blank=True)        # /media/reports/2/nmap/nmap_6054be57-1ce9-493e-9801-9cb049e3672.json
@@ -167,7 +189,7 @@ class ScanCampaign(models.Model):
     description     = models.CharField(max_length=256)
     enabled         = models.BooleanField(default=False)
     status          = models.CharField(max_length=20)
-    owner           = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner           = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     timeout_delay   = models.IntegerField(null=True, blank=True)
     report_filepath = models.CharField(max_length=256,null=True, blank=True)
     scheduled_at    = models.DateTimeField(null=True, blank=True)

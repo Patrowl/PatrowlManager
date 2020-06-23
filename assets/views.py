@@ -6,7 +6,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Value, CharField, Case, When, Q, F, Count
 
 from django.contrib import messages
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.shortcuts import render, redirect, get_object_or_404
 
