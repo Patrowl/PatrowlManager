@@ -24,7 +24,7 @@ import json
 
 def detail_scan_view(request, scan_id):
     # todo: optimize that shit
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     scan.update_sumary()
     scan.save()
 
@@ -174,7 +174,7 @@ def detail_scan_view(request, scan_id):
 
 def list_scans_view(request):
     """List performed scans."""
-    scan_list = Scan.objects.all().annotate(
+    scan_list = Scan.objects.for_user(request.user).all().annotate(
         scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
         ).only(
         "engine_type", "title", "status", "summary", "updated_at"
@@ -194,7 +194,7 @@ def list_scans_view(request):
 # Scan Definitions
 def list_scan_def_view(request):
     scans = Scan.objects.all()
-    scan_defs_all = ScanDefinition.objects.all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
+    scan_defs_all = ScanDefinition.objects.for_user(request.user).all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
 
     # Pagination of findings
     nb_items = int(request.GET.get('n', 50))
@@ -212,7 +212,7 @@ def list_scan_def_view(request):
 
 
 def delete_scan_def_view(request, scan_def_id):
-    scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
+    scan_definition = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_def_id)
 
     if request.method == 'POST':
         if scan_definition.scan_type == "periodic":
@@ -243,6 +243,8 @@ def add_scan_def_view(request):
     scan_policies = EnginePolicy.objects.all().prefetch_related("engine", "scopes").order_by(Lower('name'))
     scan_engines = Engine.objects.all().exclude(name__in=["MANUAL", "SKELETON"]).order_by('name').values()
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
+    # teams_json = json.dumps(list(request.user.users_team.values('id', 'name')))
+    teams_list = request.user.users_team.values('id', 'name')
 
     scan_policies_json = []
     for p in scan_policies:
@@ -270,7 +272,6 @@ def add_scan_def_view(request):
             scan_definition.scan_type = form.cleaned_data['scan_type']
             scan_definition.title = form.cleaned_data['title']
             scan_definition.description = form.cleaned_data['description']
-            # scan_definition.owner = User.objects.get(id=request_user_id)
             scan_definition.owner = request.user
             scan_definition.status = "created"
             scan_definition.enabled = form.data['start_scan'] == "now"
@@ -297,6 +298,10 @@ def add_scan_def_view(request):
                 scan_definition.engine = EngineInstance.objects.get(id=int(form.data['engine_id']))
 
             scan_definition.save()
+
+            # Check and add team
+            if form.data['scan_team'] == 'yes':
+                scan_definition.teams.add(request.user.users_team.get(id=form.data['scan_team_list']))
 
             assets_list = []
             for asset_id in form.data.getlist('assets_list'):
@@ -383,7 +388,9 @@ def add_scan_def_view(request):
         'scan_engines_json': scan_engines_json,
         'scan_cats': scan_cats,
         'scan_policies_json': json.dumps(scan_policies_json),
-        'scan_policies': scan_policies})
+        'scan_policies': scan_policies,
+        'teams_list': teams_list
+    })
 
 
 def edit_scan_def_view(request, scan_def_id):
@@ -393,6 +400,7 @@ def edit_scan_def_view(request, scan_def_id):
     scan_policies = list(EnginePolicy.objects.all().prefetch_related("engine", "scopes"))
     scan_engines = Engine.objects.all().exclude(name__in=["MANUAL", "SKELETON"]).values()
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
+    teams_list = request.user.users_team.values('id', 'name')
 
     scan_policies_json = []
     for p in scan_policies:
@@ -419,6 +427,12 @@ def edit_scan_def_view(request, scan_def_id):
             else:
                 scan_definition.engine = None
 
+            # Check and add team
+            scan_definition.teams.clear()
+            if form.data['scan_team'] == 'yes':
+                scan_definition.teams.add(request.user.users_team.get(id=form.data['scan_team_list']))
+
+            # Update assets
             scan_definition.assets_list.clear()
             scan_definition.assetgroups_list.clear()
             assets_list = []
@@ -506,12 +520,14 @@ def edit_scan_def_view(request, scan_def_id):
         'scan_engines_json': scan_engines_json,
         'scan_cats': scan_cats,
         'scan_policies_json': json.dumps(scan_policies_json),
-        'scan_policies': scan_policies})
+        'scan_policies': scan_policies,
+        'teams_list': teams_list
+    })
 
 
 def detail_scan_def_view(request, scan_definition_id):
     """Details of a scan definition."""
-    scan_def = get_object_or_404(ScanDefinition, id=scan_definition_id)
+    scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_definition_id)
     scan_list = scan_def.scan_set.order_by('-finished_at')
 
     paginator = Paginator(scan_list, 20)
@@ -529,8 +545,8 @@ def detail_scan_def_view(request, scan_definition_id):
 def compare_scans_view(request):
     scan_a_id = request.GET.get("scan_a_id", None)
     scan_b_id = request.GET.get("scan_b_id", None)
-    scan_a = get_object_or_404(Scan, id=scan_a_id)
-    scan_b = get_object_or_404(Scan, id=scan_b_id)
+    scan_a = get_object_or_404(Scan.objects.for_user(request.user), id=scan_a_id)
+    scan_b = get_object_or_404(Scan.objects.for_user(request.user), id=scan_b_id)
 
     scan_a_missing_findings = list(
         scan_b.rawfinding_set.all().values_list("id", flat=True).exclude(

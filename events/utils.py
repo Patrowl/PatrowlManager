@@ -27,8 +27,14 @@ def new_finding_alert(finding_id, severity="info"):
             "scan_id": finding.scan.id,
             "asset_name": finding.asset_name,
             "asset_id": asset_id
-        }
+        },
+        owner=finding.owner
     )
+    if finding.asset.teams.count() > 0:
+        for team in finding.asset.teams.all():
+            alert.teams.add(team)
+        alert.save()
+
     return alert
 
 
@@ -56,6 +62,11 @@ def missing_finding_alert(finding_id, scan_id, severity="info"):
             "scan_id": scan_id,
             "asset_name": rawfinding.asset_name,
             "asset_id": asset_id
-        }
+        },
+        owner=rawfinding.owner
     )
+    if rawfinding.asset.teams.count() > 0:
+        for team in rawfinding.asset.teams.all():
+            alert.teams.add(team)
+        alert.save()
     return alert

@@ -41,5 +41,8 @@ class AlertSerializer(serializers.ModelSerializer):
 
 
 class AlertListCreate(generics.ListCreateAPIView):
-    queryset = Alert.objects.all()
+    # queryset = Alert.objects.all()
     serializer_class = AlertSerializer
+
+    def get_queryset(self):
+        return Alert.objects.for_user(self.request.user).all().order_by('-id')

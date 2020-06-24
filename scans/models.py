@@ -108,7 +108,24 @@ def scandef_delete_log(sender, **kwargs):
                  type="DELETE", severity="DEBUG")
 
 
+class ScanManager(models.Manager):
+    """Class definition of ScanManager."""
+
+    def for_user(self, user):
+        """Check if user is allowed to manage the object."""
+        if settings.PRO_EDITION and not user.is_superuser:
+            return super().get_queryset().filter(
+                Q(scan_definition__teams__in=user.users_team.all(), scan_definition__teams__is_active=True) |
+                Q(owner=user)
+            )
+        return super().get_queryset()
+
+
 class Scan(models.Model):
+    # Manager
+    objects = ScanManager()
+
+    # Attributes
     scan_settings   = models.CharField(max_length=256, null=True, blank=True)
     scan_definition = models.ForeignKey(ScanDefinition, null=True, on_delete=models.CASCADE)
     assets          = models.ManyToManyField('assets.Asset')
@@ -155,11 +172,11 @@ class Scan(models.Model):
             "total": raw_findings.count(),
             "critical": raw_findings.filter(severity='critical').count(),
             "high":  raw_findings.filter(severity='high').count(),
-            "medium":raw_findings.filter(severity='medium').count(),
+            "medium": raw_findings.filter(severity='medium').count(),
             "low":   raw_findings.filter(severity='low').count(),
             "info":  raw_findings.filter(severity='info').count(),
             "new":   self.finding_set.count(),
-            "missing": 0 #todo
+            "missing": 0  # todo
         }
 
         return self.summary

@@ -2,7 +2,10 @@
 
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.db.models import Q
+from django.conf import settings
 from app.settings import LOGGING_LEVEL
 
 SEVERITY_LEVELS = (
@@ -81,13 +84,34 @@ ALERT_STATUSES = (
 )
 
 
+class AlertManager(models.Manager):
+    """Class definition of AlertManager."""
+
+    def for_user(self, user):
+        """Check if user is allowed to manage the object."""
+        if settings.PRO_EDITION and not user.is_superuser:
+            return super().get_queryset().filter(
+                Q(teams__in=user.users_team.all(), teams__is_active=True) |
+                Q(owner=user)
+            )
+        return super().get_queryset()
+
+
 class Alert(models.Model):
+    """Class definition of Alert."""
+
+    # Manager
+    objects = AlertManager()
+
+    # Attributes
     message = models.CharField(max_length=250)
     severity = models.CharField(choices=ALERT_SEVERITIES, default='info', max_length=10)
     status = models.CharField(choices=ALERT_STATUSES, default='new', max_length=10)
     metadata = JSONField(default=dict)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
+    teams = models.ManyToManyField('users.team', blank=True)
 
     class Meta:
         db_table = 'alerts'

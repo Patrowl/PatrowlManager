@@ -4,9 +4,10 @@ from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Value, CharField, Case, When, Q, F, Count
+from django.conf import settings
 
 from django.contrib import messages
-# from django.contrib.auth.models import User
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -16,11 +17,13 @@ from .models import ASSET_INVESTIGATION_LINKS
 from findings.models import Finding
 from engines.models import EnginePolicyScope
 from scans.models import Scan, ScanDefinition
-from common.utils import encoding
+from common.utils import encoding, pro_permission_required, pro_group_required
 
 import csv
 import copy
 
+# @pro_permission_required('assets.view_asset')
+# @pro_group_required('AssetsViewer', 'AssetsManager')
 def list_assets_view(request):
     # Check sorting options
     allowed_sort_options = ["id", "name", "criticity_num", "score", "type",

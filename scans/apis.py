@@ -2,7 +2,7 @@
 
 from django.http import JsonResponse, HttpResponse
 from wsgiref.util import FileWrapper
-from django.utils import timezone as tz
+# from django.utils import timezone as tz
 
 from django.shortcuts import render, get_object_or_404
 from django.forms.models import model_to_dict
@@ -30,7 +30,7 @@ import tzlocal
 def get_scan_definitions_api(request):
     """Get scan definitions."""
     scans_list = []
-    for scan in ScanDefinition.objects.all():
+    for scan in ScanDefinition.objects.for_user(request.user).all():
         scans_list.append(scan.to_dict())
     return JsonResponse(scans_list, safe=False)
 
@@ -38,14 +38,14 @@ def get_scan_definitions_api(request):
 @api_view(['GET'])
 def get_scan_definition_api(request, scan_id):
     """Get selected scan."""
-    scan = get_object_or_404(ScanDefinition, id=scan_id)
+    scan = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
     return JsonResponse(scan.to_dict(), safe=False)
 
 
 @api_view(['GET'])
 def export_scan_definition_api(request, scan_id):
     """Get selected scan."""
-    scan = get_object_or_404(ScanDefinition, id=scan_id)
+    scan = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
     response = JsonResponse(scan.to_dict())
     response['Content-Disposition'] = 'attachment; filename=scandef_'+str(scan.id)+'.json'
     return response
@@ -55,7 +55,7 @@ def export_scan_definition_api(request, scan_id):
 def export_scan_definitions_api(request):
     """Get selected scan."""
     scans_list = []
-    for scan in ScanDefinition.objects.all():
+    for scan in ScanDefinition.objects.for_user(request.user).all():
         scans_list.append(scan.to_dict())
     response = JsonResponse(scans_list, safe=False)
     response['Content-Disposition'] = 'attachment; filename=scandefs'
@@ -65,7 +65,7 @@ def export_scan_definitions_api(request):
 @api_view(['GET'])
 def get_scan_api(request, scan_id):
     """Get selected scan."""
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     return JsonResponse(scan.to_dict(), safe=False)
 
 
@@ -81,7 +81,7 @@ def get_scans_api(request):
 @api_view(['GET', 'DELETE'])
 def delete_scan_api(request, scan_id):
     """Delete selected scan."""
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     scan.delete()
     return JsonResponse({'status': 'success'})
 
@@ -91,14 +91,14 @@ def delete_scans_api(request):
     """Delete selected scans."""
     scans = request.data
     for scan_id in scans:
-        Scan.objects.get(id=scan_id).delete()
+        Scan.objects.for_user(request.user).get(id=scan_id).delete()
     return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET', 'DELETE'])
 def delete_scan_def_api(request, scan_id):
     """Delete selected scan defs."""
-    scan = get_object_or_404(ScanDefinition, id=scan_id)
+    scan = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
     scan.delete()
     return JsonResponse({'status': 'success'})
 
@@ -108,14 +108,14 @@ def delete_scan_defs_api(request):
     """Delete selected scan defs."""
     scans = request.data
     for scan_id in scans:
-        ScanDefinition.objects.get(id=scan_id).delete()
+        ScanDefinition.objects.for_user(request.user).get(id=scan_id).delete()
     return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])
 def stop_scan_api(request, scan_id):
     """Stop a scan."""
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     scan.status = "stopping"
     scan.save()
     stopscan_task.apply_async(
@@ -130,7 +130,7 @@ def stop_scans_api(request):
     scans = request.data
     for scan_id in scans:
         try:
-            scan = Scan.objects.get(id=scan_id)
+            scan = Scan.objects.for_user(request.user).get(id=scan_id)
         except Scan.DoesNotExist:
             continue
 
@@ -151,7 +151,7 @@ def get_scans_stats_api(request):
     scope = request.GET.get('scope', None)
     data = {}
     if not scope:
-        scan_defs = ScanDefinition.objects.all()
+        scan_defs = ScanDefinition.objects.for_user(request.user).all()
         data = {
             "nb_scans_defined": scan_defs.count(),
             "nb_scans_performed": Scan.objects.all().count(),
@@ -177,7 +177,7 @@ def get_scans_stats_api(request):
 @api_view(['GET'])
 def get_scans_heatmap_api(request):
     data = {}
-    for scan in Scan.objects.all():
+    for scan in Scan.objects.for_user(request.user).all():
         data.update({scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%s"): 1})
     return JsonResponse(data)
 
@@ -225,7 +225,7 @@ def get_scans_by_date_api(request):
     elif scope == "month":
         stop_date = date + timedelta(days=30)
 
-    scans = Scan.objects.filter(updated_at__gte=date, updated_at__lte=stop_date)
+    scans = Scan.objects.for_user(request.user).filter(updated_at__gte=date, updated_at__lte=stop_date)
 
     for scan in scans:
         updated_at = scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%Y-%m-%d %H:%M:%S")
@@ -247,7 +247,7 @@ def get_scans_by_date_api(request):
 
 @api_view(['GET'])
 def get_scan_report_html_api(request, scan_id):
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     tmp_scan = model_to_dict(scan)
     tmp_scan['assets'] = []
     for asset in scan.assets.all():
@@ -303,7 +303,7 @@ def get_scan_report_html_api(request, scan_id):
 
 @api_view(['GET'])
 def get_scan_report_json_api(request, scan_id):
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
 
     filename = str(scan.report_filepath)
     if not os.path.isfile(filename):
@@ -319,7 +319,7 @@ def get_scan_report_json_api(request, scan_id):
 
 @api_view(['GET'])
 def get_scan_report_csv_api(request, scan_id):
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=report_{}.csv'.format(scan_id)
 
@@ -351,7 +351,7 @@ def get_scan_report_csv_api(request, scan_id):
 
 @api_view(['GET'])
 def send_scan_reportzip_api(request, scan_id):
-    scan = get_object_or_404(Scan, id=scan_id)
+    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
 
     filename = str(scan.report_filepath)
     temp = tempfile.TemporaryFile()
@@ -369,7 +369,7 @@ def send_scan_reportzip_api(request, scan_id):
 @csrf_exempt
 @api_view(['GET'])
 def toggle_scan_def_status_api(request, scan_def_id):
-    scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
+    scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_def_id)
     scan_def.enabled = not scan_def.enabled
     scan_def.save()
 
@@ -390,7 +390,7 @@ def toggle_scan_def_status_api(request, scan_def_id):
 
 @api_view(['GET'])
 def run_scan_def_api(request, scan_def_id):
-    scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
+    scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_def_id)
 
     if scan_def.scan_type in ["single", "scheduled"]:
         _run_scan(scan_def_id, request.user.id)

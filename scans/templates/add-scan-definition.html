@@ -57,7 +57,8 @@ label.radio {
 
 <ul class="breadcrumb">
   <li><a href="{% url 'list_scans_view' %}">scans</a></li>
-  <li class="active">add new scan</li>
+  <li><a href="{% url 'list_scan_def_view' %}">definition</a></li>
+  <li class="active">Add new scan</li>
 </ul>
 
 <div class="container">
@@ -84,8 +85,8 @@ label.radio {
     <!-- Scan Type -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_scan_type">Scan Type</label>
-      <div class="col-sm-4">
-        <div class="col-sm-6 no_padding">
+      <div class="col-sm-5">
+        <div class="col-sm-5 no_padding">
           <div class="btn-group btn-group-sm btn-scantype" data-toggle="buttons">
             <label class="btn btn-success active" id="lbl_scan_type_ondemand">
               <input type="radio" name="scan_type" value="single" id="id_scan_type_ondemand" autocomplete="off" checked="checked"> On-demand
@@ -93,20 +94,21 @@ label.radio {
             <label class="btn btn-primary" id="lbl_scan_type_periodic">
               <input type="radio" name="scan_type" value="periodic" id="id_scan_type_periodic" autocomplete="off"> Periodical
             </label>
-
           </div>
         </div>
         <!-- Periodicity options -->
-        <div class="col-sm-3 no_padding">
-          <input class="form-control form-control-sm" type="text" placeholder="freq." id="id_scan_periodic_freq" name="every" disabled>
-        </div>
-        <div class="col-sm-3 no_padding">
-          <select class="form-control form-control-sm" id="id_scan_periodic_period" name="period" disabled>
-            <option value="days">Days</option>
-            <option value="hours">Hours</option>
-            <option value="minutes">Minutes</option>
-            <option value="seconds">Seconds</option>
-          </select>
+        <div class="col-sm-7">
+          <div class="col-sm-6 no_padding">
+            <input class="form-control form-control-sm" type="text" placeholder="freq." id="id_scan_periodic_freq" name="every" disabled>
+          </div>
+          <div class="col-sm-6 no_padding">
+            <select class="form-control form-control-sm" id="id_scan_periodic_period" name="period" disabled>
+              <option value="days">Days</option>
+              <option value="hours">Hours</option>
+              <option value="minutes">Minutes</option>
+              <option value="seconds">Seconds</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -130,6 +132,30 @@ label.radio {
         </div>
         <div class="col-sm-5 controls input-append date no_padding" id="id_scheduled_at_div" >
           <input id="id_scheduled_at" name="scheduled_at" type="text" class="form-control form-control-sm" placeholder="pick a date" disabled/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team selection -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_teams_list">Share with team:</label>
+      <div class="col-sm-5 has-feedback">
+        <div class="col-sm-3 no_padding">
+          <div class="btn-group btn-group-sm btn-scanteam" data-toggle="buttons">
+            <label class="btn btn-success active" id="lbl_scan_team_no">
+              <input type="radio" name="scan_team" value="no" id="id_scan_team_no" autocomplete="off" checked="checked"> No
+            </label>
+            <label class="btn btn-primary" id="lbl_scan_team_yes">
+              <input type="radio" name="scan_team" value="yes" id="id_scan_team_yes" autocomplete="off"> Yes
+            </label>
+          </div>
+        </div>
+        <div class="col-sm-9 no_padding">
+          <select class="form-control form-control-sm" id="id_scan_team_list" name="scan_team_list" disabled>
+            {% for team in teams_list %}
+            <option value="{{team.id}}">{{team.name}}</option>
+            {% endfor %}
+          </select>
         </div>
       </div>
     </div>
@@ -229,7 +255,7 @@ label.radio {
   _id_asset = 1;
   $(function() {
 
-    // toggle scan type radio buttons styles
+    // Toggle scan type radio buttons styles
     $('div.btn-scantype').click(function (e) {
       if (e.target.id != $('div.btn-scantype label.active').attr('id')){
         $('div.btn-scantype label:not(.active) input').attr("checked", "checked");
@@ -249,8 +275,27 @@ label.radio {
         }
       }
     });
+    // Toggle scan team selection radio buttons styles
+    $('div.btn-scanteam').click(function (e) {
+      if (e.target.id != $('div.btn-scanteam label.active').attr('id')){
+        $('div.btn-scanteam label:not(.active) input').attr("checked", "checked");
+        $('div.btn-scanteam label.active input').removeAttr("checked", "checked");
 
-    // toggle scan start radio buttons styles
+        $('div.btn-scanteam label.active').removeClass("btn-success");
+        $('div.btn-scanteam label.active').addClass("btn-primary");
+        $('div.btn-scanteam label:not(.active)').removeClass("btn-primary");
+        $('div.btn-scanteam label:not(.active)').addClass("btn-success");
+
+        if (e.target.id == "lbl_scan_team_yes"){
+          $('#id_scan_team_list').removeAttr("disabled");
+        } else {
+          $('#id_scan_team_list').attr("disabled","disabled");
+        }
+
+      }
+    });
+
+    // Toggle scan start radio buttons styles
     $('div.btn-scanrun').click(function (e) {
       if (e.target.id != $('div.btn-scanrun label.active').attr('id')){
         $('div.btn-scanrun label input').removeAttr("checked", "checked");
@@ -270,7 +315,7 @@ label.radio {
       }
     });
 
-    // datepicker for scheduled scans
+    // Datepicker for scheduled scans
     $("#id_scheduled_at").datetimepicker({
       minuteStep: 5,
       autoclose: true,
@@ -392,7 +437,7 @@ label.radio {
         }
       }
 
-      //list policies with matching categoryId
+      // List policies with matching categoryId
       labels = $("#policies-div").find('div > label');
       for (i = 0; i < labels.length; ++i){
         if (hidden_policies_by_engine.indexOf(parseInt($(labels[i]).attr('label-id'))) > -1){
@@ -403,7 +448,7 @@ label.radio {
       }
     }); //End of $('#engine-buttons').bind('change')
 
-    // unhide the engine select until a scan policy is selected
+    // Unhide the engine select until a scan policy is selected
     $("#policies-div").change(function(e){
       $('#engine-div').removeClass('hidden');
       $('div.submit-div').removeClass('hidden');

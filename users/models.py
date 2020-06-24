@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils import timezone
-# from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
@@ -20,11 +19,22 @@ USER_STATUS = (
 
 
 class Profile(models.Model):
-    # user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # MANAGER = 1
+    # ANALYST = 2
+    # AUDITOR = 3
+    #
+    # ROLE_CHOICES = (
+    #     (MANAGER, 'Manager'),
+    #     (ANALYST, 'Analyst'),
+    #     (AUDITOR, 'Auditor'),
+    # )
+    #
+    # role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, default=ANALYST, blank=True, null=True)
+
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     status = models.CharField(choices=USER_STATUS, default='ACTIVE', max_length=10)
-    bio = models.TextField(max_length=500, blank=True)
-    department = models.CharField(max_length=100, blank=True)
+    # bio = models.TextField(max_length=500, blank=True)
+    # department = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -40,7 +50,6 @@ class Profile(models.Model):
         return self
 
 
-# @receiver(post_save, sender=User)
 @receiver(post_save, sender=get_user_model())
 def create_user_profile(sender, instance, created, **kwargs):
     from events.models import Event
@@ -50,13 +59,11 @@ def create_user_profile(sender, instance, created, **kwargs):
                              type="CREATE", severity="DEBUG")
 
 
-# @receiver(post_save, sender=User)
 @receiver(post_save, sender=get_user_model())
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-# @receiver(post_delete, sender=User)
 @receiver(post_delete, sender=get_user_model())
 def delete_user_profile(sender, **kwargs):
     from events.models import Event

@@ -23,14 +23,14 @@ def homepage_dashboard_view(request):
     global_stats = {
         "assets": {
             "total": assets.count(),
-            "total_ag": AssetGroup.objects.all().count(),
+            "total_ag": AssetGroup.objects.for_user(request.user).all().count(),
         },
         "asset_types": {},
         "findings": {},
         "scans": {
-            "defined": ScanDefinition.objects.all().count(),
-            "performed": Scan.objects.all().count(),
-            "active_periodic": ScanDefinition.objects.filter(enabled=True, scan_type='periodic').count(),
+            "defined": ScanDefinition.objects.for_user(request.user).all().count(),
+            "performed": Scan.objects.for_user(request.user).all().count(),
+            "active_periodic": ScanDefinition.objects.for_user(request.user).filter(enabled=True, scan_type='periodic').count(),
         },
         "engines": {
             "total": EngineInstance.objects.all().count(),
@@ -95,7 +95,7 @@ def homepage_dashboard_view(request):
     last_findings = Finding.objects.for_user(request.user).all().order_by('-id')[:6][::-1]
 
     # Last 6 scans
-    last_scans = Scan.objects.all().order_by('-started_at')[:6]
+    last_scans = Scan.objects.for_user(request.user).all().order_by('-started_at')[:6]
 
     # Asset grades repartition and TOP 10
     asset_grades_map = {
@@ -131,7 +131,7 @@ def homepage_dashboard_view(request):
 
     # Asset groups
     assetgroups_risk_scores = {}
-    ags = AssetGroup.objects.all().only("risk_level", "criticity", "id", "name")
+    ags = AssetGroup.objects.for_user(request.user).all().only("risk_level", "criticity", "id", "name")
     for assetgroup in ags:
         assetgroup_grades_map[assetgroup.risk_level["grade"]].update({
             assetgroup.criticity: assetgroup_grades_map[assetgroup.risk_level["grade"]][assetgroup.criticity] + 1

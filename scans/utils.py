@@ -138,9 +138,9 @@ def _search_scans(request):
             excludes.update({"status__{}".format(filter_by_status_cond[4:]): filter_by_status})
 
     if str(filter_limit).isdigit():
-        scans = Scan.objects.filter(**filters).exclude(**excludes)[:int(filter_limit)]
+        scans = Scan.objects.for_user(request.user).filter(**filters).exclude(**excludes)[:int(filter_limit)]
     else:
-        scans = Scan.objects.filter(**filters).exclude(**excludes)
+        scans = Scan.objects.for_user(request.user).filter(**filters).exclude(**excludes)
 
     return scans
 
@@ -182,6 +182,9 @@ def _add_scan_def(params, owner):
         scan_definition.engine = EngineInstance.objects.get(id=params['engine_id'])
 
     scan_definition.save()
+
+    if "teams" in params.keys():
+        scan_definition.teams.add(owner.users_team.get(id=params['teams']))
 
     assets_list = []
     if "assets" in params.keys():

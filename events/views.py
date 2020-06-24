@@ -25,10 +25,10 @@ def list_alerts_view(request):
     severity = request.GET.get('severity', "")
     alerts_list = []
     if status in ["archived", "read", "new"]:
-        alerts_list = Alert.objects.filter(status=status).order_by('-updated_at')
+        alerts_list = Alert.objects.for_user(request.user).filter(status=status).order_by('-updated_at')
     else:
         # alerts_list = Alert.objects.all().order_by('-updated_at')
-        alerts_list = Alert.objects.filter(status__in=["new", "read"]).order_by('-updated_at')
+        alerts_list = Alert.objects.for_user(request.user).filter(status__in=["new", "read"]).order_by('-updated_at')
 
     if severity in ["info", "low", "medium", "high", "critical"]:
         alerts_list = alerts_list.filter(severity=severity)
