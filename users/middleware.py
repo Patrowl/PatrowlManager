@@ -42,9 +42,6 @@ class RequireLoginMiddleware(object):
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         # No need to process URLs if user already logged in
-        print("coucouc")
-        print(request.user)
-        print(request.user.__dict__)
         if request.user.is_authenticated:
             return None
 
