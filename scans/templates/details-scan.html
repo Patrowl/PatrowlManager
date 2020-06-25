@@ -425,6 +425,7 @@ function toggle(source, element) {
           {% endif %}
         </dd>
         <dt>Policy:</dt><dd><a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a></dd>
+        <dt>Teams</dt><dd>{{ scan.scan_definition.teams.all|join:", " }}</dd>
         <dt>Started at:</dt><dd>{{ scan.started_at|date:"Y/m/d\-H:i:s" }}</dd>
         <dt>Finished at:</dt><dd>{{ scan.finished_at|date:"Y/m/d\-H:i:s" }}</dd>
         <dt>Elapsed:</dt><dd>{{ scan.finished_at|get_time_diff:scan.started_at }}</dd>

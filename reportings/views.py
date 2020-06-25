@@ -1,11 +1,12 @@
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.db.models import Q, Count, Case, When, Sum
 from django.db.models.functions import Coalesce
 from django.db import models
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.shortcuts import render
 
 from assets.models import Asset, AssetGroup, ASSET_TYPES
-from findings.models import Finding, RawFinding
+from findings.models import Finding
 from scans.models import Scan, ScanDefinition
 from engines.models import EngineInstance, EnginePolicy
 from rules.models import Rule
@@ -17,6 +18,8 @@ import copy
 import ast
 
 
+
+@login_required
 def homepage_dashboard_view(request):
     findings = Finding.objects.for_user(request.user).all().only("status", "severity")
     assets = Asset.objects.for_user(request.user).all()

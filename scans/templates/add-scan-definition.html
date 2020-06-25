@@ -2,52 +2,15 @@
 {% block content %}
 
 <style>
-.no_padding {
-    padding-left: 0px;
-    padding-right: 0px;
-}
-
 
 #scrollable-dropdown-menu .tt-dropdown-menu {
   max-height: 150px;
   overflow-y: auto;
 }
 
-.twitter-typeahead, .tt-hint, .tt-input, .tt-menu { width: 100%; }
-
-.tt-query {
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-}
-
-.tt-hint {
-    color: #999;
-}
-
-.tt-menu {
-    /* width: 422px; */
-    margin-top: 12px;
-    padding: 8px 0;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 5px 10px rgba(0,0,0,.2);
-}
-
-.tt-suggestion {
-    padding: 3px 20px;
-    /* font-size: 18px; */
-    line-height: 24px;
-}
-
-.tt-suggestion.tt-is-under-cursor {
-    color: #fff;
-    background-color: #0097cf;
-
-}
-
-.tt-suggestion p {
-    margin: 0;
+.no_padding {
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 label.radio {
@@ -253,6 +216,12 @@ label.radio {
 
   _selected_assets = [];
   _id_asset = 1;
+
+  _selected_team = '';
+  function getTeam() {
+    return _selected_team;
+  }
+
   $(function() {
 
     // Toggle scan type radio buttons styles
@@ -327,6 +296,28 @@ label.radio {
       todayHighlight: true
     });
 
+    // Search assets input
+    $(".btn-scanteam").bind('click', function(e){
+      if(e.target.id == 'lbl_scan_team_yes'){
+        _selected_team = $("#id_scan_team_list").val();
+        // Clear assets_list
+        $("input[name='assets_list']").parents('label').remove();
+        $("linput[name='assetgroups_list']").parents('label').remove();
+        _selected_assets = [];
+      } else {
+        _selected_team = '';
+      }
+
+    });
+    $("#id_scan_team_list").bind('change', function(e){
+      _selected_team = $("#id_scan_team_list").val();
+
+      // Clear assets_list
+      $("input[name='assets_list']").parents('label').remove();
+      $("linput[name='assetgroups_list']").parents('label').remove();
+      _selected_assets = [];
+    });
+
     localStorage.clear();
     var assets = new Bloodhound({
       // datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
@@ -335,8 +326,10 @@ label.radio {
       prefetch: "{% url 'list_assets_api' %}",
       ttl:0,
       remote: {
-        url: "{% url 'list_assets_api' %}?q=%QUERY",
-        wildcard: '%QUERY'
+        url: "{% url 'list_assets_api' %}",
+        replace: function(url, uriEncodedQuery) {
+          return (url + "?q=" + encodeURIComponent(uriEncodedQuery) + "&team=" + getTeam())
+        }
       }
     });
 

@@ -151,29 +151,39 @@ def get_asset_trends_api(request, asset_id):
 @api_view(['GET'])
 def list_assets_api(request):
     q = request.GET.get("q", None)
+    team = request.GET.get("team", None)
+
     if q:
-        assets = list(Asset.objects
-            .for_user(request.user)
-            .filter(Q(value__icontains=q) | Q(name__icontains=q))
-            .annotate(format=Value("asset", output_field=CharField()))
-            .values('id', 'value', 'format', 'name'))
-        assetgroups = list(AssetGroup.objects
-            .for_user(request.user)
-            .filter(name__icontains=q)
-            .annotate(value=F("name"))
-            .annotate(format=Value("assetgroup", output_field=CharField()))
-            .values('id', 'value', 'format', 'name'))
+        assets = Asset.objects.for_user(request.user).filter(
+                Q(value__icontains=q) | Q(name__icontains=q)
+            ).annotate(
+                format=Value("asset", output_field=CharField())
+            ).values('id', 'value', 'format', 'name')
+        assetgroups = AssetGroup.objects.for_user(request.user).filter(
+                name__icontains=q
+            ).annotate(
+                value=F("name")
+            ).annotate(
+                format=Value("assetgroup", output_field=CharField())
+            ).values('id', 'value', 'format', 'name')
     else:
-        assets = list(Asset.objects
-            .for_user(request.user)
-            .annotate(format=Value("asset", output_field=CharField()))
-            .values('id', 'value', 'format', 'name'))
-        assetgroups = list(AssetGroup.objects
-            .for_user(request.user)
-            .annotate(value=F("name"))
-            .annotate(format=Value("assetgroup", output_field=CharField()))
-            .values('id', 'value', 'format', 'name'))
-    return JsonResponse(assets + assetgroups, safe=False)
+        assets = Asset.objects.for_user(request.user).annotate(
+                format=Value("asset", output_field=CharField())
+            ).values('id', 'value', 'format', 'name')
+        assetgroups = AssetGroup.objects.for_user(request.user).annotate(
+                value=F("name")
+            ).annotate(
+                format=Value("assetgroup", output_field=CharField())
+            ).values('id', 'value', 'format', 'name')
+
+    # Filter by team
+    if team is not None and len(team) > 0:
+        assets = assets.filter(teams__in=team)
+        assetgroups = assetgroups.filter(teams__in=team)
+
+    assets_list = list(assets)
+    assetgroups_list = list(assetgroups)
+    return JsonResponse(assets_list + assetgroups_list, safe=False)
 
 
 @api_view(['GET'])

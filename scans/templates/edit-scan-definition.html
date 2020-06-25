@@ -2,52 +2,14 @@
 {% block content %}
 
 <style>
-.no_padding {
-    padding-left: 0px;
-    padding-right: 0px;
-}
-
 
 #scrollable-dropdown-menu .tt-dropdown-menu {
   max-height: 150px;
   overflow-y: auto;
 }
-
-.twitter-typeahead, .tt-hint, .tt-input, .tt-menu { width: 100%; }
-
-.tt-query {
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-}
-
-.tt-hint {
-    color: #999;
-}
-
-.tt-menu {
-    /* width: 422px; */
-    margin-top: 12px;
-    padding: 8px 0;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 5px 10px rgba(0,0,0,.2);
-}
-
-.tt-suggestion {
-    padding: 3px 20px;
-    /* font-size: 18px; */
-    line-height: 24px;
-}
-
-.tt-suggestion.tt-is-under-cursor {
-    color: #fff;
-    background-color: #0097cf;
-
-}
-
-.tt-suggestion p {
-    margin: 0;
+.no_padding {
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 label.radio {
@@ -84,8 +46,8 @@ label.radio {
     <!-- Scan Type -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_scan_type">Scan Type:</label>
-      <div class="col-sm-4">
-        <div class="col-sm-6 no_padding">
+      <div class="col-sm-5">
+        <div class="col-sm-5 no_padding">
           <div class="btn-group btn-group-sm btn-scantype" data-toggle="buttons">
             <label class="btn btn-primary" id="lbl_scan_type_ondemand">
               <input type="radio" name="scan_type" value="single" id="id_scan_type_ondemand" autocomplete="off"> On-demand
@@ -97,16 +59,18 @@ label.radio {
           </div>
         </div>
         <!-- Periodicity options -->
-        <div class="col-sm-3 no_padding">
-          <input class="form-control form-control-sm" type="text" placeholder="freq." id="id_scan_periodic_freq" name="every"/>
-        </div>
-        <div class="col-sm-3 no_padding">
-          <select class="form-control form-control-sm" id="id_scan_periodic_period" name="period">
-            <option value="days">Days</option>
-            <option value="hours">Hours</option>
-            <option value="minutes">Minutes</option>
-            <option value="seconds">Seconds</option>
-          </select>
+        <div class="col-sm-7">
+          <div class="col-sm-6 no_padding">
+            <input class="form-control form-control-sm" type="text" placeholder="freq." id="id_scan_periodic_freq" name="every"/>
+          </div>
+          <div class="col-sm-6 no_padding">
+            <select class="form-control form-control-sm" id="id_scan_periodic_period" name="period">
+              <option value="days">Days</option>
+              <option value="hours">Hours</option>
+              <option value="minutes">Minutes</option>
+              <option value="seconds">Seconds</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -130,6 +94,30 @@ label.radio {
         </div>
         <div class="col-sm-5 controls input-append date no_padding" id="id_scheduled_at_div" >
           <input id="id_scheduled_at" name="scheduled_at" type="text" class="form-control form-control-sm" placeholder="pick a date" disabled/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team selection -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_teams_list">Share with team:</label>
+      <div class="col-sm-5 has-feedback">
+        <div class="col-sm-3 no_padding">
+          <div class="btn-group btn-group-sm btn-scanteam" data-toggle="buttons">
+            <label class="btn btn-success active" id="lbl_scan_team_no">
+              <input type="radio" name="scan_team" value="no" id="id_scan_team_no" autocomplete="off" checked="checked"> No
+            </label>
+            <label class="btn btn-primary" id="lbl_scan_team_yes">
+              <input type="radio" name="scan_team" value="yes" id="id_scan_team_yes" autocomplete="off"> Yes
+            </label>
+          </div>
+        </div>
+        <div class="col-sm-9 no_padding">
+          <select class="form-control form-control-sm" id="id_scan_team_list" name="scan_team_list" disabled>
+            {% for team in teams_list %}
+            <option value="{{team.id}}">{{team.name}}</option>
+            {% endfor %}
+          </select>
         </div>
       </div>
     </div>
@@ -228,6 +216,11 @@ function InitForm(){
   _selected_assets = [];
   _id_asset = 1;
 
+  _selected_team = '';
+  function getTeam() {
+    return _selected_team;
+  }
+
   // Set the default values:
   // - Scan Type
   if("{{scan_def.scan_type}}" == "periodic"){
@@ -268,6 +261,15 @@ function InitForm(){
       $('#lbl_start_later').removeClass("btn-primary");
       $('#lbl_start_later').addClass("btn-success");
     }
+  }
+  if("{{scan_def.teams.all|length}}" > 0){
+    $('#id_scan_team_list').removeAttr("disabled");
+    $('div.btn-scanteam label#lbl_scan_team_no input').removeAttr("checked");
+    $('div.btn-scanteam label#lbl_scan_team_no').removeClass("active").removeClass("btn-success");
+    $('div.btn-scanteam label#lbl_scan_team_no').addClass("btn-primary");
+    $('div.btn-scanteam label#lbl_scan_team_yes input').attr(("checked", "checked"));
+    $('div.btn-scanteam label#lbl_scan_team_yes').removeClass("btn-primary");
+    $('div.btn-scanteam label#lbl_scan_team_yes').addClass("btn-success").addClass("active");
   }
 
   // - Asset selected
@@ -342,7 +344,27 @@ function AddHooks(){
       }
     });
 
-    // toggle scan start radio buttons styles
+    // Toggle scan team selection radio buttons styles
+    $('div.btn-scanteam').click(function (e) {
+      if (e.target.id != $('div.btn-scanteam label.active').attr('id')){
+        $('div.btn-scanteam label:not(.active) input').attr("checked", "checked");
+        $('div.btn-scanteam label.active input').removeAttr("checked", "checked");
+
+        $('div.btn-scanteam label.active').removeClass("btn-success");
+        $('div.btn-scanteam label.active').addClass("btn-primary");
+        $('div.btn-scanteam label:not(.active)').removeClass("btn-primary");
+        $('div.btn-scanteam label:not(.active)').addClass("btn-success");
+
+        if (e.target.id == "lbl_scan_team_yes"){
+          $('#id_scan_team_list').removeAttr("disabled");
+        } else {
+          $('#id_scan_team_list').attr("disabled","disabled");
+        }
+
+      }
+    });
+
+    // Toggle scan start radio buttons styles
     $('div.btn-scanrun').click(function (e) {
       if (e.target.id != $('div.btn-scanrun label.active').attr('id')){
         $('div.btn-scanrun label input').removeAttr("checked", "checked");
@@ -374,6 +396,28 @@ function AddHooks(){
       todayHighlight: true
     });
 
+    // Search assets input
+    $(".btn-scanteam").bind('click', function(e){
+      if(e.target.id == 'lbl_scan_team_yes'){
+        _selected_team = $("#id_scan_team_list").val();
+        // Clear assets_list
+        $("input[name='assets_list']").parents('label').remove();
+        $("linput[name='assetgroups_list']").parents('label').remove();
+        _selected_assets = [];
+      } else {
+        _selected_team = '';
+      }
+
+    });
+    $("#id_scan_team_list").bind('change', function(e){
+      _selected_team = $("#id_scan_team_list").val();
+
+      // Clear assets_list
+      $("input[name='assets_list']").parents('label').remove();
+      $("linput[name='assetgroups_list']").parents('label').remove();
+      _selected_assets = [];
+    });
+
     localStorage.clear();
     var assets = new Bloodhound({
       // datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
@@ -382,8 +426,10 @@ function AddHooks(){
       prefetch: "{% url 'list_assets_api' %}",
       ttl:0,
       remote: {
-        url: "{% url 'list_assets_api' %}?q=%QUERY",
-        wildcard: '%QUERY'
+        url: "{% url 'list_assets_api' %}",
+        replace: function(url, uriEncodedQuery) {
+          return (url + "?q=" + encodeURIComponent(uriEncodedQuery) + "&team=" + getTeam())
+        }
       }
     });
 

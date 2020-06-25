@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.db.models import Q
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
@@ -43,7 +44,10 @@ FINDING_STATUS = (
 class FindingQuerySet(models.QuerySet):
     def for_user(self, user):
         if settings.PRO_EDITION and not user.is_superuser:
-            return self.filter(asset__teams__in=user.users_team.all())
+            return self.filter(
+                Q(asset__teams__in=user.users_team.all()) |
+                Q(owner=user)
+            )
         return self
 
 
