@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login as login_d
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 # from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -19,7 +19,7 @@ from reportings.views import homepage_dashboard_view
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
+    queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
 
 
@@ -124,7 +124,7 @@ def login(request):
 
 
 def user_details_view(request):
-    user = get_object_or_404(User, id=request.user.id)
+    user = get_object_or_404(get_user_model(), id=request.user.id)
     apitokens = Token.objects.filter(user=request.user)
     if apitokens.count() >= 1:
         apitoken = apitokens[0]
@@ -137,7 +137,7 @@ def user_details_view(request):
 
 
 def list_users_view(request):
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     return render(request, 'list-users.html', {'users': users})
 
 
@@ -149,13 +149,12 @@ def add_user_view(request):
     elif request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            User.objects.create_user(
+            get_user_model().objects.create_user(
                 username=form.cleaned_data['username'],
                 password=form.cleaned_data['password1']
             )
 
             messages.success(request, 'Creation submission successful')
-            # return redirect('list_users_view')
             return redirect(reverse('show_settings_menu') + "#users")
 
     return render(request, 'add-user.html', {'form': form})

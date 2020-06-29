@@ -394,6 +394,11 @@
 
               <li class="divider"></li>
               {% if PRO_EDITION %}
+              <li><a href="/users/pro/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li>
+              {% else %}
+              <li><a href="https://patrowl.io/get-started"><span class="glyphicon glyphicon-th-list"></span> Users (PRO EDITION)</a></li>
+              {% endif %}
+              {% if PRO_EDITION %}
               <li><a href="/teams/list"><span class="glyphicon glyphicon-th-large"></span> Teams</a></li>
               {% else %}
               <li><a href="https://patrowl.io/get-started"><span class="glyphicon glyphicon-th-large"></span> Teams (PRO EDITION)</a></li>

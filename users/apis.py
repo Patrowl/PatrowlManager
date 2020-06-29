@@ -11,7 +11,7 @@ from django.forms.models import model_to_dict
 @api_view(['GET'])
 def user_details_api(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
-    res = model_to_dict(user)
+    res = model_to_dict(user, exclude=['groups', 'password'])
     res.update({
         "teams": list(user.users_team.values("id", "name"))
     })
@@ -22,7 +22,7 @@ def user_details_api(request, user_id):
 def list_users_api(request):
     users = []
     for user in get_user_model().objects.all().order_by('username'):
-        udata = model_to_dict(user)
+        udata = model_to_dict(user, exclude=['groups', 'password'])
         udata.update({
             "teams": list(user.users_team.values("id", "name"))
         })

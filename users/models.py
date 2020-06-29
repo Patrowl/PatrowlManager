@@ -54,7 +54,7 @@ class Profile(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     from events.models import Event
     if created:
-        Profile.objects.create(user=instance, status='ACTIVE', bio="n/a", department="n/a")
+        Profile.objects.create(user=instance, status='ACTIVE')
         Event.objects.create(message="[User] New user created (id={}): {}".format(instance.id, instance),
                              type="CREATE", severity="DEBUG")
 

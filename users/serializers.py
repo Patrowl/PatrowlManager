@@ -2,7 +2,8 @@
 
 from rest_framework import serializers, generics, views, response, permissions
 from django_filters import rest_framework as filters
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 # from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 # from rest_framework.decorators import api_view
@@ -11,12 +12,12 @@ from django.contrib.auth.models import User
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ('id', 'username', 'last_login', 'is_superuser', 'is_staff')
 
 
 class UserList(generics.ListAPIView):
-    queryset = User.objects.all()
+    queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     # filterset_fields = ('title', 'severity', 'engine_type')
