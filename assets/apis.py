@@ -518,48 +518,32 @@ def get_asset_report_csv_api(request, asset_id):
     writer = csv.writer(response, delimiter=';')
     writer.writerow([
         'asset_value',
-        'id', 'title', 'description', 'solution', 'type', 'severity', 'score',
-        'status', 'comments', 'scopes',
-        'tags', 'links',
-        'engine_type', 'engine_name', 'scan_title', 'scan_policy',
+        'id', 'title', 'description', 'solution',
+        'type', 'severity', 'score',
+        'status', 'comments',
+        'scopes',
+        'tags',
+        'links',
+        'engine_type', 'engine_name',
+        'scan_title', 'scan_policy',
         'found_at', 'updated_at'
     ])
 
-    findings_tmp = list()
-    findings_stats = {}
-
     for f in Finding.objects.filter(asset=asset.id).order_by('severity_num'):
-        pass
-
-    # @todo: invert loops
-    for sev in ["critical", "high", "medium", "low", "info"]:
-        tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
-        findings_stats.update({sev: tmp.count()})
-        if tmp.count() > 0:
-            for f in tmp:
-                tmp_f = model_to_dict(f, exclude=["scopes"])
-                tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
-                findings_tmp.append(tmp_f)
-
-    asset_dict = model_to_dict(asset, exclude=["categories", "teams"])
-    asset_dict.update({"categories": [tag.value for tag in asset.categories.all()]})
-
-
-    for asset in assets:
         writer.writerow([
             smart_str(asset.value),
-            asset.name,
-            asset.type,
-            smart_str(asset.description),
-            asset.criticity, ",".join([a.value for a in asset.categories.all()])
+            f.id, smart_str(f.title), smart_str(f.description), smart_str(f.solution),
+            f.type, f.severity, f.score,
+            f.status, smart_str(f.comments),
+            ", ".join([ff.name for ff in f.scopes.all()]),
+            ", ".join(f.tags),
+            ", ".join(f.links),
+            f.engine_type, f.scan.engine.name,
+            smart_str(f.scan.title), smart_str(f.scan.engine_policy.name),
+            f.found_at, f.updated_at
         ])
+
     return response
-    #
-    # return JsonResponse({
-    #     'asset': asset_dict,
-    #     'findings': findings_tmp,
-    #     'findings_stats': findings_stats
-    #     }, safe=False)
 
 
 @api_view(['GET'])
@@ -607,6 +591,48 @@ def get_asset_group_report_json_api(request, asset_group_id):
             })
 
     return JsonResponse(assets, safe=False)
+
+
+@api_view(['GET'])
+def get_asset_group_report_csv_api(request, asset_group_id):
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="patrowl_assetgroup_{}.csv"'.format(asset_group_id)
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'asset_value',
+        'id', 'title', 'description', 'solution',
+        'type', 'severity', 'score',
+        'status', 'comments',
+        'scopes',
+        'tags',
+        'links',
+        'engine_type', 'engine_name',
+        'scan_title', 'scan_policy',
+        'found_at', 'updated_at'
+    ])
+
+    for asset in asset_group.assets.all():
+        for f in Finding.objects.filter(asset=asset.id).order_by('severity_num'):
+            links = ""
+            try:
+                links = ", ".join(f.links)
+            except Exception:
+                pass
+            writer.writerow([
+                smart_str(asset.value),
+                f.id, smart_str(f.title), smart_str(f.description), smart_str(f.solution),
+                f.type, f.severity, f.score,
+                f.status, smart_str(f.comments),
+                ", ".join([ff.name for ff in f.scopes.all()]),
+                ", ".join(f.tags),
+                links,
+                f.engine_type, f.scan.engine.name,
+                smart_str(f.scan.title), smart_str(f.scan.engine_policy.name),
+                f.found_at, f.updated_at
+            ])
+
+    return response
 
 
 @api_view(['GET'])
