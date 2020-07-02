@@ -500,7 +500,7 @@ def get_asset_report_json_api(request, asset_id):
                 tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
                 findings_tmp.append(tmp_f)
 
-    asset_dict = model_to_dict(asset, exclude=["categories"])
+    asset_dict = model_to_dict(asset, exclude=["categories", "teams"])
     asset_dict.update({"categories": [tag.value for tag in asset.categories.all()]})
 
     return JsonResponse({
@@ -511,8 +511,59 @@ def get_asset_report_json_api(request, asset_id):
 
 
 @api_view(['GET'])
+def get_asset_report_csv_api(request, asset_id):
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="patrowl_asset_{}.csv"'.format(asset_id)
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'asset_value',
+        'id', 'title', 'description', 'solution', 'type', 'severity', 'score',
+        'status', 'comments', 'scopes',
+        'tags', 'links',
+        'engine_type', 'engine_name', 'scan_title', 'scan_policy',
+        'found_at', 'updated_at'
+    ])
+
+    findings_tmp = list()
+    findings_stats = {}
+
+    for f in Finding.objects.filter(asset=asset.id).order_by('severity_num'):
+        pass
+
+    # @todo: invert loops
+    for sev in ["critical", "high", "medium", "low", "info"]:
+        tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
+        findings_stats.update({sev: tmp.count()})
+        if tmp.count() > 0:
+            for f in tmp:
+                tmp_f = model_to_dict(f, exclude=["scopes"])
+                tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
+                findings_tmp.append(tmp_f)
+
+    asset_dict = model_to_dict(asset, exclude=["categories", "teams"])
+    asset_dict.update({"categories": [tag.value for tag in asset.categories.all()]})
+
+
+    for asset in assets:
+        writer.writerow([
+            smart_str(asset.value),
+            asset.name,
+            asset.type,
+            smart_str(asset.description),
+            asset.criticity, ",".join([a.value for a in asset.categories.all()])
+        ])
+    return response
+    #
+    # return JsonResponse({
+    #     'asset': asset_dict,
+    #     'findings': findings_tmp,
+    #     'findings_stats': findings_stats
+    #     }, safe=False)
+
+
+@api_view(['GET'])
 def get_asset_group_report_html_api(request, asset_group_id):
-    # asset_group = get_object_or_404(AssetGroup, id=asset_group_id)
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
     assets = asset_group.assets.all().only(
         "value", "name", "type", "criticity", "risk_level", "description",
@@ -546,7 +597,7 @@ def get_asset_group_report_json_api(request, asset_group_id):
                     tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
                     findings_tmp.append(tmp_f)
 
-        asset_dict = model_to_dict(asset, exclude=["categories"])
+        asset_dict = model_to_dict(asset, exclude=["categories", "teams"])
         asset_tags = [tag.value for tag in asset.categories.all()]
         asset_dict.update({"categories": asset_tags})
         assets.append({

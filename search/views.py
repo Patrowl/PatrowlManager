@@ -13,12 +13,12 @@ def _search(kw):
 
     # search by asset value or description
     for asset in Asset.objects.filter(
-        Q(value__icontains=kw) | Q(description__icontains=kw) | Q(name__icontains=kw)):
+        Q(value__icontains=kw) | Q(description__icontains=kw) | Q(name__icontains=kw) | Q(categories__value__icontains=kw)):
         results.append({"type": "asset", "value": asset.value, "id": asset.id, "link": "/assets/details/"+str(asset.id)})
 
-    # search by asset value or description
+    # search by asset group name or description
     for asset_group in AssetGroup.objects.filter(
-        Q(description__icontains=kw) | Q(name__icontains=kw)):
+        Q(description__icontains=kw) | Q(name__icontains=kw) | Q(categories__value__icontains=kw)):
         results.append({"type": "asset_group", "value": asset_group.name, "id": asset_group.id, "link": "/assets/groups/details/"+str(asset_group.id)})
 
     # search by asset owner name, url or comments

@@ -69,6 +69,8 @@ urlpatterns = [
     url(r'^api/v1/groups/report/html/(?P<asset_group_id>[0-9]+)$', apis.get_asset_group_report_html_api, name='get_asset_group_report_html_api'),
     # ex: /assets/api/v1/report/json/2
     url(r'^api/v1/report/json/(?P<asset_id>[0-9]+)$', apis.get_asset_report_json_api, name='get_asset_report_json_api'),
+    # ex: /assets/api/v1/report/csv/2
+    url(r'^api/v1/report/csv/(?P<asset_id>[0-9]+)$', apis.get_asset_report_csv_api, name='get_asset_report_csv_api'),
     # ex: /assets/api/v1/groups/report/json/2
     url(r'^api/v1/groups/report/json/(?P<asset_group_id>[0-9]+)$', apis.get_asset_group_report_json_api, name='get_asset_group_report_json_api'),
     # ex: /assets/api/v1/tags

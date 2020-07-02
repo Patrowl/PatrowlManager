@@ -19,22 +19,8 @@ USER_STATUS = (
 
 
 class Profile(models.Model):
-    # MANAGER = 1
-    # ANALYST = 2
-    # AUDITOR = 3
-    #
-    # ROLE_CHOICES = (
-    #     (MANAGER, 'Manager'),
-    #     (ANALYST, 'Analyst'),
-    #     (AUDITOR, 'Auditor'),
-    # )
-    #
-    # role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, default=ANALYST, blank=True, null=True)
-
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     status = models.CharField(choices=USER_STATUS, default='ACTIVE', max_length=10)
-    # bio = models.TextField(max_length=500, blank=True)
-    # department = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
