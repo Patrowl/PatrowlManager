@@ -11,12 +11,14 @@ from .tasks import refresh_engines_status_task
 from .tasks import get_engine_status_task, get_engine_info_task, test_task
 from scans.models import Scan
 from scans.views import _update_celerybeat
+from common.utils import pro_group_required
 import requests
 import json
 import time
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def list_engines_api(request):
     list_engines = []
     for engine in Engine.objects.all():
@@ -31,12 +33,14 @@ def list_engines_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def get_engine_api(request, engine_id):
     engine = get_object_or_404(EngineInstance, id=engine_id)
     return JsonResponse(model_to_dict(engine), safe=False)
 
 
 @api_view(['DELETE'])
+@pro_group_required('EnginesManager')
 def delete_engine_api(request, engine_id):
     engine = get_object_or_404(EngineInstance, id=engine_id)
     engine.delete()
@@ -44,6 +48,7 @@ def delete_engine_api(request, engine_id):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def list_instances_by_id_api(request, engine_id):
     list_instances = []
     for instance in EngineInstance.objects.filter(engine=engine_id):
@@ -59,6 +64,7 @@ def list_instances_by_id_api(request, engine_id):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def list_instances_by_name_api(request, engine_name):
     list_instances = []
     for instance in EngineInstance.objects.filter(engine__name=str(engine_name).upper()):
@@ -74,6 +80,7 @@ def list_instances_by_name_api(request, engine_name):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginePoliciesManager', 'EnginePoliciesViewer')
 def list_policies_by_engine_api(request, engine_name):
     list_policies = []
     for policy in EnginePolicy.objects.filter(owner_id=request.user.id):
@@ -82,6 +89,7 @@ def list_policies_by_engine_api(request, engine_name):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def get_engine_status_api(request, engine_id):
     inst = get_object_or_404(EngineInstance, id=engine_id)
     get_engine_status_task.apply_async(
@@ -91,6 +99,7 @@ def get_engine_status_api(request, engine_id):
 
 
 @api_view(['PATCH'])
+@pro_group_required('EnginesManager')
 def toggle_engine_status_api(request, engine_id):
     engine_instance = get_object_or_404(EngineInstance, id=engine_id)
     engine_instance.enabled = not engine_instance.enabled
@@ -99,6 +108,7 @@ def toggle_engine_status_api(request, engine_id):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def get_engine_info_api(request, engine_id):
     inst = get_object_or_404(EngineInstance, id=engine_id)
     get_engine_info_task.apply_async(
@@ -109,6 +119,7 @@ def get_engine_info_api(request, engine_id):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def info_engine_api(request, engine_id):
     engine = get_object_or_404(EngineInstance, id=engine_id)
 
@@ -123,16 +134,19 @@ def info_engine_api(request, engine_id):
         if resp.status_code != 200:
             raise ConnectionError("http status code {}".format(resp.status_code))
 
-        if not "engine_config" in engine_infos or not "status" in engine_infos["engine_config"]:
+        if "engine_config" not in engine_infos or "status" not in engine_infos["engine_config"]:
             # Todo: check engine.info response contains all mandatories fields
             raise SyntaxError("tag \"status\" not found in response")
 
     except Exception as ex:
         engine.set_status("ERROR")
-        engine_infos = {"status":"ERROR", "details": {
-            "request": "{}".format(str(engine.api_url)+"info"),
-            "reason": "{} thrown {}".format(ex.__class__.__name__,ex)
-        }}
+        engine_infos = {
+            "status": "ERROR",
+            "details": {
+                "request": "{}".format(str(engine.api_url)+"info"),
+                "reason": "{} thrown {}".format(ex.__class__.__name__,ex)
+            }
+        }
 
     nb_scans = Scan.objects.filter(engine=engine).count()
 
@@ -146,6 +160,7 @@ def info_engine_api(request, engine_id):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager')
 def refresh_engines_status_api(request):
     refresh_engines_status_task.apply_async(
         queue='default',
@@ -156,6 +171,7 @@ def refresh_engines_status_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager')
 def toggle_autorefresh_engine_status_api(request):
     autorefresh_task_name = '[PO] Auto-refresh engines status'
     autorefresh_tasks = PeriodicTask.objects.filter(name=autorefresh_task_name)
@@ -187,6 +203,7 @@ def toggle_autorefresh_engine_status_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def list_engines_intances_api(requests):
     engines = []
     for engine in EngineInstance.objects.all().order_by("name"):
@@ -207,12 +224,14 @@ def list_engines_intances_api(requests):
 
 # Scan policies
 @api_view(['GET'])
+@pro_group_required('EnginePoliciesManager', 'EnginePoliciesViewer')
 def get_policy_api(request, policy_id):
     policy = get_object_or_404(EnginePolicy, id=policy_id)
     return JsonResponse(policy.as_dict())
 
 
 @api_view(['GET'])
+@pro_group_required('EnginePoliciesManager', 'EnginePoliciesViewer')
 def get_policies_api(request):
     policies = []
     for policy in EnginePolicy.objects.all():
@@ -221,6 +240,7 @@ def get_policies_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginePoliciesManager', 'EnginePoliciesViewer')
 def export_policy_api(request, policy_id):
     policy = get_object_or_404(EnginePolicy, id=policy_id)
     response = JsonResponse({"policies": [policy.as_dict()]})
@@ -229,6 +249,7 @@ def export_policy_api(request, policy_id):
 
 
 @api_view(['GET', 'POST'])
+@pro_group_required('EnginePoliciesManager', 'EnginePoliciesViewer')
 def export_policies_api(request):
     if request.method == 'GET' and request.GET.get('all', None):
         policies = EnginePolicy.objects.all()
@@ -243,6 +264,7 @@ def export_policies_api(request):
 
 
 @api_view(['DELETE'])
+@pro_group_required('EnginePoliciesManager')
 def delete_policy_api(request, policy_id):
     policy = get_object_or_404(EnginePolicy, id=policy_id)
     policy.delete()
@@ -250,6 +272,7 @@ def delete_policy_api(request, policy_id):
 
 
 @api_view(['PUT'])
+@pro_group_required('EnginePoliciesManager')
 def duplicate_policy_api(request, policy_id):
     policy = get_object_or_404(EnginePolicy, id=policy_id)
 
@@ -275,12 +298,14 @@ def duplicate_policy_api(request, policy_id):
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def list_engine_types_api(request):
     engines = Engine.objects.all().values()[::1]
     return JsonResponse(engines, safe=False)
 
 
 @api_view(['GET'])
+@pro_group_required('EnginesManager')
 def test_task_api(request):
     test_task.apply_async(
         args=["default"],

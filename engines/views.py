@@ -9,11 +9,13 @@ from django.db.models import F
 from django_celery_beat.models import PeriodicTask
 from .models import Engine, EngineInstance, EnginePolicy, EnginePolicyScope
 from .forms import EnginePolicyForm, EngineInstanceForm, EngineForm, EnginePolicyImportForm
+from common.utils import pro_group_required
 import os
 import json
 import base64
 
 
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def list_engines_view(request):
     engines = EngineInstance.objects.all().only(
         "name", "enabled", "status", "api_url", "updated_at"
@@ -31,6 +33,7 @@ def list_engines_view(request):
     })
 
 
+@pro_group_required('EnginesManager')
 def add_engine_view(request):
     form = None
 
@@ -59,6 +62,7 @@ def add_engine_view(request):
     return render(request, 'add-scan-engine.html', {'form': form})
 
 
+@pro_group_required('EnginesManager')
 def delete_engine_view(request, engine_id):
     engine = get_object_or_404(EngineInstance, id=engine_id)
 
@@ -70,6 +74,7 @@ def delete_engine_view(request, engine_id):
     return render(request, 'delete-scan-engine.html', {'engine': engine})
 
 
+@pro_group_required('EnginesManager')
 def edit_engine_view(request, engine_id):
     engine = get_object_or_404(EngineInstance, id=engine_id)
     form = EngineInstanceForm()
@@ -97,6 +102,7 @@ def edit_engine_view(request, engine_id):
     })
 
 
+@pro_group_required('EnginePoliciesManager', 'EnginePoliciesViewer')
 def list_policies_view(request):
     policies = EnginePolicy.objects.all().prefetch_related("scopes").annotate(
         type=F("engine__name")
@@ -104,6 +110,7 @@ def list_policies_view(request):
     return render(request, 'list-engine-policies.html', {'policies': policies})
 
 
+@pro_group_required('EnginePoliciesManager')
 def import_policies_view(request):
     if request.method == 'GET':
         form = EnginePolicyImportForm()
@@ -189,6 +196,7 @@ def import_policies_view(request):
     return render(request, 'import-engine-policies.html', {'form': form})
 
 
+@pro_group_required('EnginePoliciesManager')
 def add_policy_view(request):
     form = None
 
@@ -218,6 +226,7 @@ def add_policy_view(request):
     return render(request, 'add-engine-policy.html', {'form': form})
 
 
+@pro_group_required('EnginePoliciesManager')
 def edit_policy_view(request, policy_id):
     policy = get_object_or_404(EnginePolicy, id=policy_id)
     form = EnginePolicyForm()
@@ -255,6 +264,7 @@ def edit_policy_view(request, policy_id):
     })
 
 
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def list_engine_types_view(request):
     engines = Engine.objects.all().exclude(name__in=["MANUAL", "SKELETON"]).prefetch_related("engineinstance_set").order_by("name")
     for eng in engines:
@@ -263,6 +273,7 @@ def list_engine_types_view(request):
     return render(request, 'list-engines.html', {'engines': engines})
 
 
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def add_engine_types_view(request):
     form = None
 
@@ -285,6 +296,7 @@ def add_engine_types_view(request):
     return render(request, 'add-engine.html', {'form': form})
 
 
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def edit_engine_type_view(request, engine_id):
     engine = get_object_or_404(Engine, id=engine_id)
     form = None
@@ -308,6 +320,7 @@ def edit_engine_type_view(request, engine_id):
     })
 
 
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def delete_engine_type_view(request, engine_id):
     engine = get_object_or_404(Engine, id=engine_id)
 

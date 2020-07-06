@@ -9,6 +9,7 @@ from django.core.files.storage import FileSystemStorage
 
 from wsgiref.util import FileWrapper
 from rest_framework.decorators import api_view
+from common.utils import pro_group_required
 
 from .models import Asset, AssetGroup, AssetCategory
 from .models import AssetOwner, AssetOwnerContact, AssetOwnerDocument
@@ -28,12 +29,14 @@ import urllib
 
 # Assets
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     return JsonResponse(asset.to_dict(), safe=False)
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager')
 def ack_asset_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     asset.set_status('ack')
@@ -41,12 +44,14 @@ def ack_asset_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_group_api(request, assetgroup_id):
     assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
     return JsonResponse(assetgroup.to_dict(), safe=False)
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_findings_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     findings = [f.to_dict() for f in asset.finding_set.all()]
@@ -54,6 +59,7 @@ def get_asset_findings_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_assets_stats_api(request):
     assets = Asset.objects.for_user(request.user).all()
     data = {
@@ -66,6 +72,7 @@ def get_assets_stats_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_details_api(request, asset_name):
     asset = get_object_or_404(Asset.objects.for_user(request.user), value=asset_name)
 
@@ -104,6 +111,7 @@ def get_asset_details_api(request, asset_name):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_trends_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     data = []
@@ -149,6 +157,7 @@ def get_asset_trends_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def list_assets_api(request):
     q = request.GET.get("q", None)
     team = request.GET.get("team", None)
@@ -187,6 +196,7 @@ def list_assets_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def list_asset_groups_api(request):
     q = request.GET.get("q", None)
     if q:
@@ -207,6 +217,7 @@ def list_asset_groups_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager')
 def refresh_all_asset_grade_api(request):
     for asset in Asset.objects.for_user(request.user).all():
         asset.calc_risk_grade()
@@ -216,6 +227,7 @@ def refresh_all_asset_grade_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager')
 def refresh_asset_grade_api(request, asset_id=None):
     if asset_id:
         asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
@@ -228,6 +240,7 @@ def refresh_asset_grade_api(request, asset_id=None):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager')
 def refresh_assetgroup_grade_api(request, assetgroup_id=None):
     if assetgroup_id:
         assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
@@ -240,6 +253,7 @@ def refresh_assetgroup_grade_api(request, assetgroup_id=None):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def export_assets_api(request, assetgroup_id=None):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
@@ -260,6 +274,7 @@ def export_assets_api(request, assetgroup_id=None):
 
 
 @api_view(['PUT', 'POST'])
+@pro_group_required('AssetsManager')
 def add_asset_api(request):
     new_asset_args = QueryDict(request.body)
     tags = new_asset_args.getlist('tags')
@@ -281,6 +296,7 @@ def add_asset_api(request):
 
 
 @api_view(['PUT', 'POST'])
+@pro_group_required('AssetsManager')
 def add_asset_group_api(request):
     new_assetgroup_args = QueryDict(request.body)
     tags = new_assetgroup_args.getlist('tags')
@@ -311,6 +327,7 @@ def add_asset_group_api(request):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def update_criticity_assets_api(request):
     data = request.data
     assets = data['assets']
@@ -325,6 +342,7 @@ def update_criticity_assets_api(request):
 
 
 @api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
 def delete_assets_api(request):
     assets = request.data
     for asset_id in assets:
@@ -335,6 +353,7 @@ def delete_assets_api(request):
 
 
 @api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
 def delete_asset_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     asset.delete()
@@ -343,6 +362,7 @@ def delete_asset_api(request, asset_id):
 
 
 @api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
 def delete_assetgroup_api(request, assetgroup_id):
     assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
     assetgroup.delete()
@@ -351,6 +371,7 @@ def delete_assetgroup_api(request, assetgroup_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def edit_assetgroup_api(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
     form = AssetGroupForm(request.POST, instance=asset_group)
@@ -371,6 +392,7 @@ def edit_assetgroup_api(request, assetgroup_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_tags_api(request):
     tags = AssetCategory.objects.values_list('value', flat=True)
     return JsonResponse(list(tags), safe=False)
@@ -408,6 +430,7 @@ def _add_asset_tags(asset, new_value):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def add_asset_tags_api(request, asset_id):
     if request.method == 'POST':
         asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
@@ -419,6 +442,7 @@ def add_asset_tags_api(request, asset_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def add_asset_group_tags_api(request, assetgroup_id):
     if request.method == 'POST':
         asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
@@ -429,6 +453,7 @@ def add_asset_group_tags_api(request, assetgroup_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def delete_asset_tags_api(request, asset_id):
     tag_id = request.POST.get('tag_id', None)
     try:
@@ -446,6 +471,7 @@ def delete_asset_tags_api(request, asset_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def delete_asset_group_tags_api(request, assetgroup_id):
     tag_id = request.POST.get('tag_id', None)
     try:
@@ -463,6 +489,7 @@ def delete_asset_group_tags_api(request, assetgroup_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_report_html_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
 
@@ -484,6 +511,7 @@ def get_asset_report_html_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_report_json_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
 
@@ -511,6 +539,7 @@ def get_asset_report_json_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_report_csv_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     response = HttpResponse(content_type='text/csv')
@@ -547,6 +576,7 @@ def get_asset_report_csv_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_group_report_html_api(request, asset_group_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
     assets = asset_group.assets.all().only(
@@ -561,6 +591,7 @@ def get_asset_group_report_html_api(request, asset_group_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_group_report_json_api(request, asset_group_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
 
@@ -594,6 +625,7 @@ def get_asset_group_report_json_api(request, asset_group_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_group_report_csv_api(request, asset_group_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
     response = HttpResponse(content_type='text/csv')
@@ -636,6 +668,7 @@ def get_asset_group_report_csv_api(request, asset_group_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_owner_doc_api(request, asset_owner_doc_id):
     doc = get_object_or_404(AssetOwnerDocument, id=asset_owner_doc_id)
     fp = urllib.unquote(doc.filepath)
@@ -651,6 +684,7 @@ def get_asset_owner_doc_api(request, asset_owner_doc_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def edit_asset_owner_comments_api(request, asset_owner_id):
     if request.method != "POST" or not request.POST.get('new_comments', None):
         return HttpResponse(status=400)
@@ -662,6 +696,7 @@ def edit_asset_owner_comments_api(request, asset_owner_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def delete_asset_owner_contact_api(request, asset_owner_id):
     # if request.method != 'POST':
     #     return HttpResponse(status=400)
@@ -672,6 +707,7 @@ def delete_asset_owner_contact_api(request, asset_owner_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def delete_asset_owner_document_api(request, asset_owner_id):
     if request.method != 'POST' or not request.POST.get('doc_id', None):
         return HttpResponse(status=400)
@@ -683,6 +719,7 @@ def delete_asset_owner_document_api(request, asset_owner_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def add_asset_owner_document_api(request, asset_owner_id):
     owner = get_object_or_404(AssetOwner, id=asset_owner_id)
     form = AssetOwnerDocumentForm(request.POST, request.FILES)
@@ -720,6 +757,7 @@ def add_asset_owner_document_api(request, asset_owner_id):
 
 
 @api_view(['POST'])
+@pro_group_required('AssetsManager')
 def add_asset_owner_contact_api(request, asset_owner_id):
     owner = get_object_or_404(AssetOwner, id=asset_owner_id)
 

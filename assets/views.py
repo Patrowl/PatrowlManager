@@ -23,7 +23,7 @@ import csv
 import copy
 
 # @pro_permission_required('assets.view_asset')
-# @pro_group_required('AssetsViewer', 'AssetsManager')
+@pro_group_required('AssetsViewer', 'AssetsManager')
 def list_assets_view(request):
     # Check sorting options
     allowed_sort_options = ["id", "name", "criticity_num", "score", "type",
@@ -109,6 +109,7 @@ def list_assets_view(request):
         {'assets': assets, 'asset_groups': asset_groups})
 
 
+@pro_group_required('AssetsManager')
 def add_asset_view(request):
     form = None
 
@@ -176,6 +177,7 @@ def add_asset_view(request):
     return render(request, 'add-asset.html', {'form': form})
 
 
+@pro_group_required('AssetsManager')
 def edit_asset_view(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
 
@@ -216,6 +218,7 @@ def edit_asset_view(request, asset_id):
     return render(request, 'edit-asset.html', {'form': form, 'asset': asset})
 
 
+@pro_group_required('AssetsManager')
 def add_asset_group_view(request):
     form = None
 
@@ -255,6 +258,7 @@ def add_asset_group_view(request):
     return render(request, 'add-asset-group.html', {'form': form})
 
 
+@pro_group_required('AssetsManager')
 def edit_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
 
@@ -295,6 +299,7 @@ def edit_asset_group_view(request, assetgroup_id):
     })
 
 
+@pro_group_required('AssetsManager')
 def bulkadd_asset_view(request):
     form = None
 
@@ -354,12 +359,14 @@ def bulkadd_asset_view(request):
 
 
 # todo: change to asset_id
+@pro_group_required('AssetsManager')
 def evaluate_asset_risk_view(request, asset_name):
     asset = get_object_or_404(Asset.objects.for_user(request.user), value=asset_name)
     data = asset.evaluate_risk()
     return JsonResponse(data, safe=False)
 
 
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def detail_asset_view(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     findings = Finding.objects.filter(asset=asset).annotate(
@@ -487,6 +494,7 @@ def detail_asset_view(request, asset_id):
         })
 
 
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def detail_asset_group_view(request, assetgroup_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
 
@@ -601,6 +609,7 @@ def detail_asset_group_view(request, assetgroup_id):
 
 
 # Asset Owners
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def list_asset_owners_view(request):
     owners = []
     for owner in AssetOwner.objects.all():
@@ -613,6 +622,7 @@ def list_asset_owners_view(request):
     return render(request, 'list-asset-owners.html', {'owners': owners})
 
 
+@pro_group_required('AssetsManager')
 def add_asset_owner_view(request):
     form = None
     if request.method == 'GET':
@@ -642,6 +652,7 @@ def add_asset_owner_view(request):
     return render(request, 'add-asset-owner.html', {'form': form})
 
 
+@pro_group_required('AssetsManager')
 def delete_asset_owner_view(request, asset_owner_id):
     if request.method == 'POST':
         owner = get_object_or_404(AssetOwner, id=asset_owner_id)
@@ -651,6 +662,7 @@ def delete_asset_owner_view(request, asset_owner_id):
     return render(request, 'delete-asset-owner.html', {'owner': owner})
 
 
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def details_asset_owner_view(request, asset_owner_id):
     owner = model_to_dict(get_object_or_404(AssetOwner, id=asset_owner_id))
     return render(request, 'details-asset-owner.html', {'owner': owner})
