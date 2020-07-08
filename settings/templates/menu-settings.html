@@ -9,14 +9,18 @@
 <div id="menu_tabs" class="container-fluid">
   <ul class="nav nav-tabs" id="menu_tabs_ul">
     <li class="active"><a data-toggle="tab"  href="#settings" >Global settings</a></li>
-    <li><a data-toggle="tab" href="#infos_updates">Infos & Updates</a></li>
+    <!-- <li><a data-toggle="tab" href="#infos_updates">Infos & Updates</a></li> -->
+    {% if PRO_EDITION is False %}
     <li><a data-toggle="tab" href="#users">Users</a></li>
+    {% endif %}
     <li><a data-toggle="tab" href="#events">Events</a></li>
   </ul>
 
   <div class="tab-content">
     <div id="settings" class="tab-pane fade in active">
       <h3>Settings</h3>
+      <p class="text-muted">Pro tip: double-click on settings value to edit it. Save it with Enter key.</p>
+      <br/>
       <div class="container">
         <div class="row">
           <div class="col-sm-3">
@@ -49,23 +53,22 @@
           <div class="col-sm-6">
             <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modal-add-setting">
               + Add new setting </button>
-            <span class="btn btn-xs btn-default">
+            <!-- <span class="btn btn-xs btn-default">
               <i class="glyphicon glyphicon-plus"></i>
               <span>Import settings</span>
-              <input id="fileupload" type="file" name="files[]" multiple>
-            </span>
+              <input id="fileupload" type="file" name="files[]" multiple/>
+            </span> -->
             <a type="button" class="btn btn-default btn-xs" href="/settings/api/v1/export">
               > Export settings </a>
-
           </div>
         </div>
       </div>
 
 
     </div>
-    <div id="infos_updates" class="tab-pane fade">
+    <!-- <div id="infos_updates" class="tab-pane fade">
       <h3>Infos and updates</h3>
-    </div>
+    </div> -->
     <div id="users" class="tab-pane fade">
       <h3>Users Management</h3>
       {% include 'menu-users.html' with users=users %}

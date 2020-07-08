@@ -393,7 +393,15 @@
             </a>
             <ul class="dropdown-menu" role="menu">
               <li><a href="/dashboard"><span class="glyphicon glyphicon-home"></span> Homepage</a></li>
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                <li><a href="/settings/"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
+                {% else %}
+                <li><a href="#"><span class="glyphicon glyphicon-wrench"></span> Settings (Admin or Manager only)</a></li>
+                {% endif %}
+              {% else %}
               <li><a href="/settings/"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
+              {% endif %}
 
               <li class="divider"></li>
               {% if PRO_EDITION %}
