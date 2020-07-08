@@ -30,7 +30,6 @@ function toggle(source, element) {
 
 <div class="container-fluid">
 
-  <a href="{% url 'export_assets_api' %}" class="text-warning">>> Export assets (CSV)</a><br/>
   <a href="{% url 'refresh_all_asset_grade_api' %}" class="text-danger">>> Refresh all scores</a><br/>
 
   <div id="menu_tabs" class="container-fluid">
@@ -48,6 +47,7 @@ function toggle(source, element) {
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
+              <li><a href="{% url 'export_assets_api' %}">> Export assets (CSV)</a></li>
               <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
               <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
               <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticity of selected assets</a></li>
@@ -180,6 +180,7 @@ function toggle(source, element) {
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
+            <li><a href="{% url 'export_assetgroups_api' %}">> Export asset groups (CSV)</a></li>
             <li><a class="btn-assetgroup-add" href="{% url 'add_asset_group_view' %}">+ Add a new asset group manually</a></li>
             <!-- <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li> -->
           </ul>

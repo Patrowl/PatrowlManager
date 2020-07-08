@@ -266,9 +266,53 @@ def export_assets_api(request, assetgroup_id=None):
     else:
         assets = Asset.objects.for_user(request.user).all()
 
-    writer.writerow(['asset_value', 'asset_name', 'asset_type', 'asset_description', 'asset_criticity', 'asset_tags'])
+    writer.writerow([
+        'asset_value', 'asset_name', 'asset_type', 'asset_description',
+        'asset_criticity', 'asset_tags', 'owner', 'team', 'created_at'])
     for asset in assets:
-        writer.writerow([smart_str(asset.value), asset.name, asset.type, smart_str(asset.description), asset.criticity, ",".join([a.value for a in asset.categories.all()])])
+        try:
+            asset_owner = asset.owner.username
+        except Exception:
+            asset_owner = ""
+        writer.writerow([
+            smart_str(asset.value), asset.name, asset.type,
+            smart_str(asset.description), asset.criticity,
+            ",".join([a.value for a in asset.categories.all()]),
+            asset_owner,
+            ",".join([t.name for t in asset.teams.all()]),
+            asset.created_at
+        ])
+    return response
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def export_assetgroups_api(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
+    writer = csv.writer(response, delimiter=';')
+
+    writer.writerow([
+        'assetgroup_name',
+        'asset_value', 'asset_name', 'asset_type', 'asset_description',
+        'asset_criticity', 'asset_tags', 'owner', 'team', 'created_at'])
+
+    for assetgroup in AssetGroup.objects.for_user(request.user).all().order_by('name'):
+        for asset in assetgroup.assets.all():
+            try:
+                asset_owner = asset.owner.username
+            except Exception:
+                asset_owner = ""
+
+            writer.writerow([
+                smart_str(assetgroup.name),
+                smart_str(asset.value), asset.name, asset.type,
+                smart_str(asset.description), asset.criticity,
+                ",".join([a.value for a in asset.categories.all()]),
+                asset_owner,
+                ",".join([t.name for t in asset.teams.all()]),
+                asset.created_at
+            ])
     return response
 
 
@@ -554,6 +598,7 @@ def get_asset_report_csv_api(request, asset_id):
         'links',
         'engine_type', 'engine_name',
         'scan_title', 'scan_policy',
+        'owner', 'teams',
         'found_at', 'updated_at'
     ])
 
@@ -568,6 +613,8 @@ def get_asset_report_csv_api(request, asset_id):
             ", ".join(f.links),
             f.engine_type, f.scan.engine.name,
             smart_str(f.scan.title), smart_str(f.scan.engine_policy.name),
+            f.owner.username,
+            ", ".join([t.name for t in asset.teams.all()]),
             f.found_at, f.updated_at
         ])
 
