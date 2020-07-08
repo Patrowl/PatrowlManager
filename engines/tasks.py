@@ -912,7 +912,10 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
             if f:
+                # A similar finding was alreaddy created
                 f.checked_at = timezone.now()
+                if f.status in ['patched', 'closed']:
+                    f.status = "undone"
                 f.save()
                 new_raw_finding.status = f.status
                 new_raw_finding.save()
