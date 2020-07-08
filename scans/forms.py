@@ -81,6 +81,7 @@ class ScanDefinitionForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
             'enabled': forms.CheckboxInput(attrs={'checked': '', 'class': 'form-control form-control-sm'}),
+            # 'scan_team': forms.CheckboxInput(attrs={'checked': '', 'class': 'form-control form-control-sm'}),
             'scheduled_at': DateTimeWidget(attrs={'id': "id_scheduled_at", 'class': 'form-control form-control-sm'}, options=dateTimeOptions)
         }
 

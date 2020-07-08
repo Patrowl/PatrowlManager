@@ -392,7 +392,7 @@ def toggle_scan_def_status_api(request, scan_def_id):
 def run_scan_def_api(request, scan_def_id):
     scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_def_id)
 
-    if scan_def.scan_type in ["single", "scheduled"]:
+    if scan_def.scan_type in ["single", "scheduled", "periodic"]:
         _run_scan(scan_def_id, request.user.id)
         return JsonResponse({'status': 'success'})
     else:

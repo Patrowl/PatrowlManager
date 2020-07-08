@@ -432,7 +432,7 @@ def startscan_task(self, params):
     Event.objects.create(message="[EngineTasks/startscan_task/{}] AfterScan - findings are now available: {}.".format(self.request.id, str(engine_inst.api_url)+"getfindings/"+str(scan.id)),
                          type="DEBUG", severity="DEBUG", scan=scan)
 
-    #Todo: change to wait the report becomes available
+    # @Todo: change to wait the report becomes available until a timeout
     time.sleep(5)  # wait the scan process finish to write the report
 
     # -4- get the results (findings)
@@ -585,6 +585,8 @@ def start_periodic_scan_task(self, params):
         return False
 
     params['scan_params']['scan_id'] = str(scan.id)
+
+    # params['scan_params']['scan_definition_id_options'] = str(params['scan_definition_id'])
 
     # -1- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES

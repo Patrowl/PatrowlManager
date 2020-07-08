@@ -57,14 +57,16 @@
   <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
   <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
   <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+  {% if request.user.is_superuser %}
   <script type="text/javascript" src="/admin/jsi18n/"></script>
+  {% endif %}
 
   <script type="text/javascript" src="/static/admin/js/actions.js"></script>
   <script type="text/javascript" src="/static/admin/js/urlify.js"></script>
   <script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
   <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
   <!-- <script type="text/javascript" src="/static/admin/js/calendar.js"></script> -->
-  <script type="text/javascript" src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+  <!-- <script type="text/javascript" src="/static/admin/js/admin/DateTimeShortcuts.js"></script> -->
 
   <script>
     function goBack() {

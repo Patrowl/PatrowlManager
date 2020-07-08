@@ -28,7 +28,10 @@
         {% endif %}
       </dd>
       <dt>Scan Type</dt>
-      <dd>{{ scan_def.scan_type }}</dd>
+      <dd>{{ scan_def.scan_type }}
+        {% if scan_def.scan_type == 'periodic' %} (every {{ scan_def.every }} {{ scan_def.period }})
+        {% endif %}
+      </dd>
       <dt>Engine</dt>
       <dd>{{ scan_def.engine_type.name }}</dd>
       <dt>Policy</dt>
@@ -50,6 +53,9 @@
           scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}"
           data-toggle="modal" data-target="#modal-run-scan">Run</button>
         {% endif %}
+        <button type="button" class="btn btn-warning btn-xs btn-run-now"
+        scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}"
+        data-toggle="modal" data-target="#modal-run-scan">Run</button>
       </dd>
       {% if scan_def.scan_type == "periodic" %}
       <dt>Scan status</dt>

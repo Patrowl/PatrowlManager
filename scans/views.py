@@ -20,6 +20,7 @@ from datetime import timedelta, datetime
 # from pytz import timezone
 import shlex
 import json
+import time
 
 
 def detail_scan_view(request, scan_id):
@@ -371,12 +372,17 @@ def add_scan_def_view(request):
 
                 scan_definition.periodic_task = periodic_task
                 _update_celerybeat()
-            else:  # Single later/now/scheduled
-                if form.data['start_scan'] == "now":
-                    # start the single scan now
-                    _run_scan(scan_definition.id, request_user_id)
-                elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
-                    _run_scan(scan_definition.id, request_user_id, eta=scan_definition.scheduled_at)
+            # else:  # Single later/now/scheduled
+            #     if form.data['start_scan'] == "now":
+            #         # start the single scan now
+            #         _run_scan(scan_definition.id, request_user_id)
+            #     elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
+            #         _run_scan(scan_definition.id, request_user_id, eta=scan_definition.scheduled_at)
+            if form.data['start_scan'] == "now":
+                # start the single scan now
+                _run_scan(scan_definition.id, request_user_id)
+            elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
+                _run_scan(scan_definition.id, request_user_id, eta=scan_definition.scheduled_at)
 
             scan_definition.save()
 
@@ -418,7 +424,7 @@ def edit_scan_def_view(request, scan_def_id):
             scan_definition.title = form.cleaned_data['title']
             scan_definition.status = "edited"
             scan_definition.description = form.cleaned_data['description']
-            scan_definition.enabled = form.cleaned_data['enabled'] is True
+            # scan_definition.enabled = form.cleaned_data['enabled'] is True
             scan_definition.engine_policy = form.cleaned_data['engine_policy']
             scan_definition.engine_type = scan_definition.engine_policy.engine
             if form.cleaned_data['engine'] is not None and len(form.cleaned_data['engine']) > 0:
@@ -428,16 +434,17 @@ def edit_scan_def_view(request, scan_def_id):
                 scan_definition.engine = None
 
             # Check and add team
-            scan_definition.teams.clear()
-            if form.data['scan_team'] == 'yes':
-                scan_definition.teams.add(request.user.users_team.get(id=form.data['scan_team_list']))
+            if 'scan_team' in form.data.keys():
+                scan_definition.teams.clear()
+                if form.data['scan_team'] == 'yes':
+                    scan_definition.teams.add(request.user.users_team.get(id=form.data['scan_team_list']))
 
             # Update assets
             scan_definition.assets_list.clear()
             scan_definition.assetgroups_list.clear()
+
             assets_list = []
             for asset_id in form.data.getlist('assets_list'):
-                # asset = Asset.objects.get(id=asset_id)
                 asset = Asset.objects.for_user(request.user).get(id=asset_id)
                 scan_definition.assets_list.add(asset)
                 assets_list.append({
@@ -480,6 +487,7 @@ def edit_scan_def_view(request, scan_def_id):
                     "engine_name": str(scan_definition.engine_type.name).lower(),
                     "owner_id": request_user_id,
                 }
+
                 if form.cleaned_data['engine'] is not None and form.data['engine'] != '' and int(form.data['engine']) > 0:
                     parameters.update({
                         "engine_id": EngineInstance.objects.get(id=form.data['engine']).id,
@@ -490,10 +498,14 @@ def edit_scan_def_view(request, scan_def_id):
 
                 # Remove the old PeriodicTask if exists
                 task_title = '[PO] {}@{}'.format(scan_definition.title, scan_definition.id)
-                PeriodicTask.objects.filter(name=task_title).delete()
+                # PeriodicTask.objects.filter(name=task_title).delete()
+                old_periodic_task = PeriodicTask.objects.filter(name=task_title)
+                # old_periodic_task.name = "{} to_remove {}".format(task_title, time.time())
+                old_periodic_task.update(name="{} to_remove {}".format(task_title, time.time()))
+                # scan_definition.periodic_task.delete()
 
                 # Create new one
-                periodic_task = PeriodicTask.objects.create(
+                new_periodic_task = PeriodicTask.objects.create(
                     interval=schedule,
                     name=task_title,
                     task='engines.tasks.start_periodic_scan_task',
@@ -503,13 +515,16 @@ def edit_scan_def_view(request, scan_def_id):
                     last_run_at=None,
                 )
 
-                periodic_task.enabled = True
-                periodic_task.save()
+                new_periodic_task.enabled = True
+                new_periodic_task.save()
 
-                scan_definition.periodic_task = periodic_task
+                scan_definition.periodic_task = new_periodic_task
+                old_periodic_task.delete()
                 _update_celerybeat()
 
+            # Finally, save it baby
             scan_definition.save()
+
             messages.success(request, 'Update submission successful')
             return redirect('list_scan_def_view')
 
