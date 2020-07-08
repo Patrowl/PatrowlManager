@@ -190,8 +190,10 @@ class Asset(models.Model):
     objects = AssetManager()
 
     # Attributes
-    value       = models.CharField(max_length=256, unique=True, null=False)
-    name        = models.CharField(max_length=256)
+    value       = models.TextField(max_length=2048, unique=True, null=False)
+    name        = models.TextField(max_length=2048)
+    # value       = models.CharField(max_length=256, unique=True, null=False)
+    # name        = models.CharField(max_length=256)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
     risk_level  = JSONField(default=get_default_risk_level)
