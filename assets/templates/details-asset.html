@@ -77,6 +77,15 @@ div.risk-trends {
         <dt>Description</dt>
         <dd>{{ asset.description }}</dd>
 
+        <dt>Teams</dt>
+        <dd>
+          {% if asset.teams.count == 0 %}
+          -
+          {% else %}
+          {{ asset.teams.all|join:", " }}
+          {% endif %}
+        </dd>
+
         <dt>Tags</dt>
         <dd>
           {% for tag in asset.categories.all %}
@@ -100,7 +109,7 @@ div.risk-trends {
         <dt>Download report</dt>
         <dd>
           <a href="/assets/api/v1/report/json/{{ asset.id }}">json</a> -
-          <a href="/assets/api/v1/report/csv/{{ asset.id }}">csv</a> - 
+          <a href="/assets/api/v1/report/csv/{{ asset.id }}">csv</a> -
           <a href="/assets/api/v1/report/html/{{ asset.id }}">html</a>
         </dd>
       </dl>

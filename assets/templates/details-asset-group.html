@@ -74,6 +74,15 @@ div.risk-trends {
         <dt>Description</dt>
         <dd>{{ asset_group.description }}</dd>
 
+        <dt>Teams</dt>
+        <dd>
+          {% if asset_group.teams.count == 0 %}
+          -
+          {% else %}
+          {{ asset_group.teams.all|join:", " }}
+          {% endif %}
+        </dd>
+
         <dt>Tags</dt>
         <dd>
           {% for tag in asset_group.categories.all %}
