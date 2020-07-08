@@ -422,8 +422,22 @@
               <li class="divider"></li>
               <li><a href="/users/details"><span class="glyphicon glyphicon-user"></span> My account</a></li>
               <!-- <li><a href="/admin/auth/user/{{ user.id }}/password/"><span class="glyphicon glyphicon-lock"></span> Change password</a></li> -->
+              {% if PRO_EDITION %}
+                {% if request.user.profile.is_delegated == False %}
+                <li><a href="/users/editpw"><span class="glyphicon glyphicon-lock"></span> Change my password</a></li>
+                {% endif %}
+              {% else %}
               <li><a href="/users/editpw"><span class="glyphicon glyphicon-lock"></span> Change my password</a></li>
+              {% endif %}
+              {% if PRO_EDITION %}
+                {% if request.user.profile.is_delegated == True %}
+                <li><a href="/oauth2/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                {% else %}
+                <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                {% endif %}
+              {% else %}
               <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+              {% endif %}
             </ul>
           </li>
         </ul>

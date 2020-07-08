@@ -21,6 +21,7 @@ USER_STATUS = (
 class Profile(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     status = models.CharField(choices=USER_STATUS, default='ACTIVE', max_length=10)
+    is_delegated = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
