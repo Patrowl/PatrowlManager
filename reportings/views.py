@@ -4,6 +4,7 @@ from django.db.models import Q, Count, Case, When, Sum
 from django.db.models.functions import Coalesce
 from django.db import models
 from django.shortcuts import render
+from django.conf import settings
 
 from assets.models import Asset, AssetGroup, ASSET_TYPES
 from findings.models import Finding
@@ -11,6 +12,7 @@ from scans.models import Scan, ScanDefinition
 from engines.models import EngineInstance, EnginePolicy
 from rules.models import Rule
 from events.models import Alert
+from users.models import Team, TeamUser
 
 import datetime
 import operator
@@ -18,22 +20,44 @@ import copy
 import ast
 
 
-
 @login_required
 def homepage_dashboard_view(request):
-    findings = Finding.objects.for_user(request.user).all().only("status", "severity")
-    assets = Asset.objects.for_user(request.user).all()
+    teamid_selected = -1
+    if settings.PRO_EDITION is True and int(request.GET.get('team', -1)) >= 0:
+        teamid = int(request.GET.get('team'))
+        # @Todo: ensure the team is allowed for this user
+        teamid_selected = teamid
+
+    # Findings
+    if teamid_selected >= 0:
+        findings = Finding.objects.for_team(request.user, teamid_selected).all().only("status", "severity")
+        assets = Asset.objects.for_team(request.user, teamid_selected).all()
+        assetgroups = AssetGroup.objects.for_team(request.user, teamid_selected).all()
+        scan_definitions = ScanDefinition.objects.for_team(request.user, teamid_selected).all()
+        scans = Scan.objects.for_team(request.user, teamid_selected).all()
+        alerts_new = Alert.objects.for_team(request.user, teamid_selected).filter(status="new")
+    else:
+        findings = Finding.objects.for_user(request.user).all().only("status", "severity")
+        assets = Asset.objects.for_user(request.user).all()
+        assetgroups = AssetGroup.objects.for_user(request.user).all()
+        scan_definitions = ScanDefinition.objects.for_user(request.user).all()
+        scans = Scan.objects.for_user(request.user).all()
+        alerts_new = Alert.objects.for_user(request.user).filter(status="new")
+
     global_stats = {
         "assets": {
             "total": assets.count(),
-            "total_ag": AssetGroup.objects.for_user(request.user).all().count(),
+            "total_ag": assetgroups.count(),
         },
         "asset_types": {},
         "findings": {},
         "scans": {
-            "defined": ScanDefinition.objects.for_user(request.user).all().count(),
-            "performed": Scan.objects.for_user(request.user).all().count(),
-            "active_periodic": ScanDefinition.objects.for_user(request.user).filter(enabled=True, scan_type='periodic').count(),
+            # "defined": ScanDefinition.objects.for_user(request.user).all().count(),
+            "defined": scan_definitions.count(),
+            # "performed": Scan.objects.for_user(request.user).all().count(),
+            "performed": scans.count(),
+            # "active_periodic": ScanDefinition.objects.for_user(request.user).filter(enabled=True, scan_type='periodic').count(),
+            "active_periodic": scan_definitions.filter(enabled=True, scan_type='periodic').count(),
         },
         "engines": {
             "total": EngineInstance.objects.all().count(),
@@ -46,12 +70,12 @@ def homepage_dashboard_view(request):
             "nb_matches": 0,
         },
         "alerts": {
-            "total_new": Alert.objects.filter(status="new").count(),
-            "new_info": Alert.objects.filter(status="new", severity="info").count(),
-            "new_low": Alert.objects.filter(status="new", severity="low").count(),
-            "new_medium": Alert.objects.filter(status="new", severity="medium").count(),
-            "new_high": Alert.objects.filter(status="new", severity="high").count(),
-            "new_critical": Alert.objects.filter(status="new", severity="critical").count(),
+            "total_new": alerts_new.count(),
+            "new_info": alerts_new.filter(severity="info").count(),
+            "new_low": alerts_new.filter(severity="low").count(),
+            "new_medium": alerts_new.filter(severity="medium").count(),
+            "new_high": alerts_new.filter(severity="high").count(),
+            "new_critical": alerts_new.filter(severity="critical").count(),
         },
     }
 
@@ -95,10 +119,12 @@ def homepage_dashboard_view(request):
     global_stats["rules"].update({"nb_matches": matches})
 
     # Last 6 findings
-    last_findings = Finding.objects.for_user(request.user).all().order_by('-id')[:6][::-1]
+    # last_findings = Finding.objects.for_user(request.user).all().order_by('-id')[:6][::-1]
+    last_findings = findings.order_by('-id')[:6][::-1]
 
     # Last 6 scans
-    last_scans = Scan.objects.for_user(request.user).all().order_by('-started_at')[:6]
+    # last_scans = Scan.objects.for_user(request.user).all().order_by('-started_at')[:6]
+    last_scans = scans.order_by('-started_at')[:6]
 
     # Asset grades repartition and TOP 10
     asset_grades_map = {
@@ -134,7 +160,9 @@ def homepage_dashboard_view(request):
 
     # Asset groups
     assetgroups_risk_scores = {}
-    ags = AssetGroup.objects.for_user(request.user).all().only("risk_level", "criticity", "id", "name")
+    # ags = AssetGroup.objects.for_user(request.user).all().only("risk_level", "criticity", "id", "name")
+    ags = assetgroups.only("risk_level", "criticity", "id", "name")
+
     for assetgroup in ags:
         assetgroup_grades_map[assetgroup.risk_level["grade"]].update({
             assetgroup.criticity: assetgroup_grades_map[assetgroup.risk_level["grade"]][assetgroup.criticity] + 1
@@ -188,13 +216,16 @@ def homepage_dashboard_view(request):
     cve_list = {}
     cwe_list = {}
 
-    finding_cves_list = Finding.objects.for_user(request.user).exclude(
+    # finding_cves_list = Finding.objects.for_user(request.user).exclude(
+    finding_cves_list = findings.exclude(
             Q(vuln_refs__CVE__isnull=True)|
             Q(status__in=['mitigated', 'patched', 'closed', 'false-positive'])
         ).annotate(
             cvelist=KeyTextTransform("CVE", 'vuln_refs')
         ).values('cvelist')
-    finding_cwes_list = Finding.objects.for_user(request.user).exclude(
+
+    # finding_cwes_list = Finding.objects.for_user(request.user).exclude(
+    finding_cwes_list = findings.exclude(
             Q(vuln_refs__CWE__isnull=True)|
             Q(status__in=['mitigated', 'patched', 'closed', 'false-positive'])
         ).annotate(
@@ -221,6 +252,16 @@ def homepage_dashboard_view(request):
         'top_cwe': sorted(cwe_list.items(), key=lambda x: x[1], reverse=True)[:10],
     })
 
+    teams = []
+    if settings.PRO_EDITION and request.user.is_superuser:
+        teams = Team.objects.all().order_by('name')
+    elif settings.PRO_EDITION and not request.user.is_superuser:
+        for tu in TeamUser.objects.filter(user=request.user):
+            teams.append({
+                'id': tu.organization.id,
+                'name': tu.organization.name
+            })
+
     return render(request, 'home-dashboard.html', {
         'global_stats': global_stats,
         'last_findings': last_findings,
@@ -231,8 +272,9 @@ def homepage_dashboard_view(request):
         'top_critical_assetgroups': top_critical_assetgroups,
         'top_critical_findings': top_critical_findings,
         'cvss_scores': cvss_scores,
-        'cxe_stats': cxe_stats
-        })
+        'cxe_stats': cxe_stats,
+        'teams': teams
+    })
 
 
 def patch_management_view(request):

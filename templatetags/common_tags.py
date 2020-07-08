@@ -1,8 +1,9 @@
 from django import template
 from django.utils import timezone
-import hashlib
+from django.contrib.auth import get_user_model
 from assets.models import Asset, AssetGroup
 from settings.models import Setting
+import hashlib
 
 register = template.Library()
 
@@ -75,6 +76,15 @@ def risk_score(asset):
     """Return the risk score of an asset."""
     if type(asset) in [Asset, AssetGroup]:
         return asset.get_risk_score()
+    else:
+        return 0
+
+
+@register.filter
+def nb_private_assets(u):
+    """Return the number of private assets (not in team)."""
+    if type(u) in [get_user_model()]:
+        return Asset.objects.filter(owner=u, teams__isnull=True).count()
     else:
         return 0
 

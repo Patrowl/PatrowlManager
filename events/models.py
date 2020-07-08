@@ -96,6 +96,19 @@ class AlertManager(models.Manager):
             )
         return super().get_queryset()
 
+    def for_team(self, user, team):
+        """Check if user is allowed to manage the object in a team."""
+        if settings.PRO_EDITION:
+            if user.is_superuser:
+                return super().get_queryset().filter(
+                    teams__in=[team],
+                    teams__is_active=True)
+            else:
+                return super().get_queryset().filter(
+                    teams__in=user.users_team.filter(id=team),
+                    teams__is_active=True)
+        return super().get_queryset()
+
 
 class Alert(models.Model):
     """Class definition of Alert."""

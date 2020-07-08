@@ -35,6 +35,8 @@
       <dd><a href="/engines/policies/edit/{{ scan_def.engine_policy_id }}">{{ scan_def.engine_policy.name }}</a></dd>
       <dt>Teams</dt>
       <dd>{{ scan_def.teams.all|join:", " }}</dd>
+      <dt>Owner</dt>
+      <dd>{{ scan_def.owner.username }}</dd>
       <dt>Created at</dt>
       <dd>{{ scan_def.created_at | date:"Y/m/d\-H:i:s" }}</dd>
       {% if scan_def.scheduled_at %}

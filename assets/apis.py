@@ -19,7 +19,6 @@ from app.settings import MEDIA_ROOT
 from findings.models import Finding
 from events.models import Event
 
-# import json
 import csv
 import os
 import mimetypes

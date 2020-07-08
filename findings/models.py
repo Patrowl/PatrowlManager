@@ -50,6 +50,14 @@ class FindingQuerySet(models.QuerySet):
             )
         return self
 
+    def for_team(self, user, team):
+        if settings.PRO_EDITION:
+            if user.is_superuser:
+                return self.filter(asset__teams__in=[team])
+            else:
+                return self.filter(asset__teams__in=user.users_team.filter(id=team))
+        return self
+
 
 class FindingManager(models.Manager):
     """Class definition of FindingManager."""
@@ -75,6 +83,10 @@ class FindingManager(models.Manager):
     def for_user(self, user):
         """Check if user is allowed to manage the object."""
         return self.get_queryset().for_user(user)
+
+    def for_team(self, user, team):
+        """Check if user is allowed to manage the object for a team."""
+        return self.get_queryset().for_team(user, team)
 
 
 class RawFinding(models.Model):

@@ -167,6 +167,21 @@ class AssetManager(models.Manager):
             )
         return super().get_queryset()
 
+    def for_team(self, user, team):
+        """Check if user is allowed to manage the object in a team."""
+        # if settings.PRO_EDITION:
+        #     return super().get_queryset().filter(teams__in=user.users_team.filter(id=team), teams__is_active=True)
+        if settings.PRO_EDITION:
+            if user.is_superuser:
+                return super().get_queryset().filter(
+                    teams__in=[team],
+                    teams__is_active=True)
+            else:
+                return super().get_queryset().filter(
+                    teams__in=user.users_team.filter(id=team),
+                    teams__is_active=True)
+        return super().get_queryset()
+
 
 class Asset(models.Model):
     """Class definition of Asset."""
@@ -349,7 +364,7 @@ def asset_delete_log(sender, **kwargs):
 
 class AssetGroupManager(models.Manager):
     """Class definition of AssetGroupManager."""
-    
+
     def for_user(self, user):
         """Check if user is allowed to manage the object."""
         if settings.PRO_EDITION and not user.is_superuser:
@@ -357,6 +372,19 @@ class AssetGroupManager(models.Manager):
                 Q(teams__in=user.users_team.all(), teams__is_active=True) |
                 Q(owner=user)
             )
+        return super().get_queryset()
+
+    def for_team(self, user, team):
+        """Check if user is allowed to manage the object in a team."""
+        if settings.PRO_EDITION:
+            if user.is_superuser:
+                return super().get_queryset().filter(
+                    teams__in=[team],
+                    teams__is_active=True)
+            else:
+                return super().get_queryset().filter(
+                    teams__in=user.users_team.filter(id=team),
+                    teams__is_active=True)
         return super().get_queryset()
 
 

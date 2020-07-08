@@ -89,6 +89,18 @@ td.bg-grade-F-high {background-color: black; color: white;}
 
 </style>
 
+{% if PRO_EDITION %}
+<div class="container-fluid">
+  Select Team:
+  <select id="team_select" class="form-control form-control-sm" style="width:auto; display:inline-block;">
+    <option value="-1" selected>All</option>
+    {% for team in teams %}
+    <option value="{{team.id}}">{{team.name|title}} </option>
+    {% endfor %}
+  </select>
+</div>
+{% endif %}
+
 <div class="container-fluid">
   <!-- 1st row -->
   <div class="row equal">
@@ -475,6 +487,16 @@ td.bg-grade-F-high {background-color: black; color: white;}
     // Hide 'info' findings
     window.cfbc_pie_chart.getDatasetMeta(0).data[4].hidden = true;
     window.cfbc_pie_chart.update();
+
+    // jQuery
+    url = new URL(window.location.href);
+    $('#team_select').val(url.searchParams.get("team", "-1"))
+
+    // Reload on team selection change
+    $('#team_select').on('change', function() {
+      url.searchParams.set("team", this.value);
+      window.location = url.search;
+    });
 
 </script>
 
