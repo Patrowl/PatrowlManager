@@ -107,7 +107,7 @@ urlpatterns = [
     # ex: /assets/api/v1/assetgroup_grade_refresh/4
     url(r'^api/v1/assetgroup_grade_refresh/(?P<assetgroup_id>[0-9]+)$', apis.refresh_assetgroup_grade_api, name='refresh_assetgroup_grade_api'),
     # ex: /assets/api/v1/owners/adddoc/8
-    url(r'^owners/api/v1/adddoc/(?P<asset_owner_id>[0-9]+)$', apis.add_asset_owner_document_api, name='add_asset_owner_document_api'),
+    url(r'^api/v1/owners/adddoc/(?P<asset_owner_id>[0-9]+)$', apis.add_asset_owner_document_api, name='add_asset_owner_document_api'),
     # ex: /assets/api/v1/owners/getdoc/8
     url(r'^api/v1/owners/getdoc/(?P<asset_owner_doc_id>[0-9]+)$', apis.get_asset_owner_doc_api, name='get_asset_owner_doc_api'),
     # ex: /assets/owners/deletedoc/8

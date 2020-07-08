@@ -18,7 +18,7 @@
     <dt>Comments</dt>
     <dd>
       {{ owner.comments|linebreaks }}<br/>
-      <a href="#" data-toggle="modal" data-target="#modalComment">edit</a>
+      <a href="#" data-toggle="modal" data-target="#modalComment">edit comments</a>
     </dd>
 
     <dt>Contacts list</dt>
@@ -26,10 +26,10 @@
       <a href="#" data-toggle="modal" data-target="#modalContact">+ add contact</a>
       <ul>
       {% for contact in owner.contacts %}
-        <li>{{ contact.name }} - {{ contact.phone }} - <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
-          <a href="#" data-toggle="modal" data-target="#modal-edit-contact"
+        <li>{{ contact.name }} - {{ contact.phone }} - {% if contact.email != None %}<a href="mailto:{{ contact.email }}">{{ contact.email }}{% endif %}</a>
+          <!-- <a href="#" data-toggle="modal" data-target="#modal-edit-contact"
            contact-id="{{ contact.id }}">
-           <span class="glyphicon glyphicon-eye-open text-primary"></span></a>
+           <span class="glyphicon glyphicon-eye-open text-primary"></span></a> -->
           <a href="#" data-toggle="modal" data-target="#modal-delete-contact"
            contact-id="{{ contact.id }}"
            contact-name="{{ contact.name }}">
@@ -38,7 +38,7 @@
       </ul>
     </dd>
 
-    <dt>Documents</dt>
+    <!-- <dt>Documents</dt>
     <dd>
       <a href="#" data-toggle="modal" data-target="#modalDocument">+ add document</a>
       <ul>
@@ -59,7 +59,7 @@
          </li>
       {% endfor %}
       </ul>
-    </dd>
+    </dd> -->
   </dl>
   <button class="btn btn-xs btn-primary"><a href="/assets/owners/list">Cancel</a></button>
 </div>

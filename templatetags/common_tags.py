@@ -34,12 +34,14 @@ def perc(nb, total):
 
 
 @register.filter
-def smartdate(date):
+def smartdate(mydate):
     """Return a formated datetime."""
-    if date.date() == timezone.now().date():
-        return timezone.localtime(date).strftime("%H:%M:%S")
+    if mydate is None:
+        return None
+    if mydate.date() == timezone.now().date():
+        return timezone.localtime(mydate).strftime("%H:%M:%S")
     else:
-        return date.date().isoformat()
+        return mydate.date().isoformat()
 
 
 @register.filter
@@ -146,3 +148,20 @@ def proper_paginate(paginator, current_page, neighbors=8):
         page_list = [f for f in range(start_index, end_index+1)]
         return page_list[:(2*neighbors + 1)]
     return paginator.page_range
+
+
+@register.filter
+def has_role(user, rolename):
+    from django.conf import settings
+
+    if settings.PRO_EDITION is False:
+        return True
+
+    if user.userrole.role == 1 and rolename.upper() == "MANAGER":
+        return True
+    elif user.userrole.role == 2 and rolename.upper() == "ANALYST":
+        return True
+    elif user.userrole.role == 3 and rolename.upper() == "AUDITOR":
+        return True
+
+    return False

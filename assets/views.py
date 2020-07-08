@@ -332,10 +332,11 @@ def bulkadd_asset_view(request):
 
                 # Add groups
                 if 'asset_groupname' in line and line['asset_groupname'] != "":
-                    ag = AssetGroup.objects.for_user(request.user).filter(name=str(line['asset_groupname'])).first()
+                    # ag = AssetGroup.objects.for_user(request.user).filter(name=str(line['asset_groupname'])).first()
+                    ag = AssetGroup.objects.filter(name=str(line['asset_groupname'])).first()
                     if ag is None:  # Create new asset group
                         asset_args = {
-                            'name': line['asset_groupname'],
+                            'name': str(line['asset_groupname']),
                             'criticity': "low",
                             'description': "Created automatically on asset upload.",
                             'owner': request.user
@@ -347,6 +348,8 @@ def bulkadd_asset_view(request):
 
                 # Manage tags (categories)
                 # @todo
+                if 'asset_tags' in line and line['asset_tags'] != "":
+                    print(line['asset_tags'].split(","))
                 # if len(line) >= 7 and line[6] != ":
                 #     print line[5]
                 #     for tag in line[5].split(","):
@@ -626,9 +629,9 @@ def list_asset_owners_view(request):
 def add_asset_owner_view(request):
     form = None
     if request.method == 'GET':
-        form = AssetOwnerForm()
+        form = AssetOwnerForm(user=request.user)
     elif request.method == 'POST':
-        form = AssetOwnerForm(request.POST)
+        form = AssetOwnerForm(request.POST, user=request.user)
         #
         # if form.errors:
         #     print(form.errors)

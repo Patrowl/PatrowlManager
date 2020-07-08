@@ -1,3 +1,4 @@
-﻿asset_value;asset_name;asset_type;asset_description;asset_criticity;asset_groupname
-patrowl.io;Patrowl domain name;domain;Patrowl domain name;high;recently_imported
-193.252.172.10;Patrowl public IP addr;ip;Patrowl public IP addr;low;recently_imported
+asset_value;asset_name;asset_type;asset_description;asset_criticity;asset_groupname;asset_tags
+patrowl.io;Patrowl domain name;domain;Patrowl domain name;high;recently_imported;my_tag
+193.252.172.10;Patrowl public IP addr;ip;Patrowl public IP addr;low;recently_imported;my_tag
+193.252.172.11;Patrowl public IP addr 2;ip;Patrowl public IP addr 2;low;recently_imported;my_tag

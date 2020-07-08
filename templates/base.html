@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load patrowl_tags %}
 {% load i18n %}
 
 <!DOCTYPE html>
@@ -289,9 +290,9 @@
             <li role="separator" class="divider"></li>
             <li><a href="/assets/owners/list">List asset owners</a></li>
             <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
-            <li role="separator" class="divider"></li>
+            <!-- <li role="separator" class="divider"></li>
             <li><a href="/admin/assets/assetcategory/">List categories (Admin only)</a></li>
-            <li><a href="/admin/assets/assetcategory/add/">+ Add new category (Admin only)</a></li>
+            <li><a href="/admin/assets/assetcategory/add/">+ Add new category (Admin only)</a></li> -->
           </ul>
         </li>
 
@@ -394,7 +395,11 @@
 
               <li class="divider"></li>
               {% if PRO_EDITION %}
-              <li><a href="/users/pro/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li>
+                {% if request.user.is_superuser %}
+                <li><a href="/users/pro/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li>
+                {% else %}
+                <li><a href="#"><span class="glyphicon glyphicon-th-list"></span> Users (Admin only)</a></li>
+                {% endif %}
               {% else %}
               <li><a href="https://patrowl.io/get-started"><span class="glyphicon glyphicon-th-list"></span> Users (PRO EDITION)</a></li>
               {% endif %}

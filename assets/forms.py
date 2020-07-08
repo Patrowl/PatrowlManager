@@ -78,9 +78,10 @@ class AssetOwnerForm(forms.ModelForm):
     url = forms.URLField(required=False)
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(AssetOwnerForm, self).__init__(*args, **kwargs)
 
-        assets = [(asset.id, asset.value) for asset in Asset.objects.all()]
+        assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all()]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
 
