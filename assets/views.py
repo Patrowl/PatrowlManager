@@ -14,6 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import AssetForm, AssetGroupForm, AssetBulkForm, AssetOwnerForm
 from .models import Asset, AssetGroup, AssetOwner, AssetCategory
 from .models import ASSET_INVESTIGATION_LINKS
+from .apis import _add_asset_tags
 from findings.models import Finding
 from engines.models import EnginePolicyScope
 from scans.models import Scan, ScanDefinition
@@ -348,12 +349,15 @@ def bulkadd_asset_view(request):
 
                 # Manage tags (categories)
                 # @todo
-                # if 'asset_tags' in line and line['asset_tags'] != "":
-                #     print(line['asset_tags'].split(","))
-                # if len(line) >= 7 and line[6] != ":
-                #     print line[5]
-                #     for tag in line[5].split(","):
-                #         print tag
+                if 'asset_tags' in line and line['asset_tags'] != "":
+                    # print(line['asset_tags'].split(","))
+                    for tag in line['asset_tags'].split(","):
+                        # print(tag)
+                        new_tag = _add_asset_tags(asset, tag)
+                        asset.categories.add(new_tag)
+                    asset.save()
+
+
 
             messages.success(request, 'Creation submission successful')
 
