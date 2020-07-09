@@ -99,7 +99,7 @@ class Rule(models.Model):
     periodic_task    = models.ForeignKey(PeriodicTask, null=True, blank=True, on_delete=models.CASCADE)
     enabled          = models.BooleanField(default=False)
     nb_matches       = models.IntegerField(default=0)
-    owner            = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    owner            = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at       = models.DateTimeField(default=timezone.now)
     updated_at       = models.DateTimeField(default=timezone.now)
 

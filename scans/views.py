@@ -281,7 +281,7 @@ def add_scan_def_view(request):
             scan_definition.description = form.cleaned_data['description']
             scan_definition.owner = request.user
             scan_definition.status = "created"
-            scan_definition.enabled = form.data['start_scan'] == "now"
+            scan_definition.enabled = True
             if form.cleaned_data['scan_type'] == 'periodic':
                 scan_definition.every = int(form.cleaned_data['every'])
                 scan_definition.period = form.cleaned_data['period']
@@ -378,14 +378,8 @@ def add_scan_def_view(request):
 
                 scan_definition.periodic_task = periodic_task
                 _update_celerybeat()
-            # else:  # Single later/now/scheduled
-            #     if form.data['start_scan'] == "now":
-            #         # start the single scan now
-            #         _run_scan(scan_definition.id, request_user_id)
-            #     elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
-            #         _run_scan(scan_definition.id, request_user_id, eta=scan_definition.scheduled_at)
+
             if form.data['start_scan'] == "now":
-                # start the single scan now
                 _run_scan(scan_definition.id, request_user_id)
             elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
                 _run_scan(scan_definition.id, request_user_id, eta=scan_definition.scheduled_at)
@@ -421,10 +415,8 @@ def edit_scan_def_view(request, scan_def_id):
 
     form = None
     if request.method == 'GET':
-        # form = ScanDefinitionForm(instance=scan_definition )
         form = ScanDefinitionForm(instance=scan_definition, user=request.user)
     elif request.method == 'POST':
-        # form = ScanDefinitionForm(request.POST)
         form = ScanDefinitionForm(request.POST, user=request.user)
 
         if form.is_valid():
@@ -439,6 +431,9 @@ def edit_scan_def_view(request, scan_def_id):
                 scan_definition.engine = EngineInstance.objects.get(id=form.data['engine'])
             else:
                 scan_definition.engine = None
+
+            if scan_definition.owner is None:
+                scan_definition.owner = request.user
 
             # Check and add team
             if 'scan_team' in form.data.keys():
@@ -503,30 +498,31 @@ def edit_scan_def_view(request, scan_def_id):
                         }
                     })
 
-                # Remove the old PeriodicTask if exists
-                task_title = '[PO] {}@{}'.format(scan_definition.title, scan_definition.id)
-                # PeriodicTask.objects.filter(name=task_title).delete()
-                old_periodic_task = PeriodicTask.objects.filter(name=task_title)
-                # old_periodic_task.name = "{} to_remove {}".format(task_title, time.time())
-                old_periodic_task.update(name="{} to_remove {}".format(task_title, time.time()))
-                # scan_definition.periodic_task.delete()
+                # Update the PeriodicTask
+                try:
+                    task_title = '[PO] {}@{}'.format(scan_definition.title, scan_definition.id)
+                    old_periodic_task = PeriodicTask.objects.filter(name=task_title)
 
-                # Create new one
-                new_periodic_task = PeriodicTask.objects.create(
-                    interval=schedule,
-                    name=task_title,
-                    task='engines.tasks.start_periodic_scan_task',
-                    args=json.dumps([parameters]),
-                    #expires=datetime.utcnow() + timedelta(seconds=30),
-                    queue='scan',
-                    last_run_at=None,
-                )
+                    if old_periodic_task:
+                        # Update the current periodic task
+                        old_periodic_task.update(
+                            interval=schedule,
+                            args=json.dumps([parameters])
+                        )
+                    else:
+                        # Create a new one (just in case of another #?!-$ bug on Celery)
+                        new_periodic_task = PeriodicTask.objects.create(
+                            interval=schedule,
+                            name=task_title,
+                            task='engines.tasks.start_periodic_scan_task',
+                            args=json.dumps([parameters]),
+                            queue='scan',
+                            last_run_at=None
+                        )
+                        scan_definition.periodic_task = new_periodic_task
+                except Exception:
+                    pass
 
-                new_periodic_task.enabled = True
-                new_periodic_task.save()
-
-                scan_definition.periodic_task = new_periodic_task
-                old_periodic_task.delete()
                 _update_celerybeat()
 
             # Finally, save it baby
