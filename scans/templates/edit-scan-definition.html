@@ -194,7 +194,7 @@ label.radio {
     <!-- Displayed when a policy is selected-->
     <div class="form-group" id="engine-div">
       <label class="col-sm-2 control-label" for="id_engine_id">Select Engine:</label>
-      <div class="col-sm-4">
+      <div class="col-sm-5">
         <select id="id_engine" name="engine_id" class="form-control" required>
           <!-- autofilled by jQuery -->
         </select>
@@ -203,7 +203,7 @@ label.radio {
     <div class="form-group submit-div">
       <div class="col-sm-2">
       </div>
-      <div class="col-sm-4">
+      <div class="col-sm-5">
         <button type="submit" class="btn btn-warning col-sm-12">Update the scan definition</button>
       </div>
     </div>
@@ -219,6 +219,11 @@ function InitForm(){
   _selected_team = '';
   function getTeam() {
     return _selected_team;
+  }
+
+  function checkAssets() {
+    console.log(_selected_assets.length)
+    return _selected_assets.length > 0;
   }
 
   // Set the default values:

@@ -9,10 +9,11 @@
     <dt>User ID</dt><dd>{{ user.id }}</dd>
     <dt>Username</dt><dd>{{ user.username }}</dd>
     <dt>Role</dt><dd>
-        {% if user.userrole.role == 1 %}Manager
-        {% elif user.userrole.role == 2 %}Analyst
-        {% elif user.userrole.role == 3 %}Auditor
-        {% endif %}
+      {% if user.is_superuser %}
+      SuperAdmin
+      {% else %}
+      {{user.userrole.get_role_display}}
+      {% endif %}
       </dd>
     <dt>API Token</dt><dd>{{ apitoken }}</dd>
     <dt>First Name</dt><dd>{{ user.first_name }}</dd>

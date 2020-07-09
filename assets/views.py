@@ -348,8 +348,8 @@ def bulkadd_asset_view(request):
 
                 # Manage tags (categories)
                 # @todo
-                if 'asset_tags' in line and line['asset_tags'] != "":
-                    print(line['asset_tags'].split(","))
+                # if 'asset_tags' in line and line['asset_tags'] != "":
+                #     print(line['asset_tags'].split(","))
                 # if len(line) >= 7 and line[6] != ":
                 #     print line[5]
                 #     for tag in line[5].split(","):
@@ -371,7 +371,6 @@ def evaluate_asset_risk_view(request, asset_name):
 
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def detail_asset_view(request, asset_id):
-    print(Asset.objects.for_user(request.user).filter(id=asset_id))
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     findings = Finding.objects.filter(asset=asset).annotate(
         severity_numm=Case(

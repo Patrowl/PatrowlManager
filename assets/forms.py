@@ -31,10 +31,8 @@ class AssetForm(forms.ModelForm):
 
         # Check allowed teams (Available in Pro Edition)
         if settings.PRO_EDITION and not self.user.is_superuser:
-            # List related TeamUsers with admin privileges
-            uta = self.user.users_teamuser.filter(is_admin=True)
-            # Update the list of available Teams
-            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=uta)
+            # List related TeamUsers
+            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all())
         # disable the value update (/!\ still bypassable)
         if self.initial != {} and 'value' in self.initial.keys():
             self.fields['value'].widget.attrs['readonly'] = True
@@ -65,6 +63,11 @@ class AssetGroupForm(forms.ModelForm):
         # @Todo: RBAC_CHECK
         assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all().order_by('value')]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
+
+        # Check allowed teams (Available in Pro Edition)
+        if settings.PRO_EDITION and not self.user.is_superuser:
+            # List related TeamUsers
+            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all())
 
 
 class AssetOwnerForm(forms.ModelForm):
