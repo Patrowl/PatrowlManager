@@ -4,7 +4,16 @@
 
 <ul class="breadcrumb">
   <li><a href="/scans/list">scans</a></li>
+
+  {% if PRO_EDITION %}
+    {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+    <li class="active">definitions [<a href="/scans/defs/add">+ Add new</a>]</li>
+    {% else %}
+    <li class="active">definitions </li>
+    {% endif %}
+  {% else %}
   <li class="active">definitions [<a href="/scans/defs/add">+ Add new</a>]</li>
+  {% endif %}
 </ul>
 
 <div class="container-fluid">

@@ -80,10 +80,20 @@ function toggle(source, element) {
       <td>
         <div class="btn-toolbar btn-group">
           <button type="button" class="btn btn-default btn-xs" onclick="location.href='/findings/details/{{ finding.id }}'"><span class="glyphicon glyphicon-plus-sign"></span></button>
-					<button type="button" class="btn btn-warning btn-xs" onclick="location.href='/findings/edit/{{ finding.id }}'"><span class="glyphicon glyphicon-edit"></span></button>
+
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+            <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/findings/edit/{{ finding.id }}'"><span class="glyphicon glyphicon-edit"></span></button>
+  					<button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-finding"
+              finding-id="{{ finding.id }}" finding-title="{{ finding.title }}" finding-asset="{{ finding.asset_name }}" finding-severity="{{ finding.severity }}">
+              <span class="glyphicon glyphicon-remove"></button>
+            {% endif %}
+          {% else %}
+          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/findings/edit/{{ finding.id }}'"><span class="glyphicon glyphicon-edit"></span></button>
 					<button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-finding"
             finding-id="{{ finding.id }}" finding-title="{{ finding.title }}" finding-asset="{{ finding.asset_name }}" finding-severity="{{ finding.severity }}">
             <span class="glyphicon glyphicon-remove"></button>
+          {% endif %}
         </div>
       </td>
     </tr>
@@ -92,10 +102,19 @@ function toggle(source, element) {
   </table>
 
   <a href="#" class="btn-compare-selected">// Compare findings</a><br/>
-  <a href="/findings/add">+ Add a new finding manually</a><br/>
   <a class="text-default btn-export-selected" href="#">% Export selected findings (CSV)</a><br/>
+
+  {% if PRO_EDITION %}
+    {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+    <a href="/findings/add">+ Add a new finding manually</a><br/>
+    <a class="text-warning btn-ack" href="#">* Ack selected findings</a><br/>
+    <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a>
+    {% endif %}
+  {% else %}
+  <a href="/findings/add">+ Add a new finding manually</a><br/>
   <a class="text-warning btn-ack" href="#">* Ack selected findings</a><br/>
   <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a>
+  {% endif %}
 	<br/><br/>
 
 	<div style="display: inline-flex;">

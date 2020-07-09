@@ -88,9 +88,20 @@ hr {
           <!-- Comments tab -->
           <div id="comments_div" class="tab-pane fade">
             <br/>
-            <textarea id="comments_text" rows="8" class="form-control form-control-sm">{{ finding.comments }}</textarea>
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              <textarea id="comments_text" rows="8" class="form-control form-control-sm">{{ finding.comments }}</textarea>
+              <br/>
+              <button class="btn btn-warning btn-xs btn-update-comments" style="width: 100%;">Update comments</button>
+              {% else %}
+              <textarea id="comments_text" rows="8" class="form-control form-control-sm" disabled>{{ finding.comments }}</textarea>
+              <br/>
+              {% endif %}
+            {% else %}
+            <textarea id="comments_text" rows="8" class="form-control form-control-sm" >{{ finding.comments }}</textarea>
             <br/>
             <button class="btn btn-warning btn-xs btn-update-comments" style="width: 100%;">Update comments</button>
+            {% endif %}
           </div>
 
           <!-- Tracking tab -->
@@ -110,6 +121,21 @@ hr {
     <div class="col-sm-4">
       <b>Actions</b>
       <hr class="my-1">
+    {% if PRO_EDITION %}
+        {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+        <div class="generate-alerts">
+          <button class="btn btn-danger btn-xs btn-generate-alerts" style="width: 100%;">Generate alerts</button>
+          <i class="alerts_summary"></i>
+        </div>
+        <div class="change-finding-status">
+          {% if raw == True %}
+          <a href="/findings/edit/{{ finding.id }}?raw=true"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
+          {% else %}
+          <a href="/findings/edit/{{ finding.id }}"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% else %}
       <div class="generate-alerts">
         <button class="btn btn-danger btn-xs btn-generate-alerts" style="width: 100%;">Generate alerts</button>
         <i class="alerts_summary"></i>
@@ -121,11 +147,12 @@ hr {
         <a href="/findings/edit/{{ finding.id }}"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
         {% endif %}
       </div>
+      {% endif %}
       <div class="export-finding btn-group" style="width: 100%;">
         <a href="#" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" style="width: 100%;">Export <span class="caret pull"></span></a>
         <ul class="dropdown-menu">
           <li><a href="#" export-format="html">HTML</a></li>
-          <li><a href="#" export-format="pdf">PDF (Todo)</a></li>
+          <!-- <li><a href="#" export-format="pdf">PDF (Todo)</a></li> -->
           <li><a href="#" export-format="json">JSON</a></li>
           <li><a href="#" export-format="stix">STIX 2</a></li>
           <li><a href="#" export-format="csv">CSV</a></li>

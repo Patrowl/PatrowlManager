@@ -371,6 +371,7 @@ def evaluate_asset_risk_view(request, asset_name):
 
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def detail_asset_view(request, asset_id):
+    print(Asset.objects.for_user(request.user).filter(id=asset_id))
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     findings = Finding.objects.filter(asset=asset).annotate(
         severity_numm=Case(

@@ -61,7 +61,16 @@ div.risk-trends {
 <ul class="breadcrumb">
   <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li><a href="/assets/details/{{ asset.id }}">{{ asset.value }}</a></li>
+
+  {% if PRO_EDITION %}
+    {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+    <li class="active">details [<a href='/assets/edit/{{ asset.id }}'>edit</a>]</li>
+    {% else %}
+    <li class="active">details</li>
+    {% endif %}
+  {% else %}
   <li class="active">details [<a href='/assets/edit/{{ asset.id }}'>edit</a>]</li>
+  {% endif %}
 </ul>
 
 <div class="container-fluid" asset-id="{{asset.id}}">
@@ -88,10 +97,23 @@ div.risk-trends {
 
         <dt>Tags</dt>
         <dd>
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              {% for tag in asset.categories.all %}
+              <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}"></i></span>
+              {% endfor %}
+              <a href="#modal-edit-asset-tags" data-toggle="modal" data-target="#modal-edit-asset-tags">+ add</a>
+            {% else %}
+              {% for tag in asset.categories.all %}
+              <span class="label label-primary">{{tag.value|lower}}</span>
+              {% endfor %}
+            {% endif %}
+          {% else %}
           {% for tag in asset.categories.all %}
           <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}"></i></span>
           {% endfor %}
           <a href="#modal-edit-asset-tags" data-toggle="modal" data-target="#modal-edit-asset-tags">+ add</a>
+          {% endif %}
         </dd>
 
         <dt>Criticity</dt>
@@ -234,8 +256,8 @@ div.risk-trends {
     <li class="menu_investigations"><a data-toggle="tab" href="#investigation_div">Investigate</a></li>
     <li class="menu_relation"><a data-toggle="tab" href="#relations_div">Relations/Artifacts</a></li>
     <li class="menu_owners"><a data-toggle="tab" href="#owners_div">Owners</a></li>
-    <li class="menu_alerts"><a data-toggle="tab" href="#alerts_div">Alerts</a></li>
-    <li class="menu_comments"><a data-toggle="tab" href="#comments_div">Comments</a></li>
+    <!-- <li class="menu_alerts"><a data-toggle="tab" href="#alerts_div">Alerts</a></li>
+    <li class="menu_comments"><a data-toggle="tab" href="#comments_div">Comments</a></li> -->
   </ul>
   <div class="tab-content">
     <div id="findings_div" class="tab-pane fade in active">
@@ -245,9 +267,17 @@ div.risk-trends {
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-          <li><a class="btn-ack" href="#">Ack selected findings</a></li>
           <li><a class="btn-compare-selected" href="#">Compare selected findings (2 findings max.)</a></li>
+
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+            <li><a class="btn-ack" href="#">Ack selected findings</a></li>
+            <li><a class="btn-delete-selected" href="#">Delete selected findings (no confirm)</a></li>
+            {% endif %}
+          {% else %}
+          <li><a class="btn-ack" href="#">Ack selected findings</a></li>
           <li><a class="btn-delete-selected" href="#">Delete selected findings (no confirm)</a></li>
+          {% endif %}
         </ul>
       </div>
       <table class="table table-hover" id="table" data-toggle="table">
@@ -293,10 +323,20 @@ div.risk-trends {
               <div class="btn-toolbar btn-group">
                 <a href="/findings/details/{{ finding.id }}" class="btn btn-default btn-xs">
                   <span class="glyphicon glyphicon-plus-sign"></span></a>
+
+                {% if PRO_EDITION %}
+                  {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                  <a href="/findings/delete/{{ finding.id }}" class="btn btn-danger btn-xs"
+                  data-toggle="modal" data-target="#modal-delete-finding"
+                  finding-id="{{ finding.id }}" finding-title="{{ finding.title }}">
+                  <span class="glyphicon glyphicon-remove"></span></a>
+                  {% endif %}
+                {% else %}
                 <a href="/findings/delete/{{ finding.id }}" class="btn btn-danger btn-xs"
                 data-toggle="modal" data-target="#modal-delete-finding"
                 finding-id="{{ finding.id }}" finding-title="{{ finding.title }}">
                 <span class="glyphicon glyphicon-remove"></span></a>
+                {% endif %}
               </div>
             </td>
           </tr>
@@ -349,7 +389,14 @@ div.risk-trends {
       </table>
     </div>
     <div id="scans_div" class="tab-pane fade">
+
+      {% if PRO_EDITION %}
+        {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+        <h5>Scan definitions [<a href="/scans/defs/add?asset_id={{asset.id}}">+ add new</a>]</h5>
+        {% endif %}
+      {% else %}
       <h5>Scan definitions [<a href="/scans/defs/add?asset_id={{asset.id}}">+ add new</a>]</h5>
+      {% endif %}
       <table class="table table-hover" id="table" data-toggle="table">
         <thead>
           <tr>
@@ -380,6 +427,31 @@ div.risk-trends {
             {% endif %}
             <td>{{ scan_def.updated_at|smartdate }}</td>
             <td>
+              <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/details/{{ scan_def.id }}'">
+                <span class="glyphicon glyphicon-plus-sign"></span></button>
+
+
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/edit/{{ scan_def.id }}'">
+                  <span class="glyphicon glyphicon-edit"></span></button>
+                {% if scan_def.scan_type == "periodic" %}
+                  {% if scan_def.enabled %}
+                  <button type="button" class="btn btn-warning btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
+                    Disable</button>
+                  {% else %}
+                  <button type="button" class="btn btn-success btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
+                    Enable</button>
+                  {% endif %}
+                {% elif scan_def.scan_type == "single" %}
+                  <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}" data-toggle="modal" data-target="#modal-run-scan">
+                    Run </button>
+                {% endif %}
+                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan-def"
+                  scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}">
+                  <span class="glyphicon glyphicon-remove"></button>
+                {% endif %}
+              {% else %}
               <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/edit/{{ scan_def.id }}'">
                 <span class="glyphicon glyphicon-edit"></span></button>
               {% if scan_def.scan_type == "periodic" %}
@@ -397,6 +469,7 @@ div.risk-trends {
               <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan-def"
                 scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}">
                 <span class="glyphicon glyphicon-remove"></button>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -468,9 +541,18 @@ div.risk-trends {
               <td>
                 <button type="button" class="btn btn-default btn-xs" title="Details" onclick="location.href='/scans/details/{{ scan.id }}'">
                   details</button>
+
+                {% if PRO_EDITION %}
+                  {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                  <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
+                    scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
+                    <span class="glyphicon glyphicon-remove"></button>
+                  {% endif %}
+                {% else %}
                 <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
                   scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
                   <span class="glyphicon glyphicon-remove"></button>
+                {% endif %}
               </td>
             </tr>
           {% endfor %}
@@ -583,14 +665,14 @@ div.risk-trends {
       </dl>
       {% endfor %}
     </div>
-    <div id="alerts_div" class="tab-pane fade">
+    <!-- <div id="alerts_div" class="tab-pane fade">
       <h4>Alerts</h4>
       @Todo: Related alert rules and notified alerts
     </div>
     <div id="comments_div" class="tab-pane fade">
       <h4>Comments</h4>
       @Todo: Comments
-    </div>
+    </div> -->
   </div>
 </div>
 

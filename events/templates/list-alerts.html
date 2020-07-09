@@ -104,8 +104,16 @@
         <td><span class='glyphicon glyphicon-share-alt'></span><a href="/findings/details/{{ alert.metadata.finding_id}}?raw=true">Finding</a></td>
         <td><span class='glyphicon glyphicon-share-alt'></span><a href="/scans/details/{{ alert.metadata.scan_id}}">Scan</a></td>
         <td>{{ alert.updated_at|smartdate }}</td>
+        {% if PRO_EDITION %}
+          {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+          <td>
+          {% else %}
+          <td style="display: none;">
+          {% endif %}
+        {% else %}
         <td>
-          <!-- <div class="btn-group" role="group" aria-label="Basic example"> -->
+        {% endif %}
+
           {% if alert.status == "new" %}
           <button
             type="button"
@@ -122,7 +130,6 @@
             alert-id="{{ alert.id }}">
             A</button>
           {% endif %}
-          <!-- </div> -->
         </td>
       </tr>
       {% endfor %}
@@ -163,8 +170,15 @@
   </div>
   <br/>
 
+  {% if PRO_EDITION %}
+    {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+    <a class="btn-read-selected text-warning" href="#">* Ack selected alerts</a><br/>
+    <a class="btn-archive-selected text-danger" href="#">! Archive selected alerts</a><br/>
+    {% endif %}
+  {% else %}
   <a class="btn-read-selected text-warning" href="#">* Ack selected alerts</a><br/>
   <a class="btn-archive-selected text-danger" href="#">! Archive selected alerts</a><br/>
+  {% endif %}
   <br/>
 
   {% if messages %}

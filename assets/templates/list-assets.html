@@ -48,11 +48,20 @@ function toggle(source, element) {
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
               <li><a href="{% url 'export_assets_api' %}">> Export assets (CSV)</a></li>
+
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
+                <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
+                <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticity of selected assets</a></li>
+                <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+                {% endif %}
+              {% else %}
               <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
               <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
               <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticity of selected assets</a></li>
-              <!-- <li><a class="btn-update-criticity-selected" href="#">+ Update criticity of selected assets</a></li> -->
               <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+              {% endif %}
             </ul>
           </div>
 
@@ -114,11 +123,21 @@ function toggle(source, element) {
               <td>
                 <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/details/{{ asset.id }}'">
                   <span class="glyphicon glyphicon-eye-open"></span></button>
-                <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/edit/{{ asset.id }}'">
-                  <span class="glyphicon glyphicon-pencil"></span></button>
-                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset"
-                   asset-id="{{ asset.id }}" asset-value="{{ asset.value }}">
-                   <span class="glyphicon glyphicon-remove"></span></button>
+               {% if PRO_EDITION %}
+                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                 <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/edit/{{ asset.id }}'">
+                   <span class="glyphicon glyphicon-pencil"></span></button>
+                 <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset"
+                    asset-id="{{ asset.id }}" asset-value="{{ asset.value }}">
+                    <span class="glyphicon glyphicon-remove"></span></button>
+                 {% endif %}
+               {% else %}
+               <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/edit/{{ asset.id }}'">
+                 <span class="glyphicon glyphicon-pencil"></span></button>
+               <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset"
+                  asset-id="{{ asset.id }}" asset-value="{{ asset.value }}">
+                  <span class="glyphicon glyphicon-remove"></span></button>
+               {% endif %}
               </td>
             </tr>
             {% endfor %}
@@ -181,8 +200,14 @@ function toggle(source, element) {
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
             <li><a href="{% url 'export_assetgroups_api' %}">> Export asset groups (CSV)</a></li>
+
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              <li><a class="btn-assetgroup-add" href="{% url 'add_asset_group_view' %}">+ Add a new asset group manually</a></li>
+              {% endif %}
+            {% else %}
             <li><a class="btn-assetgroup-add" href="{% url 'add_asset_group_view' %}">+ Add a new asset group manually</a></li>
-            <!-- <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li> -->
+            {% endif %}
           </ul>
         </div>
 
@@ -217,11 +242,21 @@ function toggle(source, element) {
             <td>
               <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/groups/details/{{ asset_group.id }}'">
                 <span class="glyphicon glyphicon-eye-open"></span></button>
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/groups/edit/{{ asset_group.id }}'">
+                  <span class="glyphicon glyphicon-pencil"></span></button>
+                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset-group"
+                  asset-group-id="{{ asset_group.id }}" asset-group-value="{{ asset_group.name }}">
+                  <span class="glyphicon glyphicon-remove"></span></button>
+                {% endif %}
+              {% else %}
               <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/groups/edit/{{ asset_group.id }}'">
                 <span class="glyphicon glyphicon-pencil"></span></button>
               <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset-group"
                 asset-group-id="{{ asset_group.id }}" asset-group-value="{{ asset_group.name }}">
                 <span class="glyphicon glyphicon-remove"></span></button>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}

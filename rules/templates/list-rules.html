@@ -48,18 +48,34 @@
         {% endif %}
         <td>{{ rule.updated_at|smartdate }}</td>
         <td>
-          <!-- <button type="button" class="btn btn-default btn-xs" onclick="location.href='/rules/edit/{{ rule.id }}'">
-            <span class="glyphicon glyphicon-edit"></span></button> -->
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+            <button type="button" class="btn btn-default btn-xs btn-duplicate-rule" rule-id="{{ rule.id }}">
+              <span class="glyphicon glyphicon-duplicate"></span></button>
+            <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-rule"
+              rule-id="{{ rule.id }}" rule-title="{{ rule.title }}"><span class="glyphicon glyphicon-remove"></button>
+            {% else %}
+            -
+            {% endif %}
+          {% else %}
           <button type="button" class="btn btn-default btn-xs btn-duplicate-rule" rule-id="{{ rule.id }}">
             <span class="glyphicon glyphicon-duplicate"></span></button>
-          <!-- <button type="button" class="btn btn-warning btn-xs btn-eval-rule" rule-id="{{ rule.id }}">
-            <span class="glyphicon glyphicon-fire"></span></button> -->
           <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-rule"
             rule-id="{{ rule.id }}" rule-title="{{ rule.title }}"><span class="glyphicon glyphicon-remove"></button>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
+
+      {% if PRO_EDITION %}
+        {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+        <tr class="add-new-rule-form">
+        {% else %}
+        <tr class="add-new-rule-form" style="display: none;">
+        {% endif %}
+      {% else %}
       <tr class="add-new-rule-form">
+      {% endif %}
         <td><span class="glyphicon glyphicon-plus text-warning"></span></td>
         <td><!-- Title -->
           <input id="title_id" name="title" type="text" class="form-control form-control-sm" placeholder="Title.."/>
@@ -122,7 +138,6 @@
       </tr>
     </tbody>
   </table>
-  <!-- {{ form_options.rule_scope_attributes }} -->
 
 
   {% if messages %}

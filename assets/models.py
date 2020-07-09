@@ -164,7 +164,7 @@ class AssetManager(models.Manager):
             return super().get_queryset().filter(
                 Q(teams__in=user.users_team.all(), teams__is_active=True) |
                 Q(owner=user)
-            )
+            ).distinct()
         return super().get_queryset()
 
     def for_team(self, user, team):
@@ -175,11 +175,11 @@ class AssetManager(models.Manager):
             if user.is_superuser:
                 return super().get_queryset().filter(
                     teams__in=[team],
-                    teams__is_active=True)
+                    teams__is_active=True).distinct()
             else:
                 return super().get_queryset().filter(
                     teams__in=user.users_team.filter(id=team),
-                    teams__is_active=True)
+                    teams__is_active=True).distinct()
         return super().get_queryset()
 
 
@@ -373,7 +373,7 @@ class AssetGroupManager(models.Manager):
             return super().get_queryset().filter(
                 Q(teams__in=user.users_team.all(), teams__is_active=True) |
                 Q(owner=user)
-            )
+            ).distinct()
         return super().get_queryset()
 
     def for_team(self, user, team):
@@ -382,11 +382,11 @@ class AssetGroupManager(models.Manager):
             if user.is_superuser:
                 return super().get_queryset().filter(
                     teams__in=[team],
-                    teams__is_active=True)
+                    teams__is_active=True).distinct()
             else:
                 return super().get_queryset().filter(
                     teams__in=user.users_team.filter(id=team),
-                    teams__is_active=True)
+                    teams__is_active=True).distinct()
         return super().get_queryset()
 
 

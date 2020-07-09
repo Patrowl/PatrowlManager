@@ -48,15 +48,15 @@ class FindingQuerySet(models.QuerySet):
             return self.filter(
                 Q(asset__teams__in=user.users_team.all()) |
                 Q(owner=user)
-            )
+            ).distinct()
         return self
 
     def for_team(self, user, team):
         if settings.PRO_EDITION:
             if user.is_superuser:
-                return self.filter(asset__teams__in=[team])
+                return self.filter(asset__teams__in=[team]).distinct()
             else:
-                return self.filter(asset__teams__in=user.users_team.filter(id=team))
+                return self.filter(asset__teams__in=user.users_team.filter(id=team)).distinct()
         return self
 
 

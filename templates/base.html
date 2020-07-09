@@ -329,9 +329,18 @@
             <li><a href="/findings/list">All findings</a></li>
             <li><a href="/findings/list?_status=new">New findings</a></li>
             <li><a href="/findings/list?_status=ack">Ack. findings</a></li>
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              <li role="separator" class="divider"></li>
+              <li><a href="/findings/import">Manual import</a></li>
+              <li><a href="/findings/add">+ Add finding</a></li>
+              {% endif %}
+            {% else %}
             <li role="separator" class="divider"></li>
             <li><a href="/findings/import">Manual import</a></li>
             <li><a href="/findings/add">+ Add finding</a></li>
+            {% endif %}
+
           </ul>
         </li>
 
@@ -361,7 +370,7 @@
           </a>
           <ul class="dropdown-menu">
             <li class="dropdown-submenu">
-              <a href="/engines/list"><strong>Scan Engines</strong></a>
+              <a href="/engines/list">Scan Engines</a>
               {% if PRO_EDITION %}
                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
                 <li><a href="/engines/add">+ Add scan engine instance</a></li>
@@ -374,7 +383,7 @@
             </li>
             <li role="separator" class="divider"></li>
             <li class="dropdown-submenu">
-              <a href="/engines/policies/list"><strong>Scan Engines Policies</strong></a>
+              <a href="/engines/policies/list">Scan Engines Policies</a>
               {% if PRO_EDITION %}
                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
                 <li><a href="/engines/policies/add">+ Add policy</a></li>
@@ -485,7 +494,9 @@
               <li><a href="/users/editpw"><span class="glyphicon glyphicon-lock"></span> Change my password</a></li>
               {% endif %}
               {% if PRO_EDITION %}
-                {% if request.user.profile.is_delegated == True %}
+                {% if request.user.is_superuser %}
+                <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                {% elif request.user.profile.is_delegated == True %}
                 <li><a href="/oauth2/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
                 {% else %}
                 <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
