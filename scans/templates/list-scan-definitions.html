@@ -40,10 +40,31 @@
         {% endif %}
         <td>{{ scan_def.updated_at|smartdate }}</td>
         <td>
-          <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/edit/{{ scan_def.id }}'">
-            <span class="glyphicon glyphicon-edit"></span></button>
           <button type="button" class="btn btn-default btn-xs" onclick="location.href='{% url 'export_scan_definition_api' scan_def.id %}'">
             <span class="glyphicon glyphicon-share"></span></button>
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+            <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/edit/{{ scan_def.id }}'">
+              <span class="glyphicon glyphicon-edit"></span></button>
+            {% if scan_def.scan_type == "periodic" %}
+              {% if scan_def.enabled %}
+              <button type="button" class="btn btn-warning btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
+                Disable</button>
+              {% else %}
+              <button type="button" class="btn btn-success btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
+                Enable</button>
+              {% endif %}
+            {% else %}
+              <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}" data-toggle="modal" data-target="#modal-run-scan">
+                Run </button>
+            {% endif %}
+            <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan-def"
+              scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}">
+              <span class="glyphicon glyphicon-remove"></button>
+            {% endif %}
+          {% else %}
+          <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/scans/defs/edit/{{ scan_def.id }}'">
+            <span class="glyphicon glyphicon-edit"></span></button>
           {% if scan_def.scan_type == "periodic" %}
             {% if scan_def.enabled %}
             <button type="button" class="btn btn-warning btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" scan-id="{{ scan_def.id }}">
@@ -59,6 +80,9 @@
           <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan-def"
             scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}">
             <span class="glyphicon glyphicon-remove"></button>
+          {% endif %}
+
+
         </td>
       </tr>
       {% endfor %}
@@ -98,12 +122,17 @@
     </ul>
   </div>
   <br/>
-  <a href="/scans/defs/add">+ Add a new scan definition</a><br/>
   <a href="/scans/list">+ View performed scans</a><br/>
-  <!-- <a class="text-warning btn-export-selected" href="#">* Export selected</a> -->
+  <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
+  {% if PRO_EDITION %}
+    {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+    <a href="/scans/defs/add">+ Add a new scan definition</a><br/>
+    <a class="btn-delete-selected text-danger" href="#">! Delete selected scans (no confirm)</a><br/>
+    {% endif %}
+  {% else %}
   <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
   <a class="btn-delete-selected text-danger" href="#">! Delete selected scans (no confirm)</a><br/>
-  <!-- <a href="{# url 'import_scan_definitions_view' #}" class="text-warning"># Import </a><br/> -->
+  {% endif %}
   <br/>
 
   {% if messages %}

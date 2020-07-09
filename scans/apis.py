@@ -9,6 +9,7 @@ from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django_celery_beat.models import PeriodicTask
 from rest_framework.decorators import api_view
+from common.utils import pro_group_required
 
 from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan, _search_scans, _add_scan_def
@@ -27,6 +28,7 @@ import tzlocal
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_definitions_api(request):
     """Get scan definitions."""
     scans_list = []
@@ -36,6 +38,7 @@ def get_scan_definitions_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_definition_api(request, scan_id):
     """Get selected scan."""
     scan = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
@@ -43,6 +46,7 @@ def get_scan_definition_api(request, scan_id):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def export_scan_definition_api(request, scan_id):
     """Get selected scan."""
     scan = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
@@ -52,6 +56,7 @@ def export_scan_definition_api(request, scan_id):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def export_scan_definitions_api(request):
     """Get selected scan."""
     scans_list = []
@@ -63,6 +68,7 @@ def export_scan_definitions_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_api(request, scan_id):
     """Get selected scan."""
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
@@ -70,6 +76,7 @@ def get_scan_api(request, scan_id):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scans_api(request):
     """Get scans."""
     scans_list = []
@@ -79,6 +86,7 @@ def get_scans_api(request):
 
 
 @api_view(['GET', 'DELETE'])
+@pro_group_required('ScansManager')
 def delete_scan_api(request, scan_id):
     """Delete selected scan."""
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
@@ -87,6 +95,7 @@ def delete_scan_api(request, scan_id):
 
 
 @api_view(['POST', 'DELETE'])
+@pro_group_required('ScansManager')
 def delete_scans_api(request):
     """Delete selected scans."""
     scans = request.data
@@ -96,6 +105,7 @@ def delete_scans_api(request):
 
 
 @api_view(['GET', 'DELETE'])
+@pro_group_required('ScansManager')
 def delete_scan_def_api(request, scan_id):
     """Delete selected scan defs."""
     scan = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
@@ -104,6 +114,7 @@ def delete_scan_def_api(request, scan_id):
 
 
 @api_view(['POST', 'DELETE'])
+@pro_group_required('ScansManager')
 def delete_scan_defs_api(request):
     """Delete selected scan defs."""
     scans = request.data
@@ -113,6 +124,7 @@ def delete_scan_defs_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager')
 def stop_scan_api(request, scan_id):
     """Stop a scan."""
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
@@ -125,6 +137,7 @@ def stop_scan_api(request, scan_id):
 
 
 @api_view(['POST'])
+@pro_group_required('ScansManager')
 def stop_scans_api(request):
     """Stop selected scans."""
     scans = request.data
@@ -147,6 +160,7 @@ def stop_scans_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scans_stats_api(request):
     scope = request.GET.get('scope', None)
     data = {}
@@ -175,6 +189,7 @@ def get_scans_stats_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scans_heatmap_api(request):
     data = {}
     for scan in Scan.objects.for_user(request.user).all():
@@ -183,6 +198,7 @@ def get_scans_heatmap_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scans_by_period_api(request):
     # remove to optimize
 
@@ -201,6 +217,7 @@ def get_scans_by_period_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scans_by_date_api(request):
     scopes = ["year", "month", "week", "day", "hour", "minute"]
     data = []
@@ -246,6 +263,7 @@ def get_scans_by_date_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_report_html_api(request, scan_id):
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     tmp_scan = model_to_dict(scan)
@@ -302,6 +320,7 @@ def get_scan_report_html_api(request, scan_id):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_report_json_api(request, scan_id):
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
 
@@ -318,6 +337,7 @@ def get_scan_report_json_api(request, scan_id):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_report_csv_api(request, scan_id):
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
     response = HttpResponse(content_type='text/csv')
@@ -350,6 +370,7 @@ def get_scan_report_csv_api(request, scan_id):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager', 'ScansViewer')
 def send_scan_reportzip_api(request, scan_id):
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
 
@@ -368,6 +389,7 @@ def send_scan_reportzip_api(request, scan_id):
 
 @csrf_exempt
 @api_view(['GET'])
+@pro_group_required('ScansManager')
 def toggle_scan_def_status_api(request, scan_def_id):
     scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_def_id)
     scan_def.enabled = not scan_def.enabled
@@ -389,6 +411,7 @@ def toggle_scan_def_status_api(request, scan_def_id):
 
 
 @api_view(['GET'])
+@pro_group_required('ScansManager')
 def run_scan_def_api(request, scan_def_id):
     scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_def_id)
 
@@ -400,6 +423,7 @@ def run_scan_def_api(request, scan_def_id):
 
 
 @api_view(['POST', 'PUT'])
+@pro_group_required('ScansManager')
 def add_scan_def_api(request):
     scan_def = _add_scan_def(request.data, owner=request.user)
     if scan_def:

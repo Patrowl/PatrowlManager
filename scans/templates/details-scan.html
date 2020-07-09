@@ -301,8 +301,16 @@ function toggle(source, element) {
               <td>
                 <div class="btn-group" role="group">
                   <a href="/findings/details/{{ finding.id }}?raw=true" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus-sign"></span></a>
+
+                  {% if PRO_EDITION %}
+                    {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                    <a href="#" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modal-finding-update" finding-id="{{ finding.id }}">
+                      <span class="glyphicon glyphicon-pencil"></span></a>
+                    {% endif %}
+                  {% else %}
                   <a href="#" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modal-finding-update" finding-id="{{ finding.id }}">
                     <span class="glyphicon glyphicon-pencil"></span></a>
+                  {% endif %}
                 </div>
               </td>
             </tr>
@@ -408,10 +416,30 @@ function toggle(source, element) {
 
     <!-- Second column -->
     <div class="col-sm-3">
-      <b>Scan details</b> <small>(ID={{ scan.id }})</small> <button type="button" class="btn btn-xs btn-warning btn-rerun">Re-run !</button>
+      <b>Scan details</b> <small>(ID={{ scan.id }})</small>
+      {% if PRO_EDITION %}
+        {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+         <button type="button" class="btn btn-xs btn-warning btn-rerun">Re-run !</button>
+        {% endif %}
+      {% else %}
+      <button type="button" class="btn btn-xs btn-warning btn-rerun">Re-run !</button>
+      {% endif %}
+
       <hr class="my-1">
       <dl class="dl-horizontal">
-        <dt>Title:</dt><dd><a href="/scans/defs/details/{{scan.scan_definition.id}}">{{ scan.title }}</a></dd>
+        <dt>Title:</dt>
+        <dd>
+
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+             <a href="/scans/defs/details/{{scan.scan_definition.id}}">{{ scan.title }}</a>
+            {% else %}
+            {{ scan.title }}
+            {% endif %}
+          {% else %}
+          <a href="/scans/defs/details/{{scan.scan_definition.id}}">{{ scan.title }}</a>
+          {% endif %}
+        </dd>
         <!-- <dt>Scan ID:</dt><dd>{{ scan.id }}</dd> -->
         <dt>Assets:</dt><dd><a data-toggle="modal" data-target="#modal-showall-assets">show all</a><br/></dd>
         <dt>Engine:</dt><dd>{{ scan.engine.name }} ({{ scan.engine_type.name }})</dd>
@@ -424,7 +452,19 @@ function toggle(source, element) {
             <span class="label label-warning">{{ scan.status|capfirst }}</span>
           {% endif %}
         </dd>
-        <dt>Policy:</dt><dd><a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a></dd>
+        <dt>Policy:</dt>
+        <dd>
+
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+            <a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a>
+            {% else %}
+            {{ scan.engine_policy.name }}
+            {% endif %}
+          {% else %}
+          <a href="/engines/policies/edit/{{scan.engine_policy.id}}">{{ scan.engine_policy.name }}</a>
+          {% endif %}
+        </dd>
         <dt>Teams</dt><dd>{{ scan.scan_definition.teams.all|join:", " }}</dd>
         <dt>Owner</dt><dd>{{ scan.scan_definition.owner.username }}</dd>
         <dt>Started at:</dt><dd>{{ scan.started_at|date:"Y/m/d\-H:i:s" }}</dd>
@@ -434,7 +474,7 @@ function toggle(source, element) {
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/json/{{ scan.id }}'">json</button>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/csv/{{ scan.id }}'">csv</button>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">html</button>
-          <button type="button" class="btn btn-default btn-xs" onclick="location.href='#'">raw</button>
+          <!-- <button type="button" class="btn btn-default btn-xs" onclick="location.href='#'">raw</button> -->
         </dd>
       </dl>
 

@@ -178,11 +178,21 @@ input:checked + label {
           <button type="button" class="btn btn-default btn-xs" title="Export scan findings" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">
             <span class="glyphicon glyphicon-share"></span></button>
           {% endif %}
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+            <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_def_id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
+              Run </button>
+            <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
+              scan-id="{{ scan.id }}" scan-title="{{ scan.title }} [{{ scan.eng_type }}]">
+              <span class="glyphicon glyphicon-remove"></button>
+            {% endif %}
+          {% else %}
           <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_def_id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
             Run </button>
           <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
             scan-id="{{ scan.id }}" scan-title="{{ scan.title }} [{{ scan.eng_type }}]">
             <span class="glyphicon glyphicon-remove"></button>
+          {% endif %}
         </td>
       </tr>
     {% endfor %}
@@ -190,8 +200,15 @@ input:checked + label {
     </tbody>
   </table>
   <div>
+    {% if PRO_EDITION %}
+      {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
     <a class="text-danger btn-delete-selected" href="#">- Delete selected scans (no confirm)</a><br/>
     <a class="text-warning btn-stop-selected" href="#">x Stop selected scans (no confirm)</a><br/>
+      {% endif %}
+    {% else %}
+    <a class="text-danger btn-delete-selected" href="#">- Delete selected scans (no confirm)</a><br/>
+    <a class="text-warning btn-stop-selected" href="#">x Stop selected scans (no confirm)</a><br/>
+    {% endif %}
     <a class="text-default btn-compare-selected" href="#">// Compare selected scans (2 scans max.)</a>
   </div>
 

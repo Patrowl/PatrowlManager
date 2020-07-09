@@ -10,17 +10,20 @@ from scans.models import Scan, ScanDefinition
 from rules.models import Rule
 from rest_framework.decorators import api_view
 from common.utils.encoding import json_serial
+from common.utils import pro_group_required
 import json
 import csv
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def get_raw_finding_api(request, finding_id):
     finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
     return JsonResponse(finding.raw_data, safe=False)
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def list_findings_api(request):
     findings_list = []
     for f in _search_findings(request):
@@ -29,18 +32,21 @@ def list_findings_api(request):
 
 
 @api_view(['POST'])
+@pro_group_required('FindingsManager')
 def add_finding_api(request):
     finding = _add_finding(request)
     return JsonResponse(finding.to_dict())
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def get_finding_api(request, finding_id):
     finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
     return JsonResponse(finding.to_dict())
 
 
 @api_view(['POST'])
+@pro_group_required('FindingsManager')
 def delete_findings_api(request):
     findings = request.data
     for finding_id in findings:
@@ -54,6 +60,7 @@ def delete_findings_api(request):
 
 
 @api_view(['POST'])
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def export_findings_csv_api(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=export_findings.csv'
@@ -92,6 +99,7 @@ def export_findings_csv_api(request):
 
 
 @api_view(['POST'])
+@pro_group_required('FindingsManager')
 def delete_rawfindings_api(request):
     findings = request.data
     for finding_id in findings:
@@ -105,6 +113,7 @@ def delete_rawfindings_api(request):
 
 
 @api_view(['POST'])
+@pro_group_required('FindingsManager')
 def change_findings_status_api(request):
     findings = request.data
     for finding in findings:
@@ -116,6 +125,7 @@ def change_findings_status_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager')
 def ack_findings_status_api(request, finding_id):
     f = Finding.objects.for_user(request.user).filter(id=finding_id).first()
     f.status = "ack"
@@ -124,6 +134,7 @@ def ack_findings_status_api(request, finding_id):
 
 
 @api_view(['POST'])
+@pro_group_required('FindingsManager')
 def change_rawfindings_status_api(request):
     findings = request.data
     for finding in findings:
@@ -138,6 +149,7 @@ def change_rawfindings_status_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def get_findings_stats_api(request):
     scope = request.GET.get('scope', None)
     data = {}
@@ -173,6 +185,7 @@ def get_findings_stats_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager')
 def send_finding_alerts_api(request, finding_id):
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":
         finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
@@ -197,6 +210,7 @@ def send_finding_alerts_api(request, finding_id):
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager')
 def generate_finding_alerts_api(request, finding_id):
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":
         finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
@@ -208,6 +222,7 @@ def generate_finding_alerts_api(request, finding_id):
 
 
 @api_view(['POST'])
+@pro_group_required('FindingsManager')
 def update_finding_comments_api(request, finding_id):
     new_comments = request.POST.get("comments", None)
     if new_comments is None:
@@ -224,6 +239,7 @@ def update_finding_comments_api(request, finding_id):
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager')
 def update_finding_api(request, finding_id):
     from events.models import Event
     is_raw = False
@@ -268,6 +284,7 @@ def update_finding_api(request, finding_id):
 
 
 @api_view(['GET'])
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def export_finding_api(request, finding_id):
     allowed_formats = ['json', 'html', 'stix', 'pdf', 'csv']
     if request.GET.get("raw", None) and request.GET.get("raw") == "true":

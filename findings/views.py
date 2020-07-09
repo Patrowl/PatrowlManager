@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import F
+from common.utils import pro_group_required
 from .models import Finding, RawFinding
 from .forms import ImportFindingsForm, FindingForm
 from .utils import _search_findings
@@ -16,6 +17,7 @@ import collections
 import datetime
 
 
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def list_findings_view(request):
     findings = _search_findings(request)
 
@@ -36,6 +38,7 @@ def list_findings_view(request):
         'findings': findings_p, 'nb_findings': nb_findings})
 
 
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def list_asset_findings_view(request, asset_name):
     findings = None
     filter_by_status = request.GET.get('_status', None)
@@ -52,6 +55,7 @@ def list_asset_findings_view(request, asset_name):
     return render(request, 'list-findings.html', {'findings': findings})
 
 
+@pro_group_required('FindingsManager')
 def delete_finding_view(request, finding_id):
     finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
     asset_id = finding.asset.id
@@ -63,6 +67,7 @@ def delete_finding_view(request, finding_id):
     return redirect('list_findings_view')
 
 
+@pro_group_required('FindingsManager')
 def import_findings_view(request):
     if request.method == 'POST':
         form = ImportFindingsForm(request.POST, request.FILES)
@@ -91,6 +96,7 @@ def import_findings_view(request):
     return render(request, 'import-findings.html', {'form': form})
 
 
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def details_finding_view(request, finding_id):
     from events.models import Event
     finding = None
@@ -135,6 +141,7 @@ def details_finding_view(request, finding_id):
         'tracking_timeline': collections.OrderedDict(sorted(tracking_timeline.items(), key=lambda t: t[0]))})
 
 
+@pro_group_required('FindingsManager')
 def edit_finding_view(request, finding_id):
     form = None
     is_raw_finding = request.GET.get("raw", None) and request.GET.get("raw") == "true"
@@ -169,6 +176,7 @@ def edit_finding_view(request, finding_id):
         {'form': form, 'finding': finding, 'raw': is_raw_finding})
 
 
+@pro_group_required('FindingsManager')
 def add_finding_view(request):
     form = None
 
@@ -213,6 +221,7 @@ def add_finding_view(request):
     return render(request, 'add-finding.html', {'form': form})
 
 
+@pro_group_required('FindingsManager', 'FindingsViewer')
 def compare_findings_view(request):
     finding_a_id = request.GET.get("finding_a_id", None)
     finding_b_id = request.GET.get("finding_b_id", None)

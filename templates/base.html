@@ -283,15 +283,37 @@
             <span class="glyphicon glyphicon-cloud"></span> Assets<span class="caret"></span>
           </a>
           <ul class="dropdown-menu" role="menu">
-            <li><a href="{% url 'list_assets_view' %}">List assets</a></li>
+            <li><a href="{% url 'list_assets_view' %}">Assets</a></li>
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              <li><a href="{% url 'add_asset_view' %}">+ Add new asset</a></li>
+              <li><a href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk (CSV file)</a></li>
+              {% endif %}
+            {% else %}
             <li><a href="{% url 'add_asset_view' %}">+ Add new asset</a></li>
             <li><a href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk (CSV file)</a></li>
+            {% endif %}
+
             <li role="separator" class="divider"></li>
-            <li><a href="{% url 'list_assets_view' %}?target=asset_group">List asset groups</a></li>
-            <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
+            <li><a href="{% url 'list_assets_view' %}?target=asset_group">Asset groups</a></li>
+
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
+              {% endif %}
+            {% else %}
+              <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
+            {% endif %}
             <li role="separator" class="divider"></li>
-            <li><a href="/assets/owners/list">List asset owners</a></li>
-            <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
+            <li><a href="/assets/owners/list">Asset owners</a></li>
+
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
+              {% endif %}
+            {% else %}
+              <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
+            {% endif %}
             <!-- <li role="separator" class="divider"></li>
             <li><a href="/admin/assets/assetcategory/">List categories (Admin only)</a></li>
             <li><a href="/admin/assets/assetcategory/add/">+ Add new category (Admin only)</a></li> -->
@@ -319,10 +341,16 @@
             <span class="glyphicon glyphicon-search"></span> Scans<span class="caret"></span>
           </a>
           <ul class="dropdown-menu" role="menu">
-            <li><a href="/scans/list">List scans performed</a></li>
+            <li><a href="/scans/list">Scans performed</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="/scans/defs/list">List scans definitions</a></li>
+            <li><a href="/scans/defs/list">Scans definitions</a></li>
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              <li><a href="/scans/defs/add">+ Add new scan</a></li>
+              {% endif %}
+            {% else %}
             <li><a href="/scans/defs/add">+ Add new scan</a></li>
+            {% endif %}
           </ul>
         </li>
 
@@ -359,19 +387,24 @@
               {% endif %}
 
             </li>
+
+            {% if PRO_EDITION %}
+              {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+              <li role="separator" class="divider"></li>
+              <li class="dropdown-submenu">
+                <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
+                <li><a href="/engines/types/add">+ Add engine type</a></li>
+              </li>
+              {% endif %}
+
+            {% else %}
             <li role="separator" class="divider"></li>
             <li class="dropdown-submenu">
-              <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
-
-              {% if PRO_EDITION %}
-                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
-                <li><a href="/engines/types/add">+ Add engine type</a></li>
-                {% endif %}
-
-              {% else %}
-              <li><a href="/engines/types/add">+ Add engine type</a></li>
-              {% endif %}
+            <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
+            <li><a href="/engines/types/add">+ Add engine type</a></li>
             </li>
+            {% endif %}
+
           </ul>
         </li>
 
@@ -466,7 +499,6 @@
       </div>
       {% else %}
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="/signup"><span class="glyphicon glyphicon-user"></span> {% trans "Sign up" %}</a></li>
           <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> {% trans "Login" %}</a></li>
         </ul>
       </div>

@@ -15,6 +15,7 @@ from .utils import _update_celerybeat, _run_scan
 from engines.models import Engine, EnginePolicy, EngineInstance, EnginePolicyScope
 from findings.models import RawFinding
 from assets.models import Asset, AssetGroup
+from common.utils import pro_group_required
 
 from datetime import timedelta, datetime
 # from pytz import timezone
@@ -23,6 +24,7 @@ import json
 import time
 
 
+@pro_group_required('ScansManager', 'ScansViewer')
 def detail_scan_view(request, scan_id):
     # todo: optimize that shit
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
@@ -173,6 +175,7 @@ def detail_scan_view(request, scan_id):
         'scan_events': scan_events})
 
 
+@pro_group_required('ScansManager', 'ScansViewer')
 def list_scans_view(request):
     """List performed scans."""
     scan_list = Scan.objects.for_user(request.user).all().annotate(
@@ -193,6 +196,7 @@ def list_scans_view(request):
 
 
 # Scan Definitions
+@pro_group_required('ScansManager', 'ScansViewer')
 def list_scan_def_view(request):
     scans = Scan.objects.all()
     scan_defs_all = ScanDefinition.objects.for_user(request.user).all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
@@ -212,6 +216,7 @@ def list_scan_def_view(request):
         'scan_defs': scan_defs, 'scans': scans})
 
 
+@pro_group_required('ScansManager')
 def delete_scan_def_view(request, scan_def_id):
     scan_definition = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_def_id)
 
@@ -237,6 +242,7 @@ def delete_scan_def_view(request, scan_def_id):
     return render(request, 'delete-scan-definition.html', {'scan_def': scan_definition})
 
 
+@pro_group_required('ScansManager')
 def add_scan_def_view(request):
     form = None
     request_user_id = request.user.id
@@ -399,6 +405,7 @@ def add_scan_def_view(request):
     })
 
 
+@pro_group_required('ScansManager')
 def edit_scan_def_view(request, scan_def_id):
     request_user_id = request.user.id
     scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
@@ -540,6 +547,7 @@ def edit_scan_def_view(request, scan_def_id):
     })
 
 
+@pro_group_required('ScansManager', 'ScansViewer')
 def detail_scan_def_view(request, scan_definition_id):
     """Details of a scan definition."""
     scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_definition_id)
@@ -557,6 +565,7 @@ def detail_scan_def_view(request, scan_definition_id):
         'scan_def': scan_def, 'scans': scans})
 
 
+@pro_group_required('ScansManager', 'ScansViewer')
 def compare_scans_view(request):
     scan_a_id = request.GET.get("scan_a_id", None)
     scan_b_id = request.GET.get("scan_b_id", None)

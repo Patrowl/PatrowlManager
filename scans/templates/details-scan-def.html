@@ -12,7 +12,17 @@
   <div class="col-sm-5">
     <dl class="dl-horizontal">
       <dt>Title</dt>
-      <dd><a href="/scans/defs/edit/{{ scan_def.id }}">{{ scan_def.title }}</a></dd>
+      <dd>
+        {% if PRO_EDITION %}
+          {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+          <a href="/scans/defs/edit/{{ scan_def.id }}">{{ scan_def.title }}</a>
+          {% else %}
+          <a href="/scans/defs/list">{{ scan_def.title }}</a>
+          {% endif %}
+        {% else %}
+        <a href="/scans/defs/edit/{{ scan_def.id }}">{{ scan_def.title }}</a>
+        {% endif %}
+      </dd>
       <dt>Assets</dt>
       <dd>
         {% if scan_def.assets_list.all|join:", "|length > 128 %}
@@ -35,7 +45,17 @@
       <dt>Engine</dt>
       <dd>{{ scan_def.engine_type.name }}</dd>
       <dt>Policy</dt>
-      <dd><a href="/engines/policies/edit/{{ scan_def.engine_policy_id }}">{{ scan_def.engine_policy.name }}</a></dd>
+      <dd>
+        {% if PRO_EDITION %}
+          {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+          <a href="/engines/policies/edit/{{ scan_def.engine_policy_id }}">{{ scan_def.engine_policy.name }}</a>
+          {% else %}
+          <a href="/engines/policies/list">{{ scan_def.engine_policy.name }}</a>
+          {% endif %}
+        {% else %}
+        <a href="/engines/policies/edit/{{ scan_def.engine_policy_id }}">{{ scan_def.engine_policy.name }}</a>
+        {% endif %}
+      </dd>
       <dt>Teams</dt>
       <dd>{{ scan_def.teams.all|join:", " }}</dd>
       <dt>Owner</dt>
@@ -48,14 +68,17 @@
       {% endif %}
       <dt>Scans performed</dt>
       <dd>{{ scan_def.scan_set.all.count }}
-        {% if scan_def.scan_type == "single" %}
+        {% if PRO_EDITION %}
+          {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
           <button type="button" class="btn btn-warning btn-xs btn-run-now"
           scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}"
           data-toggle="modal" data-target="#modal-run-scan">Run</button>
-        {% endif %}
+          {% endif %}
+        {% else %}
         <button type="button" class="btn btn-warning btn-xs btn-run-now"
         scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}"
         data-toggle="modal" data-target="#modal-run-scan">Run</button>
+        {% endif %}
       </dd>
       {% if scan_def.scan_type == "periodic" %}
       <dt>Scan status</dt>
@@ -89,8 +112,16 @@
     </button>
     <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
       <li><a class="btn-compare-selected" href="#">Compare selected scans (2 scans max.)</a></li>
+
+      {% if PRO_EDITION %}
+        {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+        <li><a class="btn-stop-selected" href="#">Stop selected scans (no confirm)</a></li>
+        <li><a class="btn-delete-selected" href="#">Delete selected scans (no confirm)</a></li>
+        {% endif %}
+      {% else %}
       <li><a class="btn-stop-selected" href="#">Stop selected scans (no confirm)</a></li>
       <li><a class="btn-delete-selected" href="#">Delete selected scans (no confirm)</a></li>
+      {% endif %}
     </ul>
   </div>
   <table class="table table-hover" id="table">
@@ -147,7 +178,7 @@
         <td>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/json/{{ scan.id }}'">json</button>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">html</button>
-          <button type="button" class="btn btn-default btn-xs" onclick="#">raw</button>
+          <!-- <button type="button" class="btn btn-default btn-xs" onclick="#">raw</button> -->
         </td>
         {% else %}
         <td>No report</td>
@@ -171,12 +202,25 @@
         {% endif %}
         <td>
           <a href="/scans/details/{{ scan.id }}" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus-sign"></span></a>
+          {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+            {% if scan.status == "enqueued" or scan.status == "started" %}
+            <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
+              <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
+            {% endif %}
+            <button type="button" class="btn btn-danger btn-xs" title="Delete scan" data-toggle="modal" data-target="#modal-delete-scan" scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
+              <span class="glyphicon glyphicon-remove"></span></button>
+            {% endif %}
+          {% else %}
           {% if scan.status == "enqueued" or scan.status == "started" %}
           <button type="button" class="btn btn-danger btn-xs btn-stop-scan" title="Stop scan" scan-id="{{ scan.id }}">
             <span class="glyphicon glyphicon-stop" scan-id="{{ scan.id }}"></span></button>
           {% endif %}
           <button type="button" class="btn btn-danger btn-xs" title="Delete scan" data-toggle="modal" data-target="#modal-delete-scan" scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
             <span class="glyphicon glyphicon-remove"></span></button>
+          {% endif %}
+
+
         </td>
       </tr>
       {% endfor %}
