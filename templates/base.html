@@ -334,21 +334,43 @@
           <ul class="dropdown-menu">
             <li class="dropdown-submenu">
               <a href="/engines/list"><strong>Scan Engines</strong></a>
-              <li><a href="/engines/list">List engines</a></li>
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                <li><a href="/engines/add">+ Add scan engine instance</a></li>
+                {% endif %}
+
+              {% else %}
               <li><a href="/engines/add">+ Add scan engine instance</a></li>
+              {% endif %}
+
             </li>
             <li role="separator" class="divider"></li>
             <li class="dropdown-submenu">
               <a href="/engines/policies/list"><strong>Scan Engines Policies</strong></a>
-              <li><a href="/engines/policies/list">List policies</a></li>
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                <li><a href="/engines/policies/add">+ Add policy</a></li>
+                <li><a href="/engines/policies/import">* Import policies</a></li>
+                {% endif %}
+
+              {% else %}
               <li><a href="/engines/policies/add">+ Add policy</a></li>
               <li><a href="/engines/policies/import">* Import policies</a></li>
+              {% endif %}
+
             </li>
             <li role="separator" class="divider"></li>
             <li class="dropdown-submenu">
               <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
-              <li><a href="/engines/types/list">List types</a></li>
+
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                <li><a href="/engines/types/add">+ Add engine type</a></li>
+                {% endif %}
+
+              {% else %}
               <li><a href="/engines/types/add">+ Add engine type</a></li>
+              {% endif %}
             </li>
           </ul>
         </li>

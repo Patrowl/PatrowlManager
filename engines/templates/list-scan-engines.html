@@ -38,34 +38,87 @@
       <td>{{ engine.api_url }}</td>
       <td>{{ engine.updated_at|smartdate }}</td>
       <td>
-        <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/edit/{{ engine.id }}'">
-          <span class="glyphicon glyphicon-edit"></span></button>
-        <button type="button" class="btn btn-default btn-xs btn-engine-info" data-toggle="modal" data-target="#modal-info-engine" engine-id="{{ engine.id }}">
-          <span class="glyphicon glyphicon-info-sign"></span></button>
-        <button type="button" class="btn btn-default btn-xs btn-refresh-engine-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
-          <span class="glyphicon glyphicon-repeat"></span></button>
-        <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-engine"
-           engine-id="{{ engine.id }}" engine-name="{{ engine.name }}@{{ engine.api_url}}">
-          <span class="glyphicon glyphicon-remove"></span></button>
-        {% if engine.enabled %}
-        <button type="button" class="btn btn-warning dropdown-toggle btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
-          Disable</button>
+
+        {% if PRO_EDITION %}
+            {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+              <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/edit/{{ engine.id }}'">
+                <span class="glyphicon glyphicon-edit"></span></button>
+              <button type="button" class="btn btn-default btn-xs btn-engine-info" data-toggle="modal" data-target="#modal-info-engine" engine-id="{{ engine.id }}">
+                <span class="glyphicon glyphicon-info-sign"></span></button>
+              <button type="button" class="btn btn-default btn-xs btn-refresh-engine-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
+                <span class="glyphicon glyphicon-repeat"></span></button>
+              <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-engine"
+                 engine-id="{{ engine.id }}" engine-name="{{ engine.name }}@{{ engine.api_url}}">
+                <span class="glyphicon glyphicon-remove"></span></button>
+              {% if engine.enabled %}
+              <button type="button" class="btn btn-warning dropdown-toggle btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
+                Disable</button>
+              {% else %}
+              <button type="button" class="btn btn-success dropdown-toggle btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
+                Enable</button>
+              {% endif %}
+
+            {% else %}
+              <button type="button" class="btn btn-default btn-xs" disabled>
+                <span class="glyphicon glyphicon-edit"></span></button>
+              <button type="button" class="btn btn-default btn-xs btn-engine-info" data-toggle="modal" data-target="#modal-info-engine" engine-id="{{ engine.id }}">
+                <span class="glyphicon glyphicon-info-sign"></span></button>
+              <button type="button" class="btn btn-default btn-xs btn-refresh-engine-status" engine-id="{{ engine.id }}">
+                <span class="glyphicon glyphicon-repeat"></span></button>
+              <button type="button" class="btn btn-danger btn-xs" disabled>
+                <span class="glyphicon glyphicon-remove"></span></button>
+              {% if engine.enabled %}
+              <button type="button" class="btn btn-warning dropdown-toggle btn-xs" disabled>
+                Disable</button>
+              {% else %}
+              <button type="button" class="btn btn-success dropdown-toggle btn-xs" disabled>
+                Enable</button>
+              {% endif %}
+
+            {% endif %}
         {% else %}
-        <button type="button" class="btn btn-success dropdown-toggle btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
-          Enable</button>
+          <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/engines/edit/{{ engine.id }}'">
+            <span class="glyphicon glyphicon-edit"></span></button>
+          <button type="button" class="btn btn-default btn-xs btn-engine-info" data-toggle="modal" data-target="#modal-info-engine" engine-id="{{ engine.id }}">
+            <span class="glyphicon glyphicon-info-sign"></span></button>
+          <button type="button" class="btn btn-default btn-xs btn-refresh-engine-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
+            <span class="glyphicon glyphicon-repeat"></span></button>
+          <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-engine"
+             engine-id="{{ engine.id }}" engine-name="{{ engine.name }}@{{ engine.api_url}}">
+            <span class="glyphicon glyphicon-remove"></span></button>
+          {% if engine.enabled %}
+          <button type="button" class="btn btn-warning dropdown-toggle btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
+            Disable</button>
+          {% else %}
+          <button type="button" class="btn btn-success dropdown-toggle btn-xs btn-change-status" aria-haspopup="true" aria-expanded="false" engine-id="{{ engine.id }}">
+            Enable</button>
+          {% endif %}
         {% endif %}
       </td>
     </tr>
   {% endfor %}
   </tbody>
   </table>
-  <a href="/engines/add">+ Add a new scan engine</a><br/>
-  <a href="#" class="text-warning btn-refresh-all-engines">* Refresh scan engine status</a><br/>
-  {% if autorefresh_status %}
-    <a href="#" class="text-danger btn-autorefresh-all-engines">* Disable Auto-refresh scan engine status</a>
+  {% if PRO_EDITION %}
+    {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+    <a href="/engines/add">+ Add a new scan engine</a><br/>
+    <a href="#" class="text-warning btn-refresh-all-engines">* Refresh scan engine status</a><br/>
+    {% if autorefresh_status %}
+      <a href="#" class="text-danger btn-autorefresh-all-engines">* Disable Auto-refresh scan engine status</a>
+    {% else %}
+      <a href="#" class="text-danger btn-autorefresh-all-engines">* Enable Auto-refresh scan engine status</a>
+    {% endif %}
+    {% endif %}
   {% else %}
-    <a href="#" class="text-danger btn-autorefresh-all-engines">* Enable Auto-refresh scan engine status</a>
+    <a href="/engines/add">+ Add a new scan engine</a><br/>
+    <a href="#" class="text-warning btn-refresh-all-engines">* Refresh scan engine status</a><br/>
+    {% if autorefresh_status %}
+      <a href="#" class="text-danger btn-autorefresh-all-engines">* Disable Auto-refresh scan engine status</a>
+    {% else %}
+      <a href="#" class="text-danger btn-autorefresh-all-engines">* Enable Auto-refresh scan engine status</a>
+    {% endif %}
   {% endif %}
+
 
   {% if messages %}
   <ul class="messages">
