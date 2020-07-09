@@ -23,7 +23,7 @@ label.radio {
 </ul>
 
 <div class="container">
-  <form action="{% url 'edit_scan_def_view' scan_def.id %}" method="post" class="form-horizontal">
+  <form action="{% url 'edit_scan_def_view' scan_def.id %}" method="post" class="form-horizontal" id="edit-scan-def-form">
     <legend>Edit a scan definition (ID: {{scan_def.id}})</legend>
     {% csrf_token %}
 
@@ -212,19 +212,15 @@ label.radio {
 
 <script>
 
+_selected_team = '';
+function getTeam() {
+  return _selected_team;
+}
+
 function InitForm(){
   _selected_assets = [];
   _id_asset = 1;
 
-  _selected_team = '';
-  function getTeam() {
-    return _selected_team;
-  }
-
-  function checkAssets() {
-    console.log(_selected_assets.length)
-    return _selected_assets.length > 0;
-  }
 
   // Set the default values:
   // - Scan Type
@@ -581,7 +577,25 @@ var hidden_policies_by_engine = [];
 $(function() {
     AddHooks()
     InitForm()
-}); //End of jQuery ready
+});
+
+// Ensure no scans definition are set without assets
+$("#edit-scan-def-form").submit(function () {
+  is_valid = $('div.cbx_assets label input:checked').length > 0;
+  if (is_valid == false) {
+    // $("#edit-scan-def-form").append('\
+    $("#edit-scan-def-form button:submit").before('\
+    <div class="alert alert-dismissible alert-danger">\
+      <button type="button" class="close" data-dismiss="alert">&times;</button>\
+      <strong>No assets selected</strong> Please select at least one asset to scan.\
+    </div>');
+  }
+
+  return is_valid;
+});
+
+
+//End of jQuery ready
 
 </script>
 

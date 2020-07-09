@@ -25,7 +25,7 @@ label.radio {
 </ul>
 
 <div class="container">
-  <form action="{% url 'add_scan_def_view' %}" method="post" class="form-horizontal">
+  <form action="{% url 'add_scan_def_view' %}" method="post" class="form-horizontal" id="add-scan-def-form">
     <legend>Add a new scan definition</legend>
     {% csrf_token %}
 
@@ -223,6 +223,21 @@ label.radio {
   }
 
   $(function() {
+
+    // Ensure no scans definition are set without assets
+    $("#add-scan-def-form").submit(function () {
+      is_valid = $('div.cbx_assets label input:checked').length > 0;
+      if (is_valid == false) {
+        // $("#edit-scan-def-form").append('\
+        $("#add-scan-def-form button:submit").before('\
+        <div class="alert alert-dismissible alert-danger">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>No assets selected</strong> Please select at least one asset to scan.\
+        </div>');
+      }
+
+      return is_valid;
+    });
 
     // Toggle scan type radio buttons styles
     $('div.btn-scantype').click(function (e) {
