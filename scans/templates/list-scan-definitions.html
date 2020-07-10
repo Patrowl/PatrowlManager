@@ -132,13 +132,15 @@
   </div>
   <br/>
   <a href="/scans/list">+ View performed scans</a><br/>
-  <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
+
   {% if PRO_EDITION %}
     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
     <a href="/scans/defs/add">+ Add a new scan definition</a><br/>
+    <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
     <a class="btn-delete-selected text-danger" href="#">! Delete selected scans (no confirm)</a><br/>
     {% endif %}
   {% else %}
+  <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
   <a href="{% url 'export_scan_definitions_api' %}" class="text-warning">* Export all</a><br/>
   <a class="btn-delete-selected text-danger" href="#">! Delete selected scans (no confirm)</a><br/>
   {% endif %}

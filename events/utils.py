@@ -1,5 +1,5 @@
 from .models import Alert
-from findings.models import Finding, RawFinding
+from findings.models import RawFinding
 from assets.models import Asset
 
 

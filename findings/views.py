@@ -170,6 +170,12 @@ def edit_finding_view(request, finding_id):
             finding.comments = form.cleaned_data['comments']
 
             finding.save()
+
+            # Update Finding status if
+            if type(finding) == RawFinding:
+                for f in Finding.objects.for_user(request.user).filter(title=finding.title, asset_name=finding.asset_name, hash=finding.hash).only('id', 'status'):
+                    f.status = form.cleaned_data['status']
+                    f.save()
             return redirect('list_findings_view')
 
     return render(request, 'edit-finding.html',

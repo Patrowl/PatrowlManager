@@ -1080,9 +1080,12 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             if f:
                 # We already see you
                 f.checked_at = timezone.now()
+                if f.status in ['patched', 'closed']:
+                    f.status = "undone"
                 f.save()
                 new_raw_finding.status = f.status
                 new_raw_finding.save()
+                
                 known_findings_list.append(new_raw_finding.hash)
             else:
                 # Raise an alert

@@ -141,8 +141,11 @@ def change_rawfindings_status_api(request):
         rf = RawFinding.objects.for_user(request.user).filter(id=finding['ack']).first()
         rf.status = "ack"
         rf.save()
-        for f in rf.finding_set.all():
-            f.status = "ack"
+        # for f in rf.finding_set.all():
+        #     f.status = "ack"
+        #     f.save()
+        for f in Finding.objects.for_user(request.user).filter(title=rf.title, asset_name=rf.asset_name, hash=rf.hash).only('id', 'status'):
+            f.status = rf.status
             f.save()
 
     return JsonResponse({'status': 'success'})

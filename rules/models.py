@@ -48,12 +48,12 @@ RULE_SCOPE_ATTRIBUTES = {
 }
 
 RULE_TARGETS = (
-    ('event',   'Patrowl event'),
-    ('logfile', 'To logfile'),
+    # ('event',   'Patrowl event'),
+    # ('logfile', 'To logfile'),
     ('email',   'Send email'),
-    ('thehive', 'To TheHive (event'),
-    ('splunk',  'To Splunk'),
-    ('slack',   'To Slack'),
+    ('thehive', 'TheHive Event'),
+    # ('splunk',  'To Splunk'),
+    ('slack',   'Slack'),
 )
 
 RULE_TRIGGERS = (
@@ -145,6 +145,11 @@ def rule_create_update_log(sender, **kwargs):
 def rule_delete_log(sender, **kwargs):
     Event.objects.create(message="[Rule] Rule '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
+
+
+def send_alert_message(rule, message, description):
+    # @todo
+    return True
 
 
 def send_email_message(rule, message, description):

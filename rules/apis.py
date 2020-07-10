@@ -58,7 +58,6 @@ def add_rule_api(request):
         "enabled": params["enable"] == "enabled",
         "severity": params["severity"],
         "trigger": params["trigger"],
-        "severity": params["severity"],
         "target": params["target"],
         "owner": request.user
     }
