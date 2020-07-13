@@ -13,6 +13,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
+from common.utils import pro_group_required
 from users.serializers import UserSerializer
 from users.forms import LoginForm
 from reportings.views import homepage_dashboard_view
@@ -122,7 +123,7 @@ def login(request):
 #         form = UserCreationForm()
 #     return render(request, 'signup.html', {'form': form})
 
-
+@pro_group_required('UsersManager')
 def user_details_view(request):
     user = get_object_or_404(get_user_model(), id=request.user.id)
     apitokens = Token.objects.filter(user=request.user)
@@ -136,12 +137,14 @@ def user_details_view(request):
     })
 
 
+@pro_group_required('UsersManager')
 def list_users_view(request):
     users = get_user_model().objects.all()
     return render(request, 'list-users.html', {'users': users})
 
 
 @csrf_exempt
+@pro_group_required('UsersManager')
 def add_user_view(request):
     form = None
     if request.method == 'GET':
@@ -160,6 +163,7 @@ def add_user_view(request):
     return render(request, 'add-user.html', {'form': form})
 
 
+@pro_group_required('UsersManager')
 def edit_user_password_view(request):
     form = None
     if request.method == 'GET':

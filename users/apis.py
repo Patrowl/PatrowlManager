@@ -5,10 +5,13 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
+from common.utils import pro_group_required
+from common.utils.password import get_random_alphanumeric_string
 from django.forms.models import model_to_dict
 
 
 @api_view(['GET'])
+@pro_group_required('UsersManager')
 def user_details_api(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
     res = model_to_dict(user, exclude=['groups', 'password'])
@@ -19,6 +22,7 @@ def user_details_api(request, user_id):
 
 
 @api_view(['GET'])
+@pro_group_required('UsersManager')
 def list_users_api(request):
     users = []
     for user in get_user_model().objects.all().order_by('username'):
@@ -31,6 +35,7 @@ def list_users_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('UsersManager')
 def delete_user_api(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
     user.delete()
@@ -45,6 +50,7 @@ def get_curruser_authtoken_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('UsersManager')
 def get_user_authtoken_api(request, user_id):
     uid = get_object_or_404(get_user_model(), id=user_id)
     token = Token.objects.get_or_create(user=uid)[0]
@@ -59,6 +65,7 @@ def delete_curruser_authtoken_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('UsersManager')
 def delete_user_authtoken_api(request, user_id):
     uid = get_object_or_404(get_user_model(), id=user_id)
     for token in Token.objects.filter(user=uid):
@@ -75,9 +82,20 @@ def renew_curruser_authtoken_api(request):
 
 
 @api_view(['GET'])
+@pro_group_required('UsersManager')
 def renew_user_authtoken_api(request, user_id):
     uid = get_object_or_404(get_user_model(), id=user_id)
     for token in Token.objects.filter(user=uid):
         token.delete()
     token = Token.objects.get_or_create(user=uid)[0]
     return JsonResponse({"token": token.key})
+
+
+@api_view(['GET'])
+@pro_group_required('UsersManager')
+def renew_user_password_api(request, user_id):
+    user = get_object_or_404(get_user_model(), id=user_id)
+    new_password = get_random_alphanumeric_string(16)
+    user.set_password(new_password)
+    user.save()
+    return JsonResponse({"password": new_password})

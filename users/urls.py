@@ -41,6 +41,8 @@ urlpatterns = [
         apis.delete_curruser_authtoken_api, name='delete_curruser_authtoken_api'),
     url(r'^users/api/v1/authtoken/delete/(?P<user_id>[0-9]+)$',
         apis.delete_user_authtoken_api, name='delete_user_authtoken_api'),
+    url(r'^users/api/v1/(?P<user_id>[0-9]+)/renewpassword$',
+        apis.renew_user_password_api, name='renew_user_password_api'),
 ]
 
 # Serialized data
