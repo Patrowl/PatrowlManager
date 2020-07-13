@@ -39,7 +39,8 @@
       </dd>
       <dt>Scan Type</dt>
       <dd>{{ scan_def.scan_type }}
-        {% if scan_def.scan_type == 'periodic' %} (every {{ scan_def.every }} {{ scan_def.period }})
+        {% if scan_def.scan_type == 'periodic' %}
+        (every {{ scan_def.every }} {{ scan_def.period }})
         {% endif %}
       </dd>
       <dt>Engine</dt>

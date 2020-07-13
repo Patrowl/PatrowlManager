@@ -7,8 +7,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, F
 from django.db.models.functions import Lower
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from celery.task.control import revoke
 
-# from app.settings import TIME_ZONE
 from .forms import ScanDefinitionForm
 from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan
@@ -18,10 +18,8 @@ from assets.models import Asset, AssetGroup
 from common.utils import pro_group_required
 
 from datetime import timedelta, datetime
-# from pytz import timezone
 import shlex
 import json
-import time
 
 
 @pro_group_required('ScansManager', 'ScansViewer')
@@ -250,7 +248,6 @@ def add_scan_def_view(request):
     scan_policies = EnginePolicy.objects.all().prefetch_related("engine", "scopes").order_by(Lower('name'))
     scan_engines = Engine.objects.all().exclude(name__in=["MANUAL", "SKELETON"]).order_by('name').values()
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
-    # teams_json = json.dumps(list(request.user.users_team.values('id', 'name')))
     teams_list = request.user.users_team.values('id', 'name')
 
     scan_policies_json = []
@@ -262,14 +259,10 @@ def add_scan_def_view(request):
             "scopes": list(p.scopes.values_list("id", flat=True)),
         })
 
-
-    # if request.method == 'GET' or ScanDefinitionForm(request.POST).errors:
     if request.method == 'GET' or ScanDefinitionForm(request.POST, user=request.user).errors:
-        # form = ScanDefinitionForm()
         form = ScanDefinitionForm(user=request.user)
 
     elif request.method == 'POST':
-        # form = ScanDefinitionForm(request.POST)
         form = ScanDefinitionForm(request.POST, user=request.user)
 
         if form.is_valid():
@@ -286,13 +279,10 @@ def add_scan_def_view(request):
                 scan_definition.every = int(form.cleaned_data['every'])
                 scan_definition.period = form.cleaned_data['period']
 
+            # Check scheduling params if any
             if form.data['start_scan'] == "scheduled":
-                scan_definition.scan_type = "scheduled"
                 try:
                     # check if it's future or not
-                    # print ("form.cleaned_data['scheduled_at']: ", form.cleaned_data['scheduled_at'])
-                    # print ("timezone.now(): ", tz.now())
-                    # print ("timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at']): ", timezone(TIME_ZONE).localize(form.cleaned_data['scheduled_at']))
                     if form.cleaned_data['scheduled_at'] > tz.now():
                         scan_definition.scheduled_at = form.cleaned_data['scheduled_at']
                         scan_definition.enabled = True
@@ -306,13 +296,13 @@ def add_scan_def_view(request):
 
             scan_definition.save()
 
-            # Check and add team
+            # Check and add team(s)
             if form.data['scan_team'] == 'yes':
                 scan_definition.teams.add(request.user.users_team.get(id=form.data['scan_team_list']))
 
+            # Assets
             assets_list = []
             for asset_id in form.data.getlist('assets_list'):
-                # asset = Asset.objects.get(id=asset_id)
                 asset = Asset.objects.for_user(request.user).get(id=asset_id)
                 scan_definition.assets_list.add(asset)
                 assets_list.append({
@@ -471,6 +461,28 @@ def edit_scan_def_view(request, scan_def_id):
                 scan_definition.every = None
                 scan_definition.period = None
 
+                task_title = '[PO] {}@{}'.format(scan_definition.title, scan_definition.id)
+                periodic_task = PeriodicTask.objects.filter(name=task_title).first()
+                if periodic_task is not None:
+                    periodic_task.delete()
+
+            # Check scheduling params if any
+            if form.data['start_scan'] == "scheduled" and form.cleaned_data['scheduled_at'] is not None:
+                try:
+                    # check if it's future or not
+                    if form.cleaned_data['scheduled_at'] > tz.now():
+                        scan_definition.scheduled_at = form.cleaned_data['scheduled_at']
+                        scan_definition.enabled = True
+                except Exception:
+                    scan_definition.scheduled_at = None
+                    scan_definition.enabled = False
+
+                # Todo: update scan task (task_id)
+                for s in scan_definition.scan_set.all():
+                    revoke(s.task_id, terminate=True)
+            else:
+                scan_definition.scheduled_at = None
+
             if form.cleaned_data['scan_type'] == 'periodic':
                 scan_definition.every = int(form.cleaned_data['every'])
                 scan_definition.period = form.cleaned_data['period']
@@ -525,8 +537,13 @@ def edit_scan_def_view(request, scan_def_id):
 
                 _update_celerybeat()
 
-            # Finally, save it baby
+            # Finally, save it and run it baby
             scan_definition.save()
+
+            if form.data['start_scan'] == "now":
+                _run_scan(scan_definition.id, request.user.id)
+            elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
+                _run_scan(scan_definition.id, request.user.id, eta=scan_definition.scheduled_at)
 
             messages.success(request, 'Update submission successful')
             return redirect('list_scan_def_view')

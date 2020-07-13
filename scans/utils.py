@@ -14,6 +14,7 @@ from assets.models import Asset, AssetGroup
 import xmlrpc.client
 import uuid
 import random
+import json
 
 
 def _update_celerybeat():
@@ -24,13 +25,13 @@ def _update_celerybeat():
         if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['RUNNING', 'RESTARTING']:
             server.supervisor.stopProcess("celery-beat")
     except Exception:
-        print ("error ", server.supervisor.getProcessInfo("celery-beat")['statename'])
+        print("error ", server.supervisor.getProcessInfo("celery-beat")['statename'])
 
     try:
         if server.supervisor.getProcessInfo("celery-beat")['statename'] in ['FATAL', 'SHUTDOWN', 'STOPPED']:
             server.supervisor.startProcess("celery-beat", False)
     except Exception:
-        print ("error:", server.supervisor.getProcessInfo("celery-beat")['statename'])
+        print("error:", server.supervisor.getProcessInfo("celery-beat")['statename'])
 
     return server.supervisor.getProcessInfo("celery-beat")['statename']
 
@@ -105,8 +106,10 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     }
 
     if eta is not None:
-        print("eta:", eta)
-        scan_options.update({"eta": eta})
+        scan_options.update({
+            "eta": eta,
+            "countdown": None
+        })
 
     # enqueue the task in the right queue
     resp = startscan_task.apply_async(**scan_options)
@@ -183,8 +186,8 @@ def _add_scan_def(params, owner):
 
     scan_definition.save()
 
-    if "teams" in params.keys():
-        scan_definition.teams.add(owner.users_team.get(id=params['teams']))
+    if 'scan_team' in params.keys() and 'scan_team_list' in params.keys() and params['scan_team'] == 'yes':
+        scan_definition.teams.add(owner.users_team.get(id=params['scan_team_list']))
 
     assets_list = []
     if "assets" in params.keys():
@@ -201,7 +204,7 @@ def _add_scan_def(params, owner):
 
     if "assetgroups" in params.keys():
         for assetgroup_id in params.getlist("assetgroups"):
-            assetgroup = AssetGroup.objects.get(id=assetgroup_id)
+            assetgroup = AssetGroup.objects.for_user(owner).get(id=assetgroup_id)
             scan_definition.assetgroups_list.add(assetgroup)
             for a in assetgroup.assets.all():
                 scan_definition.assets_list.add(a)
@@ -218,7 +221,7 @@ def _add_scan_def(params, owner):
     if params['start_scan'] == "now":
         # start the single scan now
         _run_scan(scan_definition.id, owner.id)
-    elif form.data['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
+    elif params['start_scan'] == "scheduled" and scan_definition.scheduled_at is not None:
         _run_scan(scan_definition.id, owner.id, eta=scan_definition.scheduled_at)
 
     if params['scan_type'] == 'periodic':

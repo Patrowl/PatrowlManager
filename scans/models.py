@@ -27,6 +27,14 @@ SCAN_TYPES = (
     ('periodic', 'periodic'),
     ('scheduled', 'scheduled'),
 )
+# 
+# SCAN_STATUS = (
+#     ('created', 'Created'),
+#     ('enqueued', 'Enqueued'),
+#     ('started', 'Started'),
+#     ('finished', 'Finished'),
+#     ('error', 'Error'),
+# )
 
 
 class ScanDefinitionManager(models.Manager):

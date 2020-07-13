@@ -294,7 +294,15 @@ function InitForm(){
   // - Filter by category
   // Todo: Filter by category
 
-  // - Scan policy
+  // - Scan start
+  console.log($("input:radio[name='scan_type']"))
+  if ("{{scan_def.scan_type}}" in ["single", "periodic"]) {
+    $("input:radio[name='start_scan'][value='{{scan_def.start_scan}}']").attr("checked", "checked");
+  } else {
+    $("input:radio[name='start_scan'][value='scheduled']").attr("checked", "checked");
+  }
+
+  // - Scan type
   $("input:radio[name='scan_type'][value='{{scan_def.scan_type}}']").attr("checked", "checked");
 
   // - Scan policy
