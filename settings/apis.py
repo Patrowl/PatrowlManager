@@ -60,7 +60,7 @@ def export_settings_api(request):
 
     settings = Setting.objects.all()
 
-    writer.writerow(['keys', 'values'])  # headers
+    writer.writerow(['keys', 'values', 'comments'])  # headers
     for setting in settings:
         writer.writerow([setting.key, setting.value, setting.comments])
 

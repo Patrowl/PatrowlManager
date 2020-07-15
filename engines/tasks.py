@@ -326,6 +326,20 @@ def startscan_task(self, params):
         scan.save()
         return False
 
+    # Check if the engine policy complies with the asset types
+    allowed_asset_types = eval(scan.engine_type.allowed_asset_types)
+    has_error = False
+    for asset in params['scan_params']['assets']:
+        if asset['datatype'] not in allowed_asset_types:
+            has_error = True
+            Event.objects.create(message="[EngineTasks/startscan_task/{}] BeforeScan - Asset '' has type '{}' unsupported by the engine policy ('{}'). Task aborted.".format(self.request.id, asset["value"], asset["datatype"], ", ".join(allowed_asset_types)), type="ERROR", severity="ERROR", scan=scan)
+
+    if has_error is True:
+        scan.status = "error"
+        scan.finished_at = timezone.now()
+        scan.save()
+        return False
+
     engine_inst = None
     # -0- select an engine instance
     if scan.scan_definition.engine is None:
@@ -515,8 +529,9 @@ def startscan_task(self, params):
 @shared_task(bind=True, acks_late=True)
 def start_periodic_scan_task(self, params):
     scan_def = ScanDefinition.objects.get(id=params['scan_definition_id'])
-    Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Task started.".format(self.request.id),
-                 type="INFO", severity="INFO")
+    Event.objects.create(
+        message="[EngineTasks/start_periodic_scan_task/{}] Task started.".format(self.request.id),
+        type="INFO", severity="INFO")
 
     engine_inst = None
     # select an instance of the scanner
@@ -546,12 +561,27 @@ def start_periodic_scan_task(self, params):
         task_id=uuid.UUID(str(self.request.id))
     )
     scan.save()
-    Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] Scan created.".format(self.request.id),
-                 type="INFO", severity="INFO", scan=scan)
+    Event.objects.create(
+        message="[EngineTasks/start_periodic_scan_task/{}] Scan created.".format(self.request.id),
+        type="INFO", severity="INFO", scan=scan)
+
+    # Check if the engine policy complies with the asset types
+    allowed_asset_types = eval(scan_def.engine_type.allowed_asset_types)
+    has_error = False
+    for asset in params['scan_params']['assets']:
+        if asset['datatype'] not in allowed_asset_types:
+            has_error = True
+            Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - Asset '' has type '{}' unsupported by the engine policy ('{}'). Task aborted.".format(self.request.id, asset["value"], asset["datatype"], ", ".join(allowed_asset_types)), type="ERROR", severity="ERROR", scan=scan)
+
+    if has_error is True:
+        scan.status = "error"
+        scan.finished_at = timezone.now()
+        scan.save()
+        return False
 
     # check if the selected engine instance is available
     if not engine_inst:
-        print("ERROR: startscan_task/select_instance: not engine '{}' available".format(params['engine_name']))
+        # print("ERROR: startscan_task/select_instance: not engine '{}' available".format(params['engine_name']))
         Event.objects.create(message="[EngineTasks/start_periodic_scan_task/{}] BeforeScan - No '{}' engine available. Task aborted.".format(self.request.id, scan_def.engine_type.name),
                  type="ERROR", severity="ERROR", scan=scan)
         scan.status = "error"
@@ -1085,7 +1115,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 f.save()
                 new_raw_finding.status = f.status
                 new_raw_finding.save()
-                
+
                 known_findings_list.append(new_raw_finding.hash)
             else:
                 # Raise an alert

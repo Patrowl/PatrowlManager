@@ -154,7 +154,7 @@ label.radio {
           </label>
           {% for engine in scan_engines %}
           <label class="btn btn-primary" engineId="{{ engine.id }}">
-            <input type="radio" autocomplete="off" name='engine_name'>{{ engine.name }}
+            <input type="radio" autocomplete="off" name="engine_name">{{ engine.name }}
           </label>
           {% endfor %}
         </div>
@@ -184,7 +184,15 @@ label.radio {
       <div class="col-sm-4 custom-control custom-radio">
         {% for policy in scan_policies %}
         <label class="radio" label-id="{{ policy.id }}">
-          <input type="radio" class="custom-control-input" name="engine_policy" id="id_engine_policy_{{ policy.id }}" value="{{ policy.id }}" engine-name="{{ policy.engine.name }}" required/>{{ policy.name }} - {{ policy.engine }}
+          <input
+            type="radio"
+            class="custom-control-input"
+            name="engine_policy"
+            id="id_engine_policy_{{ policy.id }}"
+            value="{{ policy.id }}"
+            engine-name="{{ policy.engine.name }}"
+            allowed-asset-types="{{ policy.engine.allowed_asset_types }}"
+            required/>{{ policy.name }} - {{ policy.engine }}
         </label>
         {% endfor %}
       </div>
@@ -278,7 +286,7 @@ function InitForm(){
     _selected_assets.push("{{ asset.id }}");
     _id_asset += 1;
     $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
-      <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='{{ asset.id }}' checked/> {{ asset.value }}</label><br/>");
+      <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='{{ asset.id }}' asset-type='{{asset.type}}' checked/> {{ asset.value }}</label><br/>");
   {% endfor %}
   {% for asset in scan_def.assetgroups_list.all %}
     _selected_assets.push("{{ asset.id }}");
@@ -295,7 +303,6 @@ function InitForm(){
   // Todo: Filter by category
 
   // - Scan start
-  console.log($("input:radio[name='scan_type']"))
   if ("{{scan_def.scan_type}}" in ["single", "periodic"]) {
     $("input:radio[name='start_scan'][value='{{scan_def.start_scan}}']").attr("checked", "checked");
   } else {
@@ -470,7 +477,7 @@ function AddHooks(){
           _selected_assets.push(datum["value"]);
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' checked/> "+e.target.value+"</label><br/>");
+            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"' checked/> "+e.target.value+"</label><br/>");
         } else {
           _selected_assets.push(datum["value"]);
           _id_asset += 1;
@@ -587,18 +594,41 @@ $(function() {
     InitForm()
 });
 
-// Ensure no scans definition are set without assets
+// Perform checks before submit
 $("#edit-scan-def-form").submit(function () {
+
+  // Ensure no scans definition are set without assets
   is_valid = $('div.cbx_assets label input:checked').length > 0;
   if (is_valid == false) {
-    // $("#edit-scan-def-form").append('\
     $("#edit-scan-def-form button:submit").before('\
     <div class="alert alert-dismissible alert-danger">\
       <button type="button" class="close" data-dismiss="alert">&times;</button>\
       <strong>No assets selected</strong> Please select at least one asset to scan.\
     </div>');
+    // return is_valid;
   }
 
+  // Ensure engine policy support assets type (no checks on asset groups for now)
+  allowed_asset_types_tmp = $('div#policies-div label input:checked').attr('allowed-asset-types');
+  allowed_asset_types = JSON.parse(allowed_asset_types_tmp.replace(/u\'/g,"'").replace(/\'/g,"\""));
+
+
+  $('div.cbx_assets label input:checked').each(function( index ) {
+    for (aat in allowed_asset_types){
+      is_valid = false;
+      if ($(this).attr('asset-type') == allowed_asset_types[aat]) {
+        is_valid = true;
+        break;
+      }
+    }
+  });
+  if (is_valid == false) {
+    $("#edit-scan-def-form button:submit").before('\
+    <div class="alert alert-dismissible alert-danger">\
+      <button type="button" class="close" data-dismiss="alert">&times;</button>\
+      <strong>Bad policy</strong> Selected policy does not support selected asset types.\
+    </div>');
+  }
   return is_valid;
 });
 

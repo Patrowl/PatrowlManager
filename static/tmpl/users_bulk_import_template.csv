@@ -1,0 +1,4 @@
+username;first_name;last_name;email;is_active;role;teams
+user01;fn user01;ln user01;user01@patrowl.io;true;Auditor;default
+user02;fn user02;ln user02;user02@patrowl.io;false;Manager;
+user03;fn user03;ln user03;user03@patrowl.io;true;BadRole;

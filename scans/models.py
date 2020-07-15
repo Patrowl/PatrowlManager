@@ -13,7 +13,7 @@ from common.utils.encoding import json_serial
 import os
 import json
 
-SCAN_STATUS = ('created', 'started', 'finished', 'error', 'trashed')
+SCAN_STATUS = ('created', 'enqueued', 'started', 'finished', 'error', 'trashed')
 
 PERIOD_CHOICES = (
     ('days', 'Days'),
@@ -27,7 +27,7 @@ SCAN_TYPES = (
     ('periodic', 'periodic'),
     ('scheduled', 'scheduled'),
 )
-# 
+#
 # SCAN_STATUS = (
 #     ('created', 'Created'),
 #     ('enqueued', 'Enqueued'),

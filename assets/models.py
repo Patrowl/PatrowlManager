@@ -192,12 +192,9 @@ class Asset(models.Model):
     # Attributes
     value       = models.TextField(max_length=2048, unique=True, null=False)
     name        = models.TextField(max_length=2048)
-    # value       = models.CharField(max_length=256, unique=True, null=False)
-    # name        = models.CharField(max_length=256)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
     risk_level  = JSONField(default=get_default_risk_level)
-    # owner       = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     owner       = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True, default="new")

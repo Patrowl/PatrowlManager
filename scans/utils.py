@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
@@ -54,7 +54,7 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         engine=engine,
         engine_type=scan_def.engine_type,
         engine_policy=scan_def.engine_policy,
-        owner=User.objects.get(id=owner_id)
+        owner=get_user_model().objects.get(id=owner_id)
     )
     scan.save()
 
@@ -116,6 +116,21 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     scan.status = "enqueued"
     scan.task_id = uuid.UUID(str(resp))
     scan.save()
+
+    return True
+
+
+def _check_scan_asset_types(scan_def_id):
+    scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
+    allowed_asset_types = eval(scan_def.engine_type.allowed_asset_types)
+    print(allowed_asset_types)
+    for asset in scan_def.assets_list.all():
+        if asset.type not in allowed_asset_types:
+            return False
+    for assetgroup in scan_def.assetgroups_list.all():
+        for asset in assetgroup.assets.all():
+            if asset.type not in allowed_asset_types:
+                return False
 
     return True
 

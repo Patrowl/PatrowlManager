@@ -186,7 +186,15 @@ label.radio {
       <div class="col-sm-4 custom-control custom-radio">
         {% for policy in scan_policies %}
         <label class="radio" label-id="{{ policy.id }}">
-          <input type="radio" class="custom-control-input" name="engine_policy" id="id_engine_policy_{{ policy.id }}" value="{{ policy.id }}" engine-name="{{ policy.engine.name }}" required/>{{ policy.name }} - {{ policy.engine }}
+          <input
+            type="radio"
+            class="custom-control-input"
+            name="engine_policy"
+            id="id_engine_policy_{{ policy.id }}"
+            value="{{ policy.id }}"
+            engine-name="{{ policy.engine.name }}"
+            allowed-asset-types="{{ policy.engine.allowed_asset_types }}"
+            required/>{{ policy.name }} - {{ policy.engine }}
         </label>
         {% endfor %}
       </div>
@@ -236,6 +244,26 @@ label.radio {
         </div>');
       }
 
+      // Ensure engine policy support assets type (no checks on asset groups for now)
+      allowed_asset_types_tmp = $('div#policies-div label input:checked').attr('allowed-asset-types');
+      allowed_asset_types = JSON.parse(allowed_asset_types_tmp.replace(/u\'/g,"'").replace(/\'/g,"\""));
+
+      $('div.cbx_assets label input:checked').each(function( index ) {
+        for (aat in allowed_asset_types){
+          is_valid = false;
+          if ($(this).attr('asset-type') == allowed_asset_types[aat]) {
+            is_valid = true;
+            break;
+          }
+        }
+      });
+      if (is_valid == false) {
+        $("#add-scan-def-form button:submit").before('\
+        <div class="alert alert-dismissible alert-danger">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>Bad policy</strong> Selected policy does not support selected asset types.\
+        </div>');
+      }
       return is_valid;
     });
 
@@ -376,7 +404,7 @@ label.radio {
           _selected_assets.push(datum["value"]);
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' checked/> "+e.target.value+"</label><br/>");
+            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"'checked/> "+e.target.value+"</label><br/>");
         } else {
           _selected_assets.push(datum["value"]);
           _id_asset += 1;
