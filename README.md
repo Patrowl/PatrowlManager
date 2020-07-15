@@ -29,31 +29,38 @@ The PatrowlManager application is reachable using the embedded WEB interface or 
 PatrOwl is an open source and free software released under the [AGPL](https://github.com/Patrowl/PatrowlManager/blob/master/LICENSE) (Affero General Public License). We are committed to ensure that PatrOwl will remain a free and open source project on the long-run.
 
 # Updates
-Information, news and updates are regularly posted on [Patrowl.io Twitter account](https://twitter.com/patrowl_io) and on [the  blog](https://blog.patrowl.io/).
+Information, news and updates are regularly posted on [Patrowl.io Twitter account](https://twitter.com/patrowl_io) and on [the blog](https://blog.patrowl.io/).
 
 # Contributing
 Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/master/support/code_of_conduct.md). We welcome your contributions. Please feel free to fork the code, play with it, make some patches and send us pull requests via [issues](https://github.com/Patrowl/PatrowlManager/issues).
 
 # Roadmap
-- [X] API Documentation
-- [X] Python 3 migration
-- [ ] Transform all API calls to async tasks (limit Nginx 504 timeouts)
-- [X] Beautify scan creation and edition forms
 - [ ] Enhance finding states management
-- [ ] Enhance user management
 - [ ] Support scan campaigns (multiple scan definition)
-- [X] Support django-health-check
 - [ ] Support cache
-- [X] Optimize global performances
 - [ ] Refactor static files (remove unused ?)
-- [X] Continuous Docker image deployment (DockerHub)
 
-Follow our roadmap on Trello [here](https://trello.com/b/rksoIN5y)
+Follow our public roadmap on Trello [here](https://trello.com/b/rksoIN5y)
 
 # Support
 Please [open an issue on GitHub](https://github.com/Patrowl/PatrowlManager/issues) if you'd like to report a bug or request a feature. We are also available on [Gitter](https://gitter.im/Patrowl/Support) to help you out.
 
 If you need to contact the project team, send an email to <getsupport@patrowl.io>.
+
+# Pro Edition ans SaaS
+A commercial Pro Edition is available and officially supported by the PatrOwl company. It includes following extra and awesome features:
+- [x] Advanced user management
+- [x] RBAC: Multiple roles are supported to restrict users privileges on features
+- [x] Multi-tenancy: assets and scans results can be shared with user teams
+- [x] 3rd party authentication: Azure Active Directory, ADFS (Windows 2012 and 2016), LDAP
+- [x] Terraform+Ansible deployment scripts
+- [x] Pro Engines including: ZAP, Nikto, Microsoft Cloud App Security and Onyphe
+- [ ] Autonomous asset discovery (in progress, planned to Q3 2020)
+- [ ] Vulnerability prioritization (in progress, planned to Q3 2020)
+- [ ] Ticketing system integration, including JIRA, ServiceNow, ZenDesk and GLPI (in progress, planned to Q4 2020)
+
+This version is also available on the official SaaS platform.
+See: https://patrowl.io/get-started
 
 # Commercial Services
 Looking for advanced support, training, integration, custom developments, dual-licensing ? Contact us at getsupport@patrowl.io
