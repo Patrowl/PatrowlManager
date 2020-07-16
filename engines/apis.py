@@ -215,10 +215,10 @@ def list_engines_intances_api(requests):
             "version": engine.version,
             "type": engine.engine.name
            })
-    running_scans = Scan.objects.filter(status__in=["enqueued", "started"]).count()
     return JsonResponse({
             "engines": engines,
-            "running_scans": running_scans
+            "running_scans": Scan.objects.filter(status="started").count(),
+            "enqueued_scans": Scan.objects.filter(status="enqueued").count()
         }, safe=False)
 
 

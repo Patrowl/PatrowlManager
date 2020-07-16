@@ -1,0 +1,20 @@
+Hello, A new scan report is available.<br/>
+<h4>Scan</h4>
+<ul>
+  <li>Title: {{scan.id}}/{{scan.title}}</li>
+  <li>Status: {{scan.status|title}}</li>
+  <li>Started at: {{scan.started_at|date:"Y/m/d\-H:i:s"}}</li>
+  <li>Finished at: {{scan.finished_at|date:"Y/m/d\-H:i:s"}}</li>
+</ul>
+<h4>Findings</h4>
+<ul>
+  <li>Critical: <span class="classtext" style="color: #cc0500; font-weight: bold;">{{findings_stats.critical}}</span></li>
+  <li>High: <span class="classtext" style="color: #df3d03; font-weight: bold;">{{findings_stats.high}}</span></li>
+  <li>Medium: <span class="classtext" style="color: #f9a009; font-weight: bold;">{{findings_stats.medium}}</span></li>
+  <li>Low: <span class="classtext" style="color: #ffcb0d; font-weight: bold;">{{findings_stats.low}}</span></li>
+  <li>Info: <span class="classtext" style="color: #3498db; font-weight: bold;">{{findings_stats.info}}</span></li>
+</ul>
+
+-- PatrowlManager Notification Center
+See https://patrowl.io
+<br/><br/>

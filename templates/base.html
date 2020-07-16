@@ -131,6 +131,10 @@
         running_scans = response.running_scans;
         if (running_scans == 1) {$('span.running-scans').append('&nbsp;-&nbsp;1 scan running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
         if (running_scans > 1) {$('span.running-scans').append('&nbsp;-&nbsp;' + running_scans+' scans running <i class="glyphicon glyphicon-cog gly-spin"></i>');}
+
+        enqueued_scans = response.enqueued_scans;
+        if (enqueued_scans == 1) {$('span.enqueued-scans').append('&nbsp;-&nbsp;1 scan enqueued <i class="glyphicon glyphicon-cog gly-spin"></i>');}
+        if (enqueued_scans > 1) {$('span.enqueued-scans').append('&nbsp;-&nbsp;' + enqueued_scans+' scans enqueued <i class="glyphicon glyphicon-cog gly-spin"></i>');}
       });
     }
 
@@ -536,6 +540,7 @@
         {% if user.is_authenticated %}
         <div class="col-sm-6">
           <span class="text-muted pull-right running-scans"></span>
+          <span class="text-muted pull-right enqueued-scans"></span>
           <span class="text-muted pull-right engine-status"></span>
           <text class="text-muted pull-right" id='engines_status_label'>Engines status: &nbsp;</text>
         </div>

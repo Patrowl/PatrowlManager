@@ -474,6 +474,7 @@ function toggle(source, element) {
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/json/{{ scan.id }}'">json</button>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/csv/{{ scan.id }}'">csv</button>
           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/scans/api/v1/report/html/{{ scan.id }}'">html</button>
+          <button type="button" class="btn btn-warning btn-xs btn-send-report-email" scan-id={{scan.id}}>email</button>
           <!-- <button type="button" class="btn btn-default btn-xs" onclick="location.href='#'">raw</button> -->
         </dd>
       </dl>
@@ -659,6 +660,30 @@ function toggle(source, element) {
   </div>
 </div>
 
+<!-- Send report modal -->
+<div class="modal fade" id="modal-send-report" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Send report as Email</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="send-report">
+          <!-- Content -->
+        </div>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 
   //Goto selected #tab when page loads
@@ -804,9 +829,8 @@ function toggle(source, element) {
     })
 
     if (findings_to_delete.length != 0){
-      delete_url="{% url 'delete_rawfindings_api' %}";
       var request = $.ajax({
-        url: delete_url,
+        url: "{% url 'delete_rawfindings_api' %}",
         method: "POST",
         headers: {"X-CSRFToken": "{{ csrf_token }}"},
         data: JSON.stringify(findings_to_delete),
@@ -828,9 +852,8 @@ function toggle(source, element) {
     })
 
     if (findings_to_ack.length != 0){
-      ack_url="{% url 'change_rawfindings_status_api' %}";
       var request = $.ajax({
-        url: ack_url,
+        url: "{% url 'change_rawfindings_status_api' %}",
         method: "POST",
         headers: {"X-CSRFToken": "{{ csrf_token }}"},
         data: JSON.stringify(findings_to_ack),
@@ -857,6 +880,38 @@ function toggle(source, element) {
       location.hash = "#findings";
       window.location.href ="/findings/compare?raw=true&finding_a_id="+findings_to_compare[0]+"&finding_b_id="+findings_to_compare[1];
     }
+  });
+
+  // Send report as email
+  $(".btn-send-report-email").on('click', function (e) {
+    scan_id = $(".btn-send-report-email").attr('scan-id');
+    $('#modal-send-report').modal('toggle');
+    request = $.ajax({
+      url: "/scans/api/v1/report/html/"+scan_id+"?email=true",
+      method: "GET",
+      success: function(data){
+        $("div#send-report").append('\
+        <div class="alert alert-dismissible alert-success">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>Success:</strong> email sent.\
+        </div>');
+        setTimeout(function(){
+          $("div#send-report div.alert-success").remove();
+          $('#modal-send-report').modal('toggle');
+        }, 4000);
+      },
+      error: function(data){
+        $("div#send-report").append('\
+        <div class="alert alert-dismissible alert-danger">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>Error:</strong> Unable to send email (check settings?).\
+        </div>');
+        setTimeout(function(){
+          $("div#send-report div.alert-danger").remove();
+          $('#modal-send-report').modal('toggle');
+        }, 4000);
+      }
+    });
   });
 
 </script>

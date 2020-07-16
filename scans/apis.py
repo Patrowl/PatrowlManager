@@ -7,6 +7,9 @@ from wsgiref.util import FileWrapper
 from django.shortcuts import render, get_object_or_404
 from django.forms.models import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
 from django_celery_beat.models import PeriodicTask
 from rest_framework.decorators import api_view
 from common.utils import pro_group_required
@@ -15,16 +18,18 @@ from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan, _search_scans, _add_scan_def
 from engines.tasks import stopscan_task
 from findings.models import RawFinding
+from settings.models import Setting
 
 from datetime import timedelta
 from pytz import timezone
 import datetime
 import json
 import os
-import tempfile
-import zipfile
 import csv
 import tzlocal
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
@@ -266,6 +271,7 @@ def get_scans_by_date_api(request):
 @pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_report_html_api(request, scan_id):
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
+    send_email = request.GET.get('email', None)
     tmp_scan = model_to_dict(scan)
     tmp_scan['assets'] = []
     for asset in scan.assets.all():
@@ -279,7 +285,7 @@ def get_scan_report_html_api(request, scan_id):
 
     findings_tmp = list()
     for sev in ["high", "medium", "low", "info", "critical"]:
-        tmp = RawFinding.objects.filter(scan=scan, severity=sev).order_by('type')
+        tmp = RawFinding.objects.filter(scan=scan, severity=sev).order_by('title', 'type')
         if tmp.count() > 0:
             findings_tmp += tmp
 
@@ -287,7 +293,7 @@ def get_scan_report_html_api(request, scan_id):
     for asset in scan.assets.all():
         findings_by_asset_tmp = list()
         for sev in ["critical", "high", "medium", "low", "info"]:
-            tmp = RawFinding.objects.filter(scan=scan, asset=asset, severity=sev).order_by('type')
+            tmp = RawFinding.objects.filter(scan=scan, asset=asset, severity=sev).order_by('title', 'type')
             if tmp.count() > 0:
                 findings_by_asset_tmp += tmp
         findings_by_asset.update({asset.value: findings_by_asset_tmp})
@@ -313,10 +319,44 @@ def get_scan_report_html_api(request, scan_id):
             }
         })
 
-    return render(request, 'report-scan.html', {
+    report_params = {
         'scan': tmp_scan,
         'findings': findings_by_asset,
-        'findings_stats': findings_stats})
+        'findings_stats': findings_stats
+    }
+
+    if send_email is None:
+        # Return HTML report as response
+        return render(request, 'report-scan.html', report_params)
+
+    else:
+        # Send Email and return status as JSON response
+        msg_text = render_to_string("email_send_report.txt")
+        msg_html = render_to_string("email_send_report.html", report_params)
+        html_report = render_to_string('report-scan.html', report_params)
+
+        subject = '[PatrowlManager] Scan Report available - {}'.format(scan)
+
+        try:
+            recipients = Setting.objects.get(key="alerts.endpoint.email").value
+        except Exception as e:
+            logger.error('Unable to send report as email message. "alerts.endpoint.email" setting not configured:')
+            return JsonResponse({'status': 'error', 'reason': '"alerts.endpoint.email" setting not configured'}, 400)
+
+        try:
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=msg_text,
+                from_email=settings.EMAIL_HOST_USER,
+                to=[recipients])
+            msg.attach_alternative(msg_html, "text/html")
+            msg.attach('scan_report.html', html_report, "text/html")
+            msg.send()
+        except Exception as e:
+            logger.error('Unable to send report as email message:', e)
+            return JsonResponse({'status': 'error', 'reason': '{}'.format(e)}, 400)
+
+        return JsonResponse({"status": "success"}, safe=False)
 
 
 @api_view(['GET'])
@@ -369,24 +409,6 @@ def get_scan_report_csv_api(request, scan_id):
     return response
 
 
-@api_view(['GET'])
-@pro_group_required('ScansManager', 'ScansViewer')
-def send_scan_reportzip_api(request, scan_id):
-    scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
-
-    filename = str(scan.report_filepath)
-    temp = tempfile.TemporaryFile()
-    archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
-    archive.write(filename)
-    archive.close()
-    wrapper = FileWrapper(temp)
-    response = HttpResponse(wrapper, content_type='application/zip')
-    response['Content-Disposition'] = "attachment; filename=scan_report_{}.zip".format(scan_id)
-    response['Content-Length'] = temp.tell()
-    temp.seek(0)
-    return response
-
-
 @csrf_exempt
 @api_view(['GET'])
 @pro_group_required('ScansManager')
@@ -404,7 +426,7 @@ def toggle_scan_def_status_api(request, scan_def_id):
             # Todo: wait celery beat fix
             _update_celerybeat()
         except PeriodicTask.DoesNotExist:
-            print ("Fuck, PeriodicTask '{}' does not exists".format(periodic_task.id))
+            logger.error("Fuck, PeriodicTask '{}' does not exists".format(periodic_task.id))
             return JsonResponse({'status': 'error'}, 403)
 
     return JsonResponse({'status': 'success'})

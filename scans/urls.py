@@ -41,7 +41,7 @@ urlpatterns = [
     # ex: /scans/api/v1/report/html/33
     url(r'^api/v1/report/html/(?P<scan_id>[0-9]+)$', apis.get_scan_report_html_api, name='get_scan_report_html_api'),
     # ex: /scans/api/v1/reportzip/33
-    url(r'^api/v1/reportzip/(?P<scan_id>[0-9]+)$', apis.send_scan_reportzip_api, name='send_scan_reportzip_api'),
+    # url(r'^api/v1/reportzip/(?P<scan_id>[0-9]+)$', apis.send_scan_reportzip_api, name='send_scan_reportzip_api'),
     # ex: /scans/api/v1/defs/change_status/33
     url(r'^api/v1/defs/change_status/(?P<scan_def_id>[0-9]+)$', apis.toggle_scan_def_status_api, name='toggle_scan_def_status_api'),
     # ex: /scans/api/v1/defs/run/33
