@@ -124,7 +124,7 @@
           } else if (engine["enabled"] && engine["status"] != "READY" && engine["status"] != "WORKING") {
             status_color = "danger";
           }
-          $('span.engine-status').append('<i class="glyphicon glyphicon-record text-'+status_color+'" title="'+title+'" id="engine_'+engine["id"]+'" data-toggle="tooltip"></i>')
+          $('span.engine-status').append('<i class="glyphicon glyphicon-record text-'+status_color+'" title="'+title+'" id="engine_'+engine["id"]+'" data-toggle="tooltip" data-placement="left" data-delay="500"></i>')
           $('#engine_'+engine["id"]).tooltip();
         }
 
@@ -271,7 +271,7 @@
   <nav class="navbar navbar-default navbar-fixed-top">
     <div class="container-fluid">
       <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-all">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
@@ -279,180 +279,183 @@
         </button>
         <a class="navbar-brand" href="/dashboard">PatrOwl Manager</a>
       </div>
-      <ul class="nav navbar-nav">
-        {% if user.is_authenticated %}
-        <!-- Assets Management -->
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
-            <span class="glyphicon glyphicon-cloud"></span> Assets<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="{% url 'list_assets_view' %}">Assets</a></li>
-            {% if PRO_EDITION %}
-              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-all">
+        <ul class="nav navbar-nav">
+          {% if user.is_authenticated %}
+          <!-- Assets Management -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+              <span class="glyphicon glyphicon-cloud"></span> Assets<span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="{% url 'list_assets_view' %}">Assets</a></li>
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <li><a href="{% url 'add_asset_view' %}">+ Add new asset</a></li>
+                <li><a href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk (CSV file)</a></li>
+                {% endif %}
+              {% else %}
               <li><a href="{% url 'add_asset_view' %}">+ Add new asset</a></li>
               <li><a href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk (CSV file)</a></li>
               {% endif %}
-            {% else %}
-            <li><a href="{% url 'add_asset_view' %}">+ Add new asset</a></li>
-            <li><a href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk (CSV file)</a></li>
-            {% endif %}
 
-            <li role="separator" class="divider"></li>
-            <li><a href="{% url 'list_assets_view' %}?target=asset_group">Asset groups</a></li>
+              <li role="separator" class="divider"></li>
+              <li><a href="{% url 'list_assets_view' %}?target=asset_group">Asset groups</a></li>
 
-            {% if PRO_EDITION %}
-              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                  <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
+                {% endif %}
+              {% else %}
                 <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
               {% endif %}
-            {% else %}
-              <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
-            {% endif %}
-            <li role="separator" class="divider"></li>
-            <li><a href="/assets/owners/list">Asset owners</a></li>
+              <li role="separator" class="divider"></li>
+              <li><a href="/assets/owners/list">Asset owners</a></li>
 
-            {% if PRO_EDITION %}
-              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                  <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
+                {% endif %}
+              {% else %}
                 <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
               {% endif %}
-            {% else %}
-              <li><a href="/assets/owners/add">+ Add new asset owner</a></li>
-            {% endif %}
-            <!-- <li role="separator" class="divider"></li>
-            <li><a href="/admin/assets/assetcategory/">List categories (Admin only)</a></li>
-            <li><a href="/admin/assets/assetcategory/add/">+ Add new category (Admin only)</a></li> -->
-          </ul>
-        </li>
+              <!-- <li role="separator" class="divider"></li>
+              <li><a href="/admin/assets/assetcategory/">List categories (Admin only)</a></li>
+              <li><a href="/admin/assets/assetcategory/add/">+ Add new category (Admin only)</a></li> -->
+            </ul>
+          </li>
 
-        <!-- Findings Management -->
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
-            <span class="glyphicon glyphicon-map-marker"></span> Findings<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="/findings/list">All findings</a></li>
-            <li><a href="/findings/list?_status=new">New findings</a></li>
-            <li><a href="/findings/list?_status=ack">Ack. findings</a></li>
-            {% if PRO_EDITION %}
-              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+          <!-- Findings Management -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+              <span class="glyphicon glyphicon-map-marker"></span> Findings<span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/findings/list">All findings</a></li>
+              <li><a href="/findings/list?_status=new">New findings</a></li>
+              <li><a href="/findings/list?_status=ack">Ack. findings</a></li>
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <li role="separator" class="divider"></li>
+                <li><a href="/findings/import">Manual import</a></li>
+                <li><a href="/findings/add">+ Add finding</a></li>
+                {% endif %}
+              {% else %}
               <li role="separator" class="divider"></li>
               <li><a href="/findings/import">Manual import</a></li>
               <li><a href="/findings/add">+ Add finding</a></li>
               {% endif %}
-            {% else %}
-            <li role="separator" class="divider"></li>
-            <li><a href="/findings/import">Manual import</a></li>
-            <li><a href="/findings/add">+ Add finding</a></li>
-            {% endif %}
 
-          </ul>
-        </li>
+            </ul>
+          </li>
 
-        <!-- Scans Management -->
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
-            <span class="glyphicon glyphicon-search"></span> Scans<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="/scans/list">Scans performed</a></li>
-            <li role="separator" class="divider"></li>
-            <li><a href="/scans/defs/list">Scans definitions</a></li>
-            {% if PRO_EDITION %}
-              {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+          <!-- Scans Management -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+              <span class="glyphicon glyphicon-search"></span> Scans<span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/scans/list">Scans performed</a></li>
+              <li role="separator" class="divider"></li>
+              <li><a href="/scans/defs/list">Scans definitions</a></li>
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <li><a href="/scans/defs/add">+ Add new scan</a></li>
+                {% endif %}
+              {% else %}
               <li><a href="/scans/defs/add">+ Add new scan</a></li>
               {% endif %}
-            {% else %}
-            <li><a href="/scans/defs/add">+ Add new scan</a></li>
-            {% endif %}
-          </ul>
-        </li>
+            </ul>
+          </li>
 
-        <!-- Engines Management -->
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
-            <span class="glyphicon glyphicon-screenshot"></span> Engines<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu">
-            <li class="dropdown-submenu">
-              <a href="/engines/list">Scan Engines</a>
-              {% if PRO_EDITION %}
-                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+          <!-- Engines Management -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+              <span class="glyphicon glyphicon-screenshot"></span> Engines<span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li class="dropdown-submenu">
+                <a href="/engines/list">Scan Engines</a>
+                {% if PRO_EDITION %}
+                  {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                  <li><a href="/engines/add">+ Add scan engine instance</a></li>
+                  {% endif %}
+
+                {% else %}
                 <li><a href="/engines/add">+ Add scan engine instance</a></li>
                 {% endif %}
 
-              {% else %}
-              <li><a href="/engines/add">+ Add scan engine instance</a></li>
-              {% endif %}
+              </li>
+              <li role="separator" class="divider"></li>
+              <li class="dropdown-submenu">
+                <a href="/engines/policies/list">Scan Engines Policies</a>
+                {% if PRO_EDITION %}
+                  {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                  <li><a href="/engines/policies/add">+ Add policy</a></li>
+                  <li><a href="/engines/policies/import">* Import policies</a></li>
+                  {% endif %}
 
-            </li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-submenu">
-              <a href="/engines/policies/list">Scan Engines Policies</a>
-              {% if PRO_EDITION %}
-                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                {% else %}
                 <li><a href="/engines/policies/add">+ Add policy</a></li>
                 <li><a href="/engines/policies/import">* Import policies</a></li>
                 {% endif %}
 
+              </li>
+
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-submenu">
+                  <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
+                  <li><a href="/engines/types/add">+ Add engine type</a></li>
+                </li>
+                {% endif %}
+
               {% else %}
-              <li><a href="/engines/policies/add">+ Add policy</a></li>
-              <li><a href="/engines/policies/import">* Import policies</a></li>
-              {% endif %}
-
-            </li>
-
-            {% if PRO_EDITION %}
-              {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
               <li role="separator" class="divider"></li>
               <li class="dropdown-submenu">
-                <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
-                <li><a href="/engines/types/add">+ Add engine type</a></li>
+              <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
+              <li><a href="/engines/types/add">+ Add engine type</a></li>
               </li>
               {% endif %}
 
-            {% else %}
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-submenu">
-            <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
-            <li><a href="/engines/types/add">+ Add engine type</a></li>
-            </li>
-            {% endif %}
+            </ul>
+          </li>
 
-          </ul>
-        </li>
+          <!-- Alerts -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+              <span class="glyphicon glyphicon-bell"></span> Alerts<span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/events/alerts/list">List alerts</a></li>
+            </ul>
+          </li>
 
-        <!-- Alerts -->
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
-            <span class="glyphicon glyphicon-bell"></span> Alerts<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="/events/alerts/list">List alerts</a></li>
-          </ul>
-        </li>
+          <!-- Settings -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
+              <span class="glyphicon glyphicon-flash"></span> Rules<span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/rules/list">List rules</a></li>
+            </ul>
+          </li>
+        </ul>
 
-        <!-- Settings -->
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">
-            <span class="glyphicon glyphicon-flash"></span> Rules<span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="/rules/list">List rules</a></li>
-          </ul>
-        </li>
-      </ul>
-
-      <form class="navbar-form navbar-left" role="search" method="get" accept-charset="utf-8" action="/search" style="padding-top: 4px;">
-        <div class="input-group">
-          <input type="text" class="form-control input-sm" placeholder="Search" name="srch-term" id="srch-term">
-          <div class="input-group-btn">
-            <button class="btn btn-default btn-search btn-sm" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+        <form class="navbar-form navbar-left" role="search" method="get" accept-charset="utf-8" action="/search" style="padding-top: 4px;">
+          <div class="input-group">
+            <input type="text" class="form-control input-sm" placeholder="Search" name="srch-term" id="srch-term">
+            <div class="input-group-btn">
+              <button class="btn btn-default btn-search btn-sm" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      <!-- </div> -->
 
       <!-- User Account Management -->
-      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <!-- <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1"> -->
+      <!-- <div > -->
         <ul class="nav navbar-nav navbar-right">
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -489,7 +492,6 @@
 
               <li class="divider"></li>
               <li><a href="/users/details"><span class="glyphicon glyphicon-user"></span> My account</a></li>
-              <!-- <li><a href="/admin/auth/user/{{ user.id }}/password/"><span class="glyphicon glyphicon-lock"></span> Change password</a></li> -->
               {% if PRO_EDITION %}
                 {% if request.user.profile.is_delegated == False %}
                 <li><a href="/users/editpw"><span class="glyphicon glyphicon-lock"></span> Change my password</a></li>
@@ -501,7 +503,8 @@
                 {% if request.user.is_superuser %}
                 <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
                 {% elif request.user.profile.is_delegated == True %}
-                <li><a href="/oauth2/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                <!-- <li><a href="/oauth2/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li> -->
+                <li><a href="#" class="btn-logout-sso"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
                 {% else %}
                 <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
                 {% endif %}
@@ -548,6 +551,28 @@
       </div>
     </footer>
   </div>
+
+  <script>
+    // jQuery functions
+    $(function(){
+      // Compare findings
+      $("a.btn-logout-sso").on('click', function (e) {
+        $.ajax({
+          url: "/oauth2/logout",
+          method: "GET",
+          success: function(data){
+            window.location.href = "/login";
+          },
+          error: function(data){
+            window.location.href = "/login";
+          }
+        });
+
+
+      });
+    });
+
+  </script>
 
   {% block javascript %} {% endblock %}
 </body>

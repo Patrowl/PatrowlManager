@@ -395,15 +395,18 @@ def get_scan_report_csv_api(request, scan_id):
         ])
 
     for finding in RawFinding.objects.filter(scan=scan).order_by('asset__name', 'severity', 'title'):
+        engine_policy_name = ""
+        if scan.engine_policy is not None:
+            engine_policy_name = scan.engine_policy.name
         writer.writerow([
-            finding.asset.value, finding.asset.type,
+            finding.asset_name, finding.asset.type,
             scan.engine_type.name, scan.engine.name,
-            scan.title, scan.engine_policy.name,
+            scan.title, engine_policy_name,
             finding.id, finding.title, finding.type, finding.status,
-            ','.join(finding.tags), finding.severity, finding.description,
+            ', '.join(finding.tags), finding.severity, finding.description,
             finding.solution, finding.hash, finding.created_at,
             finding.risk_info, finding.risk_info['cvss_base_score'],
-            ", ".join(finding.links)
+            ', '.join(finding.links)
         ])
 
     return response

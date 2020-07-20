@@ -15,6 +15,7 @@ from .forms import AssetForm, AssetGroupForm, AssetBulkForm, AssetOwnerForm
 from .models import Asset, AssetGroup, AssetOwner, AssetCategory
 from .models import ASSET_INVESTIGATION_LINKS
 from .apis import _add_asset_tags
+from .utils import _get_allowed_team
 from findings.models import Finding
 from engines.models import EnginePolicyScope
 from scans.models import Scan, ScanDefinition
@@ -310,26 +311,28 @@ def bulkadd_asset_view(request):
         form = AssetBulkForm(request.POST, request.FILES)
         if request.FILES:
             csv_file = request.FILES['file']
-            decoded_file = csv_file.read().decode('utf-8').splitlines()
+            # decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
+            decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
             records = csv.DictReader(decoded_file, delimiter=';')
             # Header is skiped automatically
             for line in records:
                 # Add assets
-                # if Asset.objects.filter(value=line['asset_value']).count() > 0:
+                asset = None
                 if Asset.objects.for_user(request.user).filter(value=line['asset_value']).count() > 0:
-                    continue
-
-                asset_args = {
-                    'value': line['asset_value'],
-                    'name': line['asset_name'],
-                    'type': line['asset_type'],
-                    'description': line['asset_description'],
-                    'criticity': line['asset_criticity'],
-                    'owner': request.user,
-                    'status': "new",
-                }
-                asset = Asset(**asset_args)
-                asset.save()
+                    asset = Asset.objects.for_user(request.user).filter(value=line['asset_value']).first()
+                    # continue
+                else:
+                    asset_args = {
+                        'value': line['asset_value'],
+                        'name': line['asset_name'],
+                        'type': line['asset_type'],
+                        'description': line['asset_description'],
+                        'criticity': line['asset_criticity'],
+                        'owner': request.user,
+                        'status': "new",
+                    }
+                    asset = Asset(**asset_args)
+                    asset.save()
 
                 # Add groups
                 if 'asset_groupname' in line and line['asset_groupname'] != "":
@@ -348,16 +351,19 @@ def bulkadd_asset_view(request):
                     ag.assets.add(asset)
 
                 # Manage tags (categories)
-                # @todo
                 if 'asset_tags' in line and line['asset_tags'] != "":
-                    # print(line['asset_tags'].split(","))
                     for tag in line['asset_tags'].split(","):
-                        # print(tag)
                         new_tag = _add_asset_tags(asset, tag)
                         asset.categories.add(new_tag)
                     asset.save()
 
-
+                # Manage teams
+                if 'asset_teams' in line and line['asset_teams'] != "":
+                    for team in line['asset_teams'].split(","):
+                        new_team = _get_allowed_team(team.lower(), request.user)
+                        if new_team is not None:
+                            asset.teams.add(new_team)
+                    asset.save()
 
             messages.success(request, 'Creation submission successful')
 
