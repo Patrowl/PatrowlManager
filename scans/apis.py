@@ -453,9 +453,6 @@ def run_scan_def_api(request, scan_def_id):
 
     if scan_def.scan_type in ["single", "scheduled", "periodic"]:
         _run_scan(scan_def_id, request.user.id)
-        AuditLog.objects.create(
-            message="Scan '{}' started".format(scan_def),
-            scope='engine', type='scan_run', owner=request.user, context=request)
         return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({'status': 'failed'}, status=403)

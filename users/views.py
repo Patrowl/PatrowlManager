@@ -98,7 +98,7 @@ def login(request):
         try:
             form = LoginForm(request, data=request.POST)
             AuditLog.objects.create(
-                message="Login attempt for user '{}'".format(request.user),
+                message="Login attempt",
                 scope='user', type='auth_login_attempt', owner_username=form.data["username"], context=request)
 
             user = authenticate(request, username=form.data["username"], password=form.data["password"])

@@ -9,13 +9,14 @@ from .models import Scan, ScanDefinition, SCAN_STATUS
 from engines.models import EngineInstance, EnginePolicy
 from engines.tasks import startscan_task
 from assets.models import Asset, AssetGroup
+from events.models import Event, AuditLog
 
 # import xmlrpclib
 import xmlrpc.client
 import uuid
 import random
 import json
-
+import inspect
 
 def _update_celerybeat():
     print("INFO: Updating Celery Beat Scheduler...")
@@ -38,6 +39,9 @@ def _update_celerybeat():
 
 def _run_scan(scan_def_id, owner_id, eta=None):
     scan_def = get_object_or_404(ScanDefinition, id=scan_def_id)
+    AuditLog.objects.create(
+        message="Scan '{}' started".format(scan_def),
+        scope='engine', type='scan_run', owner=get_user_model().objects.get(id=owner_id), request_context=inspect.stack())
     engine = None
 
     if scan_def.engine:
@@ -63,6 +67,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         scan.started_at = timezone.now()
         scan.finished_at = timezone.now()
         scan.save()
+        Event.objects.create(message="[RunScan] No engine '{}' available. Scan aborted.".format(scan_def.engine_type),
+            type="ERROR", severity="ERROR", scan=scan)
         return False
 
     assets_list = []
@@ -116,6 +122,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     scan.status = "enqueued"
     scan.task_id = uuid.UUID(str(resp))
     scan.save()
+    Event.objects.create(message="[RunScan] Scan started (enqueued).",
+        type="INFO", severity="INFO", scan=scan)
 
     return True
 

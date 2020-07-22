@@ -155,7 +155,7 @@ class AuditLog(models.Model):
     type = models.CharField(default='n-a', max_length=250)
     owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     owner_username = models.TextField(default="n/a")
-    metadata = models.TextField(default="n/a")
+    metadata = models.TextField(default="")
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -173,7 +173,6 @@ class AuditLog(models.Model):
 
         # Metadata
         try:
-            self.metadata = ""
             if hasattr(self, 'context') and self.context is not None:
                 self.metadata += "PATH_INFO: {}\n".format(self.context.META.get('PATH_INFO', None))
                 self.metadata += "REQUEST_METHOD: {}\n".format(self.context.META.get('REQUEST_METHOD', None))
