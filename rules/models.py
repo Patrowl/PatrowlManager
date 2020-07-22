@@ -7,13 +7,14 @@ from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.mail import send_mail
-from events.models import Event
+from events.models import Event, AuditLog
 from settings.models import Setting
 from django_celery_beat.models import PeriodicTask
 
 import json
 import requests
 import uuid
+import inspect
 from thehive4py.api import TheHiveApi
 from thehive4py.models import Alert, AlertArtifact
 
@@ -127,24 +128,35 @@ class Rule(models.Model):
                 type="ALERT", severity="INFO")
 
         self.nb_matches += 1
-        print (self.nb_matches)
+        # print (self.nb_matches)
         self.save()
 
 
 @receiver(post_save, sender=Rule)
 def rule_create_update_log(sender, **kwargs):
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[Rule] New rule created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[Rule] New rule created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[Rule] Rule '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[Rule] Rule '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='rule', type='rule_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=Rule)
 def rule_delete_log(sender, **kwargs):
-    Event.objects.create(message="[Rule] Rule '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    message = "[Rule] Rule '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='rule', type='rule_delete',
+        request_context=inspect.stack())
 
 
 def send_alert_message(rule, message, description):
@@ -156,6 +168,10 @@ def send_email_message(rule, message, description):
     contact_mail = Setting.objects.get(key="alerts.endpoint.email").value
     log_message = "[Rule] Rule '{}' email sent to {} (message={}, description={})".format(rule, contact_mail, message, description).replace("\n", "")
     Event.objects.create(message=log_message[:250], type="CREATE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=log_message[:250],
+        scope='rule', type='rule_send_email',
+        request_context=inspect.stack())
     send_mail(
         '[Patrowl] New alert: '+message,
         'Message: {}\nDescription: {}'.format(message, description),
@@ -166,7 +182,12 @@ def send_email_message(rule, message, description):
 
 
 def send_slack_message(rule, message):
-    Event.objects.create(message="[Rule] Rule '{}' Slack alert creation (message={})".format(rule, message)[:250], type="CREATE", severity="DEBUG")
+    mess = "[Rule] Rule '{}' Slack alert creation (message={})".format(rule, message)[:250]
+    Event.objects.create(message=mess, type="CREATE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=mess,
+        scope='rule', type='rule_send_slack',
+        request_context=inspect.stack())
     slack_url = Setting.objects.get(key="alerts.endpoint.slack.webhook")
     try:
         slack_channel = Setting.objects.get(key="alerts.endpoint.slack.channel")
@@ -187,8 +208,13 @@ def send_slack_message(rule, message):
 
 
 def send_thehive_message(rule, message, asset, description):
-    Event.objects.create(message="[Rule] Rule '{}' TheHive alert creation (asset={})".format(rule, asset),
-                         type="CREATE", severity="DEBUG")
+    mess = "[Rule] Rule '{}' TheHive alert creation (asset={})".format(rule, asset)
+    Event.objects.create(message=mess, type="CREATE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=mess,
+        scope='rule', type='rule_send_thehive',
+        request_context=inspect.stack())
+
     thehive_apikey = Setting.objects.get(key="alerts.endpoint.thehive.apikey")
     thehive_url = Setting.objects.get(key="alerts.endpoint.thehive.url")
     thehive_user = Setting.objects.get(key="alerts.endpoint.thehive.user")

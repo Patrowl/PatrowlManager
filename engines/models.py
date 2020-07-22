@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from app.settings import MEDIA_ROOT
 import os
 import base64
+import inspect
 
 ENGINE_INSTANCE_STATUS = ['STOPPED', 'READY', 'WORKING', 'ERROR']
 API_AUTH_METHODS = (
@@ -41,20 +42,31 @@ class Engine(models.Model):
 
 @receiver(post_save, sender=Engine)
 def engine_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[Engine] New engine created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[Engine] New engine created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[Engine] Engine '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[Engine] Engine '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='engine_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=Engine)
 def engine_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[Engine] Engine '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-        type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[Engine] Engine '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='engine_delete',
+        request_context=inspect.stack())
 
 
 class EngineInstance(models.Model):
@@ -94,20 +106,31 @@ class EngineInstance(models.Model):
 
 @receiver(post_save, sender=EngineInstance)
 def engineinstance_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[EngineInstance] New engine instance created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-            type="CREATE", severity="DEBUG")
+        message = "[EngineInstance] New engine instance created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[EngineInstance] Engine instance '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-            type="UPDATE", severity="DEBUG")
+        message = "[EngineInstance] Engine instance '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='engineinstance_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=EngineInstance)
 def engineinstance_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[EngineInstance] Engine instance '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-        type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[EngineInstance] Engine instance '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='engineinstance_delete',
+        request_context=inspect.stack())
 
 # def user_directory_path(instance, filename):
 #     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
@@ -137,20 +160,31 @@ class EnginePolicyScope(models.Model):
 
 @receiver(post_save, sender=EnginePolicyScope)
 def enginepolicyscope_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[EnginePolicyScope] New engine policy scope created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[EnginePolicyScope] New engine policy scope created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[EnginePolicyScope] Engine policy scope '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[EnginePolicyScope] Engine policy scope '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='enginepolicyscope_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=EnginePolicyScope)
 def enginepolicyscope_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[EnginePolicyScope] Engine policy scope '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[EnginePolicyScope] Engine policy scope '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='enginepolicyscope_delete',
+        request_context=inspect.stack())
 
 
 class EnginePolicy(models.Model):
@@ -236,17 +270,27 @@ class EnginePolicy(models.Model):
 
 @receiver(post_save, sender=EnginePolicy)
 def enginepolicy_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[EnginePolicy] New engine policy created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-            type="CREATE", severity="DEBUG")
+        message = "[EnginePolicy] New engine policy created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[EnginePolicy] Engine policy '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-            type="UPDATE", severity="DEBUG")
+        message = "[EnginePolicy] Engine policy '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='enginepolicy_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=EnginePolicy)
 def enginepolicy_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[EnginePolicy] Engine policy '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-        type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[EnginePolicy] Engine policy '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='enginepolicy_delete',
+        request_context=inspect.stack())

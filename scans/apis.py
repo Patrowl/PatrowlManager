@@ -19,6 +19,7 @@ from .utils import _update_celerybeat, _run_scan, _search_scans, _add_scan_def
 from engines.tasks import stopscan_task
 from findings.models import RawFinding
 from settings.models import Setting
+from events.models import AuditLog
 
 from datetime import timedelta
 from pytz import timezone
@@ -138,6 +139,9 @@ def stop_scan_api(request, scan_id):
     stopscan_task.apply_async(
         args=[scan.id], queue='scan', retry=True, ignore_result=False)
     # args=[scan.id], queue='scan', retry=False, ignore_result=True)
+    AuditLog.objects.create(
+        message="Scan '{}' stopped".format(scan),
+        scope='engine', type='scan_stop', owner=request.user, context=request)
     return JsonResponse({'status': 'success'})
 
 
@@ -160,6 +164,9 @@ def stop_scans_api(request):
             retry=True,
             ignore_result=True
         )
+        AuditLog.objects.create(
+            message="Scan '{}' stopped".format(scan),
+            scope='engine', type='scan_stop', owner=request.user, context=request)
 
     return JsonResponse({'status': 'success'})
 
@@ -420,6 +427,10 @@ def toggle_scan_def_status_api(request, scan_def_id):
     scan_def.enabled = not scan_def.enabled
     scan_def.save()
 
+    AuditLog.objects.create(
+        message="Scan definition '{}' status toggled to '{}'".format(scan_def, scan_def.enabled),
+        scope='engine', type='scan_stop', owner=request.user, context=request)
+
     if scan_def.scan_type == 'periodic':
         try:
             periodic_task = scan_def.periodic_task
@@ -442,6 +453,9 @@ def run_scan_def_api(request, scan_def_id):
 
     if scan_def.scan_type in ["single", "scheduled", "periodic"]:
         _run_scan(scan_def_id, request.user.id)
+        AuditLog.objects.create(
+            message="Scan '{}' started".format(scan_def),
+            scope='engine', type='scan_run', owner=request.user, context=request)
         return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({'status': 'failed'}, status=403)

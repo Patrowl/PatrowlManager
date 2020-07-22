@@ -12,6 +12,7 @@ from common.utils.encoding import json_serial
 
 import os
 import json
+import inspect
 
 SCAN_STATUS = ('created', 'enqueued', 'started', 'finished', 'error', 'trashed')
 
@@ -113,20 +114,30 @@ class ScanDefinition(models.Model):
 
 @receiver(post_save, sender=ScanDefinition)
 def scandef_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[ScanDefinition] New scan defition created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[ScanDefinition] New scan defition created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[ScanDefinition] Scan definition '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[ScanDefinition] Scan definition '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='scan', type='scandef_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=ScanDefinition)
 def scandef_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[ScanDefinition] Scan definition '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[ScanDefinition] Scan definition '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='scan', type='scandef_delete',
+        request_context=inspect.stack())
 
 
 class ScanManager(models.Manager):
@@ -218,20 +229,30 @@ class Scan(models.Model):
 
 @receiver(post_save, sender=Scan)
 def scan_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[Scan] New scan created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[Scan] New scan created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[Scan] Scan '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[Scan] Scan '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='scan', type='scan_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=Scan)
 def scan_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[Scan] Scan '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[Scan] Scan '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='scan', type='scan_delete',
+        request_context=inspect.stack())
 
 
 class ScanCampaign(models.Model):

@@ -35,9 +35,6 @@ class Event(models.Model):
     scan = models.ForeignKey('scans.Scan', null=True, blank=True, on_delete=models.SET_NULL)
     finding = models.ForeignKey('findings.Finding', null=True, blank=True, on_delete=models.SET_NULL)
     rawfinding = models.ForeignKey('findings.RawFinding', null=True, blank=True, on_delete=models.SET_NULL)
-    # scan = models.ForeignKey('scans.Scan', null=True, blank=True, on_delete=models.SET_NULL, related_name="event_scan")
-    # finding = models.ForeignKey('findings.Finding', null=True, blank=True, on_delete=models.SET_NULL, related_name="event_finding")
-    # rawfinding = models.ForeignKey('findings.RawFinding', null=True, blank=True, on_delete=models.SET_NULL, related_name="event_rawfinding")
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -135,3 +132,71 @@ class Alert(models.Model):
     def save(self, *args, **kwargs):
         self.message = self.message[:250]  # Just to be sure ...
         return super(Alert, self).save(*args, **kwargs)
+
+
+AUDIT_SCOPES = (
+    ('asset',   'Asset'),
+    ('scan',    'Scan'),
+    ('engine',  'Engine'),
+    ('finding', 'Finding'),
+    ('user',    'User'),
+    ('rule',    'Rule'),
+    ('setting', 'Setting'),
+    ('other',   'Other')
+)
+
+
+class AuditLog(models.Model):
+    """Class definition of AuditLog."""
+
+    # Attributes
+    message = models.TextField(default="n/a")
+    scope = models.CharField(choices=AUDIT_SCOPES, default='other', max_length=10)
+    type = models.CharField(default='n-a', max_length=250)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    owner_username = models.TextField(default="n/a")
+    metadata = models.TextField(default="n/a")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'audit_logs'
+
+    def __init__(self, *args, **kwargs):
+        self.context = kwargs.pop('context', None)
+        self.request_context = kwargs.pop('request_context', None)
+        return super(AuditLog, self).__init__(*args, **kwargs)
+
+    def __str__(self):
+        return "{}/{}: {} ({})".format(self.scope, self.owner, self.message, self.created_at)
+
+    def save(self, *args, **kwargs):
+
+        # Metadata
+        try:
+            self.metadata = ""
+            if hasattr(self, 'context') and self.context is not None:
+                self.metadata += "PATH_INFO: {}\n".format(self.context.META.get('PATH_INFO', None))
+                self.metadata += "REQUEST_METHOD: {}\n".format(self.context.META.get('REQUEST_METHOD', None))
+                self.metadata += "QUERY_STRING: {}\n".format(self.context.META.get('QUERY_STRING', None))
+                self.metadata += "CONTENT_TYPE: {}\n".format(self.context.META.get('CONTENT_TYPE', None))
+                self.metadata += "REMOTE_ADDR: {}\n".format(self.context.META.get('REMOTE_ADDR', None))
+                self.metadata += "HTTP_USER_AGENT: {}\n".format(self.context.META.get('HTTP_USER_AGENT', None))
+                self.metadata += "HTTP_REFERER: {}".format(self.context.META.get('HTTP_REFERER', None))
+        except Exception:
+            pass
+
+        # User
+        try:
+            for frame_record in self.request_context:
+                if frame_record[3] == 'get_response':
+                    self.owner = frame_record[0].f_locals['request'].user
+                    break
+        except Exception:
+            pass
+
+        # Username
+        try:
+            self.owner_username = self.owner.username
+        except Exception:
+            pass
+        return super(AuditLog, self).save(*args, **kwargs)

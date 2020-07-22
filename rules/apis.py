@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.contrib import messages
 from rest_framework.decorators import api_view
-
+from events.models import AuditLog
 from .models import Rule
 import json
 
@@ -72,6 +72,10 @@ def toggle_rule_status_api(request, rule_id):
     rule = get_object_or_404(Rule, id=rule_id)
     rule.enabled = not rule.enabled
     rule.save()
+    AuditLog.objects.create(
+        message="Rule '{}' status toggled to '{}'".format(rule, rule.enabled),
+        scope='rule', type='rule_toggle_status', owner=request.user,
+        context=request)
     return JsonResponse({'status': 'success'})
 
 

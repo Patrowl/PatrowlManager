@@ -17,6 +17,7 @@ from common.utils import pro_group_required
 from users.serializers import UserSerializer
 from users.forms import LoginForm
 from reportings.views import homepage_dashboard_view
+from events.models import AuditLog
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -94,18 +95,27 @@ def home(request):
 def login(request):
     default_form = LoginForm()
     if request.method == "POST":
-        form = LoginForm(request, data=request.POST)
-        user = authenticate(request, username=form.data["username"], password=form.data["password"])
-        if user is not None:
-            if user.is_active:
+        try:
+            form = LoginForm(request, data=request.POST)
+            AuditLog.objects.create(
+                message="Login attempt for user '{}'".format(request.user),
+                scope='user', type='auth_login_attempt', owner_username=form.data["username"], context=request)
+
+            user = authenticate(request, username=form.data["username"], password=form.data["password"])
+            if user is not None and user.is_active:
                 login_d(request, user)
+                AuditLog.objects.create(
+                    message="Successful login attempt for user '{}'".format(request.user),
+                    scope='user', type='auth_login_success', owner=request.user, context=request)
                 return redirect('homepage_dashboard_view')
-            else:
-                return render(request, 'login.html', {'form': form})
-        else:
+
+            AuditLog.objects.create(
+                message="Failed login attempt for user '{}'".format(request.user),
+                scope='user', type='auth_login_success', owner=request.user, context=request)
             return render(request, 'login.html', {'form': form})
-    else:
-        return render(request, 'login.html', {'form': default_form})
+        except Exception:
+            pass
+    return render(request, 'login.html', {'form': default_form})
 
 
 # @csrf_exempt

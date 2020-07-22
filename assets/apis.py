@@ -17,7 +17,7 @@ from .models import ASSET_CRITICITIES
 from .forms import AssetOwnerContactForm, AssetOwnerDocumentForm, AssetGroupForm
 from app.settings import MEDIA_ROOT
 from findings.models import Finding
-from events.models import Event
+from events.models import Event, AuditLog
 
 import csv
 import os
@@ -254,6 +254,9 @@ def refresh_assetgroup_grade_api(request, assetgroup_id=None):
 @api_view(['GET'])
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def export_assets_api(request, assetgroup_id=None):
+    AuditLog.objects.create(
+        message="Export assets as CSV file".format(request.user),
+        scope='asset', type='assets_export_csv', owner=request.user, context=request)
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
     writer = csv.writer(response, delimiter=';')
@@ -288,6 +291,9 @@ def export_assets_api(request, assetgroup_id=None):
 @api_view(['GET'])
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def export_assetgroups_api(request):
+    AuditLog.objects.create(
+        message="Export asset groups as CSV file".format(request.user),
+        scope='asset', type='assetgroups_export_csv', owner=request.user, context=request)
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
     writer = csv.writer(response, delimiter=';')

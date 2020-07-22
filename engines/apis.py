@@ -12,6 +12,7 @@ from .tasks import get_engine_status_task, get_engine_info_task, test_task
 from scans.models import Scan
 from scans.views import _update_celerybeat
 from common.utils import pro_group_required
+from events.models import AuditLog
 import requests
 import json
 import time
@@ -104,6 +105,10 @@ def toggle_engine_status_api(request, engine_id):
     engine_instance = get_object_or_404(EngineInstance, id=engine_id)
     engine_instance.enabled = not engine_instance.enabled
     engine_instance.save()
+    AuditLog.objects.create(
+        message="Engine '{}' status toggled to '{}'".format(engine_instance.name, engine_instance.enabled),
+        scope='engine', type='engine_status_toggle', owner=request.user,
+        context=request)
     return JsonResponse({'status': 'success'})
 
 
@@ -305,7 +310,7 @@ def list_engine_types_api(request):
 
 
 @api_view(['GET'])
-@pro_group_required('EnginesManager')
+@pro_group_required('EnginesManager', 'EnginesViewer')
 def test_task_api(request):
     test_task.apply_async(
         args=["default"],

@@ -16,9 +16,10 @@ from common.utils.encoding import json_serial
 from common.utils.settings import is_restricted
 
 import datetime
-import os
+import inspect
 import json
 import logging
+import os
 
 ASSET_TYPES = (
     ('ip', 'ip'),
@@ -150,7 +151,7 @@ def assetcat_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=AssetCategory)
 def assetcat_delete_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
     Event.objects.create(message="[AssetCategory] Asset category '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
         type="DELETE", severity="DEBUG")
 
@@ -345,20 +346,30 @@ class Asset(models.Model):
 
 @receiver(post_save, sender=Asset)
 def asset_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[Asset] New asset created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[Asset] New asset created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[Asset] Asset '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[Asset] Asset '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='asset_create_update', request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=Asset)
 def asset_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[Asset] Asset '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+
+    message = "[Asset] Asset '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='asset_delete', request_context=inspect.stack())
 
 
 class AssetGroupManager(models.Manager):
@@ -521,20 +532,30 @@ class AssetGroup(models.Model):
 
 @receiver(post_save, sender=AssetGroup)
 def assetgroup_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[AssetGroup] New asset group created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[AssetGroup] New asset group created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[AssetGroup] Asset Group '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[AssetGroup] Asset Group '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='assetgroup_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=AssetGroup)
 def assetgroup_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[AssetGroup] Asset Group '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[AssetGroup] Asset Group '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='assetgroup_delete',
+        request_context=inspect.stack())
 
 
 class AssetOwnerContact(models.Model):
@@ -565,20 +586,30 @@ class AssetOwnerContact(models.Model):
 
 @receiver(post_save, sender=AssetOwnerContact)
 def assetownercontact_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[AssetOwnerContact] New asset owner contact created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[AssetOwnerContact] New asset owner contact created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[AssetOwnerContact] Asset owner contact '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[AssetOwnerContact] Asset owner contact '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='assetownercontact_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=AssetOwnerContact)
 def assetownercontact_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[AssetOwnerContact] Asset owner contact '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[AssetOwnerContact] Asset owner contact '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='assetownercontact_delete',
+        request_context=inspect.stack())
 
 
 class AssetOwnerDocument(models.Model):
@@ -674,20 +705,31 @@ class AssetOwner(models.Model):
 
 @receiver(post_save, sender=AssetOwner)
 def assetowner_create_update_log(sender, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
+    message = ""
     if kwargs['created']:
-        Event.objects.create(message="[AssetOwner] New asset owner created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        message = "[AssetOwner] New asset owner created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[AssetOwner] Asset owner '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        message = "[AssetOwner] Asset owner '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='assetowner_create_update',
+        request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=AssetOwner)
 def assetowner_delete_log(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[AssetOwner] Asset owner '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[AssetOwner] Asset owner '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='assetowner_delete',
+        request_context=inspect.stack())
 
 
 ASSET_INVESTIGATION_LINKS = [

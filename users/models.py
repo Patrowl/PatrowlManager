@@ -11,6 +11,7 @@ from organizations.abstract import (AbstractOrganization,
                                     AbstractOrganizationUser,
                                     AbstractOrganizationOwner)
 
+import inspect
 
 USER_STATUS = (
     ('ACTIVE', 'ACTIVE'),
@@ -39,11 +40,16 @@ class Profile(models.Model):
 
 @receiver(post_save, sender=get_user_model())
 def create_user_profile(sender, instance, created, **kwargs):
-    from events.models import Event
+    from events.models import Event, AuditLog
     if created:
         Profile.objects.create(user=instance, status='ACTIVE')
-        Event.objects.create(message="[User] New user created (id={}): {}".format(instance.id, instance),
-                             type="CREATE", severity="DEBUG")
+
+        message = "[User] New user created (id={}): {}".format(instance.id, instance)
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
+        AuditLog.objects.create(
+            message=message,
+            scope='user', type='user_create',
+            request_context=inspect.stack())
 
 
 @receiver(post_save, sender=get_user_model())
@@ -53,9 +59,13 @@ def save_user_profile(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=get_user_model())
 def delete_user_profile(sender, **kwargs):
-    from events.models import Event
-    Event.objects.create(message="[User] User '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+    from events.models import Event, AuditLog
+    message = "[User] User '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='user', type='user_delete',
+        request_context=inspect.stack())
 
 
 class Team(AbstractOrganization):
@@ -66,11 +76,95 @@ class Team(AbstractOrganization):
         return "{}/{}".format(self.id, self.name)
 
 
+@receiver(post_save, sender=Team)
+def team_create_update_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = ""
+    if kwargs['created']:
+        message = "[Team] New team created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
+    else:
+        message = "[Team] Team '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='team_create_update',
+        request_context=inspect.stack())
+
+
+@receiver(post_delete, sender=Team)
+def team_delete_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = "[Team] Team '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='user', type='team_delete',
+        request_context=inspect.stack())
+
+
 class TeamUser(AbstractOrganizationUser):
     class Meta:
         db_table = 'team_users'
 
 
+@receiver(post_save, sender=TeamUser)
+def teamuser_create_update_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = ""
+    if kwargs['created']:
+        message = "[TeamUser] New team user created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
+    else:
+        message = "[TeamUser] Team user '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='teamuser_create_update',
+        request_context=inspect.stack())
+
+
+@receiver(post_delete, sender=TeamUser)
+def teamuser_delete_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = "[TeamUser] Team user '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='user', type='teamuser_delete',
+        request_context=inspect.stack())
+
+
 class TeamOwner(AbstractOrganizationOwner):
     class Meta:
         db_table = 'team_owners'
+
+
+@receiver(post_save, sender=TeamOwner)
+def teamowner_create_update_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = ""
+    if kwargs['created']:
+        message = "[TeamOwner] New team owner created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
+    else:
+        message = "[TeamOwner] Team owner '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='engine', type='teamowner_create_update',
+        request_context=inspect.stack())
+
+
+@receiver(post_delete, sender=TeamOwner)
+def teamowner_delete_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = "[TeamOwner] Team owner '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='user', type='teamowner_delete',
+        request_context=inspect.stack())
