@@ -188,4 +188,14 @@
     "created_at": "2020-03-26T15:53:10.644Z",
     "updated_at": "2020-03-26T15:53:10.644Z"
   }
+}, {
+  "model": "engines.engine",
+  "pk": 20,
+  "fields": {
+    "name": "CLOUDAPPSEC",
+    "description": "CloudAppSecurity",
+    "allowed_asset_types": "[u'url']",
+    "created_at": "2020-06-02T16:12:31.445Z",
+    "updated_at": "2020-06-02T16:12:31.445Z"
+  }
 }]
