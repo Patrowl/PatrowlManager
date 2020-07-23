@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from organizations.abstract import (AbstractOrganization,
@@ -12,6 +13,9 @@ from organizations.abstract import (AbstractOrganization,
                                     AbstractOrganizationOwner)
 
 import inspect
+import logging
+logger = logging.getLogger(__name__)
+
 
 USER_STATUS = (
     ('ACTIVE', 'ACTIVE'),
@@ -65,6 +69,46 @@ def delete_user_profile(sender, **kwargs):
     AuditLog.objects.create(
         message=message,
         scope='user', type='user_delete',
+        request_context=inspect.stack())
+
+
+@receiver(user_logged_in)
+def user_logged_in_callback(sender, request, user, **kwargs):
+    from events.models import AuditLog
+    ip = request.META.get('REMOTE_ADDR')
+    message = 'login user: {user} via ip: {ip}'.format(user=user, ip=ip)
+    logger.debug(message)
+    AuditLog.objects.create(
+        message=message,
+        scope='user', type='user_login',
+        request_context=inspect.stack())
+
+
+@receiver(user_logged_out)
+def user_logged_out_callback(sender, request, user, **kwargs):
+    from events.models import AuditLog
+    ip = request.META.get('REMOTE_ADDR')
+
+    message = 'logout user: {user} via ip: {ip}'.format(user=user, ip=ip)
+    logger.debug(message)
+    AuditLog.objects.create(
+        message=message,
+        scope='user', type='user_logout',
+        request_context=inspect.stack())
+
+
+@receiver(user_login_failed)
+def user_login_failed_callback(sender, credentials, **kwargs):
+    from events.models import AuditLog
+
+    logger.warning('login failed for: {credentials}'.format(
+        credentials=credentials,
+    ))
+    message = 'login failed for: {credentials}'.format(credentials=credentials,)
+    logger.debug(message)
+    AuditLog.objects.create(
+        message=message,
+        scope='user', type='user_login_failed',
         request_context=inspect.stack())
 
 

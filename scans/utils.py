@@ -18,6 +18,7 @@ import random
 import json
 import inspect
 
+
 def _update_celerybeat():
     print("INFO: Updating Celery Beat Scheduler...")
     server = xmlrpc.client.ServerProxy(SUPERVISORD_API_URL)
