@@ -151,7 +151,7 @@ def assetcat_create_update_log(sender, **kwargs):
 
 @receiver(post_delete, sender=AssetCategory)
 def assetcat_delete_log(sender, **kwargs):
-    from events.models import Event, AuditLog
+    from events.models import Event
     Event.objects.create(message="[AssetCategory] Asset category '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
         type="DELETE", severity="DEBUG")
 
