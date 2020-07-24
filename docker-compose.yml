@@ -26,10 +26,10 @@ services:
   web:
     container_name: patrowl-django
     build: .
-    image: patrowl/patrowl-manager-community-edition:latest
+    image: patrowl/patrowl-manager-community-edition:${PATROWL_MANAGER_VERSION}
     environment:
       - DB_PORT_5432_TCP_HOST=db
-      - DEBUG=True
+      - DEBUG=False
       - RABBIT_PORT_5672_TCP=rabbitmq:5672
     depends_on:
       - db

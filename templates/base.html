@@ -111,6 +111,7 @@
     function refresh_engines_status(){
       $('span.engine-status').empty();
       $('span.running-scans').empty();
+      $('span.enqueued-scans').empty();
       var xhr = $.get("{% url 'list_engines_intances_api' %}", function(response) {
         engines_json = response.engines;
         for (var engine_id in engines_json) {

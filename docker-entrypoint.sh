@@ -12,20 +12,17 @@ while !</dev/tcp/$RABBITMQ_HOST/$RABBITMQ_PORT; do sleep 1; done
 
 source env3/bin/activate
 
+echo "[+] PatrowlManager version"
+cat VERSION
+
 # Collect static files
 echo "[+] Collect static files"
 python manage.py collectstatic --noinput
 
-# Apply database migrations
-# echo "[+] Make database migrations (events)"
-# python manage.py makemigrations events
-#
-# echo "[+] Apply database migrations (events --fake)"
-# python manage.py migrate --fake
+echo "[+] Update DB schema (if already created)"
+var/bin/update_db_migrations.sh
 
 echo "[+] Make database migrations"
-# echo " - users"
-# python manage.py makemigrations users
 echo " - scans"
 python manage.py makemigrations scans
 echo " - findings"
@@ -38,6 +35,7 @@ python manage.py makemigrations
 # Apply database migrations
 echo "[+] Apply database migrations"
 python manage.py migrate
+
 
 # Check for first install
 if [ ! -f status.created ]; then

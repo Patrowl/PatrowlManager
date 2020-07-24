@@ -12,9 +12,15 @@ while !</dev/tcp/$RABBITMQ_HOST/$RABBITMQ_PORT; do sleep 1; done
 
 source env3/bin/activate
 
+echo "[+] PatrowlManager version"
+cat VERSION
+
 # Collect static files
 echo "[+] Collect static files"
 python manage.py collectstatic --noinput
+
+echo "[+] Update DB schema (if already created)"
+var/bin/update_db_migrations.sh
 
 # Apply database migrations
 echo "[+] Make database migrations"

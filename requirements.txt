@@ -8,8 +8,8 @@ chardet==3.0.4
 coreapi==2.3.3
 coreschema==0.0.4
 Django==2.2.14
-#django-celery-beat==1.1.1
-django-celery-beat==2.0.0
+django-celery-beat==1.1.1
+#django-celery-beat==2.0.0
 django-celery-results==1.1.2
 django-cursor-pagination==0.1.4
 django-datetime-widget==0.9.3
@@ -64,3 +64,4 @@ django-health-check==3.12.1
 psutil==5.7.0
 django-organizations==1.1.2
 django-annoying==0.10.6
+django-reset-migrations
