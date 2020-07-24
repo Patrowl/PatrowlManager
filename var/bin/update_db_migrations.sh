@@ -1,9 +1,9 @@
-verlte() {
-    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
-}
-
-# Check version for compatibility, otherwise exit
-verlte `cat VERSION | cut -f1 -d" "` 1.5.4 && echo "Let's go" || { echo "Use current migration files. Exit now" ; exit; }
+# verlte() {
+#     [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+# }
+#
+# # Check version for compatibility, otherwise exit
+# verlte `cat VERSION | cut -f1 -d" "` 1.5.4 && echo "Let's go" || { echo "Use current migration files. Exit now" ; exit; }
 
 echo "-- Installed tables:"
 echo "from django.db import connection ; print(connection.introspection.table_names()) " | python manage.py shell
