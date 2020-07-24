@@ -13,7 +13,7 @@ media/owners_docs/*
 media/policies/*
 media/reports/*
 var/tmp/db.json
-**/migrations/[0-9]*.py
+# **/migrations/[0-9]*.py
 .scannerwork
 .vscode
 staticfiles
