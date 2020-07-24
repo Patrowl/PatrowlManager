@@ -13,11 +13,19 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from django.conf.urls import handler400, handler403, handler404, handler500
+
 from users import views as user_views
 
 
 def i18n_javascript(request):
     return admin.site.i18n_javascript(request)
+
+
+handler400 = 'app.views.custom_bad_request'
+handler403 = 'app.views.custom_permission_denied'
+handler404 = 'app.views.custom_page_not_found'
+handler500 = 'app.views.custom_error'
 
 
 api_schema_view = get_swagger_view(title='PatrOwl Manager REST-API')
