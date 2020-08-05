@@ -47,7 +47,7 @@ Please [open an issue on GitHub](https://github.com/Patrowl/PatrowlManager/issue
 
 If you need to contact the project team, send an email to <getsupport@patrowl.io>.
 
-# Pro Edition ans SaaS
+# Pro Edition and SaaS
 A commercial Pro Edition is available and officially supported by the PatrOwl company. It includes following extra and awesome features:
 - [x] Advanced user management
 - [x] RBAC: Multiple roles are supported to restrict users privileges on features
@@ -55,6 +55,7 @@ A commercial Pro Edition is available and officially supported by the PatrOwl co
 - [x] 3rd party authentication: Azure Active Directory, ADFS (Windows 2012 and 2016), LDAP
 - [x] Terraform+Ansible deployment scripts
 - [x] Pro Engines including: ZAP, Nikto, Microsoft Cloud App Security and Onyphe
+- [x] Pro Support
 - [ ] Autonomous asset discovery (in progress, planned to Q3 2020)
 - [ ] Vulnerability prioritization (in progress, planned to Q3 2020)
 - [ ] Ticketing system integration, including JIRA, ServiceNow, ZenDesk and GLPI (in progress, planned to Q4 2020)

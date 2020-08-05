@@ -106,19 +106,20 @@ class EngineInstance(models.Model):
 
 @receiver(post_save, sender=EngineInstance)
 def engineinstance_create_update_log(sender, **kwargs):
-    from events.models import Event, AuditLog
-    message = ""
-    if kwargs['created']:
-        message = "[EngineInstance] New engine instance created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
-        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
-    else:
-        message = "[EngineInstance] Engine instance '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
-        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
-
-    AuditLog.objects.create(
-        message=message,
-        scope='engine', type='engineinstance_create_update',
-        request_context=inspect.stack())
+    pass
+    # from events.models import Event, AuditLog
+    # message = ""
+    # if kwargs['created']:
+    #     message = "[EngineInstance] New engine instance created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+    #     Event.objects.create(message=message, type="CREATE", severity="DEBUG")
+    # else:
+    #     message = "[EngineInstance] Engine instance '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    #     Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+    #
+    # AuditLog.objects.create(
+    #     message=message,
+    #     scope='engine', type='engineinstance_create_update',
+    #     request_context=inspect.stack())
 
 
 @receiver(post_delete, sender=EngineInstance)
