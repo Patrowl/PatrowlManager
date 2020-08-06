@@ -251,7 +251,8 @@ label.radio {
       $('div.cbx_assets label input:checked').each(function( index ) {
         for (aat in allowed_asset_types){
           is_valid = false;
-          if ($(this).attr('asset-type') == allowed_asset_types[aat]) {
+          // By default, allow AssetGroup (undefined)
+          if ($(this).attr('asset-type') == undefined || $(this).attr('asset-type') == allowed_asset_types[aat]) {
             is_valid = true;
             break;
           }

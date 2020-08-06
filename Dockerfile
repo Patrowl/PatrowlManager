@@ -1,6 +1,6 @@
 FROM python:3.7
 MAINTAINER Patrowl.io "getsupport@patrowl.io"
-LABEL Name="Patrowl Manager" Version="1.5.4-rc3"
+LABEL Name="Patrowl Manager" Version="1.5.4-rc4"
 
 ENV PYTHONUNBUFFERED 1
 RUN mkdir -p /opt/patrowl-manager/

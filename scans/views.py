@@ -360,8 +360,8 @@ def add_scan_def_view(request):
                     task='engines.tasks.start_periodic_scan_task',
                     args=json.dumps([parameters]),
                     queue='scan',
-                    # last_run_at=None
-                    one_off=False
+                    last_run_at=None,
+                    # one_off=False
                 )
 
                 periodic_task.enabled = True
