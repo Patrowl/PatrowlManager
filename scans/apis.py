@@ -114,8 +114,21 @@ def delete_scans_api(request):
 @pro_group_required('ScansManager')
 def delete_scan_def_api(request, scan_id):
     """Delete selected scan defs."""
-    scan = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
-    scan.delete()
+    scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_id)
+
+    # Delete periodic_task if any
+    try:
+        periodic_task = scan_def.periodic_task
+        if periodic_task:
+            periodic_task.enabled = False   # maybe useless
+            periodic_task.save()            # maybe useless
+            periodic_task.delete()
+            _update_celerybeat()
+    except PeriodicTask.DoesNotExist:
+        pass
+
+    # Delete scan definition
+    scan_def.delete()
     return JsonResponse({'status': 'success'})
 
 
@@ -125,7 +138,20 @@ def delete_scan_defs_api(request):
     """Delete selected scan defs."""
     scans = request.data
     for scan_id in scans:
-        ScanDefinition.objects.for_user(request.user).get(id=scan_id).delete()
+        scan_def = ScanDefinition.objects.for_user(request.user).get(id=scan_id)
+        # Delete periodic_task if any
+        try:
+            periodic_task = scan_def.periodic_task
+            if periodic_task:
+                periodic_task.enabled = False   # maybe useless
+                periodic_task.save()            # maybe useless
+                periodic_task.delete()
+                _update_celerybeat()
+        except PeriodicTask.DoesNotExist:
+            pass
+
+        # Delete scan definition
+        scan_def.delete()
     return JsonResponse({'status': 'success'})
 
 
