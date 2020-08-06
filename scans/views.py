@@ -459,6 +459,7 @@ def edit_scan_def_view(request, scan_def_id):
                     })
 
             if form.cleaned_data['scan_type'] == 'single':
+                scan_definition.scan_type = 'single'
                 scan_definition.every = None
                 scan_definition.period = None
 
@@ -485,6 +486,7 @@ def edit_scan_def_view(request, scan_def_id):
                 scan_definition.scheduled_at = None
 
             if form.cleaned_data['scan_type'] == 'periodic':
+                scan_definition.scan_type = 'periodic'
                 scan_definition.every = int(form.cleaned_data['every'])
                 scan_definition.period = form.cleaned_data['period']
 
