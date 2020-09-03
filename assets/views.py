@@ -322,12 +322,15 @@ def bulkadd_asset_view(request):
                     asset = Asset.objects.for_user(request.user).filter(value=line['asset_value']).first()
                     # continue
                 else:
+                    asset_criticity = str(line['asset_criticity']).lower()
+                    if asset_criticity not in ['low', 'medium', 'high']:
+                        asset_criticity = 'low'
                     asset_args = {
                         'value': line['asset_value'],
                         'name': line['asset_name'],
                         'type': line['asset_type'],
                         'description': line['asset_description'],
-                        'criticity': line['asset_criticity'],
+                        'criticity': asset_criticity,
                         'owner': request.user,
                         'status': "new",
                     }

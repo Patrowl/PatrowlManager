@@ -158,9 +158,11 @@ class RawFinding(models.Model):
             rules = Rule.objects.filter(enabled=True, scope='finding', trigger=trigger)
         nb_matches = 0
         for rule in rules:
+            rck, rcv = list(rule.condition.items())[0]
             kwargs = {
                 "id": self.id,
-                rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
+                # rule.scope_attr + next(iter(rule.condition)): rule.condition.itervalues().next()
+                rule.scope_attr + rck: rcv
             }
             if RawFinding.objects.filter(**kwargs):
                 nb_matches += 1

@@ -92,9 +92,8 @@
     });
     $("button.btn-delete-asset").on('click', function (e) {
       id = $("div#delete-asset").attr('asset-id');
-      delete_asset_url = "/assets/delete/"+id;
       var request = $.ajax({
-        url: delete_asset_url,
+        url: "/assets/api/v1/delete/"+id,
         method: "POST",
         headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
