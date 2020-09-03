@@ -73,7 +73,7 @@ def list_assets_view(request):
             ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
 
     # Pagination assets
-    nb_rows = int(request.GET.get('n', 16))
+    nb_rows = int(request.GET.get('n', 20))
     assets_paginator = Paginator(assets_list, nb_rows)
     page = request.GET.get('page')
     try:

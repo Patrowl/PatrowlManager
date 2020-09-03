@@ -55,6 +55,8 @@ def homepage_dashboard_view(request):
             # "defined": ScanDefinition.objects.for_user(request.user).all().count(),
             "defined": scan_definitions.count(),
             # "performed": Scan.objects.for_user(request.user).all().count(),
+            "running": scans.filter(status="started").count(),
+            "enqueued": scans.filter(status="enqueued").count(),
             "performed": scans.count(),
             # "active_periodic": ScanDefinition.objects.for_user(request.user).filter(enabled=True, scan_type='periodic').count(),
             "active_periodic": scan_definitions.filter(enabled=True, scan_type='periodic').count(),

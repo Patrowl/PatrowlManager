@@ -180,9 +180,9 @@ function toggle(source, element) {
           </ul>
           <div style="margin: 21px;">
             <select id="nb_rows_per_page" >
-              <option value="10" selected>10</option>
-              <option value="25">25</option>
+              <option value="20" selected>20</option>
               <option value="50">50</option>
+              <option value="100">100</option>
               <option value="200">200</option>
             </select>
             assets per page
@@ -505,12 +505,12 @@ function toggle(source, element) {
       }
     });
 
-    // Manage nb_rows_per_page //TODO: debug
+    // Manage nb_rows_per_page
     _nb_rows = url.searchParams.get("n");
     if (typeof _nb_rows === "undefined") {
 
     } else {
-      $('#nb_rows_per_page option:eq('+_nb_rows+')').prop('selected', true);
+      $('#nb_rows_per_page').val(_nb_rows);
     }
 
     $('#nb_rows_per_page').change(function(e){
