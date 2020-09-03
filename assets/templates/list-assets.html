@@ -53,13 +53,13 @@ function toggle(source, element) {
                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
                 <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
                 <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
-                <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticity of selected assets</a></li>
+                <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
                 <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
                 {% endif %}
               {% else %}
               <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
               <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
-              <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticity of selected assets</a></li>
+              <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
               <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
               {% endif %}
             </ul>
@@ -78,9 +78,9 @@ function toggle(source, element) {
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
               <li><a onclick="sortby('name', 'assets');">Name</a></li>
-              <li><a onclick="sortby('criticity_num', 'assets');">Criticity</a></li>
+              <li><a onclick="sortby('criticity_num', 'assets');">Criticality</a></li>
               <li><a onclick="sortby('-risk_level__grade', 'assets');">Score</a></li>
-              <li><a onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticity + Score</a></li>
+              <li><a onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticality + Score</a></li>
               <li><a onclick="sortby('type', 'assets');">Type</a></li>
               <li><a onclick="sortby('-updated_at', 'assets');">Last update</a></li>
             </ul>
@@ -97,7 +97,7 @@ function toggle(source, element) {
               <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
               <th data-field="name"  onclick="sortby('name', 'assets');">Name</th>
               <th data-field="categories">Tags</th>
-              <th data-field="criticity" onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticity</th>
+              <th data-field="criticity" onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticality</th>
               <th data-field="score" onclick="sortby('-risk_level__grade,criticity_num', 'assets');">Score</th>
               <th data-field="type" onclick="sortby('type', 'assets');">Type</th>
               <th data-field="updated_at" onclick="sortby('-updated_at', 'assets');">Last update</th>
@@ -218,7 +218,7 @@ function toggle(source, element) {
               <th data-field="assets">Assets</th>
               <!-- <th data-field="assets" width="50%">Assets</th> -->
               <!-- <th data-field="tags">Tags</th> -->
-              <th data-field="criticity">Criticity</th>
+              <th data-field="criticity">Criticality</th>
               <th data-field="score">Score</th>
               <th data-field="updated_at">Last update</th>
               <th data-field="actions">Actions</th>
@@ -347,7 +347,7 @@ function toggle(source, element) {
         <div class="modal-body">
           <div id="update-assets">
             <dl class="dl-horizontal">
-              <dt>Criticity:</dt>
+              <dt>Criticality:</dt>
               <dd>
                 <select id="update-asset-criticity">
                   <option value='low'>Low</option>
