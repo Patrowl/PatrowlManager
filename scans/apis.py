@@ -258,10 +258,13 @@ def get_scans_by_period_api(request):
 @pro_group_required('ScansManager', 'ScansViewer')
 def get_scans_by_date_api(request):
     scopes = ["year", "month", "week", "day", "hour", "minute"]
+
     data = []
     date = request.GET.get('date', None)
     stop_date = None
     scope = request.GET.get('scope', None)
+    status = request.GET.get('status', None)
+
     if date and datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ'):
         date_wot = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%fZ')
         date = timezone(tzlocal.get_localzone().zone).localize(date_wot)
@@ -280,7 +283,22 @@ def get_scans_by_date_api(request):
     elif scope == "month":
         stop_date = date + timedelta(days=30)
 
-    scans = Scan.objects.for_user(request.user).filter(updated_at__gte=date, updated_at__lte=stop_date)
+    scans_filters = {
+        'updated_at__gte': date,
+        'updated_at__lte': stop_date,
+    }
+
+    if status is not None:
+        if status in ["running", "enqueued"]:
+            scans_filters.update({
+                'status': status
+            })
+        elif status == "finished":
+            scans_filters.update({
+                'status__in': ["finished", "error", "stopped"]
+            })
+
+    scans = Scan.objects.for_user(request.user).filter(**scans_filters)
 
     for scan in scans:
         updated_at = scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%Y-%m-%d %H:%M:%S")

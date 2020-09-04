@@ -176,7 +176,20 @@ def detail_scan_view(request, scan_id):
 @pro_group_required('ScansManager', 'ScansViewer')
 def list_scans_view(request):
     """List performed scans."""
-    scan_list = Scan.objects.for_user(request.user).all().annotate(
+    status = request.GET.get('status', None)
+    scans_filters = {}
+
+    if status is not None:
+        if status in ["running", "enqueued"]:
+            scans_filters.update({
+                'status': status
+            })
+        elif status == "finished":
+            scans_filters.update({
+                'status__in': ["finished", "error", "stopped"]
+            })
+
+    scan_list = Scan.objects.for_user(request.user).filter(**scans_filters).annotate(
         scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
         ).only(
         "engine_type", "title", "status", "summary", "updated_at"
@@ -184,6 +197,7 @@ def list_scans_view(request):
 
     paginator = Paginator(scan_list, 10)
     page = request.GET.get('page')
+
     try:
         scans = paginator.page(page)
     except PageNotAnInteger:

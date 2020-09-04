@@ -71,16 +71,30 @@ input:checked + label {
 </ul>
 
 <div class="container">
-  <div class="pull-left">
+  <div class="pull-left select-scope">
       <span>Scope:</span>
       <input type='radio' value='hour' id="hour" name='scope' checked="checked" style="visibility: hidden"/>
       <label for="hour">Hour</label>
       <input type='radio' value='day' id="day" name='scope' style="visibility: hidden"/>
       <label for="day">Day</label>
-      <input type='radio' value='week' id="week" name='scope'  style="visibility: hidden"/>
+      <input type='radio' value='week' id="week" name='scope' style="visibility: hidden"/>
       <label for="week">Week</label>
-      <input type='radio' value='month' id="month" name='scope'  style="visibility: hidden"/>
+      <input type='radio' value='month' id="month" name='scope' style="visibility: hidden"/>
       <label for="month">Month</label>
+  </div>
+</div>
+<div class="container">
+  <div class="pull-left select-status">
+      <span>Status:</span>
+      <!-- <input type='radio' value='all' id="all" name='status' checked="checked" style="visibility: hidden"/> -->
+      <input type='radio' value='all' id="all" name='status' style="visibility: hidden"/>
+      <label for="all">All</label>
+      <input type='radio' value='finished' id="finished" name='status' style="visibility: hidden"/>
+      <label for="finished">Finished</label>
+      <input type='radio' value='running' id="running" name='status' style="visibility: hidden"/>
+      <label for="running">Running</label>
+      <input type='radio' value='enqueued' id="enqueued" name='status' style="visibility: hidden"/>
+      <label for="enqueued">Enqueued</label>
   </div>
 </div>
 <div class="container">
@@ -98,15 +112,16 @@ input:checked + label {
     <button id="btn-jumpTo-1m-later" class="btn btn-xs" style="margin-bottom: 10px;" title="1 month later"> > 1m </button>
   </div>
 
-  <div class="pull-right">
-    <button id="btn-modal-filters" class="btn btn-xs btn-default" style="margin-bottom: 10px;" data-toggle="modal" data-target="#modal-filters">Filters</button></div>
+  <!-- <div class="pull-right">
+    <button id="btn-modal-filters" class="btn btn-xs btn-default" style="margin-bottom: 10px;" data-toggle="modal" data-target="#modal-filters">Filters</button>
+  </div> -->
   <br/>
   <div id="cal-heatmap"></div>
 </div>
 <br/>
 
 <div class="container all-scans">
-  <h4>Selection: <b class="scan-selection-title">all findings</b></h4>
+  <h4>Selection: <b class="scan-selection-title">all scans</b></h4>
   <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
     <thead>
       <tr>
@@ -368,16 +383,29 @@ input:checked + label {
     //hours = hours ? hours : 12; // the hour '0' should be '12'
     minutes = minutes < 10 ? '0'+minutes : minutes;
     var strTime = hours + ':' + minutes;// + ' ' + ampm;
-    return date.getDate() + "/" + date.getMonth()+1 + "/" + date.getFullYear() + " - " + strTime + " (1h)";
+    return date.getDate() + "/" + (date.getMonth()+1) + "/" + date.getFullYear() + " - " + strTime + " (1h)";
   }
 
   // Goto paginate
   url = new URL(window.location.href);
+
+  // Set Status filter
+  // if (url.searchParams.get("status") != null){
+  //   if($('input[name="status"][value="'+url.searchParams.get("status")+'"]')){
+  //     console.log("ciuc")
+  //   }
+  //   $('input[name="status"][value="'+url.searchParams.get("status")+'"]').prop("checked", true);
+  // }
+  if (['finished', 'running', 'enqueued'].indexOf(url.searchParams.get("status")) >= 0){
+    $('input[name="status"][value="'+url.searchParams.get("status")+'"]').prop("checked", true);
+  } else {
+      $('input[name="status"][value="all"]').prop("checked", true);
+  }
+
   var gotopage = function gotopage(page_num) {
     url.searchParams.set("page", page_num);
     window.location = url.search;
   };
-
 
   var cal = new CalHeatMap();
   var range_size = 23;
@@ -403,16 +431,19 @@ input:checked + label {
       // Will use the CSS for the missing keys
     },
     onClick: function(date, nb) {
-      $("h4 b.scan-selection-title").html(nb+" scan(s) on "+formatDate(date));
+      if( nb==null ){nb = 0;}
+
       $("div.container.all-scans table tbody").find("tr").remove();
       $("div.pagination").addClass("hidden");
 
       scope = $('input[name="scope"]:checked').val();
+      status = $('input[name="status"]:checked').val();
       tzoffset = (new Date()).getTimezoneOffset() * 60000;
       date_tz = (new Date(date - tzoffset)).toISOString().split('.')[0]+"Z";
-      scan_url = "/scans/api/v1/listbydate?date=" + date_tz + "&scope=" + scope;
+      scan_url = "/scans/api/v1/listbydate?date=" + date_tz + "&scope=" + scope + "&status=" + status;
 
       xhr = $.get(scan_url, function(data) {
+        $("h4 b.scan-selection-title").html(data.length+" scan(s) on "+formatDate(date));
         for (i = 0; i < data.length; ++i){
           scan_row_html = "<tr class='dblclickable-row' data-href='/scans/details/"+data[i]["scan_id"]+"'>\
             <td><input type='checkbox' class='radio' name='scan' value='"+data[i]["scan_id"]+"'/></td>\
@@ -499,6 +530,13 @@ input:checked + label {
   }
 
   $(function() {
+
+    status = $('input[name="status"]:checked').val();
+    $("input[name='status']").change(function(e){
+      status = $('input[name="status"]:checked').val();
+      url.searchParams.set("status", status);
+      window.location = url.search;
+    });
 
     $("#filter_startdate").datetimepicker({
       minuteStep: 5,
