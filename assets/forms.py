@@ -32,7 +32,10 @@ class AssetForm(forms.ModelForm):
         # Check allowed teams (Available in Pro Edition)
         if settings.PRO_EDITION and not self.user.is_superuser:
             # List related TeamUsers
-            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all())
+            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all()).order_by('name')
+        if settings.PRO_EDITION and self.user.is_superuser:
+            # List related TeamUsers
+            self.fields['teams'].queryset = Team.objects.order_by('name')
         # disable the value update (/!\ still bypassable)
         if self.initial != {} and 'value' in self.initial.keys():
             self.fields['value'].widget.attrs['readonly'] = True

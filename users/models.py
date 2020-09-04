@@ -116,8 +116,10 @@ class Team(AbstractOrganization):
     class Meta:
         db_table = 'teams'
 
+    # def __str__(self):
+    #     return "{}/{}".format(self.id, self.name)
     def __str__(self):
-        return "{}/{}".format(self.id, self.name)
+        return self.name
 
 
 @receiver(post_save, sender=Team)

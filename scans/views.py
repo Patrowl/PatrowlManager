@@ -295,7 +295,7 @@ def add_scan_def_view(request):
             'name': sc['engine__name']
         })
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
-    teams_list = request.user.users_team.values('id', 'name')
+    teams_list = request.user.users_team.values('id', 'name').order_by('name')
 
     scan_policies_json = []
     for p in scan_policies:
@@ -450,7 +450,7 @@ def edit_scan_def_view(request, scan_def_id):
             'name': sc['engine__name']
         })
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
-    teams_list = request.user.users_team.values('id', 'name')
+    teams_list = request.user.users_team.values('id', 'name').order_by('name')
 
     scan_policies_json = []
     for p in scan_policies:
