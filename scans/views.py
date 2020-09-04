@@ -260,7 +260,13 @@ def add_scan_def_view(request):
     request_user_id = request.user.id
     scan_cats = EnginePolicyScope.objects.all().order_by('name').values()
     scan_policies = EnginePolicy.objects.all().prefetch_related("engine", "scopes").order_by(Lower('name'))
-    scan_engines = Engine.objects.all().exclude(name__in=["MANUAL", "SKELETON"]).order_by('name').values()
+
+    scan_engines = []
+    for sc in EngineInstance.objects.all().values('engine__name', 'engine__id').order_by('engine__name').distinct():
+        scan_engines.append({
+            'id': sc['engine__id'],
+            'name': sc['engine__name']
+        })
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
     teams_list = request.user.users_team.values('id', 'name')
 
@@ -410,7 +416,12 @@ def edit_scan_def_view(request, scan_def_id):
     scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
     scan_cats = EnginePolicyScope.objects.all().values()
     scan_policies = list(EnginePolicy.objects.all().prefetch_related("engine", "scopes"))
-    scan_engines = Engine.objects.all().exclude(name__in=["MANUAL", "SKELETON"]).values()
+    scan_engines = []
+    for sc in EngineInstance.objects.all().values('engine__name', 'engine__id').order_by('engine__name').distinct():
+        scan_engines.append({
+            'id': sc['engine__id'],
+            'name': sc['engine__name']
+        })
     scan_engines_json = json.dumps(list(EngineInstance.objects.all().values('id', 'name', 'engine__name', 'engine__id')))
     teams_list = request.user.users_team.values('id', 'name')
 
