@@ -24,7 +24,7 @@ def list_alerts_view(request):
     """List new and read Alerts."""
     # Check team
     teamid_selected = -1
-    if settings.PRO_EDITION is True and request.GET.get('team').isnumeric() and int(request.GET.get('team', -1)) >= 0:
+    if settings.PRO_EDITION is True and request.GET.get('team', '').isnumeric() and int(request.GET.get('team', -1)) >= 0:
         teamid = int(request.GET.get('team'))
         # @Todo: ensure the team is allowed for this user
         teamid_selected = teamid
