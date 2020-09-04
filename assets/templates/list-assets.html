@@ -105,7 +105,8 @@ function toggle(source, element) {
             <tr>
               <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
               <th data-field="name"  onclick="sortby('name', 'assets');">Name</th>
-              <th data-field="categories">Tags</th>
+              <th data-field="teams">Teams</th>
+              <!-- <th data-field="categories">Tags</th> -->
               <th data-field="criticity" onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticality</th>
               <th data-field="score" onclick="sortby('-risk_level__grade,criticity_num', 'assets');">Score</th>
               <th data-field="type" onclick="sortby('type', 'assets');">Type</th>
@@ -118,7 +119,8 @@ function toggle(source, element) {
             <tr>
               <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
               <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value|truncatechars:50 }})</a></td>
-              <td>{{ asset.cat_list|join:", "|truncatechars:15 }}</td>
+              <td>{{ asset.teams.all|join:", " }}</td>
+              <!-- <td>{{ asset.cat_list|join:", "|truncatechars:15 }}</td> -->
               {% if asset.criticity == 'low' %}
               <td><span class="label label-low">Low</span></td>
               {% elif asset.criticity == 'medium' %}
@@ -225,8 +227,7 @@ function toggle(source, element) {
             <tr>
               <th data-field="name">Name</th>
               <th data-field="assets">Assets</th>
-              <!-- <th data-field="assets" width="50%">Assets</th> -->
-              <!-- <th data-field="tags">Tags</th> -->
+              <th data-field="teams">Teams</th>
               <th data-field="criticity">Criticality</th>
               <th data-field="score">Score</th>
               <th data-field="updated_at">Last update</th>
@@ -238,6 +239,9 @@ function toggle(source, element) {
           <tr>
             <td><a href="/assets/groups/details/{{ asset_group.id }}">{{ asset_group.name }}</a></td>
             <td>{{ asset_group.assets_names|truncatechars:85 }}</td>
+            <td>
+              {{ asset_group.teams.all|join:", " }}
+            </td>
             <!-- <td>{{ asset_group.assets.categories.all|join:", " }}</td> -->
             {% if asset_group.criticity == 'low' %}
             <td><span class="label label-low">Low</span></td>

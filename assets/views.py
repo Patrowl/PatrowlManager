@@ -46,11 +46,13 @@ def list_assets_view(request):
             })
 
     # Check sorting options
-    allowed_sort_options = ["id", "name", "criticity_num", "score", "type",
-                            "updated_at", "risk_level", "risk_level__grade",
-                            "-id", "-name", "-criticity_num", "-score",
-                            "-type", "-updated_at", "-risk_level",
-                            "-risk_level__grade"]
+    allowed_sort_options = [
+        "id", "name", "criticity_num", "score", "type",
+        "updated_at", "risk_level", "risk_level__grade",
+        "-id", "-name", "-criticity_num", "-score",
+        "-type", "-updated_at", "-risk_level",
+        "-risk_level__grade"
+    ]
     sort_options = request.GET.get("sort", "-updated_at")
     sort_options_valid = []
     for s in sort_options.split(","):
@@ -121,13 +123,13 @@ def list_assets_view(request):
         ags = AssetGroup.objects.for_team(request.user, teamid_selected).all().annotate(
                 asset_list=ArrayAgg('assets__value')
             ).only(
-                "id", "name", "assets", "criticity", "updated_at", "risk_level"
+                "id", "name", "assets", "criticity", "updated_at", "risk_level", "teams"
             )
     else:
         ags = AssetGroup.objects.for_user(request.user).all().annotate(
                 asset_list=ArrayAgg('assets__value')
             ).only(
-                "id", "name", "assets", "criticity", "updated_at", "risk_level"
+                "id", "name", "assets", "criticity", "updated_at", "risk_level", "teams"
             )
 
     for asset_group in ags:
@@ -140,7 +142,8 @@ def list_assets_view(request):
             "criticity": asset_group.criticity,
             "updated_at": asset_group.updated_at,
             "assets_names": assets_names,
-            "risk_grade": asset_group.risk_level['grade']
+            "risk_grade": asset_group.risk_level['grade'],
+            "teams": asset_group.teams
         }
         asset_groups.append(ag)
 

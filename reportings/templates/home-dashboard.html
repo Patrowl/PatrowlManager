@@ -89,17 +89,20 @@ td.bg-grade-F-high {background-color: black; color: white;}
 
 </style>
 
-{% if PRO_EDITION %}
-<div class="container-fluid">
-  Select Team:
-  <select id="team_select" class="form-control form-control-sm" style="width:auto; display:inline-block;">
-    <option value="-1" selected>All</option>
-    {% for team in teams %}
-    <option value="{{team.id}}">{{team.name|title}} </option>
-    {% endfor %}
-  </select>
-</div>
-{% endif %}
+<ul class="breadcrumb" style="margin-bottom: 0px;">
+  <li><a href="{% url 'homepage_dashboard_view' %}">Global dashboard</a></li>
+  {% if PRO_EDITION %}
+  <li class="active">
+    Team:
+    <select id="team_select" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+      <option value="-1" selected>All</option>
+      {% for team in teams %}
+      <option value="{{team.id}}">{{team.name|title}} </option>
+      {% endfor %}
+    </select>
+  </li>
+  {% endif %}
+</ul>
 
 <div class="container-fluid">
   <!-- 1st row -->
