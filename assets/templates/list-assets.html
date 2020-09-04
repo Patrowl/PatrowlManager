@@ -26,12 +26,20 @@ function toggle(source, element) {
 <ul class="breadcrumb">
   <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li class="active">list</li>
+  {% if PRO_EDITION %}
+  <li class="active">
+    Team:
+    <select id="team_select" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+      <option value="-1" selected>All</option>
+      {% for team in teams %}
+      <option value="{{team.id}}">{{team.name|title}} </option>
+      {% endfor %}
+    </select>
+  </li>
+  {% endif %}
 </ul>
 
 <div class="container-fluid">
-
-  <a href="{% url 'refresh_all_asset_grade_api' %}" class="text-danger">>> Refresh all scores</a><br/>
-
   <div id="menu_tabs" class="container-fluid">
     <ul class="nav nav-tabs" id="menu_tabs_ul">
       <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div" >Assets</a></li>
@@ -48,6 +56,7 @@ function toggle(source, element) {
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
               <li><a href="{% url 'export_assets_api' %}">> Export assets (CSV)</a></li>
+              <li><a href="{% url 'refresh_all_asset_grade_api' %}" class="text-danger">>> Refresh all scores</a></li>
 
               {% if PRO_EDITION %}
                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
@@ -383,6 +392,14 @@ function toggle(source, element) {
   };
 
   $(function() {
+
+    $('#team_select').val(url.searchParams.get("team", "-1"));
+
+    // Reload on team selection change
+    $('#team_select').on('change', function() {
+      url.searchParams.set("team", this.value);
+      window.location = url.search;
+    });
 
     // tab selection
     target = url.searchParams.get("target");

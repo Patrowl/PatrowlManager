@@ -19,6 +19,7 @@ from .utils import _get_allowed_team
 from findings.models import Finding
 from engines.models import EnginePolicyScope
 from scans.models import Scan, ScanDefinition
+from users.models import Team, TeamUser
 from common.utils import encoding, pro_permission_required, pro_group_required
 
 import csv
@@ -27,6 +28,23 @@ import copy
 # @pro_permission_required('assets.view_asset')
 @pro_group_required('AssetsViewer', 'AssetsManager')
 def list_assets_view(request):
+    # Check team
+    teamid_selected = -1
+    if settings.PRO_EDITION is True and int(request.GET.get('team', -1)) >= 0:
+        teamid = int(request.GET.get('team'))
+        # @Todo: ensure the team is allowed for this user
+        teamid_selected = teamid
+
+    teams = []
+    if settings.PRO_EDITION and request.user.is_superuser:
+        teams = Team.objects.all().order_by('name')
+    elif settings.PRO_EDITION and not request.user.is_superuser:
+        for tu in TeamUser.objects.filter(user=request.user):
+            teams.append({
+                'id': tu.organization.id,
+                'name': tu.organization.name
+            })
+
     # Check sorting options
     allowed_sort_options = ["id", "name", "criticity_num", "score", "type",
                             "updated_at", "risk_level", "risk_level__grade",
@@ -59,18 +77,32 @@ def list_assets_view(request):
             filter_opts = filter_opts + str(criteria.strip())
 
     # Query
-    assets_list = Asset.objects.for_user(request.user).filter(**filter_fields).filter(
-        Q(value__icontains=filter_opts) |
-        Q(name__icontains=filter_opts) |
-        Q(description__icontains=filter_opts)
-        ).annotate(
-            criticity_num=Case(
-                When(criticity="high", then=Value("1")),
-                When(criticity="medium", then=Value("2")),
-                When(criticity="low", then=Value("3")),
-                default=Value("1"),
-                output_field=CharField())
-            ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
+    if teamid_selected >= 0:
+        assets_list = Asset.objects.for_team(request.user, teamid_selected).filter(**filter_fields).filter(
+            Q(value__icontains=filter_opts) |
+            Q(name__icontains=filter_opts) |
+            Q(description__icontains=filter_opts)
+            ).annotate(
+                criticity_num=Case(
+                    When(criticity="high", then=Value("1")),
+                    When(criticity="medium", then=Value("2")),
+                    When(criticity="low", then=Value("3")),
+                    default=Value("1"),
+                    output_field=CharField())
+                ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
+    else:
+        assets_list = Asset.objects.for_user(request.user).filter(**filter_fields).filter(
+            Q(value__icontains=filter_opts) |
+            Q(name__icontains=filter_opts) |
+            Q(description__icontains=filter_opts)
+            ).annotate(
+                criticity_num=Case(
+                    When(criticity="high", then=Value("1")),
+                    When(criticity="medium", then=Value("2")),
+                    When(criticity="low", then=Value("3")),
+                    default=Value("1"),
+                    output_field=CharField())
+                ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
 
     # Pagination assets
     nb_rows = int(request.GET.get('n', 20))
@@ -85,11 +117,18 @@ def list_assets_view(request):
 
     # List asset groups
     asset_groups = []
-    ags = AssetGroup.objects.for_user(request.user).all().annotate(
-            asset_list=ArrayAgg('assets__value')
-        ).only(
-            "id", "name", "assets", "criticity", "updated_at", "risk_level"
-        )
+    if teamid_selected >= 0:
+        ags = AssetGroup.objects.for_team(request.user, teamid_selected).all().annotate(
+                asset_list=ArrayAgg('assets__value')
+            ).only(
+                "id", "name", "assets", "criticity", "updated_at", "risk_level"
+            )
+    else:
+        ags = AssetGroup.objects.for_user(request.user).all().annotate(
+                asset_list=ArrayAgg('assets__value')
+            ).only(
+                "id", "name", "assets", "criticity", "updated_at", "risk_level"
+            )
 
     for asset_group in ags:
         assets_names = ""
@@ -105,10 +144,11 @@ def list_assets_view(request):
         }
         asset_groups.append(ag)
 
-    return render(
-        request,
-        'list-assets.html',
-        {'assets': assets, 'asset_groups': asset_groups})
+    return render( request, 'list-assets.html', {
+        'assets': assets,
+        'asset_groups': asset_groups,
+        'teams': teams
+    })
 
 
 @pro_group_required('AssetsManager')
