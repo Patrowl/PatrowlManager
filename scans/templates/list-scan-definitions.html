@@ -6,6 +6,15 @@
   <li><a href="/scans/list">scans</a></li>
 
   {% if PRO_EDITION %}
+    <li class="active">
+      Team:
+      <select id="team_select" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+        <option value="-1" selected>All</option>
+        {% for team in teams %}
+        <option value="{{team.id}}">{{team.name|title}} </option>
+        {% endfor %}
+      </select>
+    </li>
     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
     <li class="active">definitions [<a href="/scans/defs/add">+ Add new</a>]</li>
     {% else %}
@@ -222,6 +231,15 @@
   }
 
   $(function() {
+
+    // Select team by id
+    $('#team_select').val(url.searchParams.get("team", "-1"));
+
+    // Reload on team selection change
+    $('#team_select').on('change', function() {
+      url.searchParams.set("team", this.value);
+      window.location = url.search;
+    });
 
     // Run direct scan now Event
     $("#modal-run-scan").on('show.bs.modal', function (e) {

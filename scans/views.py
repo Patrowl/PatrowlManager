@@ -2,6 +2,7 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.conf import settings
 from django.utils import timezone as tz
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, F
@@ -12,9 +13,10 @@ from celery.task.control import revoke
 from .forms import ScanDefinitionForm
 from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan
-from engines.models import Engine, EnginePolicy, EngineInstance, EnginePolicyScope
+from engines.models import EnginePolicy, EngineInstance, EnginePolicyScope
 from findings.models import RawFinding
 from assets.models import Asset, AssetGroup
+from users.models import Team, TeamUser
 from common.utils import pro_group_required
 
 from datetime import timedelta, datetime
@@ -176,6 +178,7 @@ def detail_scan_view(request, scan_id):
 @pro_group_required('ScansManager', 'ScansViewer')
 def list_scans_view(request):
     """List performed scans."""
+    # Check status
     status = request.GET.get('status', None)
     scans_filters = {}
 
@@ -210,8 +213,29 @@ def list_scans_view(request):
 # Scan Definitions
 @pro_group_required('ScansManager', 'ScansViewer')
 def list_scan_def_view(request):
+    # Check team
+    teamid_selected = -1
+    if settings.PRO_EDITION is True and int(request.GET.get('team', -1)) >= 0:
+        teamid = int(request.GET.get('team'))
+        # @Todo: ensure the team is allowed for this user
+        teamid_selected = teamid
+
+    teams = []
+    if settings.PRO_EDITION and request.user.is_superuser:
+        teams = Team.objects.all().order_by('name')
+    elif settings.PRO_EDITION and not request.user.is_superuser:
+        for tu in TeamUser.objects.filter(user=request.user):
+            teams.append({
+                'id': tu.organization.id,
+                'name': tu.organization.name
+            })
+
     scans = Scan.objects.all()
-    scan_defs_all = ScanDefinition.objects.for_user(request.user).all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
+
+    if teamid_selected >= 0:
+        scan_defs_all = ScanDefinition.objects.for_team(request.user, teamid_selected).all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
+    else:
+        scan_defs_all = ScanDefinition.objects.for_user(request.user).all().order_by('-updated_at').annotate(scan_count=Count('scan')).annotate(engine_type_name=F('engine_type__name'))
 
     # Pagination of findings
     nb_items = int(request.GET.get('n', 50))
@@ -225,7 +249,10 @@ def list_scan_def_view(request):
         scan_defs = paginator_scans.page(paginator_scans.num_pages)
 
     return render(request, 'list-scan-definitions.html', {
-        'scan_defs': scan_defs, 'scans': scans})
+        'scan_defs': scan_defs,
+        'scans': scans,
+        'teams': teams
+    })
 
 
 @pro_group_required('ScansManager')
