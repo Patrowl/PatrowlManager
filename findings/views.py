@@ -10,6 +10,7 @@ from .models import Finding, RawFinding
 from .forms import ImportFindingsForm, FindingForm
 from .utils import _search_findings
 from assets.models import Asset
+from users.models import Team, TeamUser
 from engines.tasks import importfindings_task
 import os
 import time
@@ -19,8 +20,18 @@ import datetime
 
 @pro_group_required('FindingsManager', 'FindingsViewer')
 def list_findings_view(request):
-    findings = _search_findings(request)
 
+    teams = []
+    if settings.PRO_EDITION and request.user.is_superuser:
+        teams = Team.objects.all().order_by('name')
+    elif settings.PRO_EDITION and not request.user.is_superuser:
+        for tu in TeamUser.objects.filter(user=request.user):
+            teams.append({
+                'id': tu.organization.id,
+                'name': tu.organization.name
+            })
+
+    findings = _search_findings(request)
     nb_findings = findings.count()
 
     # Pagination findings
@@ -35,7 +46,10 @@ def list_findings_view(request):
         findings_p = findings_paginator.page(findings_paginator.num_pages)
 
     return render(request, 'list-findings.html', {
-        'findings': findings_p, 'nb_findings': nb_findings})
+        'findings': findings_p,
+        'nb_findings': nb_findings,
+        'teams': teams
+    })
 
 
 @pro_group_required('FindingsManager', 'FindingsViewer')

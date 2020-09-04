@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.conf import settings
 from .models import Finding
 from .forms import FindingForm
 
@@ -7,6 +8,13 @@ import datetime
 
 
 def _search_findings(request):
+    # Check team
+    teamid_selected = -1
+    if settings.PRO_EDITION is True and request.GET.get('team').isnumeric() and int(request.GET.get('team', -1)) >= 0:
+        teamid = int(request.GET.get('team'))
+        # @Todo: ensure the team is allowed for this user
+        teamid_selected = teamid
+
     filter_by_asset = request.GET.get('_asset_value', None)
     filter_by_asset_cond = request.GET.get('_asset_value_cond', None)
     filter_by_title = request.GET.get('_title', None)
@@ -86,13 +94,22 @@ def _search_findings(request):
     if filter_by_scope:
         filters.update({"scan__engine_policy__scopes__in": filter_by_scope})
 
-    if str(filter_limit).isdigit():
-        # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes)[:int(filter_limit)]
-        findings = Finding.objects.severity_ordering().for_user(request.user).filter(**filters).exclude(**excludes)[:int(filter_limit)]
+    if teamid_selected >= 0:
+        if str(filter_limit).isdigit():
+            # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes)[:int(filter_limit)]
+            findings = Finding.objects.severity_ordering().for_team(request.user, teamid_selected).filter(**filters).exclude(**excludes)[:int(filter_limit)]
+        else:
+            # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes).order_by(
+            findings = Finding.objects.severity_ordering().for_team(request.user, teamid_selected).filter(**filters).exclude(**excludes).order_by(
+                     '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
     else:
-        # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes).order_by(
-        findings = Finding.objects.severity_ordering().for_user(request.user).filter(**filters).exclude(**excludes).order_by(
-                 '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
+        if str(filter_limit).isdigit():
+            # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes)[:int(filter_limit)]
+            findings = Finding.objects.severity_ordering().for_user(request.user).filter(**filters).exclude(**excludes)[:int(filter_limit)]
+        else:
+            # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes).order_by(
+            findings = Finding.objects.severity_ordering().for_user(request.user).filter(**filters).exclude(**excludes).order_by(
+                     '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
     return findings.only("id", "asset_name", "title", "severity", "status", "engine_type", "updated_at")
 
 

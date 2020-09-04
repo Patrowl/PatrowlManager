@@ -25,7 +25,6 @@ function toggle(source, element) {
 
 <ul class="breadcrumb">
   <li><a href="{% url 'list_assets_view' %}">assets</a></li>
-  <li class="active">list</li>
   {% if PRO_EDITION %}
   <li class="active">
     Team:
@@ -37,6 +36,7 @@ function toggle(source, element) {
     </select>
   </li>
   {% endif %}
+  <li class="active">list</li>
 </ul>
 
 <div class="container-fluid">
