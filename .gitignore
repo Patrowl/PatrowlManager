@@ -23,3 +23,4 @@ docker-entrypoint.cloud.sh*
 # Exclude PRO files :)
 pro
 env3pro/
+.env-*

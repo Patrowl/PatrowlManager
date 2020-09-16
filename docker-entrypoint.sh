@@ -3,6 +3,7 @@ export DB_HOST=${DB_HOST:-db}
 export DB_PORT=${DB_PORT:-5432}
 export RABBITMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
 export RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
+# export UPDATE_DB_SCHEMA=${UPDATE_DB_SCHEMA:-0}
 
 echo "[+] Wait for DB availability"
 while !</dev/tcp/$DB_HOST/$DB_PORT; do sleep 1; done
@@ -22,6 +23,7 @@ python manage.py collectstatic --noinput
 echo "[+] Update DB schema (if already created)"
 var/bin/update_db_migrations.sh
 
+# Apply database migrations
 echo "[+] Make database migrations"
 echo " - scans"
 python manage.py makemigrations scans

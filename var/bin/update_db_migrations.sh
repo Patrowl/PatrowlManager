@@ -5,6 +5,9 @@
 # # Check version for compatibility, otherwise exit
 # verlte `cat VERSION | cut -f1 -d" "` 1.5.4 && echo "Let's go" || { echo "Use current migration files. Exit now" ; exit; }
 
+echo "-- Migrate django_celery_beat"
+python manage.py migrate django_celery_beat
+
 echo "-- Installed tables:"
 echo "from django.db import connection ; print(connection.introspection.table_names()) " | python manage.py shell
 

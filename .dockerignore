@@ -12,3 +12,5 @@ env3
 
 pro/*
 env3pro
+.env
+.travis.yml
