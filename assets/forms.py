@@ -18,8 +18,7 @@ class AssetForm(forms.ModelForm):
             'value': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
-            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'}),
-            'teams': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
+            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
         }
 
     type = forms.CharField(widget=forms.Select(choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'}))
@@ -30,12 +29,15 @@ class AssetForm(forms.ModelForm):
         super(AssetForm, self).__init__(*args, **kwargs)
 
         # Check allowed teams (Available in Pro Edition)
-        if settings.PRO_EDITION and not self.user.is_superuser:
-            # List related TeamUsers
-            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all()).order_by('name')
-        if settings.PRO_EDITION and self.user.is_superuser:
-            # List related TeamUsers
-            self.fields['teams'].queryset = Team.objects.order_by('name')
+        if settings.PRO_EDITION:
+            self.fields['teams'].widget = forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
+            if self.user.is_superuser:
+                self.fields['teams'].queryset = Team.objects.order_by('name')
+            else:
+                self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all()).order_by('name')
+        else:
+            self.fields.pop('teams')
+
         # disable the value update (/!\ still bypassable)
         if self.initial != {} and 'value' in self.initial.keys():
             self.fields['value'].widget.attrs['readonly'] = True
@@ -53,8 +55,7 @@ class AssetGroupForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
-            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm'}),
-            'teams': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
+            'categories': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm'})
         }
 
     criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))
@@ -68,9 +69,14 @@ class AssetGroupForm(forms.ModelForm):
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
         # Check allowed teams (Available in Pro Edition)
-        if settings.PRO_EDITION and not self.user.is_superuser:
-            # List related TeamUsers
-            self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all())
+        if settings.PRO_EDITION:
+            self.fields['teams'].widget = forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
+            if self.user.is_superuser:
+                self.fields['teams'].queryset = Team.objects.order_by('name')
+            else:
+                self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all()).order_by('name')
+        else:
+            self.fields.pop('teams')
 
 
 class AssetOwnerForm(forms.ModelForm):

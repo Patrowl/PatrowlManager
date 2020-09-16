@@ -165,3 +165,19 @@ def has_role(user, rolename):
         return True
 
     return False
+
+
+@register.filter
+def is_team_admin(user):
+    from django.conf import settings
+    if settings.PRO_EDITION is False:
+        return True
+
+    from users.models import Team
+    is_team_admin = False
+    for team in Team.objects.all():
+        if team.is_admin(user):
+            is_team_admin = True
+            break
+
+    return is_team_admin

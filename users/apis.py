@@ -23,7 +23,7 @@ def user_details_api(request, user_id):
 
 
 @api_view(['GET'])
-@pro_group_required('UsersManager')
+# @pro_group_required('UsersManager')
 def list_users_api(request):
     users = []
     for user in get_user_model().objects.all().order_by('username'):

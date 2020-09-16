@@ -469,7 +469,8 @@
                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
                 <li><a href="/settings/"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
                 {% else %}
-                <li><a href="#"><span class="glyphicon glyphicon-wrench"></span> Settings (Admin or Manager only)</a></li>
+                <!-- <li><a href="#"><span class="glyphicon glyphicon-wrench"></span> Settings (Admin or Manager only)</a></li> -->
+                <!-- <li><a href="#"><span class="glyphicon glyphicon-wrench"></span> Settings (SuperAdmin only)</a></li> -->
                 {% endif %}
               {% else %}
               <li><a href="/settings/"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
@@ -477,7 +478,8 @@
 
               <li class="divider"></li>
               {% if PRO_EDITION %}
-                {% if request.user.is_superuser %}
+                <!-- <li><a href="/users/pro/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li> -->
+                {% if request.user.is_superuser or request.user|is_team_admin == True %}
                 <li><a href="/users/pro/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li>
                 {% else %}
                 <li><a href="#"><span class="glyphicon glyphicon-th-list"></span> Users (Admin only)</a></li>
@@ -486,7 +488,7 @@
               <li><a href="https://patrowl.io/get-started"><span class="glyphicon glyphicon-th-list"></span> Users (PRO EDITION)</a></li>
               {% endif %}
               {% if PRO_EDITION %}
-              <li><a href="/teams/list"><span class="glyphicon glyphicon-th-large"></span> My teams</a></li>
+              <li><a href="/teams/list"><span class="glyphicon glyphicon-th-large"></span>Teams</a></li>
               {% else %}
               <li><a href="https://patrowl.io/get-started"><span class="glyphicon glyphicon-th-large"></span> Teams (PRO EDITION)</a></li>
               {% endif %}

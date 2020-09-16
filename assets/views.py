@@ -187,8 +187,9 @@ def add_asset_view(request):
                     asset.categories.add(cat)
 
             # Add teams (M2M)
-            for team in form.cleaned_data['teams']:
-                asset.teams.add(team)
+            if 'teams' in form.cleaned_data.keys():
+                for team in form.cleaned_data['teams']:
+                    asset.teams.add(team)
 
             # Save categories and teams
             asset.save()
@@ -250,9 +251,10 @@ def edit_asset_view(request, asset_id):
                     asset.categories.add(AssetCategory.objects.get(id=cat_id))
 
             # Update teams (M2M)
-            asset.teams.clear()
-            for team in form.cleaned_data['teams']:
-                asset.teams.add(team)
+            if 'teams' in form.cleaned_data.keys():
+                asset.teams.clear()
+                for team in form.cleaned_data['teams']:
+                    asset.teams.add(team)
 
             # Save categories and teams
             asset.save()
@@ -290,8 +292,9 @@ def add_asset_group_view(request):
                 asset_group.categories.add(cat)
 
             # Add the teams to the new group
-            for team in form.cleaned_data['teams']:
-                asset_group.teams.add(team)
+            if 'teams' in form.cleaned_data.keys():
+                for team in form.cleaned_data['teams']:
+                    asset_group.teams.add(team)
 
             asset_group.save()
 
@@ -324,9 +327,10 @@ def edit_asset_group_view(request, assetgroup_id):
                 asset_group.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
 
             # Update the teams
-            asset_group.teams.clear()
-            for team in form.cleaned_data['teams']:
-                asset_group.teams.add(team)
+            if 'teams' in form.cleaned_data.keys():
+                asset_group.teams.clear()
+                for team in form.cleaned_data['teams']:
+                    asset_group.teams.add(team)
 
             asset_group.evaluate_risk()
             asset_group.save()

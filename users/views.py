@@ -133,7 +133,7 @@ def login(request):
 #         form = UserCreationForm()
 #     return render(request, 'signup.html', {'form': form})
 
-@pro_group_required('UsersManager')
+# @pro_group_required('UsersManager')
 def user_details_view(request):
     user = get_object_or_404(get_user_model(), id=request.user.id)
     apitokens = Token.objects.filter(user=request.user)
@@ -147,7 +147,7 @@ def user_details_view(request):
     })
 
 
-@pro_group_required('UsersManager')
+# @pro_group_required('UsersManager')
 def list_users_view(request):
     users = get_user_model().objects.all()
     return render(request, 'list-users.html', {'users': users})
@@ -173,8 +173,13 @@ def add_user_view(request):
     return render(request, 'add-user.html', {'form': form})
 
 
-@pro_group_required('UsersManager')
+# @pro_group_required('UsersManager', 'UsersViewer')
 def edit_user_password_view(request):
+
+    # Ensure user is local (not SSO)
+    if request.user.profile.is_delegated is False:
+        return redirect(homepage_dashboard_view)
+
     form = None
     if request.method == 'GET':
         form = PasswordChangeForm(user=request.user)
@@ -184,7 +189,7 @@ def edit_user_password_view(request):
             user = form.save()
             update_session_auth_hash(request, user)  # Important!
             messages.success(request, 'Your password was successfully updated!')
-            return redirect('show_settings_menu')
+            return redirect(homepage_dashboard_view)
         else:
             messages.error(request, 'Please correct the error below.')
 
