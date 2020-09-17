@@ -67,7 +67,19 @@ input:checked + label {
 </style>
 <ul class="breadcrumb">
   <li><a href="/scans/list">scans</a></li>
-  <li class="active">scans performed [<a href="javascript:goBack()">back</a>]</li>
+  {% if PRO_EDITION %}
+    <li class="active">
+      Team:
+      <select id="team_select" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+        <option value="-1" selected>All</option>
+        {% for team in teams %}
+        <option value="{{team.id}}">{{team.name|title}} </option>
+        {% endfor %}
+      </select>
+    </li>
+  {% endif %}
+  <!-- <li class="active">scans performed [<a href="javascript:goBack()">back</a>]</li> -->
+  <li class="active">Performed</li>
 </ul>
 
 <div class="container">
@@ -411,9 +423,15 @@ input:checked + label {
   var range_size = 23;
   var date_cursor = new Date(); //today
   date_cursor.setDate(date_cursor.getDate() - range_size + 2); // - 20days
+
+  url_heatmap = "{% url 'get_scans_heatmap_api' %}";
+  if (url.searchParams.get("team", -1) != -1){
+    url_heatmap += "?team="+url.searchParams.get("team");
+  }
+
   cal.init({
     id: "cal-heatmap",
-    data: "{% url 'get_scans_heatmap_api' %}",
+    data: url_heatmap,
     itemSelector: "#cal-heatmap",
     domain: "day",
     subDomain: "hour",
@@ -530,6 +548,15 @@ input:checked + label {
   }
 
   $(function() {
+
+    // Select team by id
+    $('#team_select').val(url.searchParams.get("team", "-1"));
+
+    // Reload on team selection change
+    $('#team_select').on('change', function() {
+      url.searchParams.set("team", this.value);
+      window.location = url.search;
+    });
 
     status = $('input[name="status"]:checked').val();
     $("input[name='status']").change(function(e){

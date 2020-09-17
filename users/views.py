@@ -177,7 +177,7 @@ def add_user_view(request):
 def edit_user_password_view(request):
 
     # Ensure user is local (not SSO)
-    if request.user.profile.is_delegated is False:
+    if request.user.profile.is_delegated is True:
         return redirect(homepage_dashboard_view)
 
     form = None

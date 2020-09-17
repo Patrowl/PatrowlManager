@@ -230,8 +230,18 @@ def get_scans_stats_api(request):
 @pro_group_required('ScansManager', 'ScansViewer')
 def get_scans_heatmap_api(request):
     data = {}
-    for scan in Scan.objects.for_user(request.user).all():
-        data.update({scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%s"): 1})
+
+    # Check team
+    teamid = -1
+    if settings.PRO_EDITION is True and request.GET.get('team', '').isnumeric() and int(request.GET.get('team', -1)) >= 0:
+        teamid = int(request.GET.get('team'))
+
+    if teamid >= 0:
+        for scan in Scan.objects.for_team(request.user, teamid).all():
+            data.update({scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%s"): 1})
+    else:
+        for scan in Scan.objects.for_user(request.user).all():
+            data.update({scan.updated_at.astimezone(tzlocal.get_localzone()).strftime("%s"): 1})
     return JsonResponse(data)
 
 

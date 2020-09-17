@@ -178,6 +178,23 @@ def detail_scan_view(request, scan_id):
 @pro_group_required('ScansManager', 'ScansViewer')
 def list_scans_view(request):
     """List performed scans."""
+    # Check team
+    teamid_selected = -1
+    if settings.PRO_EDITION is True and request.GET.get('team', '').isnumeric() and int(request.GET.get('team', -1)) >= 0:
+        teamid = int(request.GET.get('team'))
+        # @Todo: ensure the team is allowed for this user
+        teamid_selected = teamid
+
+    teams = []
+    if settings.PRO_EDITION and request.user.is_superuser:
+        teams = Team.objects.all().order_by('name')
+    elif settings.PRO_EDITION and not request.user.is_superuser:
+        for tu in TeamUser.objects.filter(user=request.user):
+            teams.append({
+                'id': tu.organization.id,
+                'name': tu.organization.name
+            })
+
     # Check status
     status = request.GET.get('status', None)
     scans_filters = {}
@@ -192,11 +209,18 @@ def list_scans_view(request):
                 'status__in': ["finished", "error", "stopped"]
             })
 
-    scan_list = Scan.objects.for_user(request.user).filter(**scans_filters).annotate(
-        scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
-        ).only(
-        "engine_type", "title", "status", "summary", "updated_at"
-        ).order_by('-finished_at')
+    if teamid_selected >= 0:
+        scan_list = Scan.objects.for_team(request.user, teamid_selected).filter(**scans_filters).annotate(
+            scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
+            ).only(
+            "engine_type", "title", "status", "summary", "updated_at"
+            ).order_by('-finished_at')
+    else:
+        scan_list = Scan.objects.for_user(request.user).filter(**scans_filters).annotate(
+            scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
+            ).only(
+            "engine_type", "title", "status", "summary", "updated_at"
+            ).order_by('-finished_at')
 
     paginator = Paginator(scan_list, 10)
     page = request.GET.get('page')
@@ -207,7 +231,7 @@ def list_scans_view(request):
         scans = paginator.page(1)
     except EmptyPage:
         scans = paginator.page(paginator.num_pages)
-    return render(request, 'list-scans-performed.html', {'scans': scans})
+    return render(request, 'list-scans-performed.html', {'scans': scans, 'teams': teams})
 
 
 # Scan Definitions
