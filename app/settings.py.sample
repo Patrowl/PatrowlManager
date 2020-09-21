@@ -26,14 +26,14 @@ SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600 # 1 hour (for testing only, otherwise, set 31536000)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 #SECURE_SSL_REDIRECT = False # Dev/test environment
-SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', '').lower() in ['true', '1', 'yes']
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', '').lower() in ['true', '1', 'yes', 'y', 'on']
 #X_FRAME_OPTIONS = 'DENY'
 
-USE_X_FORWARDED_HOST = os.environ.get('USE_X_FORWARDED_HOST', 'true').lower() in ['true', '1', 'yes']
+USE_X_FORWARDED_HOST = os.environ.get('USE_X_FORWARDED_HOST', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', '').lower() in ['true', '1', 'yes']   # Production environment
+DEBUG = os.environ.get('DEBUG', '').lower() in ['true', '1', 'yes', 'y', 'on']   # Production environment
 
 ALLOWED_HOSTS = ['*'] # /!\ Not safe for production environment
 
@@ -306,7 +306,7 @@ CELERYFLOWER_API_URL = 'http://localhost:5555/api/'
 
 
 ## Pro edition - Load extra settings
-PRO_EDITION = os.environ.get('PRO_EDITION', "").lower() in ['true', '1', 'yes']
+PRO_EDITION = os.environ.get('PRO_EDITION', "").lower() in ['true', '1', 'yes', 'y', 'on']
 if PRO_EDITION is True and os.path.isdir('pro'):
     try:
         from pro.settings import *

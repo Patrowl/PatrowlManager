@@ -83,6 +83,7 @@ div.risk-trends {
         <dt>Description</dt>
         <dd>{{ asset_group.description }}</dd>
 
+        {% if PRO_EDITION %}
         <dt>Teams</dt>
         <dd>
           {% if asset_group.teams.count == 0 %}
@@ -91,6 +92,7 @@ div.risk-trends {
           {{ asset_group.teams.all|join:", " }}
           {% endif %}
         </dd>
+        {% endif %}
 
         <dt>Tags</dt>
         <dd>

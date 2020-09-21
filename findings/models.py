@@ -106,7 +106,7 @@ class RawFinding(models.Model):
     scopes      = models.ManyToManyField('engines.EnginePolicyScope', blank=True)
     description = models.TextField()
     solution    = models.TextField(null=True, blank=True)
-    score    = models.IntegerField(default=0, null=True, blank=True)
+    score       = models.IntegerField(default=0, null=True, blank=True)
     raw_data    = JSONField(null=True, blank=True)
     risk_info   = JSONField(null=True, blank=True)
     vuln_refs   = JSONField(null=True, blank=True)
