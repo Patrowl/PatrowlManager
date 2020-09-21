@@ -173,6 +173,7 @@ def add_asset_view(request):
                 'name': form.cleaned_data['name'],
                 'type': form.cleaned_data['type'],
                 'criticity': form.cleaned_data['criticity'],
+                'exposure': form.cleaned_data['exposure'],
                 'description': form.cleaned_data['description'],
                 'owner': request.user,
             }
@@ -238,6 +239,7 @@ def edit_asset_view(request, asset_id):
             asset.type = form.cleaned_data['type']
             asset.description = form.cleaned_data['description']
             asset.criticity = form.cleaned_data['criticity']
+            asset.exposure = form.cleaned_data['exposure']
             asset.evaluate_risk()
 
             # Update categories (M2M)
@@ -372,12 +374,18 @@ def bulkadd_asset_view(request):
                     asset_criticity = str(line['asset_criticity']).lower()
                     if asset_criticity not in ['low', 'medium', 'high']:
                         asset_criticity = 'low'
+
+                    asset_exposure = str(line['asset_exposure']).lower()
+                    if asset_criticity not in ['unknown', 'external', 'internal', 'restricted']:
+                        asset_criticity = 'unknown'
+
                     asset_args = {
                         'value': line['asset_value'],
                         'name': line['asset_name'],
                         'type': line['asset_type'],
                         'description': line['asset_description'],
                         'criticity': asset_criticity,
+                        'exposure': asset_exposure,
                         'owner': request.user,
                         'status': "new",
                     }

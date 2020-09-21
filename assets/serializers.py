@@ -12,7 +12,7 @@ class AssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset
         fields = ('id', 'value', 'name', 'type', 'owner', 'description',
-            'criticity', 'status', 'created_at', 'updated_at', 'teams')
+            'criticity', 'status', 'created_at', 'updated_at', 'teams', 'exposure')
 
 
 class AssetFilter(FilterSet):
@@ -27,6 +27,8 @@ class AssetFilter(FilterSet):
             ('-criticity', _('Criticity (desc)')),
             ('type', _('Type')),
             ('-type', _('Type (desc)')),
+            ('exposure', _('Exposure')),
+            ('-exposure', _('Exposure (desc)')),
         )
     )
 

@@ -3,7 +3,7 @@
 from django import forms
 from django.conf import settings
 from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument
-from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES
+from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES, ASSET_EXPOSURES
 from users.models import Team
 
 assets = []
@@ -12,7 +12,9 @@ assets = []
 class AssetForm(forms.ModelForm):
     class Meta:
         model = Asset
-        fields = ['id', 'value', 'name', 'type', 'description', 'criticity', 'categories', 'teams']
+        fields = [
+            'id', 'value', 'name', 'type', 'description', 'criticity',
+            'categories', 'teams', 'exposure']
         widgets = {
             'id': forms.HiddenInput(),
             'value': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
@@ -23,6 +25,7 @@ class AssetForm(forms.ModelForm):
 
     type = forms.CharField(widget=forms.Select(choices=ASSET_TYPES, attrs={'class': 'form-control form-control-sm'}))
     criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))
+    exposure = forms.CharField(widget=forms.Select(choices=ASSET_EXPOSURES, attrs={'class': 'form-control form-control-sm'}))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)

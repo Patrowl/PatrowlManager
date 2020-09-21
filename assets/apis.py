@@ -271,18 +271,22 @@ def export_assets_api(request, assetgroup_id=None):
 
     writer.writerow([
         'asset_value', 'asset_name', 'asset_type', 'asset_description',
-        'asset_criticity', 'asset_tags', 'owner', 'team', 'created_at'])
+        'asset_criticity', 'asset_tags', 'owner', 'team', 'asset_exposure', 'created_at'])
     for asset in assets:
         try:
             asset_owner = asset.owner.username
         except Exception:
             asset_owner = ""
         writer.writerow([
-            smart_str(asset.value), asset.name, asset.type,
-            smart_str(asset.description), asset.criticity,
+            smart_str(asset.value),
+            asset.name,
+            asset.type,
+            smart_str(asset.description),
+            asset.criticity,
             ",".join([a.value for a in asset.categories.all()]),
             asset_owner,
             ",".join([t.name for t in asset.teams.all()]),
+            asset.exposure,
             asset.created_at
         ])
     return response
@@ -301,7 +305,8 @@ def export_assetgroups_api(request):
     writer.writerow([
         'assetgroup_name',
         'asset_value', 'asset_name', 'asset_type', 'asset_description',
-        'asset_criticity', 'asset_tags', 'owner', 'team', 'created_at'])
+        'asset_criticity', 'asset_tags', 'owner', 'team', 'asset_exposure',
+        'created_at'])
 
     for assetgroup in AssetGroup.objects.for_user(request.user).all().order_by('name'):
         for asset in assetgroup.assets.all():
@@ -312,11 +317,15 @@ def export_assetgroups_api(request):
 
             writer.writerow([
                 smart_str(assetgroup.name),
-                smart_str(asset.value), asset.name, asset.type,
-                smart_str(asset.description), asset.criticity,
+                smart_str(asset.value),
+                asset.name,
+                asset.type,
+                smart_str(asset.description),
+                asset.criticity,
                 ",".join([a.value for a in asset.categories.all()]),
                 asset_owner,
                 ",".join([t.name for t in asset.teams.all()]),
+                asset.exposure,
                 asset.created_at
             ])
     return response

@@ -41,6 +41,13 @@ ASSET_CRITICITIES = (
     ('high', 'high'),
 )
 
+ASSET_EXPOSURES = (
+    ('unknown', 'Unknown'),
+    ('external', 'External'),
+    ('internal', 'Internal'),
+    ('restricted', 'Restricted'),
+)
+
 TLP_COLORS = (
     ('red', 'red'),
     ('amber', 'amber'),
@@ -195,6 +202,7 @@ class Asset(models.Model):
     name        = models.TextField(max_length=2048)
     type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
     criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
+    exposure    = models.CharField(choices=ASSET_EXPOSURES, default='unknown', max_length=16)  # unknown, external, internal, restricted
     risk_level  = JSONField(default=get_default_risk_level)
     owner       = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
