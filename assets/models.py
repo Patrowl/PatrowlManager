@@ -168,7 +168,7 @@ class AssetManager(models.Manager):
 
     def for_user(self, user):
         """Check if user is allowed to manage the object."""
-        if settings.PRO_EDITION and not user.is_superuser:
+        if settings.PRO_EDITION and user.is_superuser is False:
             return super().get_queryset().filter(
                 Q(teams__in=user.users_team.all(), teams__is_active=True) |
                 Q(owner=user)

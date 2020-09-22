@@ -258,7 +258,7 @@ def homepage_dashboard_view(request):
     if settings.PRO_EDITION and request.user.is_superuser:
         teams = Team.objects.all().order_by('name')
     elif settings.PRO_EDITION and not request.user.is_superuser:
-        for tu in TeamUser.objects.filter(user=request.user):
+        for tu in TeamUser.objects.filter(user=request.user, organization__is_active=True):
             teams.append({
                 'id': tu.organization.id,
                 'name': tu.organization.name

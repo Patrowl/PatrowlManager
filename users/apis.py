@@ -3,12 +3,14 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.forms.models import model_to_dict
+from django_celery_beat.models import PeriodicTask
 from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
 from common.utils import pro_group_required
 from common.utils.password import get_random_alphanumeric_string
-from django.forms.models import model_to_dict
 from events.models import AuditLog
+from scans.utils import _update_celerybeat
 
 
 @api_view(['GET'])
@@ -39,6 +41,30 @@ def list_users_api(request):
 @pro_group_required('UsersManager')
 def delete_user_api(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
+
+    # Remove alerts
+    user.alert_set.filter(teams__isnull=True).delete()
+
+    # Remove scan definitions
+    for scan_def in user.scandefinition_set.filter(teams__isnull=True):
+        # Remove periodic_task if any
+        try:
+            periodic_task = scan_def.periodic_task
+            if periodic_task:
+                periodic_task.enabled = False   # maybe useless
+                periodic_task.save()            # maybe useless
+                periodic_task.delete()
+                _update_celerybeat()
+        except PeriodicTask.DoesNotExist:
+            pass
+        scan_def.delete()
+    user.scandefinition_set.filter(teams__isnull=True).delete()
+
+    # Remove private assets and asset groups
+    user.assetgroup_set.filter(teams__isnull=True).delete()
+    user.asset_set.filter(teams__isnull=True).delete()
+
+    # Finally delete the user
     user.delete()
     return JsonResponse({'status': 'deleted'})
 
