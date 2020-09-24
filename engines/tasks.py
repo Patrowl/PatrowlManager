@@ -99,8 +99,7 @@ def get_engine_info_task(self, engine_id):
 
 @shared_task(bind=True, acks_late=True)
 def importfindings_task(self, report_filename, owner_id, engine, min_level):
-    Event.objects.create(message="[EngineTasks/importfindings_task/{}] Task started with engine {}.".format(self.request.id, engine),
-                 type="INFO", severity="INFO")
+    Event.objects.create(message="[EngineTasks/importfindings_task/{}] Task started with engine {}.".format(self.request.id, engine), type="INFO", severity="INFO")
 
     level_to_value = {'info': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
     value_to_level = {v: k for k, v in level_to_value.items()}
@@ -366,8 +365,7 @@ def startscan_task(self, params):
         scan.save()
         return False
 
-    Event.objects.create(message="[EngineTasks/startscan_task/{}] Engine '{}' has been selected.".format(self.request.id, engine_inst.name),
-                 type="INFO", severity="INFO", scan=scan)
+    Event.objects.create(message="[EngineTasks/startscan_task/{}] Engine '{}' has been selected.".format(self.request.id, engine_inst.name), type="INFO", severity="INFO", scan=scan)
     scan.engine = engine_inst
     scan.save()
 
@@ -512,7 +510,7 @@ def startscan_task(self, params):
             return False
 
     except Exception as e:
-        print (e.message)
+        print(e.message)
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
@@ -627,6 +625,7 @@ def start_periodic_scan_task(self, params):
 
     if retries == 0:
         print("ERROR: start_periodicscan_task/beforescan - max_retries ({}) reached.".format(NB_MAX_RETRIES))
+        Event.objects.create(message="ERROR: start_periodicscan_task/beforescan - max_retries ({}) reached.".format(NB_MAX_RETRIES), type="ERROR", severity="ERROR", scan=scan)
         return False
 
     # -2- call the engine REST API /startscan
@@ -641,12 +640,13 @@ def start_periodic_scan_task(self, params):
             timeout=TIMEOUT)
         # if resp.status_code != 200 or json.loads(resp.text)['status'] != "accepted":
         if resp.status_code != 200 or json.loads(resp.text)['status'] not in ["accepted", "ACCEPTED"]:
-            print("something goes wrong in 'startscan_task/scan' (request_status_code={}, scan_response={})",
+            print("Something goes wrong in 'startscan_task/scan' (request_status_code={}, scan_response={})",
                   resp.status_code, str(resp.text))
+            Event.objects.create(message="Something goes wrong in 'startscan_task/scan' (request_status_code={}, scan_response={})".format(resp.status_code, str(resp.text)), type="ERROR", severity="ERROR", scan=scan)
             return False
     except requests.exceptions.RequestException:
-        print("something goes wrong in 'startscan_task/scan' (request_status_code={}, engine_status={})",
-              resp.status_code, json.loads(resp.text)['status'])
+        print("Something goes wrong in 'startscan_task/scan' (request_status_code={}, engine_status={})", resp.status_code, json.loads(resp.text)['status'])
+        Event.objects.create(message="Something goes wrong in 'startscan_task/scan' (request_status_code={}, engine_status={})".format(resp.status_code, json.loads(resp.text)['status']), type="ERROR", severity="ERROR", scan=scan)
         return False
 
     # -3- wait the engine come available for accepting scans (status=ready)
@@ -666,6 +666,7 @@ def start_periodic_scan_task(self, params):
 
     if retries == 0:
         print("ERROR: startscan_task/scaninprogress - max_retries ({}) reached.".format(NB_MAX_RETRIES))
+        Event.objects.create(message="ERROR: startscan_task/scaninprogress - max_retries ({}) reached.".format(NB_MAX_RETRIES), type="ERROR", severity="ERROR", scan=scan)
         return False
 
     # Todo: change to wait the report becomes available
@@ -675,20 +676,21 @@ def start_periodic_scan_task(self, params):
     try:
         resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id), proxies=PROXIES)
         if resp.status_code != 200 or json.loads(resp.text)['status'] == "error":
-            print("something goes wrong in 'startscan_task/results' (request_status_code={}, engine_error={})",
-                   resp.status_code, json.loads(resp.text)['reason'])
+            print("Something goes wrong in 'startscan_task/results' (request_status_code={}, engine_error={})", resp.status_code, json.loads(resp.text)['reason'])
+            Event.objects.create(message="Something goes wrong in 'startscan_task/results' (request_status_code={}, engine_error={})".format(resp.status_code, json.loads(resp.text)['reason']), type="ERROR", severity="ERROR", scan=scan)
             return False
     except requests.exceptions.RequestException:
-        print("something goes wrong in 'startscan_task/results' (request_status_code={}, engine_status={})",
-              resp.status_code, json.loads(resp.text)['status'])
+        print("Something goes wrong in 'startscan_task/results' (request_status_code={}, engine_status={})", resp.status_code, json.loads(resp.text)['status'])
+        Event.objects.create(message="Something goes wrong in 'startscan_task/results' (request_status_code={}, engine_status={})".format(resp.status_code, json.loads(resp.text)['status']), type="ERROR", severity="ERROR", scan=scan)
         return False
 
     # -5- import the results in DB
     try:
         _import_findings(findings=deepcopy(json.loads(resp.text)['issues']), scan=scan)
     except Exception as e:
-        print (e.__doc__)
-        print (e.message)
+        print(e.__doc__)
+        print(e.message)
+        Event.objects.create(message="Error when importing findings", type="ERROR", severity="ERROR", scan=scan)
         return False
 
     # -6- get and store the report
@@ -707,7 +709,8 @@ def start_periodic_scan_task(self, params):
             scan.status = "error"
             scan.finished_at = timezone.now()
             scan.save()
-            print("something goes wrong in 'startscan_task/getreport' (request_status_code={}", resp.status_code)
+            print("Something goes wrong in 'startscan_task/getreport' (request_status_code={})", resp.status_code)
+            Event.objects.create(message="Something goes wrong in 'startscan_task/getreport' (request_status_code={})".format(resp.status_code), type="ERROR", severity="ERROR", scan=scan)
             return False
 
     except Exception as e:
@@ -716,8 +719,8 @@ def start_periodic_scan_task(self, params):
         scan.status = "error"
         scan.finished_at = timezone.now()
         scan.save()
-        print("something goes wrong in 'startscan_task/getreport' (request_status_code={})",
-              resp.status_code)
+        print("Something goes wrong in 'startscan_task/getreport' (request_status_code={})", resp.status_code)
+        Event.objects.create(message="Something goes wrong in 'startscan_task/getreport' (request_status_code={})".format(resp.status_code), type="ERROR", severity="ERROR", scan=scan)
         return False
 
     scan.status = "finished"

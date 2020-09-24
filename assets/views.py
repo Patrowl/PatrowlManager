@@ -360,7 +360,6 @@ def bulkadd_asset_view(request):
         form = AssetBulkForm(request.POST, request.FILES)
         if request.FILES:
             csv_file = request.FILES['file']
-            # decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
             decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
             records = csv.DictReader(decoded_file, delimiter=';')
             # Header is skiped automatically
@@ -370,14 +369,21 @@ def bulkadd_asset_view(request):
                 if Asset.objects.for_user(request.user).filter(value=line['asset_value']).count() > 0:
                     asset = Asset.objects.for_user(request.user).filter(value=line['asset_value']).first()
                     # continue
+                    messages.warning(request, "Asset '{}' already created. Updates are not applied.".format(asset))
                 else:
-                    asset_criticity = str(line['asset_criticity']).lower()
-                    if asset_criticity not in ['low', 'medium', 'high']:
-                        asset_criticity = 'low'
+                    # Set default criticity/criticality
+                    asset_criticity = 'low'
+                    if 'asset_criticality' in line.keys() and str(line['asset_criticality']).lower() in ['low', 'medium', 'high']:
+                        asset_criticity = str(line['asset_criticality']).lower()
+                    if 'asset_criticity' in line.keys() and str(line['asset_criticity']).lower() in ['low', 'medium', 'high']:
+                        asset_criticity = str(line['asset_criticity']).lower()
 
+                    # Set default exposure
+                    if 'asset_exposure' not in line.keys():
+                        line['asset_exposure'] = 'unknown'
                     asset_exposure = str(line['asset_exposure']).lower()
-                    if asset_criticity not in ['unknown', 'external', 'internal', 'restricted']:
-                        asset_criticity = 'unknown'
+                    if asset_exposure not in ['unknown', 'external', 'internal', 'restricted']:
+                        asset_exposure = 'unknown'
 
                     asset_args = {
                         'value': line['asset_value'],
