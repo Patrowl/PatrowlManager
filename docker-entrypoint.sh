@@ -38,7 +38,6 @@ python manage.py makemigrations
 echo "[+] Apply database migrations"
 python manage.py migrate
 
-
 # Check for first install
 if [ ! -f status.created ]; then
   # Create the default admin user

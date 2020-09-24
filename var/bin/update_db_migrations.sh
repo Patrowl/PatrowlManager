@@ -48,4 +48,8 @@ if echo "from django.db import connection ; print('assets' in connection.introsp
 
     echo "-- Apply migration (fake initial)"
     python manage.py migrate --fake-initial
+
+    echo "-- Apply assets migrations (from 1.6.0)"
+    cp var/migrations/assets/0002_asset_exposure.py assets/migrations/0002_asset_exposure.py
+    python manage.py migrate assets 0002
 fi
