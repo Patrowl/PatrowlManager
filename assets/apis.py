@@ -339,18 +339,23 @@ def add_asset_api(request):
     new_asset_args_dict = QueryDict(request.body).dict()
     new_asset_args_dict.update({"owner": request.user})
     new_asset_args_dict.pop("tags", None)
+    try:
+        asset = Asset(**new_asset_args_dict)
+        asset.save()
 
-    asset = Asset(**new_asset_args_dict)
-    asset.save()
+        # Add categories
+        for cat in tags:
+            c = AssetCategory.objects.filter(value=cat).first()
+            if c:
+                asset.categories.add(c)
+        asset.save()
 
-    # Add categories
-    for cat in tags:
-        c = AssetCategory.objects.filter(value=cat).first()
-        if c:
-            asset.categories.add(c)
-    asset.save()
-
-    return JsonResponse(asset.to_dict())
+        return JsonResponse(asset.to_dict())
+    except Exception:
+        return JsonResponse({
+            'status': 'error',
+            'reason': 'Unable to create asset with provided args.'
+        })
 
 
 @api_view(['PUT', 'POST'])

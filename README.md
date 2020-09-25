@@ -54,7 +54,7 @@ A commercial Pro Edition is available and officially supported by the PatrOwl co
 - [x] Multi-tenancy: assets and scans results can be shared with user teams
 - [x] 3rd party authentication: Azure Active Directory, ADFS (Windows 2012 and 2016), LDAP
 - [x] Terraform+Ansible deployment scripts
-- [x] Pro Engines including: ZAP, Nikto, Microsoft Cloud App Security and Onyphe
+- [x] Pro Engines including: ZAP, Nikto, Microsoft Cloud App Security, CloudSploit and Onyphe
 - [x] Pro Support
 - [ ] Autonomous asset discovery (in progress, planned to Q3 2020)
 - [ ] Vulnerability prioritization (in progress, planned to Q3 2020)

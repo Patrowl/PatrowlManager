@@ -9,7 +9,8 @@ from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
 from common.utils import pro_group_required
 from common.utils.password import get_random_alphanumeric_string
-from events.models import AuditLog
+from events.models import AuditLog, Alert
+from findings.models import Finding, RawFinding
 from scans.utils import _update_celerybeat
 
 
@@ -44,6 +45,7 @@ def delete_user_api(request, user_id):
 
     # Remove alerts
     user.alert_set.filter(teams__isnull=True).delete()
+    Alert.objects.filter(owner=user, teams__isnull=True).delete()
 
     # Remove scan definitions
     for scan_def in user.scandefinition_set.filter(teams__isnull=True):
@@ -59,6 +61,10 @@ def delete_user_api(request, user_id):
             pass
         scan_def.delete()
     user.scandefinition_set.filter(teams__isnull=True).delete()
+
+    # Remove findings and rawfindings
+    Finding.objects.filter(owner=user, asset__teams__isnull=True).delete()
+    RawFinding.objects.filter(owner=user, asset__teams__isnull=True).delete()
 
     # Remove private assets and asset groups
     user.assetgroup_set.filter(teams__isnull=True).delete()
