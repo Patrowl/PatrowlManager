@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
@@ -100,7 +100,7 @@ class Rule(models.Model):
     periodic_task    = models.ForeignKey(PeriodicTask, null=True, blank=True, on_delete=models.CASCADE)
     enabled          = models.BooleanField(default=False)
     nb_matches       = models.IntegerField(default=0)
-    owner            = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    owner            = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     created_at       = models.DateTimeField(default=timezone.now)
     updated_at       = models.DateTimeField(default=timezone.now)
 
@@ -128,7 +128,6 @@ class Rule(models.Model):
                 type="ALERT", severity="INFO")
 
         self.nb_matches += 1
-        # print (self.nb_matches)
         self.save()
 
 
