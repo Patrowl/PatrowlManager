@@ -107,7 +107,7 @@
             <th data-field="message">Message</th>
             <th data-field="type">Type</th>
             <th data-field="timestamp">Timestamp</th>
-            <th data-field="actions">Actions</th>
+            <!-- <th data-field="actions">Actions</th> -->
           </tr>
         </thead>
         <tbody>
@@ -116,16 +116,16 @@
           <td><input type="checkbox" class="radio" name="event" value="{{ event.id }}"/></td>
           <td>{{ event.id }}</td>
           <td>{{ event.severity }}</td>
-          <td>{{ event.message }}</td>
+          <td title="{{ event.description }}">{{ event.message }}</td>
           <td>{{ event.type }}</td>
           <td>{{ event.created_at|smartdate }}</td>
-          <td>
+          <!-- <td>
             <button type="button" class="btn btn-default btn-xs">
               <span class="glyphicon glyphicon-eye-open"></span></button>
             <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-event"
                event-id="{{ event.id }}" event-message="{{ event.message }}">
                <span class="glyphicon glyphicon-remove"></span></button>
-          </td>
+          </td> -->
         </tr>
       {% endfor %}
       </tbody>

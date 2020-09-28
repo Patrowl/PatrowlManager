@@ -530,12 +530,12 @@ def detail_asset_view(request, asset_id):
         'periodic': ScanDefinition.objects.filter(assets_list__in=[asset], scan_type='periodic').count(),
         'ondemand': ScanDefinition.objects.filter(assets_list__in=[asset], scan_type='single').count(),
         'running': Scan.objects.filter(assets__in=[asset], status='started').count(),  # bug: a regrouper par assets
-        'lasts': Scan.objects.filter(assets__in=[asset]).order_by('-created_at')[:3]
+        'lasts': Scan.objects.filter(assets__in=[asset]).order_by('-updated_at')[:3]
     }
 
     asset_groups = list(AssetGroup.objects.for_user(request.user).filter(assets__in=[asset]).only("id"))
-    scan_defs = ScanDefinition.objects.filter(Q(assets_list__in=[asset]) | Q(assetgroups_list__in=asset_groups)).annotate(engine_type_name=F('engine_type__name')).annotate(scan_set_count=Count('scan'))
-    scans = Scan.objects.filter(assets__in=[asset]).values("id", "title", "status", "summary", "updated_at").annotate(engine_type_name=F('engine_type__name'))
+    scan_defs = ScanDefinition.objects.filter(Q(assets_list__in=[asset]) | Q(assetgroups_list__in=asset_groups)).annotate(engine_type_name=F('engine_type__name')).annotate(scan_set_count=Count('scan')).order_by('-updated_at')
+    scans = Scan.objects.filter(assets__in=[asset]).values("id", "title", "status", "summary", "updated_at").annotate(engine_type_name=F('engine_type__name')).order_by('-updated_at')
 
     # Investigation links
     investigation_links = []
