@@ -304,6 +304,16 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
 SUPERVISORD_API_URL = 'http://localhost:9001/RPC2'
 CELERYFLOWER_API_URL = 'http://localhost:5555/api/'
 
+# More settings
+ASSETS_MAX = os.environ.get('PATROWL_ASSETS_MAX', 100000000)
+ASSETS_MARGIN = os.environ.get('PATROWL_ASSETS_MARGIN', 10)
+ASSETGROUPS_MAX = os.environ.get('PATROWL_ASSETGROUPS_MAX', 100000000)
+USERS_MAX = os.environ.get('PATROWL_USERS_MAX', 5)
+SCAN_DEFINITIONS_MAX = os.environ.get('PATROWL_SCAN_DEFINITIONS_MAX', 5)
+FINDINGS_MAX = os.environ.get('PATROWL_FINDINGS_MAX', -1)
+ENGINES_MAX = os.environ.get('PATROWL_ENGINES_MAX', 5)
+ENGINE_POLICIES_MAX = os.environ.get('PATROWL_ENGINE_POLICIES_MAX', 100)
+ENGINES_MANAGE_ENABLED = os.environ.get('PATROWL_ENGINES_MANAGE_ENABLED', True)
 
 ## Pro edition - Load extra settings
 PRO_EDITION = os.environ.get('PRO_EDITION', "").lower() in ['true', '1', 'yes', 'y', 'on']
