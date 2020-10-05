@@ -32,3 +32,8 @@ def show_settings_menu(request):
         'settings': settings,
         'events': events
     })
+
+
+def show_support_page(request):
+    """View: Support page."""
+    return render(request, 'support.html')

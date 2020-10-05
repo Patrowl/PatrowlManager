@@ -8,6 +8,7 @@ urlpatterns = [
     ## WEB Views
     # ex: /settings/
     url(r'^$', views.show_settings_menu, name='show_settings_menu'),
+    url(r'^support$', views.show_support_page, name='show_support_page'),
 
     ## API views
     # ex: /settings/api/v1/update
