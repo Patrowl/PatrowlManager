@@ -5,11 +5,12 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from app.settings import SUPERVISORD_API_URL
-from .models import Scan, ScanDefinition, SCAN_STATUS
+from .models import Scan, ScanDefinition, SCAN_STATUS, DEFAULT_SCAN_OPTIONS
 from engines.models import EngineInstance, EnginePolicy
 from engines.tasks import startscan_task
 from assets.models import Asset, AssetGroup
 from events.models import Event, AuditLog
+from common.utils.net import is_valid_email
 
 # import xmlrpclib
 import xmlrpc.client
@@ -291,3 +292,50 @@ def _add_scan_def(params, owner):
         _update_celerybeat()
 
     return scan_definition
+
+
+def _get_scan_options(form_data):
+    options = dict(DEFAULT_SCAN_OPTIONS)
+
+    # Add new asset automatically
+    if 'autoaddassets' in form_data.keys() and form_data['autoaddassets'] in ['true', 'yes', 'y', '1', 'on']:
+        options['assets'].update({'enable_auto_add': True})
+
+    # Enable email notification
+    if 'emailnotif' in form_data.keys() and form_data['emailnotif'] in ['true', 'yes', 'y', '1', 'on']:
+        options['notification']['email'].update({'enable': True})
+
+    # Add report to email notification
+    if 'emailattachreport' in form_data.keys() and form_data['emailattachreport'] in ['true', 'yes', 'y', '1', 'on']:
+        options['notification']['email'].update({'attach_report': True})
+
+    # Update subject email notification
+    if 'emailnotif_subject' in form_data.keys():
+        options['notification']['email'].update({'subject': str(form_data['emailnotif_subject'])})
+
+    # Update subject email recipients
+    if 'emailnotif_recipients' in form_data.keys():
+        recipients = []
+        for rcpt in form_data['emailnotif_recipients'].replace(';', ',').replace(' ', ',').split(','):
+            if is_valid_email(rcpt.strip()):
+                recipients.append(rcpt.strip())
+        options['notification']['email'].update({'recipients': list(set(recipients))})
+
+    # Update condition
+    if 'email_condition' in form_data.keys() and form_data['email_condition'] in ['email_condition_always', 'email_condition_severity_min', 'email_condition_severity_is']:
+        if (form_data['email_condition'] == 'email_condition_severity_min' and
+            'email_condition_severity_min_val' in form_data.keys() and
+            form_data['email_condition_severity_min_val'].lower() in ['info', 'low', 'medium', 'high', 'critical']):
+            options['notification']['email']['condition'].update({
+                'type': 'min',
+                'criteria': form_data['email_condition_severity_min_val'].lower(),
+            })
+        elif (form_data['email_condition'] == 'email_condition_severity_is' and
+            'email_condition_severity_is_val' in form_data.keys() and
+            form_data['email_condition_severity_is_val'].lower() in ['info', 'low', 'medium', 'high', 'critical']):
+            options['notification']['email']['condition'].update({
+                'type': 'is',
+                'criteria': form_data['email_condition_severity_is_val'].lower(),
+            })
+
+    return options

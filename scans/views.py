@@ -12,7 +12,7 @@ from celery.task.control import revoke
 
 from .forms import ScanDefinitionForm
 from .models import Scan, ScanDefinition
-from .utils import _update_celerybeat, _run_scan
+from .utils import _update_celerybeat, _run_scan, _get_scan_options
 from engines.models import EnginePolicy, EngineInstance, EnginePolicyScope
 from findings.models import RawFinding
 from assets.models import Asset, AssetGroup
@@ -85,10 +85,10 @@ def detail_scan_view(request, scan_id):
 
     # Search raw findings related to the asset
     if findings_filters == {}:
-        raw_findings = RawFinding.objects.filter(scan=scan).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
+        raw_findings = RawFinding.objects.filter(scan=scan).only("id", "asset_name", "title", "severity", "severity_num", "status").order_by('asset', '-severity_num', 'type', 'title')
     else:
         findings_filters.update({"scan": scan})
-        raw_findings = RawFinding.objects.filter(**findings_filters).only("id", "asset_name", "title", "severity", "status").order_by('asset', 'severity', 'type', 'title')
+        raw_findings = RawFinding.objects.filter(**findings_filters).only("id", "asset_name", "title", "severity", "severity_num", "status").order_by('asset', '-severity_num', 'type', 'title')
 
     # Generate summary info on assets (for progress bars)
     summary_assets = {}
@@ -396,6 +396,9 @@ def add_scan_def_view(request):
                     })
 
             scan_definition.save()
+
+            # Check options
+            options = _get_scan_options(form.data)
 
             # Todo: check if the engine instance id is set (dedicated scanner)
             parameters = {
