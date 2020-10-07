@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Value, CharField, Case, When, Q, F, Count
+from django.db.models.functions import Lower
 from django.conf import settings
 
 from django.contrib import messages
@@ -132,7 +133,7 @@ def list_assets_view(request):
                 "id", "name", "assets", "criticity", "updated_at", "risk_level", "teams"
             )
 
-    for asset_group in ags:
+    for asset_group in ags.order_by(Lower("name")):
         assets_names = ""
         if asset_group.asset_list != [None]:
             assets_names = ", ".join(asset_group.asset_list)
@@ -243,7 +244,6 @@ def edit_asset_view(request, asset_id):
             asset.evaluate_risk()
 
             # Update categories (M2M)
-            # if form.data.getlist('categories'):
             asset.categories.clear()
             if len(form.cleaned_data['categories']) == 0:
                 # Add a default category
@@ -517,7 +517,6 @@ def detail_asset_view(request, asset_id):
                     tref = tref + finding.vuln_refs[ref]
                 else:
                     tref.append(finding.vuln_refs[ref])
-                # references.update({ref: list(set(tref))})
 
                 references.update({ref: tref})
 
@@ -677,7 +676,6 @@ def detail_asset_group_view(request, assetgroup_id):
         'asset_group': asset_group,
         'asset_group_risk_grade': asset_group_risk_grade,
         'assets': assets,
-        # 'findings': findings,
         'findings': ag_findings,
         'findings_stats': findings_stats,
         'scans_stats': scans_stats,
@@ -709,9 +707,6 @@ def add_asset_owner_view(request):
         form = AssetOwnerForm(user=request.user)
     elif request.method == 'POST':
         form = AssetOwnerForm(request.POST, user=request.user)
-        #
-        # if form.errors:
-        #     print(form.errors)
 
         if form.is_valid():
             owner_args = {
@@ -723,7 +718,6 @@ def add_asset_owner_view(request):
             owner = AssetOwner(**owner_args)
             owner.save()
             for asset_id in form.data.getlist('assets'):
-                # owner.assets.add(Asset.objects.get(id=asset_id))
                 owner.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
             owner.save()
             messages.success(request, 'Creation submission successful')
