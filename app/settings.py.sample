@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'django_dbconn_retry',
     'reset_migrations',
     'rest_framework',
     'rest_framework.authtoken',
@@ -213,6 +214,9 @@ DATABASES = {
             },
     }
 }
+
+# Using a connection pooler in transaction pooling mode (e.g. pgBouncer) requires disabling server-side cursors for that connection.
+DISABLE_SERVER_SIDE_CURSORS = os.environ.get('DISABLE_SERVER_SIDE_CURSORS', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
 
 
 # Password validation
