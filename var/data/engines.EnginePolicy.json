@@ -766,12 +766,12 @@
   "fields": {
     "engine": 2,
     "owner": 1,
-    "name": "Unauthenticated scan",
+    "name": "DEFAULT Scan",
     "default": false,
     "description": "policy",
     "options": {
       "action": "scan",
-      "policy": "NESSUS_POLICY_NETWORK_SCAN.nessus"
+      "policy": "DEFAULT.nessus"
     },
     "file": "",
     "status": "active",
@@ -786,12 +786,12 @@
   "fields": {
     "engine": 2,
     "owner": 1,
-    "name": "Authenticated scan (test)",
+    "name": "DEFAULT Scan with credz",
     "default": false,
     "description": "policy",
     "options": {
       "action": "scan",
-      "policy": "NESSUS_POLICY_NETWORK_SCAN.nessus",
+      "policy": "DEFAULT.nessus",
       "credentials": [{
         "type": "windows_password",
         "password": "mypass",
@@ -819,7 +819,7 @@
   "fields": {
     "engine": 2,
     "owner": 1,
-    "name": "get last reports on 'Scan Externe - IP Prod'",
+    "name": "Get last report'",
     "default": false,
     "description": "policy",
     "options": {
@@ -1207,5 +1207,25 @@
     "created_at": "2020-06-02T16:42:56.128Z",
     "updated_at": "2020-06-02T16:42:56.128Z",
     "scopes": [3]
+  }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 69,
+  "fields": {
+    "engine": 2,
+    "owner": 1,
+    "name": "DEFAULT Scan (no ping)",
+    "default": false,
+    "description": "Default Nessus Scan policy - without ping assets",
+    "options": {
+      "action": "scan",
+      "policy": "DEFAULT_NOPING.nessus"
+    },
+    "file": "",
+    "status": "active",
+    "is_default": false,
+    "created_at": "2019-11-26T09:46:30.949Z",
+    "updated_at": "2019-11-28T09:33:19.600Z",
+    "scopes": [1, 2]
   }
 }]

@@ -3,8 +3,8 @@
   "pk": 1,
   "fields": {
     "name": "NMAP",
-    "description": "nmap",
-    "allowed_asset_types": "[u'ip', u'ip-range', u'ip-subnet', u'fqdn', u'domain']",
+    "description": "NMAP engine",
+    "allowed_asset_types": "[u'ip', u'ip-range', u'ip-subnet', u'fqdn', u'domain', u'url']",
     "created_at": "2017-07-09T16:41:41.473Z",
     "updated_at": "2019-04-08T07:19:57.575Z"
   }
@@ -13,7 +13,7 @@
   "pk": 2,
   "fields": {
     "name": "NESSUS",
-    "description": "ed",
+    "description": "Nessus engine",
     "allowed_asset_types": "[u'ip', u'fqdn', u'domain']",
     "created_at": "2017-07-12T19:57:30.467Z",
     "updated_at": "2017-07-12T19:57:30.467Z"
@@ -33,7 +33,7 @@
   "pk": 4,
   "fields": {
     "name": "VIRUSTOTAL",
-    "description": "VT",
+    "description": "VIRUSTOTAL",
     "allowed_asset_types": "[u'ip', u'fqdn', u'domain', u'url']",
     "created_at": "2017-07-27T10:39:08.453Z",
     "updated_at": "2017-07-27T10:39:08.453Z"
@@ -173,7 +173,7 @@
   "pk": 18,
   "fields": {
     "name": "SONARQUBE",
-    "description": "sqd",
+    "description": "SONARQUBE",
     "allowed_asset_types": "['url', 'path']",
     "created_at": "2019-11-29T10:36:45.777Z",
     "updated_at": "2019-11-29T10:36:45.777Z"
@@ -213,7 +213,7 @@
   "pk": 22,
   "fields": {
     "name": "APIVOID",
-    "description": "Reputation Scanner",
+    "description": "IP and DNS Reputation Scanner",
     "allowed_asset_types": "[u'domain']",
     "created_at": "2020-06-16T00:00:00.000Z",
     "updated_at": "2020-06-16T00:00:00.000Z"
