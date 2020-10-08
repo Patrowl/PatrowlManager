@@ -1228,4 +1228,22 @@
     "updated_at": "2019-11-28T09:33:19.600Z",
     "scopes": [1, 2]
   }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 70,
+  "fields": {
+    "engine": 24,
+    "owner": 1,
+    "name": "Scan without any compliance",
+    "default": true,
+    "description": "Policy for Cloudsploit - Scan without any compliance",
+    "options": {
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2020-09-01T15:15:19.670Z",
+    "updated_at": "2020-09-01T15:15:19.670Z",
+    "scopes": [3]
+  }
 }]
