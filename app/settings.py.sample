@@ -199,6 +199,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'app.wsgi.application'
 
+CONN_MAX_AGE = os.environ.get('DB_ENV_POSTGRES_CONN_MAX_AGE', '0').lower()
+if CONN_MAX_AGE == 'none':
+    CONN_MAX_AGE = None
+else:
+    CONN_MAX_AGE = int(CONN_MAX_AGE)
 
 # Database
 DATABASES = {
@@ -209,9 +214,10 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_ENV_POSTGRES_PASSWORD', 'PATROWL_DB_PASSWD_TO_CHANGE'),
         'HOST': os.environ.get('DB_PORT_5432_TCP_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT_5432_TCP_PORT', ''),
-        'OPTIONS' : {
-                'options': os.environ.get('DB_ENV_POSTGRES_OPTIONS', '')
-            },
+        'OPTIONS': {
+            'options': os.environ.get('DB_ENV_POSTGRES_OPTIONS', '')
+        },
+        'CONN_MAX_AGE': CONN_MAX_AGE
     }
 }
 
