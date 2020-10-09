@@ -222,7 +222,7 @@ DATABASES = {
 }
 
 # Using a connection pooler in transaction pooling mode (e.g. pgBouncer) requires disabling server-side cursors for that connection.
-DISABLE_SERVER_SIDE_CURSORS = os.environ.get('DISABLE_SERVER_SIDE_CURSORS', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
+DISABLE_SERVER_SIDE_CURSORS = os.environ.get('DISABLE_SERVER_SIDE_CURSORS', '').lower() in ['true', '1', 'yes', 'y', 'on']
 
 
 # Password validation
