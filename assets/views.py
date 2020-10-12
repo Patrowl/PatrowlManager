@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Value, CharField, Case, When, Q, F, Count
+from django.db.models.functions import Lower
 from django.conf import settings
 
 from django.contrib import messages
@@ -132,7 +133,7 @@ def list_assets_view(request):
                 "id", "name", "assets", "criticity", "updated_at", "risk_level", "teams"
             )
 
-    for asset_group in ags:
+    for asset_group in ags.order_by(Lower("name")):
         assets_names = ""
         if asset_group.asset_list != [None]:
             assets_names = ", ".join(asset_group.asset_list)
@@ -243,7 +244,6 @@ def edit_asset_view(request, asset_id):
             asset.evaluate_risk()
 
             # Update categories (M2M)
-            # if form.data.getlist('categories'):
             asset.categories.clear()
             if len(form.cleaned_data['categories']) == 0:
                 # Add a default category
@@ -366,68 +366,71 @@ def bulkadd_asset_view(request):
             for line in records:
                 # Add assets
                 asset = None
-                if Asset.objects.for_user(request.user).filter(value=line['asset_value']).count() > 0:
-                    asset = Asset.objects.for_user(request.user).filter(value=line['asset_value']).first()
-                    # continue
-                    messages.warning(request, "Asset '{}' already created. Updates are not applied.".format(asset))
-                else:
-                    # Set default criticity/criticality
-                    asset_criticity = 'low'
-                    if 'asset_criticality' in line.keys() and str(line['asset_criticality']).lower() in ['low', 'medium', 'high']:
-                        asset_criticity = str(line['asset_criticality']).lower()
-                    if 'asset_criticity' in line.keys() and str(line['asset_criticity']).lower() in ['low', 'medium', 'high']:
-                        asset_criticity = str(line['asset_criticity']).lower()
+                try:
+                    if Asset.objects.for_user(request.user).filter(value=line['asset_value']).count() > 0:
+                        asset = Asset.objects.for_user(request.user).filter(value=line['asset_value']).first()
+                        # continue
+                        messages.warning(request, "Asset '{}' already created. Updates are not applied.".format(asset))
+                    else:
+                        # Set default criticity/criticality
+                        asset_criticity = 'low'
+                        if 'asset_criticality' in line.keys() and str(line['asset_criticality']).lower() in ['low', 'medium', 'high']:
+                            asset_criticity = str(line['asset_criticality']).lower()
+                        if 'asset_criticity' in line.keys() and str(line['asset_criticity']).lower() in ['low', 'medium', 'high']:
+                            asset_criticity = str(line['asset_criticity']).lower()
 
-                    # Set default exposure
-                    if 'asset_exposure' not in line.keys():
-                        line['asset_exposure'] = 'unknown'
-                    asset_exposure = str(line['asset_exposure']).lower()
-                    if asset_exposure not in ['unknown', 'external', 'internal', 'restricted']:
-                        asset_exposure = 'unknown'
+                        # Set default exposure
+                        if 'asset_exposure' not in line.keys():
+                            line['asset_exposure'] = 'unknown'
+                        asset_exposure = str(line['asset_exposure']).lower()
+                        if asset_exposure not in ['unknown', 'external', 'internal', 'restricted']:
+                            asset_exposure = 'unknown'
 
-                    asset_args = {
-                        'value': line['asset_value'],
-                        'name': line['asset_name'],
-                        'type': line['asset_type'],
-                        'description': line['asset_description'],
-                        'criticity': asset_criticity,
-                        'exposure': asset_exposure,
-                        'owner': request.user,
-                        'status': "new",
-                    }
-                    asset = Asset(**asset_args)
-                    asset.save()
-
-                # Add groups
-                if 'asset_groupname' in line and line['asset_groupname'] != "":
-                    # ag = AssetGroup.objects.for_user(request.user).filter(name=str(line['asset_groupname'])).first()
-                    ag = AssetGroup.objects.filter(name=str(line['asset_groupname'])).first()
-                    if ag is None:  # Create new asset group
                         asset_args = {
-                            'name': str(line['asset_groupname']),
-                            'criticity': "low",
-                            'description': "Created automatically on asset upload.",
-                            'owner': request.user
+                            'value': line['asset_value'],
+                            'name': line['asset_name'],
+                            'type': line['asset_type'],
+                            'description': line['asset_description'],
+                            'criticity': asset_criticity,
+                            'exposure': asset_exposure,
+                            'owner': request.user,
+                            'status': "new",
                         }
-                        ag = AssetGroup(**asset_args)
-                        ag.save()
-                    # add the asset to the group
-                    ag.assets.add(asset)
+                        asset = Asset(**asset_args)
+                        asset.save()
 
-                # Manage tags (categories)
-                if 'asset_tags' in line and line['asset_tags'] != "":
-                    for tag in line['asset_tags'].split(","):
-                        new_tag = _add_asset_tags(asset, tag)
-                        asset.categories.add(new_tag)
-                    asset.save()
+                    # Add groups
+                    if 'asset_groupname' in line and line['asset_groupname'] != "":
+                        # ag = AssetGroup.objects.for_user(request.user).filter(name=str(line['asset_groupname'])).first()
+                        ag = AssetGroup.objects.filter(name=str(line['asset_groupname'])).first()
+                        if ag is None:  # Create new asset group
+                            asset_args = {
+                                'name': str(line['asset_groupname']),
+                                'criticity': "low",
+                                'description': "Created automatically on asset upload.",
+                                'owner': request.user
+                            }
+                            ag = AssetGroup(**asset_args)
+                            ag.save()
+                        # add the asset to the group
+                        ag.assets.add(asset)
 
-                # Manage teams
-                if 'asset_teams' in line and line['asset_teams'] != "":
-                    for team in line['asset_teams'].split(","):
-                        new_team = _get_allowed_team(team.lower(), request.user)
-                        if new_team is not None:
-                            asset.teams.add(new_team)
-                    asset.save()
+                    # Manage tags (categories)
+                    if 'asset_tags' in line and line['asset_tags'] != "":
+                        for tag in line['asset_tags'].split(","):
+                            new_tag = _add_asset_tags(asset, tag)
+                            asset.categories.add(new_tag)
+                        asset.save()
+
+                    # Manage teams
+                    if 'asset_teams' in line and line['asset_teams'] != "":
+                        for team in line['asset_teams'].split(","):
+                            new_team = _get_allowed_team(team.lower(), request.user)
+                            if new_team is not None:
+                                asset.teams.add(new_team)
+                        asset.save()
+                except Exception:
+                    messages.error(request, "Error importing asset '{}' from CSV file. Updates are not applied.".format(asset))
 
             messages.success(request, 'Creation submission successful')
 
@@ -514,7 +517,6 @@ def detail_asset_view(request, asset_id):
                     tref = tref + finding.vuln_refs[ref]
                 else:
                     tref.append(finding.vuln_refs[ref])
-                # references.update({ref: list(set(tref))})
 
                 references.update({ref: tref})
 
@@ -674,7 +676,6 @@ def detail_asset_group_view(request, assetgroup_id):
         'asset_group': asset_group,
         'asset_group_risk_grade': asset_group_risk_grade,
         'assets': assets,
-        # 'findings': findings,
         'findings': ag_findings,
         'findings_stats': findings_stats,
         'scans_stats': scans_stats,
@@ -706,9 +707,6 @@ def add_asset_owner_view(request):
         form = AssetOwnerForm(user=request.user)
     elif request.method == 'POST':
         form = AssetOwnerForm(request.POST, user=request.user)
-        #
-        # if form.errors:
-        #     print(form.errors)
 
         if form.is_valid():
             owner_args = {
@@ -720,7 +718,6 @@ def add_asset_owner_view(request):
             owner = AssetOwner(**owner_args)
             owner.save()
             for asset_id in form.data.getlist('assets'):
-                # owner.assets.add(Asset.objects.get(id=asset_id))
                 owner.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
             owner.save()
             messages.success(request, 'Creation submission successful')

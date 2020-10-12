@@ -1013,6 +1013,16 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
 
 
 def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=None):
+    """
+    Import findings into scan.
+
+    It includes:
+    - Create new asset if any
+    - Create a RawFinding
+    - Create ou update a Finding (if new or has changes)
+    - Create an alert if a neww or a missing finding is found
+    - Update asset score and scan summary
+    """
     scan_id = None
     if scan:
         Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}] Importing findings for scan '{}'.".format(scan.id, scan.title), type="DEBUG", severity="INFO", scan=scan)
