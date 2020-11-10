@@ -862,7 +862,7 @@
     "default": true,
     "description": "Policy for Wordpress CMS scanning",
     "options": {
-      "scan_wordpress": 1
+      "cms": "wordpress"
     },
     "file": "",
     "status": "",
@@ -881,7 +881,7 @@
     "default": false,
     "description": "Policy for Drupal CMS scanning",
     "options": {
-      "scan_drupal": 1
+      "cms": "drupal"
     },
     "file": "",
     "status": "",
@@ -900,7 +900,7 @@
     "default": false,
     "description": "Policy for Joomla CMS scanning",
     "options": {
-      "scan_joomla": 1
+      "cms": "joomla"
     },
     "file": "",
     "status": "",
@@ -919,7 +919,7 @@
     "default": false,
     "description": "Policy for Moodle CMS scanning",
     "options": {
-      "scan_moodle": 1
+      "cms": "moodle"
     },
     "file": "",
     "status": "",
@@ -938,7 +938,7 @@
     "default": false,
     "description": "Policy for Silverstripe CMS scanning",
     "options": {
-      "scan_silverstripe": 1
+      "cms": "silverstripe"
     },
     "file": "",
     "status": "",
@@ -1234,10 +1234,12 @@
   "fields": {
     "engine": 24,
     "owner": 1,
-    "name": "Scan without any compliance",
+    "name": "Scan AWS without any compliance",
     "default": true,
-    "description": "Policy for Cloudsploit - Scan without any compliance",
+    "description": "Policy for Cloudsploit - Scan AWS without any compliance",
     "options": {
+	  "access_key": "xxxxx",
+      "secret_access_key": "xxxxx"
     },
     "file": "",
     "status": "active",
@@ -1245,5 +1247,28 @@
     "created_at": "2020-09-01T15:15:19.670Z",
     "updated_at": "2020-09-01T15:15:19.670Z",
     "scopes": [3]
+  }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 71,
+  "fields": {
+    "engine": 19,
+    "owner": 1,
+    "name": "Example of vulnerability scan",
+    "default": true,
+    "description": "Policy for Wordpress CMS scanning (vuln search)",
+    "options": {
+      "cms": "wordpress",
+      "hears_api": {
+        "url": "https://hears.patrowl.io",
+        "token": "xxxxxxx"
+      }
+    },
+    "file": "",
+    "status": "",
+    "is_default": true,
+    "created_at": "2019-11-29T10:37:32.657Z",
+    "updated_at": "2019-11-29T10:37:32.713Z",
+    "scopes": [4]
   }
 }]
