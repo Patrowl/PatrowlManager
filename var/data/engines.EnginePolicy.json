@@ -1234,16 +1234,24 @@
   "fields": {
     "engine": 24,
     "owner": 1,
-    "name": "Scan without any compliance",
+    "name": "Scan example w/o any compliance",
     "default": true,
-    "description": "Policy for Cloudsploit - Scan without any compliance",
+    "description": "Policy for Cloudsploit - Example without any compliance",
     "options": {
+      "region": "global",
+      "print_ok": 1,
+      "credentials": {
+        { "aws":
+          "access_key": "xxxxxx",
+          "secret_access_key": "xxxxxxxxxxxx"
+        }
+      }
     },
     "file": "",
     "status": "active",
     "is_default": true,
     "created_at": "2020-09-01T15:15:19.670Z",
-    "updated_at": "2020-09-01T15:15:19.670Z",
+    "updated_at": "2020-11-12T12:52:20.141Z",
     "scopes": [3]
   }
 }]
