@@ -537,7 +537,7 @@ def startscan_task(self, params):
 
 
 @shared_task(bind=True, acks_late=True)
-def start_periodic_scan_task(self, enparams):
+def start_periodic_scan_task(self, params):
     scan_def = ScanDefinition.objects.get(id=params['scan_definition_id'])
     Event.objects.create(
         message="[EngineTasks/start_periodic_scan_task/{}] Task started.".format(self.request.id),
