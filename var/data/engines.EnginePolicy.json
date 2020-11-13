@@ -1240,12 +1240,13 @@
     "options": {
       "region": "global",
       "print_ok": 1,
-      "credentials": {
-        { "aws":
+      "credentials": [
+        { "aws": {
           "access_key": "xxxxxx",
           "secret_access_key": "xxxxxxxxxxxx"
+          }
         }
-      }
+      ]
     },
     "file": "",
     "status": "active",
