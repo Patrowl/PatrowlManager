@@ -284,6 +284,7 @@ def stopscan_task(self, scan_id):
     resp = None
     try:
         if scan.engine_type == Engine.objects.filter(name='NESSUS').first():
+            #scan_status = _get_scan_status(engine=engine, scan_id=scan.id, scan_options=scan.options)
             resp = requests.get(url=str(engine.api_url)+"stop/"+str(scan_id)+"/"+str(scan.nessscan_id), verify=False, proxies=PROXIES)
         else:
             resp = requests.get(url=str(engine.api_url)+"stop/"+str(scan_id), verify=False, proxies=PROXIES)
@@ -395,6 +396,7 @@ def startscan_task(self, params):
             headers={'Content-type': 'application/json', 'Accept': 'application/json'},
             proxies=PROXIES,
             timeout=TIMEOUT)
+        scan_options=json.dumps(params['scan_params']['options'])
         if scan.engine_type == Engine.objects.filter(name='NESSUS').first():
             nessscan_id = int(json.loads(resp.text)['nessscan_id'])
             scan.nessscan_id = nessscan_id
@@ -425,7 +427,7 @@ def startscan_task(self, params):
 
     # -3- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES  # test value
-    scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
+    scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id, scan_options=scan_options)
 
     while scan_status not in ['FINISHED', 'READY'] and retries > 0:
         if scan_status in ['STARTED', 'SCANNING', 'PAUSING', 'STOPING']:
@@ -435,7 +437,7 @@ def startscan_task(self, params):
                 type="ERROR", severity="ERROR", scan=scan)
             retries -= 1
         time.sleep(SLEEP_RETRY)
-        scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
+        scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id, scan_options=scan_options)
         print("scan status (in loop): {}".format(scan_status))
 
     if retries == 0:
@@ -457,6 +459,7 @@ def startscan_task(self, params):
     # -4- get the results (findings)
     try:
         if scan.engine_type == Engine.objects.filter(name='NESSUS').first():
+            scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id, scan_options=scan_options)
             resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id)+"/"+str(scan.nessscan_id), proxies=PROXIES)
         else:
             resp = requests.get(
@@ -650,6 +653,7 @@ def start_periodic_scan_task(self, params):
                 'Accept': 'application/json'},
             proxies=PROXIES,
             timeout=TIMEOUT)
+        scan_options=json.dumps(params['scan_params']['options'])
         if scan.engine_type == Engine.objects.filter(name='NESSUS').first():
             nessscan_id = int(json.loads(resp.text)['nessscan_id'])
             scan.nessscan_id = nessscan_id
@@ -668,7 +672,7 @@ def start_periodic_scan_task(self, params):
 
     # -3- wait the engine come available for accepting scans (status=ready)
     retries = NB_MAX_RETRIES  # test value
-    scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
+    scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id, scan_options=scan_options)
     # print("status: {}".format(scan_status))
 
     while scan_status not in ['READY', 'FINISHED'] and retries > 0:
@@ -678,7 +682,7 @@ def start_periodic_scan_task(self, params):
             print("bad scanner status: {} (retries left={})".format(scan_status, retries))
             retries -= 1
         time.sleep(SLEEP_RETRY)
-        scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id)
+        scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id, scan_options=scan_options)
         print("status: {}".format(scan_status))
 
     if retries == 0:
@@ -692,6 +696,7 @@ def start_periodic_scan_task(self, params):
     # -4- get the results
     try:
         if scan.engine_type == Engine.objects.filter(name='NESSUS').first():
+            scan_status = _get_scan_status(engine=engine_inst, scan_id=scan.id, scan_options=scan_options)
             resp = requests.get(url=str(engine_inst.api_url)+"getfindings/"+str(scan.id)+"/"+str(scan.nessscan_id), proxies=PROXIES)
         else:
             resp = requests.get(url=str(engine_inst.api_url) + "getfindings/" + str(scan.id), proxies=PROXIES)
@@ -768,13 +773,15 @@ def _get_engine_status(engine):
     return engine_status
 
 
-def _get_scan_status(engine, scan_id):
+def _get_scan_status(engine, scan_id, scan_options):
     scan_status = "undefined"
     scan = Scan.objects.get(id=scan_id)
     try:
         if scan.engine_type == Engine.objects.filter(name='NESSUS').first():
-            resp = requests.get(url=str(engine.api_url) + "status/" + str(scan_id) + "/"
-                                    + str(scan.nessscan_id), verify=False, proxies=PROXIES,
+            resp = requests.post(url=str(engine.api_url) + "status/" + str(scan_id) + "/"
+                                    + str(scan.nessscan_id),data=scan_options,
+            headers={'Content-type': 'application/json', 'Accept': 'application/json'},
+                                 verify=False, proxies=PROXIES,
                                 timeout=TIMEOUT)
         else:
             resp = requests.get(url=str(engine.api_url)+"status/"+str(scan_id), verify=False, proxies=PROXIES, timeout=TIMEOUT)
