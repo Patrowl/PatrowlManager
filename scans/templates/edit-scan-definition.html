@@ -15,6 +15,23 @@
 label.radio {
   margin-left: 20px;
 }
+
+.jb {
+  border-radius: 6px;
+  background-color: #ecf0f1;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.vertical-align {
+    display: flex;
+    align-items: center;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 5px;
+}
 </style>
 
 <ul class="breadcrumb">
@@ -208,6 +225,112 @@ label.radio {
         </select>
       </div>
     </div>
+
+    <!-- Advanced options -->
+    <div class="form-group" id="options-div">
+      <label class="col-sm-2 control-label"><div id="show-options"><a>Advanced options</a></div></label>
+
+      <div class="col-sm-5 ">
+        <div class="menu-options jb">
+          <div class="row vertical-align">
+            <label class="col-sm-4">Auto add new assets</label>
+            <div class="col-sm-8 no_padding">
+              <div class="btn-group btn-group-xs btn-autoaddassets" data-toggle="buttons">
+                <label class="btn btn-success active" id="lbl_autoaddassets_no">
+                  <input type="radio" name="autoaddassets" value="no" id="id_autoaddassets_no" autocomplete="off" checked="checked"> No
+                </label>
+                <label class="btn btn-primary" id="lbl_autoaddassets_yes">
+                  <input type="radio" name="autoaddassets" value="yes" id="id_autoaddassets_yes" autocomplete="off"> Yes
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <hr style="border-top: 1px solid #9a9d9e52">
+
+          <div class="row vertical-align">
+            <label class="col-sm-4">Email notification</label>
+            <div class="col-sm-8 no_padding">
+              <div class="btn-group btn-group-xs btn-emailnotif" data-toggle="buttons">
+                <label class="btn btn-success active" id="lbl_emailnotif_no">
+                  <input type="radio" name="emailnotif" value="no" id="id_emailnotif_no" autocomplete="off" checked="checked"> No
+                </label>
+                <label class="btn btn-primary" id="lbl_emailnotif_yes">
+                  <input type="radio" name="emailnotif" value="yes" id="id_emailnotif_yes" autocomplete="off"> Yes
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row vertical-align">
+            <label class="col-sm-4">Recipients emails</label>
+            <div class="col-sm-8 no_padding">
+              <input id="id_emailnotif_recipients" name="emailnotif_recipients" type="text" placeholder="cert@ex.com, alert@toto.io, ..." class="form-control form-control-xs"/>
+            </div>
+          </div>
+
+          <div class="row vertical-align">
+            <label class="col-sm-4">Subject</label>
+            <div class="col-sm-8 no_padding">
+              <input id="id_emailnotif_subject" name="emailnotif_subject" type="text" placeholder="[Patrowl] New report available" class="form-control form-control-xs"/>
+            </div>
+          </div>
+
+          <div class="row vertical-align">
+            <label class="col-sm-4">Attach report</label>
+            <div class="btn-group btn-group-xs btn-emailattachreport" data-toggle="buttons">
+              <label class="btn btn-success active" id="lbl_emailattachreport_no">
+                <input type="radio" name="emailattachreport" value="no" id="id_emailattachreport_no" autocomplete="off" checked="checked"> No
+              </label>
+              <label class="btn btn-primary" id="lbl_emailattachreport_yes">
+                <input type="radio" name="emailattachreport" value="yes" id="id_emailattachreport_yes" autocomplete="off"> Yes
+              </label>
+            </div>
+          </div>
+
+          <div class="row vertical-align">
+            <label class="col-sm-4">Condition</label>
+            <div class="col-sm-8">
+              <div class="form-group">
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="email_condition_always" name="email_condition" value="email_condition_always" class="custom-control-input" checked="">
+                  <label class="custom-control-label" for="email_condition_always">Always</label>
+                </div>
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="email_condition_severity_min" name="email_condition" value="email_condition_severity_min" class="custom-control-input">
+                  <label class="custom-control-label" for="email_condition_severity_min">
+                    Criticality at least
+                    <select class="custom-select" id="id_email_condition_severity_min_val" name="email_condition_severity_min_val">
+                      <option selected="info">Info</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="email_condition_severity_is" name="email_condition" value="email_condition_severity_is" class="custom-control-input">
+                  <label class="custom-control-label" for="email_condition_severity_is">
+                    Criticality is
+                    <select class="custom-select" id="id_email_condition_severity_min_is" name="email_condition_severity_min_is">
+                      <option selected="info">Info</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
     <div class="form-group submit-div">
       <div class="col-sm-2">
       </div>
@@ -331,6 +454,9 @@ function InitForm(){
   if("{{scan_def.engine}}" != "None"){
     $("select#id_engine option[value='{{scan_def.engine.id}}']").attr('selected','selected');
   }
+
+  // Advanced options
+  // Todo
 
 }
 
@@ -550,6 +676,45 @@ function AddHooks(){
           );
         }
        }
+    });
+
+    // Toggle Auto Add assets selection radio buttons styles
+    $('div.btn-autoaddassets').click(function (e) {
+      if (e.target.id != $('div.btn-autoaddassets label.active').attr('id')){
+        $('div.btn-autoaddassets label:not(.active) input').attr("checked", "checked");
+        $('div.btn-autoaddassets label.active input').removeAttr("checked", "checked");
+
+        $('div.btn-autoaddassets label.active').removeClass("btn-success");
+        $('div.btn-autoaddassets label.active').addClass("btn-primary");
+        $('div.btn-autoaddassets label:not(.active)').removeClass("btn-primary");
+        $('div.btn-autoaddassets label:not(.active)').addClass("btn-success");
+      }
+    });
+
+    // Toggle Email notification selection radio buttons styles
+    $('div.btn-emailnotif').click(function (e) {
+      if (e.target.id != $('div.btn-emailnotif label.active').attr('id')){
+        $('div.btn-emailnotif label:not(.active) input').attr("checked", "checked");
+        $('div.btn-emailnotif label.active input').removeAttr("checked", "checked");
+
+        $('div.btn-emailnotif label.active').removeClass("btn-success");
+        $('div.btn-emailnotif label.active').addClass("btn-primary");
+        $('div.btn-emailnotif label:not(.active)').removeClass("btn-primary");
+        $('div.btn-emailnotif label:not(.active)').addClass("btn-success");
+      }
+    });
+
+    // Toggle Email / Attach report selection radio buttons styles
+    $('div.btn-emailattachreport').click(function (e) {
+      if (e.target.id != $('div.btn-emailattachreport label.active').attr('id')){
+        $('div.btn-emailattachreport label:not(.active) input').attr("checked", "checked");
+        $('div.btn-emailattachreport label.active input').removeAttr("checked", "checked");
+
+        $('div.btn-emailattachreport label.active').removeClass("btn-success");
+        $('div.btn-emailattachreport label.active').addClass("btn-primary");
+        $('div.btn-emailattachreport label:not(.active)').removeClass("btn-primary");
+        $('div.btn-emailattachreport label:not(.active)').addClass("btn-success");
+      }
     });
 };
 

@@ -121,3 +121,13 @@ def _is_valid_url(url):
         re.UNICODE | re.IGNORECASE
     )
     return pattern.match(str(url))
+
+
+def is_valid_email(email):
+    from django.core.validators import validate_email
+    from django.core.exceptions import ValidationError
+    try:
+        validate_email(email)
+        return True
+    except ValidationError:
+        return False
