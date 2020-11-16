@@ -37,6 +37,24 @@ SCAN_TYPES = (
 #     ('error', 'Error'),
 # )
 
+DEFAULT_SCAN_OPTIONS = {
+    'assets': {
+        'enable_auto_add': False
+    },
+    'notification': {
+        'email': {
+            'enable': False,
+            'attach_report': False,
+            'recipients': [],
+            'subject': "[Patrowl] New report available",
+            'condition': {
+                'type': 'always',
+                'criteria': None
+            },
+        }
+    }
+}
+
 
 class ScanDefinitionManager(models.Manager):
     """Class definition of ScanDefinitionManager."""
@@ -88,6 +106,7 @@ class ScanDefinition(models.Model):
     timeout_delay    = models.IntegerField(null=True, blank=True)
     scheduled_at     = models.DateTimeField(null=True, blank=True)
     expire_at        = models.DateTimeField(null=True, blank=True)
+    # options          = JSONField(null=True, blank=True)
     created_at       = models.DateTimeField(default=timezone.now)
     updated_at       = models.DateTimeField(default=timezone.now)
     teams            = models.ManyToManyField('users.team', blank=True)

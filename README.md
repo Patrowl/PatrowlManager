@@ -29,7 +29,7 @@ The PatrowlManager application is reachable using the embedded WEB interface or 
 PatrOwl is an open source and free software released under the [AGPL](https://github.com/Patrowl/PatrowlManager/blob/master/LICENSE) (Affero General Public License). We are committed to ensure that PatrOwl will remain a free and open source project on the long-run.
 
 # Updates
-Information, news and updates are regularly posted on [Patrowl.io Twitter account](https://twitter.com/patrowl_io) and on [the blog](https://blog.patrowl.io/).
+Information, news and updates are regularly posted on [Patrowl.io Twitter account](https://twitter.com/patrowl_io).
 
 # Contributing
 Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/master/support/code_of_conduct.md). We welcome your contributions. Please feel free to fork the code, play with it, make some patches and send us pull requests via [issues](https://github.com/Patrowl/PatrowlManager/issues).
