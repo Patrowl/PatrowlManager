@@ -129,7 +129,7 @@ class AssetCategory(models.Model):
         return AssetCategory.objects.create(parent=self, value=value, comments=comments)
 
     def delete(self, *args, **kwargs):
-        self.get_children().delete()
+        #self.get_children().delete()
         super(AssetCategory, self).delete(args, kwargs)
 
     # def show_children(self, level=0):
