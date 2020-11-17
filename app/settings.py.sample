@@ -39,6 +39,8 @@ ALLOWED_HOSTS = ['*'] # /!\ Not safe for production environment
 
 LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'INFO,WARNING,ERROR,DEBUG')
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 20240
+
 PROXIES = {
     "http": os.environ.get('PATROWL_PROXY_HTTP', None),
     "https": os.environ.get('PATROWL_PROXY_HTTPS', None)
