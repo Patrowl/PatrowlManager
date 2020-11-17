@@ -290,8 +290,8 @@ def add_asset_group_view(request):
             asset_group.save()
 
             # Add categories
-            for cat in form.data['categories']:
-                asset_group.categories.add(cat)
+            #for cat in form.data['categories']:
+            #    asset_group.categories.add(cat)
 
             # Add the teams to the new group
             if 'teams' in form.cleaned_data.keys():
