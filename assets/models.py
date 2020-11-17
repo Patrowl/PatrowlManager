@@ -486,11 +486,6 @@ class AssetGroup(models.Model):
                 for f in a.finding_set.filter(created_at__lte=enddate).only('id', 'severity'):
                     findings.append(f)
 
-        for finding in findings:
-            if finding['status'] != "false-positive":
-                risk_level['total'] = risk_level.get('total', 0) + 1
-                risk_level[finding.severity] = risk_level.get(finding.severity, 0) + 1
-
         if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"
         if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0:
