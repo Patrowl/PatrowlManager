@@ -9,11 +9,12 @@ from celery import shared_task
 from celery.task.control import revoke
 from .models import EngineInstance, Engine, EnginePolicy
 from findings.models import Finding, RawFinding
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, AssetCategory
 from scans.models import Scan, ScanDefinition
 from events.models import Event
 from events.utils import new_finding_alert, missing_finding_alert
 from common.utils import net
+from assets.apis import _add_asset_tags
 import requests
 import json
 import time
@@ -22,6 +23,8 @@ import random
 import uuid
 import os
 from copy import deepcopy
+import re
+import logging
 
 NB_MAX_RETRIES = 5
 SLEEP_RETRY = 5
@@ -1165,6 +1168,18 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             else:
                 # Raise an alert
                 new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+
+                # Vtasio Add Tags
+                if 'is running on port' in finding['title']:
+                    service = re.findall(r"'(.*?)'", finding['title'])
+                    new_tag = _add_asset_tags(asset,service[0])
+                    Event.objects.create(
+                        message="[EngineTasks/_import_findings()/scan_id={}] New Tag: {}".format(scan_id,
+                                                                                                     service[0]),
+                        description="Asset: {}\nFinding: {}".format(asset.value, finding['title']),
+                        type="DEBUG", severity="INFO", scan=scan)
+                    asset.categories.add(new_tag)
+                    asset.save()
 
                 # Create an event if logging level OK
                 Event.objects.create(
