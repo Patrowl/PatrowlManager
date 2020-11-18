@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<style>
+
+#scrollable-dropdown-menu .tt-menu {
+  max-height: 150px;
+  overflow-y: auto;
+}
+</style>
+
 <div class="container">
   <form action="/assets/groups/edit/{{ assetgroup_id }}" method="post" class="form-horizontal">
     <legend>Edit an asset group</legend>
@@ -162,7 +170,7 @@ $(function() {
     }, {
       name: 'assets',
       display: 'value',
-      //limit: 5,
+      limit: 500,
       source: assets.ttAdapter(),
       templates: {
         empty: function(data) {

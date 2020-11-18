@@ -1,5 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+
+#scrollable-dropdown-menu .tt-menu {
+  max-height: 150px;
+  overflow-y: auto;
+}
+</style>
 
 <ul class="breadcrumb">
   <li><a href="{% url 'list_assets_view' %}">assets</a></li>
@@ -239,7 +246,7 @@ _selected_assets = [];
     }, {
       name: 'assets',
       display: 'value',
-      //limit: 5,
+      limit: 500,
       source: assets.ttAdapter(),
       templates: {
         empty: function(data) {

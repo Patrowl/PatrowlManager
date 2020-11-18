@@ -3,7 +3,7 @@
 
 <style>
 
-#scrollable-dropdown-menu .tt-dropdown-menu {
+#scrollable-dropdown-menu .tt-menu {
   max-height: 150px;
   overflow-y: auto;
 }
@@ -588,7 +588,7 @@ function AddHooks(){
     }, {
       name: 'assets',
       display: 'value',
-      //limit: 5,
+      limit: 500,
       source: assets.ttAdapter(),
       templates: {
         empty: function(data) {
