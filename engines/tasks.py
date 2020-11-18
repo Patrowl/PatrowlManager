@@ -1079,6 +1079,22 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         # get the hostnames received and check if they are known in the user' assets
         assets = []
 
+        #Add new domains discovered from owl_dns engine
+        if scan.engine_type == Engine.objects.filter(name='OWL_DNS').first():
+            if "Subdomain found" in finding['title']:
+                subdomain=finding['title'].split(": ",1)[1]
+                domain = Asset.objects.filter(value=subdomain).first()
+                if domain is None:  # asset unknown by the manager
+                    if "parent" not in finding["target"]:
+                        finding["target"]["parent"] = None
+                    asset = _create_asset_on_import(asset_value=subdomain, scan=scan, parent=finding["target"]["parent"])
+                    if asset:
+                        assets.append(asset)
+                    if asset and not scan.assets.filter(value=asset.value):
+                        scan.assets.add(asset)
+
+
+
         for addr in list(finding['target']['addr']):
             asset = Asset.objects.filter(value=addr).first()
             if asset is None:  # asset unknown by the manager
