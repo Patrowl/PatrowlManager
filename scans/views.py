@@ -72,7 +72,7 @@ def detail_scan_view(request, scan_id):
 
     # Search asset groups related to the scan
     assetgroups = scan.scan_definition.assetgroups_list.all().prefetch_related("assets")
-    taggroups = scan.scan_definition.taggroups_list.all().prefetch_related("assets")
+    taggroups = scan.scan_definition.taggroups_list.all().prefetch_related("asset_set")
 
     # Add the assets from the asset group to the existing list of assets
     if len(assetgroups) == 0:
@@ -89,7 +89,7 @@ def detail_scan_view(request, scan_id):
         other_assets = []
         for asset in assets:
             for ag in taggroups:
-                if asset not in ag.assets.all():
+                if asset not in ag.asset_set.all():
                     other_assets.append(asset)
 
     # Search raw findings related to the asset
@@ -139,7 +139,7 @@ def detail_scan_view(request, scan_id):
             }
         })
 
-        for f in raw_findings.filter(asset__in=ag.assets.all()):
+        for f in raw_findings.filter(asset__in=ag.asset_set.all()):
             summary_taggroups[ag.id].update({
                 f.severity: summary_taggroups[ag.id][f.severity] + 1,
                 "total": summary_taggroups[ag.id]["total"] + 1
