@@ -611,6 +611,9 @@ def start_periodic_scan_task(self, params):
     for assetgroup in scan_def.assetgroups_list.all():
         for a in assetgroup.assets.all():
             scan.assets.add(a)
+    for taggroup in scan_def.taggroups_list.all():
+        for a in taggroup.asset_set.all():
+            scan.assets.add(a)
     scan.save()
     assets_list = []
     for asset in scan.assets.all():

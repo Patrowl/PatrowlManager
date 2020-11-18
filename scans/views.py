@@ -15,7 +15,7 @@ from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan, _get_scan_options
 from engines.models import EnginePolicy, EngineInstance, EnginePolicyScope
 from findings.models import RawFinding
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, AssetCategory
 from users.models import Team, TeamUser
 from common.utils import pro_group_required
 
@@ -72,6 +72,7 @@ def detail_scan_view(request, scan_id):
 
     # Search asset groups related to the scan
     assetgroups = scan.scan_definition.assetgroups_list.all().prefetch_related("assets")
+    taggroups = scan.scan_definition.taggroups_list.all().prefetch_related("assets")
 
     # Add the assets from the asset group to the existing list of assets
     if len(assetgroups) == 0:
@@ -80,6 +81,14 @@ def detail_scan_view(request, scan_id):
         other_assets = []
         for asset in assets:
             for ag in assetgroups:
+                if asset not in ag.assets.all():
+                    other_assets.append(asset)
+    if len(taggroups) == 0:
+        other_assets = assets
+    else:
+        other_assets = []
+        for asset in assets:
+            for ag in taggroups:
                 if asset not in ag.assets.all():
                     other_assets.append(asset)
 
@@ -108,6 +117,7 @@ def detail_scan_view(request, scan_id):
 
     # Generate summary info on asset groups (for progress bars)
     summary_assetgroups = {}
+    summary_taggroups = {}
     for ag in assetgroups:
         summary_assetgroups.update({
             ag.id: {
@@ -120,6 +130,19 @@ def detail_scan_view(request, scan_id):
             summary_assetgroups[ag.id].update({
                 f.severity: summary_assetgroups[ag.id][f.severity] + 1,
                 "total": summary_assetgroups[ag.id]["total"] + 1
+            })
+    for ag in taggroups:
+        summary_taggroups.update({
+            ag.id: {
+                "info": 0, "low": 0, "medium": 0,
+                "high": 0, "critical": 0, "total": 0
+            }
+        })
+
+        for f in raw_findings.filter(asset__in=ag.assets.all()):
+            summary_taggroups[ag.id].update({
+                f.severity: summary_taggroups[ag.id][f.severity] + 1,
+                "total": summary_taggroups[ag.id]["total"] + 1
             })
 
     # Generate findings stats
@@ -167,8 +190,10 @@ def detail_scan_view(request, scan_id):
         'scan': scan,
         'summary_assets': summary_assets,
         'summary_assetgroups': summary_assetgroups,
+        'summary_taggroups': summary_taggroups,
         'assets': scan_assets,
         'assetgroups': assetgroups,
+        'taggroups': taggroups,
         'other_assets': other_assets,
         'findings': scan_findings,
         'findings_stats': findings_stats,
@@ -395,6 +420,19 @@ def add_scan_def_view(request):
                         "datatype": a.type
                     })
 
+            #vtasio add scan by tag
+            for taggroup_id in form.data.getlist('taggroups_list'):
+                taggroup = AssetCategory.objects.get(id=taggroup_id)
+                scan_definition.taggroups_list.add(taggroup)
+                for a in taggroup.asset_set.all():
+                    scan_definition.assets_list.add(a)
+                    assets_list.append({
+                        "id": a.id,
+                        "value": a.value.strip(),
+                        "criticity": a.criticity,
+                        "datatype": a.type
+                    })
+
             scan_definition.save()
 
             # Check options
@@ -514,6 +552,7 @@ def edit_scan_def_view(request, scan_def_id):
             # Update assets
             scan_definition.assets_list.clear()
             scan_definition.assetgroups_list.clear()
+            scan_definition.taggroups_list.clear()
 
             assets_list = []
             for asset_id in form.data.getlist('assets_list'):
@@ -529,6 +568,17 @@ def edit_scan_def_view(request, scan_def_id):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
                 scan_definition.assetgroups_list.add(assetgroup)
                 for a in assetgroup.assets.all():
+                    scan_definition.assets_list.add(a)
+                    assets_list.append({
+                        "id": a.id,
+                        "value": a.value.strip(),
+                        "criticity": a.criticity,
+                        "datatype": a.type
+                    })
+            for taggroup_id in form.data.getlist('taggroups_list'):
+                taggroup = AssetCategory.objects.get(id=taggroup_id)
+                scan_definition.taggroups_list.add(taggroup)
+                for a in taggroup.asset_set.all():
                     scan_definition.assets_list.add(a)
                     assets_list.append({
                         "id": a.id,
