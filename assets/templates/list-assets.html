@@ -105,6 +105,7 @@ function toggle(source, element) {
             <tr>
               <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
               <th data-field="name"  onclick="sortby('name', 'assets');">Name</th>
+              <th data-field="tags" >Tags</th>
               {% if PRO_EDITION %}
               <th data-field="teams">Teams</th>
               {% endif %}
@@ -121,6 +122,11 @@ function toggle(source, element) {
             <tr>
               <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
               <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value|truncatechars:50 }})</a></td>
+              <td>
+                {% for tag in asset.categories.all %}
+                <span class="label label-primary">{{tag.value|lower}}</span>
+                {% endfor %}
+              </td>
               {% if PRO_EDITION %}
               <td>{{ asset.teams.all|join:", " }}</td>
               {% endif %}
