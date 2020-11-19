@@ -179,6 +179,7 @@ def add_asset_view(request):
                 'owner': request.user,
             }
             asset = Asset(**asset_args)
+            asset.save()
             # Add Type as Tag
             new_tag = _add_asset_tags(asset, asset_type)
             asset.categories.add(new_tag)
