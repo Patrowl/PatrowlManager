@@ -181,7 +181,7 @@ def add_asset_view(request):
             asset = Asset(**asset_args)
             asset.save()
             # Add Type as Tag
-            new_tag = _add_asset_tags(asset, asset_type)
+            new_tag = _add_asset_tags(asset, form.cleaned_data['type'])
             asset.categories.add(new_tag)
             asset.save()
 
