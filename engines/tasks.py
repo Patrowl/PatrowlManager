@@ -457,7 +457,7 @@ def startscan_task(self, params):
                          type="DEBUG", severity="DEBUG", scan=scan)
 
     # @Todo: change to wait the report becomes available until a timeout
-    time.sleep(5)  # wait the scan process finish to write the report
+    time.sleep(60)  # wait the scan process finish to write the report
 
     # -4- get the results (findings)
     try:
