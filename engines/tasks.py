@@ -457,7 +457,7 @@ def startscan_task(self, params):
                          type="DEBUG", severity="DEBUG", scan=scan)
 
     # @Todo: change to wait the report becomes available until a timeout
-    time.sleep(60)  # wait the scan process finish to write the report
+    time.sleep(5)  # wait the scan process finish to write the report
 
     # -4- get the results (findings)
     try:
@@ -1057,7 +1057,6 @@ def _import_findings_save(findings, scan, engine_name=None, engine_id=None, owne
 def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=None):
     """
     Import findings into scan.
-
     It includes:
     - Create new asset if any
     - Create a RawFinding
@@ -1178,6 +1177,21 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             # Check if this finding is new (don't already exists)
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
+            #Check description . If CGI in text count the vulnerable parameteres . Only for Nessus
+            count__old_vuln_params =0
+            count__new_vuln_params =0
+            tmp_status = "new"
+            if (scan.engine_type.name == "NESSUS") and ("CGI" in finding['title']):
+                #logger.error("mesa sto if")
+                #regex = re.compile(".*?\((.*?)\)")
+                f_new_nessus = re.sub("[\(\[].*?[\)\]]", "", finding['title'])
+                #logger.error(f_new_nessus)
+                f_nessus = Finding.objects.filter(asset=asset, title__istartswith=f_new_nessus).only('checked_at', 'status').first()
+                if f_nessus:
+                    tmp_status = "duplicate"
+                #count__old_vuln_params = f_nessus.description.count("+ The '")
+                #count__new_vuln_params = finding['description'].count("+ The '")
+
             if f:
                 # We already see you
                 f.checked_at = timezone.now()
@@ -1221,7 +1235,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     severity    = finding['severity'],
                     description = finding['description'],
                     solution    = finding['solution'],
-                    status      = "new",
+                    status      = tmp_status,
                     engine_type = scan.engine_type.name,
                     risk_info   = risk_info,
                     vuln_refs   = vuln_refs,

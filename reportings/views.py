@@ -93,7 +93,7 @@ def homepage_dashboard_view(request):
     global_stats["asset_types"] = assets.aggregate(**asset_types_stats_params)
 
     # finding counters
-    findings_stats = findings.exclude(status='false-positive').aggregate(
+    findings_stats = findings.exclude(status='false-positive').exclude(status='duplicate').aggregate(
         nb_new=Coalesce(Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()), 0),
         nb_critical=Coalesce(Sum(Case(When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
         nb_high=Coalesce(Sum(Case(When(severity='high', then=1)), output_field=models.IntegerField()), 0),
@@ -183,16 +183,16 @@ def homepage_dashboard_view(request):
     # Critical findings
     top_critical_findings = []
     MAX_CF = 6
-    for finding in findings.filter(severity="critical").exclude(status='false-positive').only("id", "severity", "title", "asset_name"):
+    for finding in findings.filter(severity="critical").exclude(status='false-positive').exclude(status='duplicate').only("id", "severity", "title", "asset_name"):
         if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="high").exclude(status='false-positive').only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="high").exclude(status='false-positive').exclude(status='duplicate').only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="medium").exclude(status='false-positive').only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="medium").exclude(status='false-positive').exclude(status='duplicate').only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="low").exclude(status='false-positive').only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="low").exclude(status='false-positive').exclude(status='duplicate').only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
         for finding in findings.filter(severity="info").only("id", "severity", "title", "asset_name"):

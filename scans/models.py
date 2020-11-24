@@ -238,13 +238,13 @@ class Scan(models.Model):
         raw_findings = self.rawfinding_set.all()
         self.summary = {
             "total": raw_findings.count(),
-            "critical": raw_findings.filter(severity='critical').exclude(status='false-positive').count(),
-            "high":  raw_findings.filter(severity='high').exclude(status='false-positive').count(),
-            "medium": raw_findings.filter(severity='medium').exclude(status='false-positive').count(),
-            "low":   raw_findings.filter(severity='low').exclude(status='false-positive').count(),
-            "info":  raw_findings.filter(severity='info').count(),
+            "critical": raw_findings.filter(severity='critical').exclude(status='false-positive').exclude(status='duplicate').count(),
+            "high":  raw_findings.filter(severity='high').exclude(status='false-positive').exclude(status='duplicate').count(),
+            "medium": raw_findings.filter(severity='medium').exclude(status='false-positive').exclude(status='duplicate').count(),
+            "low":   raw_findings.filter(severity='low').exclude(status='false-positive').exclude(status='duplicate').count(),
+            "info":  raw_findings.filter(severity='info').exclude(status='duplicate').count(),
             "new":   self.finding_set.count(),
-            "false-positive": raw_findings.filter(status='false-positive').count(),
+            "false-positive": raw_findings.filter(status='false-positive').exclude(status='duplicate').count(),
             "missing": 0  # todo
         }
 
