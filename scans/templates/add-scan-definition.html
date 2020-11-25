@@ -492,7 +492,7 @@ label.radio {
     localStorage.clear();
     var assets = new Bloodhound({
       // datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
-      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value','name','exposure','categories__value','assetowner__name'),
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value','name','exposure','assetowner__name'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
       prefetch: "{% url 'list_assets_api' %}",
       ttl:0,
