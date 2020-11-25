@@ -1181,11 +1181,14 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             count__old_vuln_params =0
             count__new_vuln_params =0
             tmp_status = "new"
-            if (scan.engine_type.name == "NESSUS") and ("CGI" in finding['title']):
+            if scan.engine_type.name == "NESSUS" and "CGI" in finding['title']:
+
                 #logger.error("mesa sto if")
                 #regex = re.compile(".*?\((.*?)\)")
-                f_new_nessus = re.sub("[\(\[].*?[\)\]]", "", finding['title'])
-                #logger.error(f_new_nessus)
+                #f_new_nessus = re.sub(" [\(\[].*?[\)\]]", "", finding['title'])
+                tmp_f_new_nessus = finding['title'].split('(')
+                tmp_f_new_nessus = tmp_f_new_nessus[:-1]
+                f_new_nessus = '('.join(tmp_f_new_nessus).strip()
                 f_nessus = Finding.objects.filter(asset=asset, title__istartswith=f_new_nessus).only('checked_at', 'status').first()
                 if f_nessus:
                     tmp_status = "duplicate"
@@ -1203,8 +1206,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
                 known_findings_list.append(new_raw_finding.hash)
             else:
+                new_raw_finding.status = tmp_status
+                new_raw_finding.save()
                 # Raise an alert
-                new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+                if tmp_status != "duplicate":
+                    new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
                 # Vtasio Add Tags
                 if 'is running on port' in finding['title']:
@@ -1223,6 +1229,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     message="[EngineTasks/_import_findings()/scan_id={}] New finding: {}".format(scan_id, finding['title']),
                     description="Asset: {}\nFinding: {}".format(asset.value, finding['title']),
                     type="DEBUG", severity="INFO", scan=scan)
+
                 new_finding = Finding.objects.create(
                     raw_finding = new_raw_finding,
                     asset       = asset,

@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='finding',
             name='status',
-            field=models.CharField(choices=[('new', 'New'), ('ack', 'Acknowledged'), ('mitigated', 'Mitigated'), ('confirmed', 'Confirmed'), ('patched', 'Patched'), ('closed', 'Closed'), ('false-positive', 'False-Positive'), ('undone', 'Undone')], default='new', max_length=16),
+            field=models.CharField(choices=[('new', 'New'), ('ack', 'Acknowledged'), ('mitigated', 'Mitigated'), ('confirmed', 'Confirmed'), ('patched', 'Patched'), ('closed', 'Closed'), ('false-positive', 'False-Positive'), ('undone', 'Undone'), ('duplicate', 'Duplicate')], default='new', max_length=16),
         ),
         migrations.AlterField(
             model_name='rawfinding',
             name='status',
-            field=models.CharField(choices=[('new', 'New'), ('ack', 'Acknowledged'), ('mitigated', 'Mitigated'), ('confirmed', 'Confirmed'), ('patched', 'Patched'), ('closed', 'Closed'), ('false-positive', 'False-Positive'), ('undone', 'Undone')], max_length=16),
+            field=models.CharField(choices=[('new', 'New'), ('ack', 'Acknowledged'), ('mitigated', 'Mitigated'), ('confirmed', 'Confirmed'), ('patched', 'Patched'), ('closed', 'Closed'), ('false-positive', 'False-Positive'), ('undone', 'Undone'), ('duplicate', 'Duplicate')], max_length=16),
         ),
     ]

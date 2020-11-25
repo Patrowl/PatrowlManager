@@ -295,7 +295,7 @@ class Asset(models.Model):
             findings = self.finding_set.filter(created_at__lte=enddate).values("severity","status")
 
         for finding in findings:
-            if finding['status'] != "false-positive":
+            if finding['status'] not in ["false-positive","duplicate"]:
                 risk_level['total'] = risk_level.get('total', 0) + 1
                 risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
         if risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:

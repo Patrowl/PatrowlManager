@@ -11,6 +11,7 @@ from rules.models import Rule
 from rest_framework.decorators import api_view
 from common.utils.encoding import json_serial
 from common.utils import pro_group_required
+from django.db.models import Q
 import json
 import csv
 
@@ -172,10 +173,10 @@ def get_findings_stats_api(request):
     data = {
         "nb_findings": findings.count(),
         "nb_info": findings.filter(severity="info").count(),
-        "nb_low": findings.filter(severity="low").exclude(status='false-positive').exclude(status='duplicate').count(),
-        "nb_medium": findings.filter(severity="medium").exclude(status='false-positive').exclude(status='duplicate').count(),
-        "nb_high": findings.filter(severity="high").exclude(status='false-positive').exclude(status='duplicate').count(),
-        "nb_critical": findings.filter(severity="critical").exclude(status='false-positive').exclude(status='duplicate').count(),
+        "nb_low": findings.filter(severity="low").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "nb_medium": findings.filter(severity="medium").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "nb_high": findings.filter(severity="high").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "nb_critical": findings.filter(severity="critical").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
         "nb_new_findings": findings.filter(status="new").count(),
         "nb_new_info": findings.filter(status="new", severity="info").count(),
         "nb_new_low": findings.filter(status="new", severity="low").count(),
