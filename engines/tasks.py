@@ -1287,6 +1287,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             missing_finding_alert(mf.id, scan.id, mf.severity)
             # Remove Tags for missing findings
             rawfinding = RawFinding.objects.filter(id=mf.id).first()
+            if 'is running on port' in rawfinding.title:
+                service = re.findall(r"'(.*?)'", rawfinding.title)
+                invalid_tag = _add_asset_tags(asset, service[0])
+                asset.categories.remove(invalid_tag)
+                asset.save()
             if 'Failed to resolve' in rawfinding.title:
                 invalid_tag = _add_asset_tags(asset, 'inactive-domain')
                 asset.categories.remove(invalid_tag)
@@ -1295,6 +1300,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 invalid_tag = _add_asset_tags(asset, 'active-domain')
                 asset.categories.remove(invalid_tag)
                 asset.save()
+
 
 
     # @Todo: Revaluate the risk level of all asset groups
