@@ -1212,7 +1212,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 if tmp_status != "duplicate":
                     new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
-                # Vtasio Add Tags
+                # Vtasio Add Tags for every Service
                 if 'is running on port' in finding['title']:
                     service = re.findall(r"'(.*?)'", finding['title'])
                     new_tag = _add_asset_tags(asset,service[0])
@@ -1221,6 +1221,14 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                                                                                                      service[0]),
                         description="Asset: {}\nFinding: {}".format(asset.value, finding['title']),
                         type="DEBUG", severity="INFO", scan=scan)
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Failed to resolve' in finding['title']:
+                    new_tag = _add_asset_tags(asset, 'inactive-domain')
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Host' in finding['title'] and 'is up' in finding['title']:
+                    new_tag = _add_asset_tags(asset, 'active-domain')
                     asset.categories.add(new_tag)
                     asset.save()
 
@@ -1277,6 +1285,17 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         # Loop in missing findings
         for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
             missing_finding_alert(mf.id, scan.id, mf.severity)
+            # Remove Tags for missing findings
+            rawfinding = RawFinding.objects.filter(id=mf.id).first()
+            if 'Failed to resolve' in rawfinding.title:
+                invalid_tag = _add_asset_tags(asset, 'inactive-domain')
+                asset.categories.remove(invalid_tag)
+                asset.save()
+            if 'Host' in mf.title and 'is up' in rawfinding.title:
+                invalid_tag = _add_asset_tags(asset, 'active-domain')
+                asset.categories.remove(invalid_tag)
+                asset.save()
+
 
     # @Todo: Revaluate the risk level of all asset groups
 
