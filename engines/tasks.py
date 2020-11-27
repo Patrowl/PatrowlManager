@@ -1223,12 +1223,20 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                         type="DEBUG", severity="INFO", scan=scan)
                     asset.categories.add(new_tag)
                     asset.save()
-                if 'Failed to resolve' in finding['title']:
+                if 'Failed to resolve' in finding['title'] and asset.type=="domain":
                     new_tag = _add_asset_tags(asset, 'inactive-domain')
                     asset.categories.add(new_tag)
                     asset.save()
-                if 'Host' in finding['title'] and 'is up' in finding['title']:
+                if 'Failed to resolve' in finding['title'] and asset.type=="ip":
+                    new_tag = _add_asset_tags(asset, 'inactive-ip')
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type=="domain":
                     new_tag = _add_asset_tags(asset, 'active-domain')
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type=="ip":
+                    new_tag = _add_asset_tags(asset, 'active-ip')
                     asset.categories.add(new_tag)
                     asset.save()
 
@@ -1292,12 +1300,20 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 invalid_tag = _add_asset_tags(asset, service[0])
                 asset.categories.remove(invalid_tag)
                 asset.save()
-            if 'Failed to resolve' in rawfinding.title:
+            if 'Failed to resolve' in rawfinding.title and asset.type=="domain":
                 invalid_tag = _add_asset_tags(asset, 'inactive-domain')
                 asset.categories.remove(invalid_tag)
                 asset.save()
-            if 'Host' in mf.title and 'is up' in rawfinding.title:
+            if 'Failed to resolve' in rawfinding.title and asset.type=="ip":
+                invalid_tag = _add_asset_tags(asset, 'inactive-ip')
+                asset.categories.remove(invalid_tag)
+                asset.save()
+            if 'Host' in rawfinding.title and 'is up' in rawfinding.title and asset.type=="domain":
                 invalid_tag = _add_asset_tags(asset, 'active-domain')
+                asset.categories.remove(invalid_tag)
+                asset.save()
+            if 'Host' in rawfinding.title and 'is up' in rawfinding.title and asset.type=="ip":
+                invalid_tag = _add_asset_tags(asset, 'active-ip')
                 asset.categories.remove(invalid_tag)
                 asset.save()
 
