@@ -419,6 +419,19 @@ def update_criticity_assets_api(request):
 
     return JsonResponse({'status': 'success'})
 
+@api_view(['POST'])
+@pro_group_required('AssetsManager')
+def update_groups_assets_api(request):
+    data = request.data
+    assets = data['assets']
+    group = data['group']
+    g = AssetGroup.objects.for_user(request.user).get(id=group)
+    for asset_id in assets:
+        a = Asset.objects.for_user(request.user).get(id=asset_id)
+        g.assets.add(a)
+
+    return JsonResponse({'status': 'success'})
+
 
 @api_view(['POST', 'DELETE'])
 @pro_group_required('AssetsManager')
