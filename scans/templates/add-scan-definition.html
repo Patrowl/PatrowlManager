@@ -50,7 +50,7 @@ label.radio {
     <!-- Title -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_title">Title</label>
-      <div class="col-sm-5">
+      <div class="col-sm-6">
         <input id="id_title" name="title" type="text" placeholder="Enter a title..." required class="form-control"/>
       </div>
     </div>
@@ -58,7 +58,7 @@ label.radio {
     <!-- Description -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_description">Description</label>
-      <div class="col-sm-5">
+      <div class="col-sm-6">
         <textarea cols="40" id="id_description" name="description" placeholder="Enter a quick description..." rows="5" class="form-control"></textarea>
       </div>
     </div>
@@ -66,8 +66,8 @@ label.radio {
     <!-- Scan Type -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_scan_type">Scan Type</label>
-      <div class="col-sm-5">
-        <div class="col-sm-5 no_padding">
+      <div class="col-sm-6">
+        <div class="col-sm-4 no_padding">
           <div class="btn-group btn-group-sm btn-scantype" data-toggle="buttons">
             <label class="btn btn-success active" id="lbl_scan_type_ondemand">
               <input type="radio" name="scan_type" value="single" id="id_scan_type_ondemand" autocomplete="off" checked="checked"> On-demand
@@ -78,7 +78,7 @@ label.radio {
           </div>
         </div>
         <!-- Periodicity options -->
-        <div class="col-sm-7">
+        <div class="col-sm-8 no_padding">
           <div class="col-sm-6 no_padding">
             <input class="form-control form-control-sm" type="text" placeholder="freq." id="id_scan_periodic_freq" name="every" disabled>
           </div>
@@ -97,8 +97,8 @@ label.radio {
     <!-- Scan starting -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_enabled">Start scan</label>
-      <div class="col-sm-4">
-        <div class="col-sm-7 no_padding">
+      <div class="col-sm-6">
+        <div class="col-sm-5 no_padding">
           <div class="btn-group btn-group-sm btn-scanrun" data-toggle="buttons">
             <label class="btn btn-success active" id="lbl_start_later">
               <input type="radio" name="start_scan" id="id_start_later" autocomplete="off" checked="checked" value="later">Later
@@ -111,7 +111,7 @@ label.radio {
             </label>
           </div>
         </div>
-        <div class="col-sm-5 controls input-append date no_padding" id="id_scheduled_at_div" >
+        <div class="col-sm-7 controls input-append date no_padding" id="id_scheduled_at_div" >
           <input id="id_scheduled_at" name="scheduled_at" type="text" class="form-control form-control-sm" placeholder="pick a date" disabled/>
         </div>
       </div>
@@ -120,8 +120,8 @@ label.radio {
     <!-- Team selection -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_teams_list">Share with team:</label>
-      <div class="col-sm-5 has-feedback">
-        <div class="col-sm-3 no_padding">
+      <div class="col-sm-6 has-feedback">
+        <div class="col-sm-2 no_padding">
           <div class="btn-group btn-group-sm btn-scanteam" data-toggle="buttons">
             <label class="btn btn-success active" id="lbl_scan_team_no">
               <input type="radio" name="scan_team" value="no" id="id_scan_team_no" autocomplete="off" checked="checked"> No
@@ -131,7 +131,7 @@ label.radio {
             </label>
           </div>
         </div>
-        <div class="col-sm-9 no_padding">
+        <div class="col-sm-10 no_padding">
           <select class="form-control form-control-sm" id="id_scan_team_list" name="scan_team_list" disabled>
             {% for team in teams_list %}
             <option value="{{team.id}}">{{team.name}}</option>
@@ -144,7 +144,7 @@ label.radio {
     <!-- Asset selection -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_assets_list">Search asset(s):</label>
-      <div class="col-sm-5 has-feedback">
+      <div class="col-sm-6 has-feedback">
         <div id="scrollable-dropdown-menu">
           <input class="typeahead form-control" type="text" placeholder="Search assets">
           <i class="form-control-feedback glyphicon glyphicon-search"></i>
@@ -155,7 +155,7 @@ label.radio {
     <!-- Selected assets and asset groups -->
     <div class="form-group">
       <label class="col-sm-2 control-label" for="id_assets_list">Asset(s) selected:</label>
-      <div class="col-sm-5">
+      <div class="col-sm-6">
         <div class="custom-control custom-checkbox cbx_assets">
           <!-- list of selected assets -->
         </div>
@@ -165,7 +165,7 @@ label.radio {
     <!-- Filter scan policies by engine name -->
     <div class="form-group" id="engine-buttons">
       <label class="col-sm-2 control-label" for="id_engine_name">Filter by Engine:</label>
-      <div class="col-sm-5">
+      <div class="col-sm-6">
         <div class="btn-group btn-group-sm" role="group" data-toggle="buttons">
           <label class="btn btn-primary" engineId="0">
             <input type="radio" autocomplete="off">
@@ -184,7 +184,7 @@ label.radio {
     <!-- Filter scan policies by scan category -->
     <div class="form-group" id="category-buttons">
       <label class="col-sm-2 control-label" for="id_scan_category">Or, Filter by Category:</label>
-      <div class="col-sm-5">
+      <div class="col-sm-6">
         <div class="btn-group btn-group-sm" role="group" data-toggle="buttons">
           <label class="btn btn-primary" categoryId="0">
             <input type="radio" autocomplete="off">All
@@ -201,7 +201,7 @@ label.radio {
     <!-- Scan policy selection -->
     <div class="form-group hidden" id="policies-div">
       <label class="col-sm-2 control-label" for="id_engine_policy">Select Policy:</label>
-      <div class="col-sm-4 custom-control custom-radio">
+      <div class="col-sm-5 custom-control custom-radio">
         {% for policy in scan_policies %}
         <label class="radio" label-id="{{ policy.id }}">
           <input
@@ -222,7 +222,7 @@ label.radio {
     <!-- Displayed when a policy is selected-->
     <div class="form-group hidden" id="engine-div">
       <label class="col-sm-2 control-label" for="id_engine_id">Select Engine:</label>
-      <div class="col-sm-5">
+      <div class="col-sm-6">
         <select id="id_engine" name="engine_id" class="form-control" required>
           <!-- autofilled by jQuery -->
         </select>
@@ -234,7 +234,7 @@ label.radio {
     <div class="form-group hidden" id="options-div">
       <label class="col-sm-2 control-label"><div id="show-options"><a>Advanced options</a></div></label>
 
-      <div class="col-sm-5 ">
+      <div class="col-sm-6">
         <div class="menu-options jb" style="display: none;">
           <div class="row vertical-align">
             <label class="col-sm-4">Auto add new assets</label>

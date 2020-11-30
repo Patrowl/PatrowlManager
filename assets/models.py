@@ -2,7 +2,6 @@
 
 from django.db import models
 from django.utils import timezone
-# from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
@@ -11,7 +10,6 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django.conf import settings
 
-# from events.models import Event
 from common.utils.encoding import json_serial
 from common.utils.settings import is_restricted
 
