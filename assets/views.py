@@ -88,7 +88,9 @@ def list_assets_view(request):
         assets_list = Asset.objects.for_user(request.user).all()
     filters = Q()
     if filter_name and filter_name != 'null':
-        filters &= (Q(name__icontains=filter_name) | Q(description__icontains=filter_name))
+        filter_name = filter_name.split(',')
+        for term in filter_name:
+            filters |= (Q(name__icontains=term) | Q(description__icontains=term))
     if filter_type and filter_type != 'null':
         filters &= Q(type=filter_type)
     if filter_criticity and filter_criticity != 'null':

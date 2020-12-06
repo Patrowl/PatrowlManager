@@ -49,7 +49,7 @@ function toggle(source, element) {
       <div id="assets_div" class="tab-pane fade in active">
         <div class="row" style="margin-top: 5px;">
 
-          <div class="dropdown col-sm-1 div-override">
+          <div class="dropdown col-sm-1 div-override" style="">
             <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="dropdown-menu-sort" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="height: 32px;">
               Actions
               <span class="caret"></span>
@@ -78,39 +78,39 @@ function toggle(source, element) {
           </div>
 
           <!-- search bar -->
-          <div class="has-feedback col-sm-2" style="">
+          <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
                 <input type="text" placeholder="Quick search..." class="form-control form-control-xs search-input" id="asset-quick-search-name" style="height: 32px;
     transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
     border: 1px solid #ced4da;"/>
                 </div>
 
-        <div class="has-feedback col-sm-2" style="">
+        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
               <select id="asset-quick-search-type" name="asset-quick-search-type" multiple placeholder="Type...">
                   {% for asset in assets|dictsort:'type' %}
                       {% ifchanged %}<option value="{{ asset.type }}">{{ asset.type }}</option>{% endifchanged %}
                   {% endfor %}
                 </select>
         </div>
-        <div class="has-feedback col-sm-2" style="">
+        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
                 <select id="asset-quick-search-criticity" name="asset-quick-search-criticity" multiple placeholder="Criticality...">
                   {% for asset in assets %}
                       {% ifchanged %}<option value="{{ asset.criticity }}">{{ asset.criticity }}</option>{% endifchanged %}
                   {% endfor %}
                 </select>
         </div>
-        <div class="has-feedback col-sm-3" style="">
+        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
                 <select id="asset-quick-search-tag" name="asset-quick-search-tag" multiple placeholder="Tags...">
                     {% for tag in tags %}
                       {% ifchanged %}<option value="{{ tag }}">{{ tag }}</option>{% endifchanged %}
                   {% endfor %}
                 </select>
         </div>
-        <div class="has-feedback col-sm-1" style="">
+        <div class="has-feedback col-sm-1" style="padding-left: 5px; padding-right: 5px;">
                 <button type="submit" class="asset-quick-search search-input-button" style="height: 32px;">Search</button>
             <!--<i class="form-control-xs-feedback glyphicon glyphicon-search" style="color: #b4bcc2;"></i>-->
           </div>
 
-          <div class="dropdown col-sm-1" style="padding-left: 0px;">
+          <div class="dropdown col-sm-1 div-override" style="padding-left: 0px;">
             <button class="btn btn-primary btn-xs dropdown-toggle" style="height: 32px;" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
               Sort by
               <span class="caret"></span>
@@ -472,6 +472,20 @@ function toggle(source, element) {
     window.location = url.search;
   };
 
+  if (url.searchParams.get("filter_name")){
+          $('#asset-quick-search-name')[0].value = url.searchParams.get("filter_name");}
+
+
+  var asset_quick_search_name = $('#asset-quick-search-name').selectize({
+delimiter: ',',
+    persist: false,
+    create: function(input) {
+        return {
+            value: input,
+            text: input
+        }
+    }
+				});
   var asset_quick_search_criticity = $('#asset-quick-search-criticity').selectize({
 					allowEmptyOption: true,
                     create:true,
@@ -542,10 +556,7 @@ function toggle(source, element) {
     asset_quick_search_criticity[0].selectize.setValue(url.searchParams.get("filter_criticity"));}
       if (url.searchParams.get("filter_tag")){
     asset_quick_search_tag[0].selectize.setValue(url.searchParams.get("filter_tag"));}
-    $('#asset-quick-search-name')[0].value = url.searchParams.get("filter_name");
-    //$('#asset-quick-search-type')[0].value = url.searchParams.get("filter_type");
-    //$('#asset-quick-search-criticity')[0].value = url.searchParams.get("filter_criticity");
-    //$('#asset-quick-search-tag')[0].value = url.searchParams.get("filter_tag");
+
 
     // Quick search
     $('button.asset-quick-search').on('click',function(e) {
