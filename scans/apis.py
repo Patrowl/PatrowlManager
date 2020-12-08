@@ -163,7 +163,7 @@ def stop_scan_api(request, scan_id):
     scan.status = "stopping"
     scan.save()
     stopscan_task.apply_async(
-        args=[scan.id], queue='scan', retry=True, ignore_result=False)
+        args=[scan.id], queue='scanmgt', retry=True, ignore_result=False)
     # args=[scan.id], queue='scan', retry=False, ignore_result=True)
     AuditLog.objects.create(
         message="Scan '{}' stopped".format(scan),
@@ -186,7 +186,7 @@ def stop_scans_api(request):
         scan.save()
         stopscan_task.apply_async(
             args=[scan.id],
-            queue='scan',
+            queue='scanmgt',
             retry=True,
             ignore_result=True
         )

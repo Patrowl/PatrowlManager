@@ -25,6 +25,7 @@ app.conf.task_queues = (
     # Default Queue / administrative purposes
     Queue('default', Exchange('default'), routing_key='default'),
     Queue('scan', Exchange('scan'), routing_key='scan'),
+    Queue('scanmgt', Exchange('scanmgt'), routing_key='scanmgt'),
 )
 app.conf.task_default_queue = 'default'
 app.conf.task_default_exchange = 'default'

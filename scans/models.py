@@ -13,6 +13,7 @@ from common.utils.encoding import json_serial
 import os
 import json
 import inspect
+# import uuid
 
 SCAN_STATUS = ('created', 'enqueued', 'started', 'finished', 'error', 'trashed')
 
@@ -36,6 +37,13 @@ SCAN_TYPES = (
 #     ('finished', 'Finished'),
 #     ('error', 'Error'),
 # )
+
+SCAN_JOB_STATUS = (
+    ('started', 'Started'),
+    ('finished', 'Finished'),
+    ('error', 'Error'),
+    ('stopped', 'Stopped'),
+)
 
 
 class ScanDefinitionManager(models.Manager):
@@ -211,6 +219,12 @@ class Scan(models.Model):
             os.remove(self.report_filepath)
         return super(Scan, self).delete(*args, **kwargs)
 
+    def update_status(self, status, field):
+        self.status = status
+        if hasattr(self, field):
+            setattr(self, field, timezone.now())
+        self.save()
+
     def update_sumary(self):
         raw_findings = self.rawfinding_set.all()
         self.summary = {
@@ -253,6 +267,45 @@ def scan_delete_log(sender, **kwargs):
         message=message,
         scope='scan', type='scan_delete',
         request_context=inspect.stack())
+
+
+class ScanJob(models.Model):
+    # # Manager
+    # objects = ScanJobManager()
+
+    # Attributes
+    position        = models.IntegerField(default=1, null=True, blank=True)
+    scan            = models.ForeignKey(Scan, null=True, on_delete=models.CASCADE)
+    assets          = models.ManyToManyField('assets.Asset')
+    task_id         = models.UUIDField(editable=True, null=True, blank=True)
+    status          = models.CharField(choices=SCAN_JOB_STATUS, default='started', max_length=20)
+    engine          = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL)
+    engine_type     = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
+    engine_policy   = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
+    summary         = JSONField(null=True, blank=True)
+    options         = JSONField(null=True, blank=True)
+    started_at      = models.DateTimeField(null=True, blank=True)
+    finished_at     = models.DateTimeField(null=True, blank=True)
+    created_at      = models.DateTimeField(default=timezone.now)
+    updated_at      = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'scan_jobs'
+
+    def __str__(self):
+        return "{}/{}/{}/{}".format(self.id, self.scan, self.position, self.task_id)
+
+    def update_status(self, status, field):
+        self.status = status
+        if hasattr(self, field):
+            setattr(self, field, timezone.now())
+        self.save()
+
+    def save(self, *args, **kwargs):
+        # update the 'updated_at' entry on each update except on creation
+        if not self._state.adding:
+            self.updated_at = timezone.now()
+        return super(ScanJob, self).save(*args, **kwargs)
 
 
 class ScanCampaign(models.Model):
