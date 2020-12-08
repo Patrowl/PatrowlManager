@@ -152,7 +152,6 @@ def _finish_scan(self, evt_prefix, scan_id):
 # @shared_task(bind=True, acks_late=True, ignore_result=False)
 @shared_task(bind=True, ignore_result=False)
 def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_timeout=SCAN_JOB_DEFAULT_TIMEOUT):
-    # print("_run_scan_job:", scan_id, assets_subset, position)
     try:
         scan = Scan.objects.get(id=scan_id)
     except Exception:
@@ -172,7 +171,6 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         scan=scan,
         task_id=uuid.UUID(str(self.request.id)),
         status="started",
-        # engine=scan.engine,
         engine_type=scan.engine_type,
         engine_policy=scan.engine_policy,
         summary={},
@@ -208,13 +206,11 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
                 engine_inst = random.choice(engine_candidates_busy)
             else:
                 engine_inst = None
-                # Event.objects.create(message="[{} BeforeScan - No engine '{}' available. Task aborted.".format(evt_prefix, scan.scan_definition.engine_type.name), type="ERROR", severity="ERROR", scan=scan)
     else:
         engine_inst = scan.scan_definition.engine
         if engine_inst.status not in ["READY", "BUSY"] or engine_inst.enabled is False:
             engine_inst = None
             Event.objects.create(message="{} BeforeScan - Engine '{}' not available (status: {}, enabled: {}). Task aborted.".format(evt_prefix, engine_inst.name, engine_inst.status, engine_inst.enabled), type="ERROR", severity="ERROR", scan=scan)
-            # return False
 
     # Check if the selected engine instance is available
     if engine_inst is None:
@@ -411,7 +407,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
         for addr in list(finding['target']['addr']):
             asset = Asset.objects.filter(value=addr).first()
-            # print("{}/{}-->asset: {}".format(scan, scanjob_id, asset))
             if asset is None:  # asset unknown by the manager
                 if "parent" not in finding["target"]:
                     finding["target"]["parent"] = None
@@ -564,12 +559,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             missing_finding_alert(mf.id, scan.id, mf.severity)
 
     scan.save()
-    Event.objects.create(message="{} Findings imported.".format(scan_id), type="INFO", severity="INFO", scan=scan)
+    Event.objects.create(message="{} Findings imported.".format(evt_prefix), type="INFO", severity="INFO", scan=scan)
     return True
 
 
 def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None):
-    print("_create_asset_on_import-iiiiiiiin")
     evt_prefix = "[EngineTasks/_create_asset_on_import()]"
     Event.objects.create(message="{} Create: '{}/{} from parent {}'.".format(evt_prefix, asset_value, asset_type, parent), type="DEBUG", severity="INFO", scan=scan)
 
