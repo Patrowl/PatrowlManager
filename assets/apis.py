@@ -166,7 +166,7 @@ def list_assets_api(request):
                 Q(value__icontains=q) | Q(name__icontains=q)
             ).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type')
+            ).values('id', 'value', 'format', 'name','exposure','categories__value','assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).filter(
                 name__icontains=q
             ).annotate(
@@ -177,7 +177,7 @@ def list_assets_api(request):
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type')
+            ).values('id', 'value', 'format', 'name','exposure','categories__value','assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).annotate(
                 value=F("name")
             ).annotate(
