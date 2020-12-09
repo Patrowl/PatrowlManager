@@ -140,7 +140,7 @@ def get_asset_trends_api(request, asset_id):
             'risk_grade': 'n/a',
             'date': str(enddate.date())}
 
-        for f in asset.finding_set.filter(created_at__lte=enddate).values("severity", "status"):
+        for f in asset.finding_set.filter(created_at__lte=enddate).exclude(Q(status='false-positive') | Q(status='duplicate')).values("severity", "status"):
             findings_stats['total'] = findings_stats.get('total') + 1
             findings_stats[f["severity"]] = findings_stats.get(f["severity"]) + 1
             if f["status"] == 'new':
@@ -166,7 +166,7 @@ def list_assets_api(request):
                 Q(value__icontains=q) | Q(name__icontains=q)
             ).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type')
+            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).filter(
                 name__icontains=q
             ).annotate(
@@ -181,7 +181,7 @@ def list_assets_api(request):
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type')
+            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).annotate(
                 value=F("name")
             ).annotate(

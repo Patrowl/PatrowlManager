@@ -5,29 +5,61 @@
   <form action="/assets/groups/edit/{{ assetgroup_id }}" method="post" class="form-horizontal">
     <legend>Edit an asset group</legend>
     {% csrf_token %}
-    {% for field in form %}
-        {% if field.errors %}
-            <div class="form-group has-error">
-              <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
-              <div class="col-sm-4">
-                {{ field }}
-                <span class="help-block">
-                  {% for error in  field.errors %}{{ error }}{% endfor %}
-                </span>
-              </div>
-            </div>
-        {% elif not field.is_hidden %}
-            <div class="form-group">
-              <label class="col-sm-2 control-label" for="id_{{ field.name }}">{{ field.label }}</label>
-              <div class="col-sm-4">
-                {{ field }}
-                {% if field.help_text %}
-                  <p class="help-block"><small>{{ field.help_text }}</small></p>
-                {% endif %}
-              </div>
-            </div>
-        {% endif %}
-    {% endfor %}
+     <!-- Title -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_name">Title</label>
+      <div class="col-sm-5">
+        <input id="id_name" name="name" type="text" placeholder="Enter a title..." required class="form-control" value="{{asset_group.name}}"/>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_description">Description</label>
+      <div class="col-sm-5">
+        <textarea cols="40" id="id_description" name="description" placeholder="Enter a quick description..." rows="5" class="form-control">{{asset_group.description}}</textarea>
+      </div>
+    </div>
+
+      <!-- Criticity -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_criticity">Criticity</label>
+      <div class="col-sm-4">
+        <select name="criticity" class="form-control form-control-sm" id="id_criticity">
+  <option value="low">low</option>
+
+  <option value="medium">medium</option>
+
+  <option value="high">high</option>
+
+</select>
+      </div>
+    </div>
+
+    <!-- Asset selection -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_assets_list">Search asset(s):</label>
+      <div class="col-sm-5 has-feedback">
+        <div id="scrollable-dropdown-menu">
+          <input class="typeahead form-control" type="text" placeholder="Search assets">
+          <i class="form-control-feedback glyphicon glyphicon-search"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected assets and asset groups -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_assets_list">Asset(s) selected:</label>
+      <div class="col-sm-5">
+        <div class="custom-control custom-checkbox cbx_assets">
+          <!-- list of selected assets -->
+        </div>
+      </div>
+    </div>
+
+
+
+
     <div class="form-group submit-div">
       <div class="col-sm-2">
       </div>
@@ -77,6 +109,92 @@
 
 <script>
 $(function() {
+  _selected_assets = [];
+  _id_asset = 1;
+
+  // - Asset selected
+  {% for asset in asset_group.assets.all %}
+    _selected_assets.push("{{ asset.id }}");
+    _id_asset += 1;
+    $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
+      <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets' type='checkbox' value='{{ asset.id }}' asset-type='{{asset.type}}' checked/> {{ asset.value }}</label><br/>");
+  {% endfor %}
+
+// Ensure no group definition are set without assets
+    $("#add-asset-group-form").submit(function () {
+      is_valid = $('div.cbx_assets label input:checked').length > 0;
+      if (is_valid == false) {
+        // $("#edit-scan-def-form").append('\
+        $("#add-asset-group-form button:submit").before('\
+        <div class="alert alert-dismissible alert-danger">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>No assets selected</strong> Please select at least one asset to add.\
+        </div>');
+      }
+
+      if (is_valid == false) {
+        $("#add-asset-group-form button:submit").before('\
+        <div class="alert alert-dismissible alert-danger">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>Bad policy</strong> Selected policy does not support selected asset types.\
+        </div>');
+      }
+      return is_valid;
+    });
+    localStorage.clear();
+    var assets = new Bloodhound({
+      // datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value','name','exposure','categories__value','assetowner__name'),
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      prefetch: "{% url 'list_assets_api' %}",
+      ttl:0,
+      remote: {
+        url: "{% url 'list_assets_api' %}",
+        replace: function(url, uriEncodedQuery) {
+          return (url + "?q=" + encodeURIComponent(uriEncodedQuery) + "&team=" + getTeam())
+        }
+      }
+    });
+    $('#scrollable-dropdown-menu .typeahead').typeahead({
+      hint: true,
+      highlight: true,
+      minLength: 2
+    }, {
+      name: 'assets',
+      display: 'value',
+      //limit: 5,
+      source: assets.ttAdapter(),
+      templates: {
+        empty: function(data) {
+          return '<div class="noitems"> No items found</div>';
+        },
+        suggestion: function(data) {
+          if (data.format == "asset"){
+            return '<div>' + data.value + ' - '+ data.name + '</div>';
+          } else {
+            return '<div> [Group] ' + data.value + ' - '+ data.name + '</div>';
+          }
+        }
+      }
+    }).bind("typeahead:selected", function(e, datum, name) {
+      // append the asset to the list
+      if (_selected_assets.indexOf(datum["value"]) == -1){
+        if (datum["format"] == "asset") {
+          _selected_assets.push(datum["value"]);
+          _id_asset += 1;
+          $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
+            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"'checked/> "+e.target.value+"</label><br/>");
+        } else {
+          _selected_assets.push(datum["value"]);
+          _id_asset += 1;
+          $('div.cbx_assets').append("<label for='id_assetgroups_list_"+_id_asset+"' class='custom-control-label'>\
+            <input id='id_assetgroups_list_"+_id_asset+"' class='custom-control-input' name='assetgroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+e.target.value+" (group)</label><br/>");
+        }
+      }
+    });
+
+
+
   // Delete asset group modal
   $("#modal-delete-asset-group").on('show.bs.modal', function (e) {
     id = e.relatedTarget.getAttribute('asset-group-id');

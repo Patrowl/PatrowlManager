@@ -129,7 +129,7 @@ class AssetCategory(models.Model):
         return AssetCategory.objects.create(parent=self, value=value, comments=comments)
 
     def delete(self, *args, **kwargs):
-        self.get_children().delete()
+        #self.get_children().delete()
         super(AssetCategory, self).delete(args, kwargs)
 
     # def show_children(self, level=0):
@@ -288,16 +288,16 @@ class Asset(models.Model):
             "total": 0, "grade": "-"}
 
         if not history:
-            findings = self.finding_set.all().values("severity")
+            findings = self.finding_set.all().values("severity","status")
         else:
             startdate = datetime.datetime.today()
             enddate = startdate - datetime.timedelta(days=history)
-            findings = self.finding_set.filter(created_at__lte=enddate).values("severity")
+            findings = self.finding_set.filter(created_at__lte=enddate).values("severity","status")
 
         for finding in findings:
-            risk_level['total'] = risk_level.get('total', 0) + 1
-            risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
-
+            if finding['status'] not in ["false-positive","duplicate"]:
+                risk_level['total'] = risk_level.get('total', 0) + 1
+                risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
         if risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"
         elif risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0:
@@ -420,7 +420,7 @@ class AssetGroup(models.Model):
     owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True)
-    categories  = models.ManyToManyField(AssetCategory, blank=True)
+    categories  = models.ManyToManyField(AssetCategory,null=True, blank=True)
     created_at  = models.DateTimeField(default=timezone.now)
     updated_at  = models.DateTimeField(default=timezone.now)
     teams       = models.ManyToManyField('users.team', blank=True)
@@ -485,10 +485,6 @@ class AssetGroup(models.Model):
             for a in self.assets.all():
                 for f in a.finding_set.filter(created_at__lte=enddate).only('id', 'severity'):
                     findings.append(f)
-
-        for finding in findings:
-            risk_level['total'] = risk_level.get('total', 0) + 1
-            risk_level[finding.severity] = risk_level.get(finding.severity, 0) + 1
 
         if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"

@@ -71,7 +71,7 @@ def _search_findings(request):
             excludes.update({"severity__{}".format(filter_by_severity_cond[4:]): filter_by_severity})
 
     # Filter by finding status
-    if filter_by_status and filter_by_status in ["ack", "new", "mitigated", "patched", "closed", "false-positive", "undone"]:
+    if filter_by_status and filter_by_status in ["ack", "new", "mitigated", "patched", "closed", "false-positive", "undone", "duplicate"]:
         if filter_by_status_cond == "exact" or filter_by_status_cond is None:
             filter_by_status_cond = "exact"
             filters.update({"status__{}".format(filter_by_status_cond): filter_by_status})

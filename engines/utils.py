@@ -407,6 +407,20 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         # get the hostnames received and check if they are known in the user' assets
         assets = []
 
+        #Add new domains discovered from owl_dns engine
+        if scan.engine_type == Engine.objects.filter(name='OWL_DNS').first():
+            if "Subdomain found" in finding['title']:
+                subdomain=finding['title'].split(": ",1)[1]
+                domain = Asset.objects.filter(value=subdomain).first()
+                if domain is None:  # asset unknown by the manager
+                    if "parent" not in finding["target"]:
+                        finding["target"]["parent"] = None
+                    asset = _create_asset_on_import(asset_value=subdomain, scan=scan, parent=finding["target"]["parent"])
+                    if asset:
+                        assets.append(asset)
+                    if asset and not scan.assets.filter(value=asset.value):
+                        scan.assets.add(asset)
+
         for addr in list(finding['target']['addr']):
             asset = Asset.objects.filter(value=addr).first()
             if asset is None:  # asset unknown by the manager
@@ -490,6 +504,23 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             # Check if this finding is new (don't already exists)
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
+            #Check description . If CGI in text count the vulnerable parameteres . Only for Nessus
+            count__old_vuln_params =0
+            count__new_vuln_params =0
+            tmp_status = "new"
+            if scan.engine_type.name == "NESSUS" and "CGI" in finding['title']:
+                #logger.error("mesa sto if")
+                #regex = re.compile(".*?\((.*?)\)")
+                #f_new_nessus = re.sub(" [\(\[].*?[\)\]]", "", finding['title'])
+                tmp_f_new_nessus = finding['title'].split('(')
+                tmp_f_new_nessus = tmp_f_new_nessus[:-1]
+                f_new_nessus = '('.join(tmp_f_new_nessus).strip()
+                f_nessus = Finding.objects.filter(asset=asset, title__istartswith=f_new_nessus).only('checked_at', 'status').first()
+                if f_nessus:
+                    tmp_status = "duplicate"
+                #count__old_vuln_params = f_nessus.description.count("+ The '")
+                #count__new_vuln_params = finding['description'].count("+ The '")
+
             if f is not None:
                 # We already see you
                 f.checked_at = timezone.now()
@@ -501,8 +532,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
                 known_findings_list.append(new_raw_finding.hash)
             else:
+                new_raw_finding.status = tmp_status
+                new_raw_finding.save()
                 # Raise an alert
-                new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+                if tmp_status != "duplicate":
+                    new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
                 # Vtasio Add Tags
                 if 'is running on port' in finding['title']:
@@ -545,7 +579,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     severity    = finding['severity'],
                     description = finding['description'],
                     solution    = finding['solution'],
-                    status      = "new",
+                    status      = tmp_status,
                     engine_type = scan.engine_type.name,
                     risk_info   = risk_info,
                     vuln_refs   = vuln_refs,
