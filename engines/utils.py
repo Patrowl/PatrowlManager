@@ -3,13 +3,14 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from celery import shared_task, chord, group
 from .models import EngineInstance
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, AssetCategory
 from events.models import Event
 from events.utils import new_finding_alert, missing_finding_alert
 from findings.models import Finding, RawFinding
 from scans.models import ScanJob, Scan
 from common.utils import chunked_queryset
 from common.utils import net
+from assets.apis import _add_asset_tags
 import json
 import random
 import requests
@@ -17,6 +18,7 @@ import time
 import datetime
 import uuid
 from copy import deepcopy
+import re
 # import logging
 # logger = logging.getLogger(__name__)
 
@@ -501,6 +503,14 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             else:
                 # Raise an alert
                 new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+
+                # Vtasio Add Tags
+                if 'is running on port' in finding['title']:
+                    service = re.findall(r"'(.*?)'", finding['title'])
+                    new_tag = _add_asset_tags(asset, service[0])
+                    Event.objects.create(message = "[EngineTasks/_import_findings()/scan_id={}] New Tag: {}".format(scan_id, +service[0]),description = "Asset: {}\nFinding: {}".format(asset.value,finding['title']),type = "DEBUG", severity = "INFO", scan = scan)
+                    asset.categories.add(new_tag)
+                    asset.save()
 
                 # Create an event if logging level OK
                 Event.objects.create(
