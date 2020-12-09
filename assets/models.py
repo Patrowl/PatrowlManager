@@ -288,16 +288,16 @@ class Asset(models.Model):
             "total": 0, "grade": "-"}
 
         if not history:
-            findings = self.finding_set.all().values("severity")
+            findings = self.finding_set.all().values("severity","status")
         else:
             startdate = datetime.datetime.today()
             enddate = startdate - datetime.timedelta(days=history)
-            findings = self.finding_set.filter(created_at__lte=enddate).values("severity")
+            findings = self.finding_set.filter(created_at__lte=enddate).values("severity","status")
 
         for finding in findings:
-            risk_level['total'] = risk_level.get('total', 0) + 1
-            risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
-
+            if finding['status'] != "false-positive":
+                risk_level['total'] = risk_level.get('total', 0) + 1
+                risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
         if risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"
         elif risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0:
@@ -487,8 +487,9 @@ class AssetGroup(models.Model):
                     findings.append(f)
 
         for finding in findings:
-            risk_level['total'] = risk_level.get('total', 0) + 1
-            risk_level[finding.severity] = risk_level.get(finding.severity, 0) + 1
+            if finding['status'] != "false-positive":
+                risk_level['total'] = risk_level.get('total', 0) + 1
+                risk_level[finding.severity] = risk_level.get(finding.severity, 0) + 1
 
         if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"

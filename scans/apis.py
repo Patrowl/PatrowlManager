@@ -361,21 +361,21 @@ def get_scan_report_html_api(request, scan_id):
 
     findings_stats = {
         "total": findings.count(),
-        "high": findings.filter(severity='high').count(),
-        "medium": findings.filter(severity='medium').count(),
-        "low": findings.filter(severity='low').count(),
+        "high": findings.filter(severity='high').exclude(status='false-positive').count(),
+        "medium": findings.filter(severity='medium').exclude(status='false-positive').count(),
+        "low": findings.filter(severity='low').exclude(status='false-positive').count(),
         "info": findings.filter(severity='info').count(),
-        "critical": findings.filter(severity='critical').count()
+        "critical": findings.filter(severity='critical').exclude(status='false-positive').count()
     }
 
     for asset in scan.assets.all():
         findings_stats.update({
             asset.value: {
                 "total": findings.filter(asset=asset).count(),
-                "critical": findings.filter(asset=asset, severity='critical').count(),
-                "high": findings.filter(asset=asset, severity='high').count(),
-                "medium": findings.filter(asset=asset, severity='medium').count(),
-                "low": findings.filter(asset=asset, severity='low').count(),
+                "critical": findings.filter(asset=asset, severity='critical').exclude(status='false-positive').count(),
+                "high": findings.filter(asset=asset, severity='high').exclude(status='false-positive').count(),
+                "medium": findings.filter(asset=asset, severity='medium').exclude(status='false-positive').count(),
+                "low": findings.filter(asset=asset, severity='low').exclude(status='false-positive').count(),
                 "info": findings.filter(asset=asset, severity='info').count(),
             }
         })

@@ -229,12 +229,13 @@ class Scan(models.Model):
         raw_findings = self.rawfinding_set.all()
         self.summary = {
             "total": raw_findings.count(),
-            "critical": raw_findings.filter(severity='critical').count(),
-            "high":  raw_findings.filter(severity='high').count(),
-            "medium": raw_findings.filter(severity='medium').count(),
-            "low":   raw_findings.filter(severity='low').count(),
+            "critical": raw_findings.filter(severity='critical').exclude(status='false-positive').count(),
+            "high":  raw_findings.filter(severity='high').exclude(status='false-positive').count(),
+            "medium": raw_findings.filter(severity='medium').exclude(status='false-positive').count(),
+            "low":   raw_findings.filter(severity='low').exclude(status='false-positive').count(),
             "info":  raw_findings.filter(severity='info').count(),
             "new":   self.finding_set.count(),
+            "false-positive": raw_findings.filter(status='false-positive').count(),
             "missing": 0  # todo
         }
 

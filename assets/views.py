@@ -490,7 +490,8 @@ def detail_asset_view(request, asset_id):
 
     for finding in findings:
         findings_stats['total'] = findings_stats.get('total', 0) + 1
-        findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
+        if finding.status !="false-positive":
+            findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
         if finding.status == 'new':
             findings_stats['new'] = findings_stats.get('new', 0) + 1
         if finding.status == 'ack':
