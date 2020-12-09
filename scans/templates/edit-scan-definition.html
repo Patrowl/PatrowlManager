@@ -294,6 +294,12 @@ function InitForm(){
     $('div.cbx_assets').append("<label for='id_assetgroups_list_"+_id_asset+"' class='custom-control-label'>\
       <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assetgroups_list' type='checkbox' value='{{ asset.id }}' checked/> {{ asset.name }} (group)</label><br/>");
   {% endfor %}
+  {% for asset in scan_def.taggroups_list.all %}
+    _selected_assets.push("{{ asset.id }}");
+    _id_asset += 1;
+    $('div.cbx_assets').append("<label for='id_taggroups_list_"+_id_asset+"' class='custom-control-label'>\
+      <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='taggroups_list' type='checkbox' value='{{ asset.id }}' checked/> {{ asset.value }} (tag)</label><br/>");
+  {% endfor %}
 
   // - Filter policies by engine
   $('#engine-buttons > div > div > label[engineId={{ scan_def.engine_type_id }}]').addClass('active')

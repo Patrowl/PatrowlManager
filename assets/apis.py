@@ -174,6 +174,10 @@ def list_assets_api(request):
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
+        # vtasio added tags
+        taggroups = AssetCategory.objects.filter(value__icontains = q ).annotate(name = F("value") ).annotate(format = Value("taggroup",
+                                                                                                       output_field=CharField())).values(
+            'id', 'value', 'format', 'name')
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
@@ -183,15 +187,21 @@ def list_assets_api(request):
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
+        #vtasio added tags
+        taggroups = AssetCategory.objects.annotate(             name = F("value")          ).annotate(
+                     format = Value("taggroup", output_field=CharField())          ).values('id', 'value', 'format',
+                                                                                            'name')
 
     # Filter by team
     if team is not None and len(team) > 0:
         assets = assets.filter(teams__in=team)
         assetgroups = assetgroups.filter(teams__in=team)
+        taggroups = taggroups.filter(teams__in=team)
 
     assets_list = list(assets)
     assetgroups_list = list(assetgroups)
-    return JsonResponse(assets_list + assetgroups_list, safe=False)
+    taggroups_list = list(taggroups)
+    return JsonResponse(assets_list + assetgroups_list + taggroups_list, safe=False)
 
 
 @api_view(['GET'])

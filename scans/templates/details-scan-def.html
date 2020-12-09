@@ -36,6 +36,12 @@
             {% if not forloop.last %}, {% endif %}
           {% endfor %}
         {% endif %}
+      {% if scan_def.taggroups_list.count > 0 %}
+          {% for taggroup in scan_def.taggroups_list.all %}
+            {{ taggroup.value }} (<a data-toggle="modal" data-target="#modal-showall-grouped-assets">+</a>)
+            {% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        {% endif %}
       </dd>
       <dt>Scan Type</dt>
       <dd>{{ scan_def.scan_type }}
@@ -342,6 +348,13 @@
           {% for assetgroup in scan_def.assetgroups_list.all %}
             <strong>{{ assetgroup.name }}</strong>:<br/>
             {% for a in assetgroup.assets.all %}
+              {{ a.value }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            <br/><br/>
+          {% endfor %}
+            {% for taggroup in scan_def.taggroups_list.all %}
+            <strong>{{ taggroup.value }}</strong>:<br/>
+            {% for a in taggroup.asset_set.all %}
               {{ a.value }}{% if not forloop.last %}, {% endif %}
             {% endfor %}
             <br/><br/>

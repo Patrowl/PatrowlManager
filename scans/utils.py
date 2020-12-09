@@ -91,6 +91,15 @@ def _run_scan(scan_def_id, owner_id, eta=None):
                 "criticity": a.criticity,
                 "datatype": a.type
             })
+    for taggroup in scan_def.taggroups_list.all():
+        for a in taggroup.assets.all():
+            scan.assets.add(a)
+            assets_list.append({
+                "id": a.id,
+                "value": a.value.strip(),
+                "criticity": a.criticity,
+                "datatype": a.type
+            })
 
     parameters = {
         "scan_definition_id": scan_def.id,

@@ -347,6 +347,7 @@ label.radio {
         // Clear assets_list
         $("input[name='assets_list']").parents('label').remove();
         $("linput[name='assetgroups_list']").parents('label').remove();
+        $("linput[name='taggroups_list']").parents('label').remove();
         _selected_assets = [];
       } else {
         _selected_team = '';
@@ -359,6 +360,7 @@ label.radio {
       // Clear assets_list
       $("input[name='assets_list']").parents('label').remove();
       $("linput[name='assetgroups_list']").parents('label').remove();
+      $("linput[name='taggroups_list']").parents('label').remove();
       _selected_assets = [];
     });
 
@@ -393,7 +395,9 @@ label.radio {
         suggestion: function(data) {
           if (data.format == "asset"){
             return '<div>' + data.value + ' - '+ data.name + '</div>';
-          } else {
+          } else if (data.format == "taggroup"){
+            return '<div> [Tags] ' + data.value + ' - '+ data.name + '</div>';
+          }else {
             return '<div> [Group] ' + data.value + ' - '+ data.name + '</div>';
           }
         }
@@ -406,6 +410,11 @@ label.radio {
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
             <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"'checked/> "+e.target.value+"</label><br/>");
+        } else if (datum["format"] == "taggroup") {
+        _selected_assets.push(datum["value"]);
+          _id_asset += 1;
+          $('div.cbx_assets').append("<label for='id_taggroups_list_"+_id_asset+"' class='custom-control-label'>\
+            <input id='id_taggroups_list_"+_id_asset+"' class='custom-control-input' name='taggroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+e.target.value+" (tag)</label><br/>");
         } else {
           _selected_assets.push(datum["value"]);
           _id_asset += 1;

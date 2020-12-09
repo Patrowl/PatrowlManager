@@ -81,6 +81,7 @@ class ScanDefinition(models.Model):
     scan_type        = models.CharField(choices=SCAN_TYPES, default='single', max_length=10)
     assets_list      = models.ManyToManyField('assets.Asset',  blank=True)
     assetgroups_list = models.ManyToManyField('assets.AssetGroup', blank=True)
+    taggroups_list = models.ManyToManyField('assets.AssetCategory', blank=True)
     title            = models.CharField(max_length=256)
     description      = models.CharField(max_length=256, blank=True)
     every            = models.IntegerField(null=True, blank=True)
@@ -107,9 +108,11 @@ class ScanDefinition(models.Model):
         return "{}/{}".format(self.id, self.title)
 
     def to_dict(self):
-        data = model_to_dict(self, exclude=["assets_list", "assetgroups_list"])
+        data = model_to_dict(self, exclude=["assets_list", "assetgroups_list", "taggroups_list"])
         data.update({"assets_list": [model_to_dict(a, fields=["value", "id", "name"]) for a in self.assets_list.all()]})
         data.update({"assetgroups_list": [model_to_dict(a, fields=["id", "name"]) for a in self.assetgroups_list.all()]})
+        data.update({"taggroups_list": [model_to_dict(a, fields=["id", "value"]) for a in
+                                                     self.taggroups_list.all()]})
         data.update({"teams": [model_to_dict(t, fields=["name", "id"]) for t in self.teams.all()]})
         return json.loads(json.dumps(data, default=json_serial))
 
