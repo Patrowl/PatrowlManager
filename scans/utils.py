@@ -68,10 +68,10 @@ def _run_scan(scan_def_id, owner_id, eta=None):
         scan.started_at = timezone.now()
         scan.finished_at = timezone.now()
         scan.save()
-        Event.objects.create(message="[RunScan] No engine '{}' available. Scan aborted.".format(scan_def.engine_type),
-            type="ERROR", severity="ERROR", scan=scan)
+        Event.objects.create(message="[RunScan] No engine '{}' available. Scan aborted.".format(scan_def.engine_type), type="ERROR", severity="ERROR", scan=scan)
         return False
 
+    # to be removed
     assets_list = []
     for asset in scan_def.assets_list.all():
         scan.assets.add(asset)
@@ -98,7 +98,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
             "assets": assets_list,
             "options": scan.engine_policy.options,
             "engine_id": engine.id,
-            "scan_id": scan.id},
+            "scan_id": scan.id
+        },
         "engine_id": engine.id,
         "engine_name": str(scan.engine_type.name).lower(),
         "owner_id": owner_id

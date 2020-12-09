@@ -44,7 +44,8 @@ services:
       - rabbitmq
 
   nginx:
-    image: nginx:latest
+    # image: nginx:latest
+    image: nginx:stable-alpine
     container_name: patrowl-nginx
     ports:
       - "8083:8083"

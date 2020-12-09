@@ -412,10 +412,8 @@ def add_scan_def_view(request):
                 parameters.update({
                     "engine_id": EngineInstance.objects.get(id=form.data['engine_id']).id
                 })
-                parameters.update({
-                    "scan_params": {
-                        "engine_id": EngineInstance.objects.get(id=form.data['engine_id']).id
-                    }
+                parameters['scan_params'].update({
+                    "engine_id": EngineInstance.objects.get(id=form.data['engine_id']).id
                 })
 
             # todo: check if its a direct, a scheduled or a periodic task
