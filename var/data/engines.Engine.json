@@ -248,4 +248,14 @@
     "created_at": "2020-11-24T15:53:32.110Z",
     "updated_at": "2020-11-24T15:53:32.110Z"
   }
+}, {
+  "model": "engines.engine",
+  "pk": 26,
+  "fields": {
+    "name": "WPSCAN",
+    "description": "WordPress Security Scanner",
+    "allowed_asset_types": "[u'url', u'domain', u'fqdn', u'ip']",
+    "created_at": "2020-12-08T15:53:32.110Z",
+    "updated_at": "2020-12-08T15:53:32.110Z"
+  }
 }]
