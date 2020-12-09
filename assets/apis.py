@@ -423,6 +423,28 @@ def delete_asset_api(request, asset_id):
 
     return JsonResponse({'status': 'success'})
 
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager')
+def delete_asset_from_group_api(request, assetgroup_id, asset_id):
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
+    if asset in assetgroup.assets.all():
+        assetgroup.assets.remove(asset)
+    return JsonResponse({'status': 'success'})
+
+
+@api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
+def delete_assets_from_group_api(request, assetgroup_id):
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    for asset_id in request.data:
+        asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
+        if asset in assetgroup.assets.all():
+            assetgroup.assets.remove(asset)
+    return JsonResponse({'status': 'success'})
+
+
 @api_view(['POST'])
 @pro_group_required('AssetsManager')
 def update_groups_assets_api(request):

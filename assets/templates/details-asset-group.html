@@ -359,8 +359,7 @@ div.risk-trends {
              {% else %}
              <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/edit/{{ asset.id }}'">
                <span class="glyphicon glyphicon-pencil"></span></button>
-             <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-asset"
-                asset-id="{{ asset.id }}" asset-value="{{ asset.value }}">
+             <button type="button" class="btn btn-danger btn-xs delete-asset-btn" asset-id="{{ asset.id }}">
                 <span class="glyphicon glyphicon-remove"></span></button>
              {% endif %}
             </td>
@@ -641,9 +640,9 @@ div.risk-trends {
                 <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}" data-toggle="modal" data-target="#modal-run-scan">
                   Run </button>
               {% endif %}
-              <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan-def"
+              <!-- <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan-def"
                 scan-id="{{ scan_def.id }}" scan-title="{{ scan_def.title }}">
-                <span class="glyphicon glyphicon-remove"></button>
+                <span class="glyphicon glyphicon-remove"></button> -->
             </td>
           </tr>
           {% endfor %}
@@ -725,9 +724,9 @@ div.risk-trends {
                 {% endif %}
                 <button type="button" class="btn btn-warning btn-xs btn-run-now" scan-id="{{ scan.scan_definition__id }}" scan-title="{{ scan.title }}" data-toggle="modal" data-target="#modal-run-scan">
                   Run </button>
-                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
+                <!-- <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-scan"
                   scan-id="{{ scan.id }}" scan-title="{{ scan.title }}">
-                  <span class="glyphicon glyphicon-remove"></button>
+                  <span class="glyphicon glyphicon-remove"></button> -->
               </td>
             </tr>
           {% endfor %}
@@ -972,9 +971,8 @@ div.risk-trends {
       })
 
       if (assets_to_delete.length != 0){
-        delete_url="{% url 'delete_assets_api' %}"
         var request = $.ajax({
-          url: delete_url,
+          url: "{% url 'delete_assets_from_group_api' asset_group.id %}",
           method: "POST",
           headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify(assets_to_delete),
@@ -1047,6 +1045,20 @@ div.risk-trends {
           }
         });
       }
+    });
+
+    // Delete asset
+    $("button.delete-asset-btn").on('click', function(eventObject) {
+      asset_id = eventObject.currentTarget.getAttribute('asset-id');
+      del_url="/assets/api/v1/groups/delete-asset/{{asset_group.id}}/"+asset_id;
+      var request = $.ajax({
+        url: del_url,
+        method: "GET",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        success: function(data, textStatus, xhr){
+          location.reload();
+        }
+      });
     });
 
     // Delete tag
