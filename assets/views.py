@@ -290,8 +290,8 @@ def add_asset_group_view(request):
             asset_group.save()
 
             # Add categories
-            for cat in form.data['categories']:
-                asset_group.categories.add(cat)
+            #for cat in form.data['categories']:
+            #    asset_group.categories.add(cat)
 
             # Add the teams to the new group
             if 'teams' in form.cleaned_data.keys():
@@ -321,7 +321,7 @@ def edit_asset_group_view(request, assetgroup_id):
             if asset_group.name != form.cleaned_data['name']:
                 asset_group.name = form.cleaned_data['name']
             asset_group.description = form.cleaned_data['description']
-            asset_group.criticity = form.cleaned_data['criticity']
+            #asset_group.criticity = form.cleaned_data['criticity']
 
             # Update assets
             asset_group.assets.clear()
