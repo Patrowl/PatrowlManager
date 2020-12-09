@@ -49,6 +49,8 @@ urlpatterns = [
     url(r'^api/v1/add$', apis.add_asset_api, name='add_asset_api'),
     # ex: /assets/api/v1/update_criticity
     url(r'^api/v1/update_criticity$', apis.update_criticity_assets_api, name='update_criticity_assets_api'),
+    # ex: /assets/api/v1/update_groups
+    url(r'^api/v1/update_groups$', apis.update_groups_assets_api, name='update_groups_assets_api'),
     # ex: /assets/api/v1/delete
     url(r'^api/v1/delete$', apis.delete_assets_api, name='delete_assets_api'),
     # ex: /assets/api/v1/delete/2

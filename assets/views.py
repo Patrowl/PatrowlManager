@@ -62,30 +62,49 @@ def list_assets_view(request):
 
     # Check Filtering options
     filter_options = request.GET.get("filter", "")
+    filter_name = request.GET.get("filter_name", "")
+    filter_type = request.GET.get("filter_type", "")
+    filter_criticity = request.GET.get("filter_criticity", "")
+    filter_tag = request.GET.get("filter_tag", "")
 
     # Todo: filter on fields
-    allowed_filter_fields = ["id", "name", "criticity", "type", "score"]
-    filter_criterias = filter_options.split(" ")
+    # allowed_filter_fields = ["id", "name", "criticity", "type", "score","categories__value"]
+    # filter_criterias = filter_options.split(" ")
     filter_fields = {}
-    filter_opts = ""
-    for criteria in filter_criterias:
-        field = criteria.split(":")
-        if len(field) > 1 and field[0] in allowed_filter_fields:
-            # allowed field
-            if field[0] == "score":
-                filter_fields.update({"risk_level__grade": field[1]})
-            else:
-                filter_fields.update({str(field[0]): field[1]})
-        else:
-            filter_opts = filter_opts + str(criteria.strip())
+    # filter_opts = ""
+    # for criteria in filter_criterias:
+    #     field = criteria.split(":")
+    #     if len(field) > 1 and field[0] in allowed_filter_fields:
+    #         # allowed field
+    #         if field[0] == "score":
+    #             filter_fields.update({"risk_level__grade": field[1]})
+    #         else:
+    #             filter_fields.update({str(field[0]): field[1]})
+    #     else:
+    #         filter_opts = filter_opts + str(criteria.strip())
+    if teamid_selected >= 0:
+        assets_list = Asset.objects.for_team(request.user, teamid_selected).all()
+    else:
+        assets_list = Asset.objects.for_user(request.user).all()
+    filters = Q()
+    if filter_name and filter_name != 'null':
+        filter_name = filter_name.split(',')
+        for term in filter_name:
+            filters |= (Q(name__icontains=term) | Q(description__icontains=term))
+    if filter_type and filter_type != 'null':
+        filters &= Q(type=filter_type)
+    if filter_criticity and filter_criticity != 'null':
+        filters &= Q(criticity=filter_criticity)
+    if filter_tag and filter_tag != 'null':
+        filter_tag = filter_tag.split(',')
+        # https://stackoverflow.com/questions/25831081/django-orm-dynamically-add-multiple-conditions-for-manytomanyfield
+        for tag in filter_tag:
+            assets_list = assets_list.filter(categories__value=tag)
+
 
     # Query
     if teamid_selected >= 0:
-        assets_list = Asset.objects.for_team(request.user, teamid_selected).filter(**filter_fields).filter(
-            Q(value__icontains=filter_opts) |
-            Q(name__icontains=filter_opts) |
-            Q(description__icontains=filter_opts)
-            ).annotate(
+        assets_list = assets_list.filter(filters).annotate(
                 criticity_num=Case(
                     When(criticity="high", then=Value("1")),
                     When(criticity="medium", then=Value("2")),
@@ -94,11 +113,7 @@ def list_assets_view(request):
                     output_field=CharField())
                 ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
     else:
-        assets_list = Asset.objects.for_user(request.user).filter(**filter_fields).filter(
-            Q(value__icontains=filter_opts) |
-            Q(name__icontains=filter_opts) |
-            Q(description__icontains=filter_opts)
-            ).annotate(
+        assets_list = assets_list.filter(filters).annotate(
                 criticity_num=Case(
                     When(criticity="high", then=Value("1")),
                     When(criticity="medium", then=Value("2")),
@@ -106,6 +121,32 @@ def list_assets_view(request):
                     default=Value("1"),
                     output_field=CharField())
                 ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
+    # if teamid_selected >= 0:
+    #     assets_list = Asset.objects.for_team(request.user, teamid_selected).filter(**filter_fields).filter(
+    #         Q(value__icontains=filter_opts) |
+    #         Q(name__icontains=filter_opts) |
+    #         Q(description__icontains=filter_opts)
+    #         ).annotate(
+    #             criticity_num=Case(
+    #                 When(criticity="high", then=Value("1")),
+    #                 When(criticity="medium", then=Value("2")),
+    #                 When(criticity="low", then=Value("3")),
+    #                 default=Value("1"),
+    #                 output_field=CharField())
+    #             ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
+    # else:
+    #     assets_list = Asset.objects.for_user(request.user).filter(**filter_fields).filter(
+    #         Q(value__icontains=filter_opts) |
+    #         Q(name__icontains=filter_opts) |
+    #         Q(description__icontains=filter_opts)
+    #         ).annotate(
+    #             criticity_num=Case(
+    #                 When(criticity="high", then=Value("1")),
+    #                 When(criticity="medium", then=Value("2")),
+    #                 When(criticity="low", then=Value("3")),
+    #                 default=Value("1"),
+    #                 output_field=CharField())
+    #             ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
 
     # Pagination assets
     nb_rows = int(request.GET.get('n', 20))
@@ -148,10 +189,13 @@ def list_assets_view(request):
         }
         asset_groups.append(ag)
 
+    tags = assets_list.values_list('categories__value', flat=True).order_by('categories__value').distinct()
+
     return render( request, 'list-assets.html', {
         'assets': assets,
         'asset_groups': asset_groups,
-        'teams': teams
+        'teams': teams,
+        'tags': tags
     })
 
 
