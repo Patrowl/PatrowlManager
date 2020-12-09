@@ -39,6 +39,7 @@ FINDING_STATUS = (
     ('closed', 'Closed'),
     ('false-positive', 'False-Positive'),
     ('undone', 'Undone')
+    ('duplicate', 'Duplicate')
 )
 
 
