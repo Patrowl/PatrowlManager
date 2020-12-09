@@ -473,54 +473,61 @@ function toggle(source, element) {
   };
 
   if (url.searchParams.get("filter_name")){
-          $('#asset-quick-search-name')[0].value = url.searchParams.get("filter_name");}
+    $('#asset-quick-search-name')[0].value = url.searchParams.get("filter_name");}
 
 
   var asset_quick_search_name = $('#asset-quick-search-name').selectize({
-delimiter: ',',
+    delimiter: ',',
     persist: false,
     create: function(input) {
-        return {
-            value: input,
-            text: input
-        }
+      return {
+        value: input,
+        text: input
+      }
     }
-				});
+  });
   var asset_quick_search_criticity = $('#asset-quick-search-criticity').selectize({
-					allowEmptyOption: true,
-                    create:true,
-                    maxItems: 1,
-                    hideSelected:true,
-					sortField: {
-						field: 'text',
-						direction: 'asc'
-					},
-					dropdownParent: 'body'
-				});
-    var asset_quick_search_tag = $('#asset-quick-search-tag').selectize({
-					plugins: ['remove_button'],
-                    plugins: ['restore_on_backspace'],
-                    persist: false,
-                    allowEmptyOption: true,
-                    hideSelected:true,
-                    delimiter: ',',
-					sortField: {
-						field: 'text',
-						direction: 'asc'
-					},
-					dropdownParent: 'body'
-				});
-    var asset_quick_search_type = $('#asset-quick-search-type').selectize({
-                    maxItems: 1,
-        create:true,
-        hideSelected:true,
-					allowEmptyOption: true,
-					sortField: {
-						field: 'text',
-						direction: 'asc'
-					},
-					dropdownParent: 'body'
-				});
+    allowEmptyOption: true,
+    options: [
+      {label: 'Low', value: 'low'},
+      {label: 'Medium', value: 'medium'},
+      {label: 'High', value: 'high'},
+    ],
+    valueField: 'value',
+    labelField: 'label',
+    create: false,
+    maxItems: 1,
+    hideSelected: true,
+    sortField: {
+    	field: 'text',
+    	direction: 'asc'
+    },
+    dropdownParent: 'body'
+  });
+  var asset_quick_search_tag = $('#asset-quick-search-tag').selectize({
+		plugins: ['remove_button'],
+    plugins: ['restore_on_backspace'],
+    persist: false,
+    allowEmptyOption: true,
+    hideSelected: true,
+    delimiter: ',',
+		sortField: {
+			field: 'text',
+			direction: 'asc'
+		},
+		dropdownParent: 'body'
+	});
+  var asset_quick_search_type = $('#asset-quick-search-type').selectize({
+  maxItems: 1,
+  create:true,
+  hideSelected:true,
+		allowEmptyOption: true,
+		sortField: {
+			field: 'text',
+			direction: 'asc'
+		},
+		dropdownParent: 'body'
+	});
 
 
   $(function() {
