@@ -321,7 +321,7 @@ def edit_asset_group_view(request, assetgroup_id):
             if asset_group.name != form.cleaned_data['name']:
                 asset_group.name = form.cleaned_data['name']
             asset_group.description = form.cleaned_data['description']
-            asset_group.criticity = form.cleaned_data['criticity']
+            #asset_group.criticity = form.cleaned_data['criticity']
 
             # Update assets
             asset_group.assets.clear()
