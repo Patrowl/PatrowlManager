@@ -39,7 +39,6 @@ def list_alerts_view(request):
                 'name': tu.organization.name
             })
 
-    page = request.GET.get('p_alerts', 1)
     status = request.GET.get('status', "")
     severity = request.GET.get('severity', "")
     alerts_list = []
@@ -63,7 +62,7 @@ def list_alerts_view(request):
     # Pagination assets
     nb_rows = int(request.GET.get('n', 20))
     alert_paginator = Paginator(alerts_list, nb_rows)
-    page = request.GET.get('page')
+    page = request.GET.get('p_alerts', 1)
     try:
         alerts = alert_paginator.page(page)
     except PageNotAnInteger:
