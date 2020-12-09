@@ -63,15 +63,18 @@ function toggle(source, element) {
                 <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
                 <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
                 <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
+                    <li><a data-target="#modal-update-group" data-toggle="modal"  href="#">+ Update Group of selected assets</a></li>
                 <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
                 {% endif %}
               {% else %}
               <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
               <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
               <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
+                  <li><a data-target="#modal-update-group" data-toggle="modal"  href="#">+ Update Group of selected assets</a></li>
               <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
               {% endif %}
             </ul>
+
           </div>
 
           <!-- search bar -->
@@ -417,6 +420,41 @@ function toggle(source, element) {
     </div>
   </div>
 
+    <!-- Update Group modal -->
+  <div class="modal fade" id="modal-update-group" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary">
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel">Update Assets</h4>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div id="update-assets">
+            <dl class="dl-horizontal">
+              <dt>Groups:</dt>
+              <dd>
+                <select id="update-asset-group" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+                    {% for asset_group in asset_groups %}
+                        <option value='{{ asset_group.id }}'>{{ asset_group.name }}</option>
+                    {% endfor %}
+                </select>
+              </dd>
+            </dl>
+          </div>
+          Confirm update?
+          <button type="button" class="btn btn-xs btn-danger btn-update-groups" data-dismiss="modal">Yes</button>
+          <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
 
   NB_ROWS=10;
@@ -601,6 +639,32 @@ delimiter: ',',
           method: "POST",
           headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify({'assets': assets_to_update, 'criticity': criticity}),
+          // data: JSON.stringify(assets_to_update),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+
+    });
+
+    // Update asset Groups
+    $("button.btn-update-groups").on('click', function (e) {
+      assets_to_update = [];
+      $("input[name='asset']").each(function(cbx){
+        if (this.checked) {
+          assets_to_update.push(this.value);
+        }
+      });
+      groupps = $("select#update-asset-group").val();
+
+      if (assets_to_update.length != 0){
+        var request = $.ajax({
+          url: "{% url 'update_groups_assets_api' %}",
+          method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: JSON.stringify({'assets': assets_to_update, 'group': groupps}),
           // data: JSON.stringify(assets_to_update),
           contentType: "application/json"
         });
