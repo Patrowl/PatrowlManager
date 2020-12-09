@@ -38,7 +38,7 @@ FINDING_STATUS = (
     ('patched', 'Patched'),
     ('closed', 'Closed'),
     ('false-positive', 'False-Positive'),
-    ('undone', 'Undone')
+    ('undone', 'Undone'),
     ('duplicate', 'Duplicate')
 )
 
