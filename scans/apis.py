@@ -106,6 +106,12 @@ def delete_scans_api(request):
     """Delete selected scans."""
     scans = request.data
     for scan_id in scans:
+        try:
+            scan = Scan.objects.for_user(request.user).get(id=scan_id)
+        except Scan.DoesNotExist:
+            continue
+
+        stopscan_task(scan_id=scan.id)
         Scan.objects.for_user(request.user).get(id=scan_id).delete()
     return JsonResponse({'status': 'success'})
 
