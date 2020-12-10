@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from celery import shared_task, chord, group
 from .models import EngineInstance
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, AssetCategory
 from events.models import Event
 from events.utils import new_finding_alert, missing_finding_alert
 from findings.models import Finding, RawFinding
@@ -17,6 +17,8 @@ import time
 import datetime
 import uuid
 from copy import deepcopy
+import re
+from assets.apis import _add_asset_tags
 # import logging
 # logger = logging.getLogger(__name__)
 
@@ -529,6 +531,29 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 if tmp_status != "duplicate":
                     new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
+                # Auto Add tag
+                if 'is running on port' in finding['title']:
+                    service = re.findall(r"'(.*?)'", finding['title'])
+                    new_tag = _add_asset_tags(asset,service[0])
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Failed to resolve' in finding['title'] and asset.type=="domain":
+                    new_tag = _add_asset_tags(asset, 'inactive-domain')
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Failed to resolve' in finding['title'] and asset.type=="ip":
+                    new_tag = _add_asset_tags(asset, 'inactive-ip')
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type=="domain":
+                    new_tag = _add_asset_tags(asset, 'active-domain')
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type=="ip":
+                    new_tag = _add_asset_tags(asset, 'active-ip')
+                    asset.categories.add(new_tag)
+                    asset.save()
+
                 # Create an event if logging level OK
                 Event.objects.create(
                     message="{} New finding: {}".format(evt_prefix, finding['title']),
@@ -584,6 +609,30 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         # Loop in missing findings
         for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
             missing_finding_alert(mf.id, scan.id, mf.severity)
+
+            # Remove Tags for missing findings
+            rawfinding = RawFinding.objects.filter(id=mf.id).first()
+            if 'is running on port' in rawfinding.title:
+                service = re.findall(r"'(.*?)'", rawfinding.title)
+                invalid_tag = _add_asset_tags(asset, service[0])
+                asset.categories.remove(invalid_tag)
+                asset.save()
+            if 'Failed to resolve' in rawfinding.title and asset.type=="domain":
+                invalid_tag = _add_asset_tags(asset, 'inactive-domain')
+                asset.categories.remove(invalid_tag)
+                asset.save()
+            if 'Failed to resolve' in rawfinding.title and asset.type=="ip":
+                invalid_tag = _add_asset_tags(asset, 'inactive-ip')
+                asset.categories.remove(invalid_tag)
+                asset.save()
+            if 'Host' in rawfinding.title and 'is up' in rawfinding.title and asset.type=="domain":
+                invalid_tag = _add_asset_tags(asset, 'active-domain')
+                asset.categories.remove(invalid_tag)
+                asset.save()
+            if 'Host' in rawfinding.title and 'is up' in rawfinding.title and asset.type=="ip":
+                invalid_tag = _add_asset_tags(asset, 'active-ip')
+                asset.categories.remove(invalid_tag)
+                asset.save()
 
     scan.save()
     Event.objects.create(message="{} Findings imported.".format(evt_prefix), type="INFO", severity="INFO", scan=scan)
