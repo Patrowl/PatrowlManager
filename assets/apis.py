@@ -140,7 +140,7 @@ def get_asset_trends_api(request, asset_id):
             'risk_grade': 'n/a',
             'date': str(enddate.date())}
 
-        for f in asset.finding_set.filter(created_at__lte=enddate).values("severity", "status"):
+        for f in asset.finding_set.filter(created_at__lte=enddate).exclude(Q(status='false-positive') | Q(status='duplicate')).values("severity", "status"):
             findings_stats['total'] = findings_stats.get('total') + 1
             findings_stats[f["severity"]] = findings_stats.get(f["severity"]) + 1
             if f["status"] == 'new':
@@ -420,6 +420,41 @@ def delete_assets_api(request):
 def delete_asset_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
     asset.delete()
+
+    return JsonResponse({'status': 'success'})
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager')
+def delete_asset_from_group_api(request, assetgroup_id, asset_id):
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
+    if asset in assetgroup.assets.all():
+        assetgroup.assets.remove(asset)
+    return JsonResponse({'status': 'success'})
+
+
+@api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
+def delete_assets_from_group_api(request, assetgroup_id):
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    for asset_id in request.data:
+        asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
+        if asset in assetgroup.assets.all():
+            assetgroup.assets.remove(asset)
+    return JsonResponse({'status': 'success'})
+
+
+@api_view(['POST'])
+@pro_group_required('AssetsManager')
+def update_groups_assets_api(request):
+    data = request.data
+    assets = data['assets']
+    group = data['group']
+    g = AssetGroup.objects.for_user(request.user).get(id=group)
+    for asset_id in assets:
+        a = Asset.objects.for_user(request.user).get(id=asset_id)
+        g.assets.add(a)
 
     return JsonResponse({'status': 'success'})
 

@@ -20,6 +20,7 @@ from engines.tasks import stopscan_task
 from findings.models import RawFinding
 from settings.models import Setting
 from events.models import AuditLog
+from django.db.models import Q
 
 from datetime import timedelta
 from pytz import timezone
@@ -106,6 +107,12 @@ def delete_scans_api(request):
     """Delete selected scans."""
     scans = request.data
     for scan_id in scans:
+        try:
+            scan = Scan.objects.for_user(request.user).get(id=scan_id)
+        except Scan.DoesNotExist:
+            continue
+
+        stopscan_task(scan_id=scan.id)
         Scan.objects.for_user(request.user).get(id=scan_id).delete()
     return JsonResponse({'status': 'success'})
 
@@ -361,21 +368,21 @@ def get_scan_report_html_api(request, scan_id):
 
     findings_stats = {
         "total": findings.count(),
-        "high": findings.filter(severity='high').count(),
-        "medium": findings.filter(severity='medium').count(),
-        "low": findings.filter(severity='low').count(),
+        "high": findings.filter(severity='high').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "medium": findings.filter(severity='medium').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "low": findings.filter(severity='low').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
         "info": findings.filter(severity='info').count(),
-        "critical": findings.filter(severity='critical').count()
+        "critical": findings.filter(severity='critical').exclude(Q(status='false-positive') | Q(status='duplicate')).count()
     }
 
     for asset in scan.assets.all():
         findings_stats.update({
             asset.value: {
                 "total": findings.filter(asset=asset).count(),
-                "critical": findings.filter(asset=asset, severity='critical').count(),
-                "high": findings.filter(asset=asset, severity='high').count(),
-                "medium": findings.filter(asset=asset, severity='medium').count(),
-                "low": findings.filter(asset=asset, severity='low').count(),
+                "critical": findings.filter(asset=asset, severity='critical').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+                "high": findings.filter(asset=asset, severity='high').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+                "medium": findings.filter(asset=asset, severity='medium').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+                "low": findings.filter(asset=asset, severity='low').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
                 "info": findings.filter(asset=asset, severity='info').count(),
             }
         })
