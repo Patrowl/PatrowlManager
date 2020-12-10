@@ -49,6 +49,8 @@ urlpatterns = [
     url(r'^api/v1/add$', apis.add_asset_api, name='add_asset_api'),
     # ex: /assets/api/v1/update_criticity
     url(r'^api/v1/update_criticity$', apis.update_criticity_assets_api, name='update_criticity_assets_api'),
+    # ex: /assets/api/v1/update_groups
+    url(r'^api/v1/update_groups$', apis.update_groups_assets_api, name='update_groups_assets_api'),
     # ex: /assets/api/v1/delete
     url(r'^api/v1/delete$', apis.delete_assets_api, name='delete_assets_api'),
     # ex: /assets/api/v1/delete/2
@@ -59,6 +61,10 @@ urlpatterns = [
     url(r'^api/v1/groups/add$', apis.add_asset_group_api, name='add_asset_group_api'),
     # ex: /assets/api/v1/groups/delete/2
     url(r'^api/v1/groups/delete/(?P<assetgroup_id>[0-9]+)$', apis.delete_assetgroup_api, name='delete_assetgroup_api'),
+    # ex: /assets/api/v1/groups/delete-assets/2
+    url(r'^api/v1/groups/delete-assets/(?P<assetgroup_id>[0-9]+)$', apis.delete_assets_from_group_api, name='delete_assets_from_group_api'),
+    # ex: /assets/api/v1/groups/delete-assets/2
+    url(r'^api/v1/groups/delete-asset/(?P<assetgroup_id>[0-9]+)/(?P<asset_id>[0-9]+)$', apis.delete_asset_from_group_api, name='delete_asset_from_group_api'),
     # ex: /assets/api/v1/groups/edit/2
     url(r'^api/v1/groups/edit/(?P<assetgroup_id>[0-9]+)$', apis.edit_assetgroup_api, name='edit_assetgroup_api'),
     # ex: /assets/api/v1/export/8

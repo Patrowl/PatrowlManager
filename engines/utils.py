@@ -158,6 +158,18 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         return False
 
     evt_prefix = f"{evt_prefix}[Job={position}]"
+
+    # Prepare max_timeout with priority:
+    # 1. Scan options ("max_scanjob_timeout": "99999") (--> TODO)
+    # 2. Engine policy options ("max_scanjob_timeout": "99999")
+    # 3. Application default value (SCAN_JOB_DEFAULT_TIMEOUT)
+
+    try:
+        if 'max_scanjob_timeout' in scan.scan_definition.engine_policy.options.keys() and scan.scan_definition.engine_policy.options['max_scanjob_timeout'].isnumeric():
+            max_timeout = int(scan.scan_definition.engine_policy.options['max_scanjob_timeout'])
+    except Exception:
+        pass
+
     timeout = time.time() + max_timeout
 
     # Check Scan status
@@ -184,7 +196,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         try:
             scan_job.assets.add(Asset.objects.get(id=asset_id))
         except Exception as e:
-            print("bad asset id:", asset_id, str(e))
+            print("Bad asset id:", asset_id, str(e))
             pass
 
     # -x- Select an engine instance
@@ -364,7 +376,6 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         #     return False
 
     except Exception as e:
-        # print(e.message)
         scan.update_status('error', 'finished_at')
         Event.objects.create(message=f"{evt_prefix} AfterScan - something goes wrong in 'getreport' call. Task aborted.", description="{}".format(e.message), type="ERROR", severity="ERROR", scan=scan)
         return False
@@ -502,6 +513,19 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             # Check if this finding is new (don't already exists)
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
+            #Check description . If CGI in text count the vulnerable parameteres . Only for Nessus
+            count__old_vuln_params =0
+            count__new_vuln_params =0
+            tmp_status = "new"
+            if scan.engine_type.name == "NESSUS" and "CGI" in finding['title']:
+
+                tmp_f_new_nessus = finding['title'].split('(')
+                tmp_f_new_nessus = tmp_f_new_nessus[:-1]
+                f_new_nessus = '('.join(tmp_f_new_nessus).strip()
+                f_nessus = Finding.objects.filter(asset=asset, title__istartswith=f_new_nessus).only('checked_at', 'status').first()
+                if f_nessus:
+                    tmp_status = "duplicate"
+
             if f is not None:
                 # We already see you
                 f.checked_at = timezone.now()
@@ -513,8 +537,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
                 known_findings_list.append(new_raw_finding.hash)
             else:
+                new_raw_finding.status = tmp_status
+                new_raw_finding.save()
                 # Raise an alert
-                new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+                if tmp_status != "duplicate":
+                    new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
                 # Create an event if logging level OK
                 Event.objects.create(
@@ -533,7 +560,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     severity    = finding['severity'],
                     description = finding['description'],
                     solution    = finding['solution'],
-                    status      = "new",
+                    status      = tmp_status,
                     engine_type = scan.engine_type.name,
                     risk_info   = risk_info,
                     vuln_refs   = vuln_refs,

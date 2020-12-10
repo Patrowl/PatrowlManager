@@ -39,7 +39,6 @@ def list_alerts_view(request):
                 'name': tu.organization.name
             })
 
-    page = request.GET.get('p_alerts', 1)
     status = request.GET.get('status', "")
     severity = request.GET.get('severity', "")
     alerts_list = []
@@ -47,26 +46,30 @@ def list_alerts_view(request):
         if status in ["archived", "read", "new"]:
             alerts_list = Alert.objects.for_team(request.user, teamid_selected).filter(status=status).order_by('-updated_at')
         else:
-            # alerts_list = Alert.objects.all().order_by('-updated_at')
             alerts_list = Alert.objects.for_team(request.user, teamid_selected).filter(status__in=["new", "read"]).order_by('-updated_at')
     else:
         if status in ["archived", "read", "new"]:
             alerts_list = Alert.objects.for_user(request.user).filter(status=status).order_by('-updated_at')
         else:
-            # alerts_list = Alert.objects.all().order_by('-updated_at')
             alerts_list = Alert.objects.for_user(request.user).filter(status__in=["new", "read"]).order_by('-updated_at')
 
     if severity in ["info", "low", "medium", "high", "critical"]:
         alerts_list = alerts_list.filter(severity=severity)
 
-    paginator = Paginator(alerts_list, 50)
+    nb_alerts = alerts_list.count()
+    # Pagination assets
+    nb_rows = int(request.GET.get('n', 20))
+    alert_paginator = Paginator(alerts_list, nb_rows)
+    page = request.GET.get('p_alerts', 1)
     try:
-        alerts = paginator.page(page)
+        alerts = alert_paginator.page(page)
     except PageNotAnInteger:
-        alerts = paginator.page(1)
+        alerts = alert_paginator.page(1)
     except EmptyPage:
-        alerts = paginator.page(paginator.num_pages)
+        alerts = alert_paginator.page(alert_paginator.num_pages)
+
     return render(request, 'list-alerts.html', {
         'alerts': alerts,
+        'nb_alerts': nb_alerts,
         'teams': teams
     })
