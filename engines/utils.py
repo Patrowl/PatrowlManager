@@ -158,6 +158,18 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         return False
 
     evt_prefix = f"{evt_prefix}[Job={position}]"
+
+    # Prepare max_timeout with priority:
+    # 1. Scan options ("max_scanjob_timeout": "99999") (--> TODO)
+    # 2. Engine policy options ("max_scanjob_timeout": "99999")
+    # 3. Application default value (SCAN_JOB_DEFAULT_TIMEOUT)
+
+    try:
+        if 'max_scanjob_timeout' in scan.scan_definition.engine_policy.options.keys() and scan.scan_definition.engine_policy.options['max_scanjob_timeout'].isnumeric():
+            max_timeout = int(scan.scan_definition.engine_policy.options['max_scanjob_timeout'])
+    except Exception:
+        pass
+
     timeout = time.time() + max_timeout
 
     # Check Scan status
@@ -184,7 +196,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         try:
             scan_job.assets.add(Asset.objects.get(id=asset_id))
         except Exception as e:
-            print("bad asset id:", asset_id, str(e))
+            print("Bad asset id:", asset_id, str(e))
             pass
 
     # -x- Select an engine instance

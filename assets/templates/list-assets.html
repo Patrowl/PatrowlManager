@@ -50,7 +50,7 @@ function toggle(source, element) {
         <div class="row" style="margin-top: 5px;">
 
           <div class="dropdown col-sm-1 div-override" style="">
-            <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="dropdown-menu-sort" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="height: 32px;">
+            <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-sort" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="height: 32px;">
               Actions
               <span class="caret"></span>
             </button>
@@ -74,44 +74,41 @@ function toggle(source, element) {
               <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
               {% endif %}
             </ul>
-
           </div>
 
           <!-- search bar -->
           <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
-                <input type="text" placeholder="Quick search..." class="form-control form-control-xs search-input" id="asset-quick-search-name" style="height: 32px;
-    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-    border: 1px solid #ced4da;"/>
-                </div>
-
-        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
-              <select id="asset-quick-search-type" name="asset-quick-search-type" multiple placeholder="Type...">
-                  {% for asset in assets|dictsort:'type' %}
-                      {% ifchanged %}<option value="{{ asset.type }}">{{ asset.type }}</option>{% endifchanged %}
-                  {% endfor %}
-                </select>
-        </div>
-        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
-                <select id="asset-quick-search-criticity" name="asset-quick-search-criticity" multiple placeholder="Criticality...">
-                  {% for asset in assets %}
-                      {% ifchanged %}<option value="{{ asset.criticity }}">{{ asset.criticity }}</option>{% endifchanged %}
-                  {% endfor %}
-                </select>
-        </div>
-        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
-                <select id="asset-quick-search-tag" name="asset-quick-search-tag" multiple placeholder="Tags...">
-                    {% for tag in tags %}
-                      {% ifchanged %}<option value="{{ tag }}">{{ tag }}</option>{% endifchanged %}
-                  {% endfor %}
-                </select>
-        </div>
-        <div class="has-feedback col-sm-1" style="padding-left: 5px; padding-right: 5px;">
-                <button type="submit" class="asset-quick-search search-input-button" style="height: 32px;">Search</button>
-            <!--<i class="form-control-xs-feedback glyphicon glyphicon-search" style="color: #b4bcc2;"></i>-->
+            <input type="text" placeholder="Quick search..." class="form-control form-control-xs search-input" id="asset-quick-search-name" style="height: 32px; transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out; border: 1px solid #ced4da;"/>
           </div>
 
-          <div class="dropdown col-sm-1 div-override" style="padding-left: 0px;">
-            <button class="btn btn-primary btn-xs dropdown-toggle" style="height: 32px;" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
+          <select id="asset-quick-search-type" name="asset-quick-search-type" multiple placeholder="Type...">
+          {% for asset in assets|dictsort:'type' %}
+            {% ifchanged %}<option value="{{ asset.type }}">{{ asset.type }}</option>{% endifchanged %}
+          {% endfor %}
+          </select>
+        </div>
+        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
+          <select id="asset-quick-search-criticity" name="asset-quick-search-criticity" multiple placeholder="Criticality...">
+            {% for asset in assets %}
+                {% ifchanged %}<option value="{{ asset.criticity }}">{{ asset.criticity }}</option>{% endifchanged %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 0px;">
+          <select id="asset-quick-search-tag" name="asset-quick-search-tag" multiple placeholder="Tags...">
+              {% for tag in tags %}
+                {% ifchanged %}<option value="{{ tag }}">{{ tag }}</option>{% endifchanged %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-1" >
+            <button type="submit" class="btn btn-primary btn-sm btn-block asset-quick-search search-input-button" >Search</button>
+        <!--<i class="form-control-xs-feedback glyphicon glyphicon-search" style="color: #b4bcc2;"></i>-->
+        </div>
+
+          <div class="dropdown col-sm-2 div-override" style="padding-left: 0px;">
+            <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
               Sort by
               <span class="caret"></span>
             </button>
@@ -123,7 +120,7 @@ function toggle(source, element) {
               <li><a onclick="sortby('type', 'assets');">Type</a></li>
               <li><a onclick="sortby('-updated_at', 'assets');">Last update</a></li>
             </ul>
-            <button class="btn btn-primary btn-xs" style="height: 32px;" type="button" onclick="location.href='{% url "list_assets_view" %}'">
+            <button class="btn btn-warning btn-sm" type="button" onclick="location.href='{% url "list_assets_view" %}'">
               Reset
             </button>
           </div>
