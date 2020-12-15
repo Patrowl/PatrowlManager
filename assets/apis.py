@@ -222,6 +222,8 @@ def refresh_all_asset_grade_api(request):
         asset.calc_risk_grade()
     for assetgroup in AssetGroup.objects.for_user(request.user).all():
         assetgroup.calc_risk_grade()
+    for owner in AssetOwner.objects.all():
+        owner.calc_risk_grade()
     return redirect('list_assets_view')
 
 
@@ -883,3 +885,23 @@ def add_asset_owner_contact_api(request, asset_owner_id):
         owner.save()
 
     return redirect('details_asset_owner_view', asset_owner_id=asset_owner_id)
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager')
+def delete_asset_from_owner_api(request, asset_owner_id, asset_id):
+    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
+    asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
+    if asset in owner.assets.all():
+        owner.assets.remove(asset)
+    return JsonResponse({'status': 'success'})
+
+
+@api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
+def delete_assets_from_owner_api(request, asset_owner_id):
+    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
+    for asset_id in request.data:
+        asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
+        if asset in owner.assets.all():
+            owner.assets.remove(asset)
+    return JsonResponse({'status': 'success'})
