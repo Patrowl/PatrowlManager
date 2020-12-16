@@ -358,6 +358,24 @@ function toggle(source, element) {
 							</div>
             </div>
 
+              <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_own_label">Finding owner</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_own_condition">
+	                <option value="exact">is</option>
+	                <option value="not_exact">is not</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+                                <select class="form-control input-sm" id="filter_finding_own_input">
+                                <option value=""></option>
+                                    {% for owner in owners %}
+                                    <option value="{{ owner.id }}">{{ owner.name }}</option>
+                                    {% endfor %}
+                                    </select>
+							</div>
+            </div>
+
             <!-- <div class="form-group">
               <label class="col-sm-2 control-label" for="filter_asset_tags">Asset tags</label>
 							<div class="col-sm-1">
@@ -454,6 +472,10 @@ function toggle(source, element) {
 			if ($('input#filter_finding_ref_input').val() != "") {
 				filter_findings_url+="&_reference="+$('#filter_finding_ref_input').val();
 				filter_findings_url+="&_reference_cond="+$('#filter_finding_ref_condition').val();
+			}
+			if ($('input#filter_finding_own_input').val() != "") {
+				filter_findings_url+="&_owner="+$('#filter_finding_own_input').val();
+				filter_findings_url+="&_owner_cond="+$('#filter_finding_own_condition').val();
 			}
 
       // Set the team

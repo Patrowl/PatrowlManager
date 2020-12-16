@@ -3,6 +3,7 @@
 from django.conf import settings
 from .models import Finding
 from .forms import FindingForm
+from assets.models import AssetOwner
 
 import datetime
 
@@ -38,6 +39,9 @@ def _search_findings(request):
     filter_by_reference_id = request.GET.get('_reference_cond', None)
     # filter_by_reference_cond = request.GET.get('_reference_cond', None)
 
+    filter_by_owner = request.GET.get('_owner', None)
+    filter_by_owner_cond = request.GET.get('_owner_cond', None)
+
     filter_limit = request.GET.get('limit', None)
 
     filters = {}
@@ -69,6 +73,14 @@ def _search_findings(request):
             filters.update({"severity__{}".format(filter_by_severity_cond): filter_by_severity})
         elif filter_by_severity_cond == "not_exact":
             excludes.update({"severity__{}".format(filter_by_severity_cond[4:]): filter_by_severity})
+
+    # Filter by finding owner
+    if filter_by_owner and int(filter_by_owner) in AssetOwner.objects.all().values_list('id', flat=True):
+        if filter_by_owner_cond == "exact" or filter_by_owner_cond is None:
+            filter_by_owner_cond = "exact"
+            filters.update({"asset__assetowner__{}".format(filter_by_owner_cond): filter_by_owner})
+        elif filter_by_owner_cond == "not_exact":
+            excludes.update({"asset__assetowner__{}".format(filter_by_owner_cond[4:]): filter_by_owner})
 
     # Filter by finding status
     if filter_by_status and filter_by_status in ["ack", "new", "mitigated", "patched", "closed", "false-positive", "undone", "duplicate"]:
