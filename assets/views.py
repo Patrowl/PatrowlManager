@@ -190,12 +190,14 @@ def list_assets_view(request):
         asset_groups.append(ag)
 
     tags = assets_list.values_list('categories__value', flat=True).order_by('categories__value').distinct()
+    owners = AssetOwner.objects.all()
 
     return render( request, 'list-assets.html', {
         'assets': assets,
         'asset_groups': asset_groups,
         'teams': teams,
-        'tags': tags
+        'tags': tags,
+        'owners': owners
     })
 
 
