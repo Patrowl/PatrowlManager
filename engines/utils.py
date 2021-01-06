@@ -171,6 +171,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         pass
 
     timeout = time.time() + max_timeout
+    Event.objects.create(message="{} BeforeScan - ScanJob timeout: {}.".format(evt_prefix, timeout), type="INFO", severity="INFO", scan=scan)
 
     # Check Scan status
     if scan.status not in ["started", "enqueued"]:
@@ -190,6 +191,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         started_at=timezone.now(),
     )
     scan_job.save()
+    Event.objects.create(message="{} DuringScan - ScanJob id: {}.".format(evt_prefix, scan_job.id), type="INFO", severity="INFO", scan=scan)
 
     # Set the assets
     for asset_id in assets_subset:
@@ -285,7 +287,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
             except Exception:
                 pass
 
-            Event.objects.create(message="{} DuringScan - something goes wrong (response_status_code={}, response_status={}, response_details={}). Task aborted.".format(evt_prefix, resp.status_code, json.loads(resp.text)['status'], response_reason),
+            Event.objects.create(message="{} DuringScan - Something goes wrong (response_status_code={}, response_status={}, response_details={}). Task aborted.".format(evt_prefix, resp.status_code, json.loads(resp.text)['status'], response_reason),
                 description=str(resp.text), type="ERROR", severity="ERROR", scan=scan)
             return False
     except requests.exceptions.RequestException as e:

@@ -97,6 +97,10 @@ def get_scans_api(request):
 def delete_scan_api(request, scan_id):
     """Delete selected scan."""
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
+
+    if scan.status not in ['finished', 'error']:
+        res = stopscan_task.apply_async(args=[scan.id], queue='scanmgt', retry=True, ignore_result=False)
+        res.get()
     scan.delete()
     return JsonResponse({'status': 'success'})
 
@@ -112,7 +116,10 @@ def delete_scans_api(request):
         except Scan.DoesNotExist:
             continue
 
-        stopscan_task(scan_id=scan.id)
+        # Stop scans if possible
+        if scan.status not in ['finished', 'error']:
+            res = stopscan_task.apply_async(args=[scan.id], queue='scanmgt', retry=True, ignore_result=False)
+            res.get()
         Scan.objects.for_user(request.user).get(id=scan_id).delete()
     return JsonResponse({'status': 'success'})
 
