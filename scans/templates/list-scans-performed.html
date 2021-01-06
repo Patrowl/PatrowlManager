@@ -141,6 +141,7 @@ input:checked + label {
         <th data-field="title">Title</th>
         <th data-field="status">Status</th>
         <th data-field="progress" style="width:20%">Progress</th>
+        <th data-field="finished_at">Finished at</th>
         <th data-field="updated_at">Last update</th>
         <th data-field="actions">Actions</th>
       </tr>
@@ -194,6 +195,7 @@ input:checked + label {
             {% endif %}
           </div>
         </td>
+        <td>{{ scan.finished_at|smartdate }}</td>
         <td>{{ scan.updated_at|smartdate }}</td>
         <td>
           <button type="button" class="btn btn-default btn-xs" title="Details" onclick="location.href='/scans/details/{{ scan.id }}'">
@@ -500,6 +502,7 @@ input:checked + label {
           }
           scan_row_html += "\
             </div></td>\
+            <td>"+data[i]["finished_at"]+"</td>\
             <td>"+data[i]["updated_at"]+"</td>"
           scan_row_html += "\
             <td>\
