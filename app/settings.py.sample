@@ -8,7 +8,7 @@ with open("VERSION") as v_file:
     PATROWL_VERSION = v_file.read()
 
 # GUI update frequency (ms)
-PATROWL_REFRESH_ENGINE = os.environ.get('PATROWL_REFRESH_ENGINE', 7000)
+PATROWL_REFRESH_ENGINE = int(os.environ.get('PATROWL_REFRESH_ENGINE', 7000))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -215,7 +215,7 @@ DATABASES = {
         'USER': os.environ.get('DB_ENV_POSTGRES_USER', 'PATROWL_DB_USER'),
         'PASSWORD': os.environ.get('DB_ENV_POSTGRES_PASSWORD', 'PATROWL_DB_PASSWD_TO_CHANGE'),
         'HOST': os.environ.get('DB_PORT_5432_TCP_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT_5432_TCP_PORT', ''),
+        'PORT': int(os.environ.get('DB_PORT_5432_TCP_PORT', 5432)),
         'OPTIONS': {
             'options': os.environ.get('DB_ENV_POSTGRES_OPTIONS', '')
         },
@@ -262,7 +262,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Scan timeout
-SCAN_TIMEOUT = os.environ.get('SCAN_TIMEOUT', 600)
+#SCAN_TIMEOUT = os.environ.get('SCAN_TIMEOUT', 600)
+ENGINE_HTTP_TIMEOUT = int(os.environ.get('ENGINE_HTTP_TIMEOUT', 600))
 
 # RABBITMQ
 RABBIT_HOSTNAME = os.environ.get('RABBIT_PORT_5672_TCP', 'localhost:5672')
@@ -304,31 +305,31 @@ CELERY_ACKS_LATE = True
 
 
 # Email settings
-#EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', True)
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
 # EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', '').lower() in ['true', '1', 'yes', 'y', 'on']
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'test@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'test')
-EMAIL_PORT = os.environ.get('EMAIL_PORT', 587)
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 
 # Monitoring APIs
-SUPERVISORD_API_URL = 'http://localhost:9001/RPC2'
-CELERYFLOWER_API_URL = 'http://localhost:5555/api/'
+SUPERVISORD_API_URL = os.environ.get('SUPERVISORD_API_URL', 'http://localhost:9001/RPC2')
+#CELERYFLOWER_API_URL = 'http://localhost:5555/api/'
 
 # More settings
-HTTP_REQUEST_MAX_TIMEOUT = int(os.environ.get('HTTP_REQUEST_MAX_TIMEOUT', 600))
-SCAN_JOB_DEFAULT_MAX_TIMEOUT = int(os.environ.get('SCAN_JOB_DEFAULT_MAX_TIMEOUT', 600))
+#HTTP_REQUEST_MAX_TIMEOUT = int(os.environ.get('HTTP_REQUEST_MAX_TIMEOUT', 600))
+#SCAN_JOB_DEFAULT_MAX_TIMEOUT = int(os.environ.get('SCAN_JOB_DEFAULT_MAX_TIMEOUT', 600))
 SCAN_JOB_DEFAULT_TIMEOUT = int(os.environ.get('SCAN_JOB_DEFAULT_TIMEOUT', 7200))
-ASSETS_MAX = os.environ.get('PATROWL_ASSETS_MAX', 100000000)
-ASSETS_MARGIN = os.environ.get('PATROWL_ASSETS_MARGIN', 10)
-ASSETGROUPS_MAX = os.environ.get('PATROWL_ASSETGROUPS_MAX', 100000000)
-USERS_MAX = os.environ.get('PATROWL_USERS_MAX', 5)
-SCAN_DEFINITIONS_MAX = os.environ.get('PATROWL_SCAN_DEFINITIONS_MAX', 5)
-FINDINGS_MAX = os.environ.get('PATROWL_FINDINGS_MAX', -1)
-ENGINES_MAX = os.environ.get('PATROWL_ENGINES_MAX', 5)
-ENGINE_POLICIES_MAX = os.environ.get('PATROWL_ENGINE_POLICIES_MAX', 100)
-ENGINES_MANAGE_ENABLED = os.environ.get('PATROWL_ENGINES_MANAGE_ENABLED', True)
+SCAN_JOB_DEFAULT_SPLIT_ASSETS = int(os.environ.get('SCAN_JOB_DEFAULT_SPLIT_ASSETS', 100))
+ASSETS_MAX = int(os.environ.get('PATROWL_ASSETS_MAX', 100000000))
+ASSETS_MARGIN = int(os.environ.get('PATROWL_ASSETS_MARGIN', 10))
+ASSETGROUPS_MAX = int(os.environ.get('PATROWL_ASSETGROUPS_MAX', 100000000))
+USERS_MAX = int(os.environ.get('PATROWL_USERS_MAX', 5))
+SCAN_DEFINITIONS_MAX = int(os.environ.get('PATROWL_SCAN_DEFINITIONS_MAX', 5))
+FINDINGS_MAX = int(os.environ.get('PATROWL_FINDINGS_MAX', -1))
+ENGINES_MAX = int(os.environ.get('PATROWL_ENGINES_MAX', 5))
+ENGINE_POLICIES_MAX = int(os.environ.get('PATROWL_ENGINE_POLICIES_MAX', 100))
+ENGINES_MANAGE_ENABLED = os.environ.get('PATROWL_ENGINES_MANAGE_ENABLED', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
 
 ## Pro edition - Load extra settings
 PRO_EDITION = os.environ.get('PRO_EDITION', "").lower() in ['true', '1', 'yes', 'y', 'on']
