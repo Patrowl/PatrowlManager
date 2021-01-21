@@ -34,6 +34,8 @@
         <td>
           {% if rule.condition.keys|join:"" == "__exact" %}
             is '{{rule.condition|keyvalue:"__exact"}}'
+          {% elif rule.condition.keys|join:"" == "__icontains" %}
+            contains '{{rule.condition|keyvalue:"__icontains"}}'
           {% else %}
             {{ rule.condition }}
           {% endif %}

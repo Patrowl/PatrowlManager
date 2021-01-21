@@ -7,7 +7,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.mail import send_mail
-from events.models import Event, AuditLog
+from events.models import Event, AuditLog, Alert
 from settings.models import Setting
 from django_celery_beat.models import PeriodicTask
 
@@ -16,12 +16,14 @@ import requests
 import uuid
 import inspect
 from thehive4py.api import TheHiveApi
-from thehive4py.models import Alert, AlertArtifact
+from thehive4py.models import Alert as THAlert
+from thehive4py.models import AlertArtifact as THAlertArtifact
 
 RULE_SCOPES = (
     ('asset', 'Asset'),
     ('finding', 'Finding'),
     ('scan', 'Scan'),
+    ('alert', 'Alert'),
 )
 
 RULE_SCOPE_ATTRIBUTES = {
@@ -45,7 +47,12 @@ RULE_SCOPE_ATTRIBUTES = {
         },
     "scan": {
         'status': {"type": "text"},
-        },
+    },
+    "alert": {
+        'title': {"type": "text"},
+        'severity': {"type": "list", "values": ['info', 'low', 'medium', 'high', 'critical']},
+        'status': {"type": "list", "values": ['new', 'read', 'archived']},
+    },
 }
 
 RULE_TARGETS = (
@@ -55,6 +62,7 @@ RULE_TARGETS = (
     ('thehive', 'TheHive Event'),
     # ('splunk',  'To Splunk'),
     ('slack',   'Slack'),
+    ('alert',   'Alert'),
 )
 
 RULE_TRIGGERS = (
@@ -80,9 +88,11 @@ RULE_CONDITIONS = {
 }
 
 RULE_SEVERITIES = (
+    ('Info', 'Info'),
     ('Low', 'Low'),
     ('Medium', 'Medium'),
     ('High', 'High'),
+    ('Critical', 'Critical'),
 )
 
 
@@ -115,13 +125,16 @@ class Rule(models.Model):
             self.updated_at = timezone.now()
         return super(Rule, self).save(*args, **kwargs)
 
-    def notify(self, message="", asset=None, description=""):
+    def notify(self, message="", asset=None, description="", finding=None):
+        # print('into Rule.notify()')
         if self.target == 'email':
             send_email_message(self, message, description)
         elif self.target == 'slack':
             send_slack_message(self, message)
         elif self.target == 'thehive':
             send_thehive_message(self, message, asset, description)
+        elif self.target == 'alert':
+            send_alert_message(self, message, description, finding)
         elif self.target == 'event':
             Event.objects.create(
                 message="[Alert][Rule={}]{}".format(self.title, message),
@@ -158,8 +171,47 @@ def rule_delete_log(sender, **kwargs):
         request_context=inspect.stack())
 
 
-def send_alert_message(rule, message, description):
-    # @todo
+def send_alert_message(rule, message, description, finding):
+    severity = rule.severity.lower()
+    # Set default severity
+    if severity not in ['info', 'low', 'medium', 'high', 'critical']:
+        severity = 'info'
+
+    if finding is None:
+        AuditLog.objects.create(
+            message='Failed alert: {}'.format(message),
+            scope='rule', type='rule_send_alert',
+            request_context=inspect.stack())
+        return
+
+    # asset_id = None
+    # asset = Asset.objects.filter(value=finding.asset_name).first()
+    # if asset is not None:
+    #     asset_id = asset.id
+
+    alert = Alert.objects.create(
+        message=message,
+        status='new',
+        severity=severity,
+        metadata={
+            "finding_id": finding.id,
+            "finding_title": finding.title,
+            "scan_id": finding.scan.id,
+            "asset_name": finding.asset_name,
+            "asset_id": finding.asset.id
+        },
+        owner=finding.owner
+    )
+    if finding.asset is not None and finding.asset.teams.count() > 0:
+        for team in finding.asset.teams.all():
+            alert.teams.add(team)
+        alert.save()
+
+    AuditLog.objects.create(
+        message=message,
+        scope='rule', type='rule_send_alert',
+        request_context=inspect.stack())
+
     return True
 
 
@@ -237,9 +289,9 @@ def send_thehive_message(rule, message, asset, description):
         tlp = 3
 
     if asset:
-        artifacts = [AlertArtifact(dataType=asset.type, data=asset.value)]
+        artifacts = [THAlertArtifact(dataType=asset.type, data=asset.value)]
         try:
-            alert = Alert(
+            alert = THAlert(
                         title=alert_message,
                         tlp=tlp,
                         severity=rule_severity,

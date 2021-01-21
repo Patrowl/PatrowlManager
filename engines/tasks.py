@@ -27,7 +27,7 @@ from copy import deepcopy
 NB_MAX_RETRIES = 5
 SLEEP_RETRY = 5
 PROXIES = settings.PROXIES
-TIMEOUT = settings.SCAN_TIMEOUT  # 10 minutes by default
+TIMEOUT = settings.ENGINE_HTTP_TIMEOUT  # 10 minutes by default
 
 
 @shared_task(bind=True, acks_late=True)

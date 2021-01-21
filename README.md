@@ -9,7 +9,6 @@
 
 
 
-
 # **PatrOwl**
 [PatrOwl](https://www.patrowl.io/) is a scalable, free and open-source solution for orchestrating Security Operations.  
 **PatrowlManager** is the Front-end application for managing the assets, reviewing risks on real-time, orchestrating the operations (scans, searches, API calls, ...), aggregating the results, relaying alerts on third parties (ex: Incident Response platform like [TheHive](https://github.com/TheHive-Project/TheHive/), Splunk, ...) and providing the reports and dashboards. Operations are performed by the [PatrowlEngines](https://github.com/Patrowl/PatrowlEngines/) instances. Don't forget to install and deploy them ;)
@@ -29,14 +28,14 @@ The PatrowlManager application is reachable using the embedded WEB interface or 
 PatrOwl is an open source and free software released under the [AGPL](https://github.com/Patrowl/PatrowlManager/blob/master/LICENSE) (Affero General Public License). We are committed to ensure that PatrOwl will remain a free and open source project on the long-run.
 
 # Updates
-Information, news and updates are regularly posted on [Patrowl.io Twitter account](https://twitter.com/patrowl_io) and on [the blog](https://blog.patrowl.io/).
+Information, news and updates are regularly posted on [Patrowl.io Twitter account](https://twitter.com/patrowl_io).
 
 # Contributing
 Please see our [Code of conduct](https://github.com/Patrowl/PatrowlDocs/blob/master/support/code_of_conduct.md). We welcome your contributions. Please feel free to fork the code, play with it, make some patches and send us pull requests via [issues](https://github.com/Patrowl/PatrowlManager/issues).
 
 # Roadmap
 - [ ] Enhance finding states management
-- [ ] Support scan campaigns (multiple scan definition)
+- [ ] Support scan campaigns (multiple scan definition at once)
 - [ ] Support cache
 - [ ] Refactor static files (remove unused ?)
 
@@ -56,9 +55,9 @@ A commercial Pro Edition is available and officially supported by the PatrOwl co
 - [x] Terraform+Ansible deployment scripts
 - [x] Pro Engines including: ZAP, Nikto, Microsoft Cloud App Security, CloudSploit and Onyphe
 - [x] Pro Support
-- [ ] Autonomous asset discovery (in progress, planned to Q3 2020)
-- [ ] Vulnerability prioritization (in progress, planned to Q3 2020)
-- [ ] Ticketing system integration, including JIRA, ServiceNow, ZenDesk and GLPI (in progress, planned to Q4 2020)
+- [ ] Autonomous asset discovery (in progress, planned to Q2 2021)
+- [ ] Vulnerability prioritization (in progress, planned to Q1 2021)
+- [ ] Ticketing system integration, including JIRA, ServiceNow, ZenDesk and GLPI (in progress, planned to Q2 2021)
 
 This version is also available on the official SaaS platform.
 See: https://patrowl.io/get-started
@@ -70,7 +69,7 @@ Looking for advanced support, training, integration, custom developments, dual-l
 Please disclose any security-related issues or vulnerabilities by emailing security@patrowl.io, instead of using the public issue tracker.
 
 # Copyright
-Copyright (C) 2018-2020 Nicolas MATTIOCCO ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
+Copyright (C) 2018-2021 Nicolas MATTIOCCO ([@MaKyOtOx](https://twitter.com/MaKyOtOx) - nicolas@greenlock.fr)
 
 # Travis build status
 | Branch  | Status  |

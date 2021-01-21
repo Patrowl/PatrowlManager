@@ -158,7 +158,7 @@ class RawFinding(models.Model):
         else:
             rules = Rule.objects.filter(enabled=True, scope='finding', trigger=trigger)
         nb_matches = 0
-        for rule in rules:
+        for rule in rules.exclude(target='alert'):
             rck, rcv = list(rule.condition.items())[0]
             kwargs = {
                 "id": self.id,
@@ -168,6 +168,15 @@ class RawFinding(models.Model):
             if RawFinding.objects.filter(**kwargs):
                 nb_matches += 1
                 rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
+        for rule in rules.filter(target='alert'):
+            rck, rcv = list(rule.condition.items())[0]
+            kwargs = {
+                "id": self.id,
+                rule.scope_attr + rck: rcv
+            }
+            for rf in RawFinding.objects.filter(**kwargs):
+                nb_matches += 1
+                rule.notify(message="[Rule={}]".format(rule.title), asset=self.asset, description=self.description, finding=rf)
         return nb_matches
 
 
