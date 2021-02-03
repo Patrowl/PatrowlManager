@@ -532,20 +532,30 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
                 # Auto Add tag
-                if 'is running on port' in finding['title']:
-                    service = re.findall(r"'(.*?)'", finding['title'])
-                    new_tag = _add_asset_tags(asset,service[0])
+                if asset.type == "ip":
+                    new_tag = _add_asset_tags(asset, 'inactive-ip')
                     asset.categories.add(new_tag)
                     asset.save()
-                if 'Failed to resolve' in finding['title'] and asset.type=="domain":
+                if 'is running on port' in finding['title']:
+                    service = re.findall(r"'(.*?)'", finding['title'])
+                    new_tag = _add_asset_tags(asset, service[0])
+                    Event.objects.create(
+                        message="[EngineTasks/_import_findings()/scan_id={}] New Tag: {}".format(scan_id, service[0]),
+                        description="Asset: {}\nFinding: {}".format(asset.value, finding['title']), type="DEBUG",
+                        severity="INFO", scan=scan)
+                    asset.categories.add(new_tag)
+                    asset.save()
+                if 'Failed to resolve' in finding['title'] and asset.type == "domain":
                     new_tag = _add_asset_tags(asset, 'inactive-domain')
                     asset.categories.add(new_tag)
                     asset.save()
-                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type=="domain":
+                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type == "domain":
                     new_tag = _add_asset_tags(asset, 'active-domain')
                     asset.categories.add(new_tag)
                     asset.save()
-                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type=="ip":
+                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type == "ip":
+                    invalid_tag = _add_asset_tags(asset, 'inactive-ip')
+                    asset.categories.remove(invalid_tag)
                     new_tag = _add_asset_tags(asset, 'active-ip')
                     asset.categories.add(new_tag)
                     asset.save()
