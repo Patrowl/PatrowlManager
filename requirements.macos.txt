@@ -7,7 +7,7 @@ certifi==2017.4.17
 chardet==3.0.4
 coreapi==2.3.3
 coreschema==0.0.4
-Django==2.2.17
+Django==2.2.18
 #django-celery-beat==1.1.1
 django-celery-beat==2.0.0
 django-celery-results==1.1.2
@@ -25,7 +25,7 @@ gunicorn==20.0.4
 idna==2.5
 importlib-metadata==0.23
 itypes==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 jsonfield==2.0.2
 kombu==4.6.4
 libmagic==1.0
