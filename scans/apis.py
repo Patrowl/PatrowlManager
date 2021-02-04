@@ -98,7 +98,7 @@ def delete_scan_api(request, scan_id):
     """Delete selected scan."""
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
 
-    if scan.status not in ['finished', 'error']:
+    if scan.status not in ['finished', 'error'] and scan.scan_definition.scan_type != 'single':
         res = stopscan_task.apply_async(args=[scan.id], queue='scanmgt', retry=True, ignore_result=False)
         res.get()
     scan.delete()
@@ -117,7 +117,7 @@ def delete_scans_api(request):
             continue
 
         # Stop scans if possible
-        if scan.status not in ['finished', 'error']:
+        if scan.status not in ['finished', 'error'] and scan.scan_definition.scan_type != 'single':
             res = stopscan_task.apply_async(args=[scan.id], queue='scanmgt', retry=True, ignore_result=False)
             res.get()
         Scan.objects.for_user(request.user).get(id=scan_id).delete()

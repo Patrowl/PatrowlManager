@@ -101,7 +101,6 @@ def list_assets_view(request):
         for tag in filter_tag:
             assets_list = assets_list.filter(categories__value=tag)
 
-
     # Query
     if teamid_selected >= 0:
         assets_list = assets_list.filter(filters).annotate(
