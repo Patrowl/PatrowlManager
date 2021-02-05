@@ -17,13 +17,12 @@ import time
 import datetime
 import uuid
 from copy import deepcopy
+from settings.models import Setting
 # import logging
 # logger = logging.getLogger(__name__)
 
 HTTP_REQUEST_MAX_TIMEOUT=getattr(settings, 'HTTP_REQUEST_MAX_TIMEOUT', 60)
-SCAN_JOB_DEFAULT_TIMEOUT=getattr(settings, 'SCAN_JOB_DEFAULT_TIMEOUT', 7200)
-SCAN_JOB_DEFAULT_SPLIT_ASSETS=getattr(settings, 'SCAN_JOB_DEFAULT_SPLIT_ASSETS', 100)
-NB_MAX_RETRIES=5
+
 
 
 def _get_engine_status(engine):
@@ -309,7 +308,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         else:
             Event.objects.create(message="{} DuringScan - bad scanner status: {} (retries left={}).".format(evt_prefix, scan_status, retries), type="ERROR", severity="ERROR", scan=scan)
             retries -= 1
-        time.sleep(5)
+        time.sleep(delay_engine_requests)
         scan_status = _get_scan_status(engine=engine_inst, scan_id=scan_job.id)
         print("scan status (in loop): {}".format(scan_status))
 
