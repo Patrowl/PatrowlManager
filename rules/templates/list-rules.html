@@ -141,6 +141,51 @@
     </tbody>
   </table>
 
+  <!-- Pagination -->
+  <div style="display: inline-flex;">
+    <ul class="pagination pagination-xs">
+      {% if rules.number == 1 %}
+        <li class="disabled"><span>&laquo;&laquo;</span></li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'rules');">&laquo;&laquo;</a></li>
+      {% endif %}
+      {% if rules.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href= "#" onclick="gotopage({{ rules.previous_page_number }}, 'rules');">&laquo;</a>
+      </li>
+      {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+      {% endif %}
+
+      {% for i in rules.paginator|proper_paginate:rules.number %}
+        {% if rules.number == i %}
+            <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'rules');">{{ i }}</a></li>
+        {% endif %}
+      {% endfor %}
+      {% if rules.has_next %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{rules.next_page_number}}, 'rules');">&raquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&raquo;</span></li>
+      {% endif %}
+      {% if rules.number == rules.paginator.num_pages %}
+        <li class="disabled"><span>⇥</span></li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{rules.paginator.num_pages}}, 'rules');">&raquo;&raquo;</a></li>
+      {% endif %}
+    </ul>
+    <div style="margin: 21px;">
+      <select id="nb_rows_per_page" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+        <option value="20" selected>20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+      </select>
+      rules per page
+    </div>
+  </div>
+
 
   {% if messages %}
   <ul class="messages">
@@ -179,6 +224,13 @@
 </div>
 
 <script>
+
+  url = new URL(window.location.href);
+
+  var gotopage = function gotopage(page_num, target = "rules") {
+    url.searchParams.set("page", page_num);
+    window.location = url.search;
+  };
 
   $(function() {
 
@@ -363,6 +415,21 @@
           if (response.status == 'success'){location.reload()}
         });
       }
+    });
+
+
+    // Manage nb_rows_per_page
+    _nb_rows = url.searchParams.get("n");
+    if (typeof _nb_rows === "undefined") {
+
+    } else {
+      $('#nb_rows_per_page').val(_nb_rows);
+    }
+
+    $('#nb_rows_per_page').change(function(e){
+      nb_rows = e.target.value;
+      url.searchParams.set("n", nb_rows);
+      window.location = url.search;
     });
 
   });

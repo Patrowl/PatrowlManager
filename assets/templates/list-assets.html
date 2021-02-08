@@ -553,18 +553,18 @@ function toggle(source, element) {
     }
 
     // Autofill searchbar with url params
-
-      if (url.searchParams.get("filter_type")){
-    asset_quick_search_type[0].selectize.setValue(url.searchParams.get("filter_type"));}
-      if (url.searchParams.get("filter_criticity")){
-    asset_quick_search_criticity[0].selectize.setValue(url.searchParams.get("filter_criticity"));}
-      if (url.searchParams.get("filter_tag")){
-    asset_quick_search_tag[0].selectize.setValue(url.searchParams.get("filter_tag"));}
-
+    if (url.searchParams.get("filter_type")){
+      asset_quick_search_type[0].selectize.setValue(url.searchParams.get("filter_type"));
+    }
+    if (url.searchParams.get("filter_criticity")){
+      asset_quick_search_criticity[0].selectize.setValue(url.searchParams.get("filter_criticity"));
+    }
+    if (url.searchParams.get("filter_tag")){
+      asset_quick_search_tag[0].selectize.setValue(url.searchParams.get("filter_tag"));
+    }
 
     // Quick search
     $('button.asset-quick-search').on('click',function(e) {
-
         var sort_options = url.searchParams.get("sort");
         var n_options = url.searchParams.get("n");
         if (url.searchParams.get("n") == null) {
