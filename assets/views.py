@@ -26,7 +26,6 @@ from common.utils import encoding, pro_permission_required, pro_group_required
 import csv
 import copy
 
-# @pro_permission_required('assets.view_asset')
 @pro_group_required('AssetsViewer', 'AssetsManager')
 def list_assets_view(request):
     # Check team

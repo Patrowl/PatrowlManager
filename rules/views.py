@@ -43,7 +43,8 @@ def list_rules_view(request):
     }
     rules_list = Rule.objects.all().order_by('-created_at')
 
-    paginator = Paginator(rules_list, 10)
+    nb_rows = int(request.GET.get('n', 20))
+    paginator = Paginator(rules_list, nb_rows)
     page = request.GET.get('page')
     try:
         rules = paginator.page(page)
