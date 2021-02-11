@@ -598,7 +598,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     new_tag = _add_asset_tags(asset, 'Unresolved-domain')
                     asset.categories.add(new_tag)
                     asset.save()
-                else:
+                elif 'Failed to resolve' not in finding['title'] and asset.type == "domain":
                     invalid_tag = _add_asset_tags(asset, 'Unresolved-domain')
                     asset.categories.remove(invalid_tag)
                     asset.save()
