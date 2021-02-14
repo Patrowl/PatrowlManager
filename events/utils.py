@@ -65,6 +65,9 @@ def missing_finding_alert(finding_id, scan_id, severity="info"):
         },
         owner=rawfinding.owner
     )
+
+    alert.evaluate_alert_rules(trigger='auto')
+
     if rawfinding.asset.teams.count() > 0:
         for team in rawfinding.asset.teams.all():
             alert.teams.add(team)

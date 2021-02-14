@@ -7,6 +7,16 @@ from django.contrib.postgres.fields import JSONField
 from django.db.models import Q
 from django.conf import settings
 from app.settings import LOGGING_LEVEL
+from django.db.models import Value
+from django.db.models.functions import Concat
+
+
+import json
+import operator
+from functools import reduce
+
+from django.apps import apps
+
 
 SEVERITY_LEVELS = (
     ('INFO',    'INFO'),
@@ -132,6 +142,43 @@ class Alert(models.Model):
     def save(self, *args, **kwargs):
         self.message = self.message[:250]  # Just to be sure ...
         return super(Alert, self).save(*args, **kwargs)
+
+    def evaluate_alert_rules(self, trigger='all'):
+        Rule = apps.get_model(app_label='rules', model_name='Rule')
+        Asset = apps.get_model(app_label='assets', model_name='Asset')
+        if trigger == "all":
+            rules = Rule.objects.filter(enabled=True, scope='alert')
+        else:
+            rules = Rule.objects.filter(enabled=True, scope='alert', trigger=trigger)
+        nb_matches = 0
+        kwargs =[]
+        for rule in rules:
+            kwargs.append(Q(**{'id': self.id}))
+            # kwargs = {
+            #     "id": self.id,
+            #     # rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
+            # }
+            if rule.scope_attr =="title":
+                scope_attr = "concated"
+            else:
+                scope_attr ="concated"
+            try:
+                conv = json.loads(rule.condition)
+                for line in conv:
+                    for key, value in line.items():
+                        kwargs.append(Q(**{scope_attr + key: value}))
+                        # kwargs[rule.scope_attr + key]=value
+            except:
+                conv = rule.condition
+                for key, value in conv.items():
+                    kwargs.append(Q(**{rule.scope_attr + key: value}))
+                    #kwargs[rule.scope_attr + key]=value
+
+            if Alert.objects.annotate(concated=Concat('message', Value(' '), 'metadata__finding_title', Value(' '), output_field=models.CharField(),)).filter(reduce(operator.and_, kwargs)):
+                nb_matches += 1
+                asset = Asset.objects.get(id=self.metadata.get('asset_id'))
+                rule.notify(message="", asset=asset, description="")
+        return nb_matches
 
 
 AUDIT_SCOPES = (

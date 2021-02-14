@@ -50,11 +50,17 @@ def delete_rule_api(request, rule_id):
 def add_rule_api(request):
     """API: Add an alerting rule."""
     params = request.data
+
+    if params["condition"] == "custom":
+        cond = str(params["criteria"])
+    else:
+        cond = {params["condition"]:params["criteria"]}
+
     new_rule_args = {
         "title": params["title"],
         "scope": params["scope"],
         "scope_attr": params["scope_attr"],
-        "condition": {params["condition"]: params["criteria"]},
+        "condition": cond,
         "enabled": params["enable"] == "enabled",
         "severity": params["severity"],
         "trigger": params["trigger"],

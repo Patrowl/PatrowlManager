@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import operator
+from functools import reduce
 
 from django.db import models
 from django.utils import timezone
@@ -272,13 +274,26 @@ class Finding(models.Model):
         else:
             rules = Rule.objects.filter(enabled=True, scope='finding', trigger=trigger)
         nb_matches = 0
+        kwargs =[]
         for rule in rules:
-            kwargs = {
-                "id": self.id,
-                # rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
-                rule.scope_attr+next(iter(rule.condition)): next(iter(rule.condition.values()))
-            }
-            if Finding.objects.filter(**kwargs):
+            kwargs.append(Q(**{'id': self.id}))
+            # kwargs = {
+            #     "id": self.id,
+            #     # rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
+            # }
+            try:
+                conv = json.loads(rule.condition)
+                for line in conv:
+                    for key, value in line.items():
+                        kwargs.append(Q(**{rule.scope_attr + key: value}))
+                        # kwargs[rule.scope_attr + key]=value
+            except:
+                conv = rule.condition
+                for key, value in conv.items():
+                    kwargs.append(Q(**{rule.scope_attr + key: value}))
+                    #kwargs[rule.scope_attr + key]=value
+
+            if Finding.objects.filter(reduce(operator.and_, kwargs)):
                 nb_matches += 1
                 rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
         return nb_matches
