@@ -19,12 +19,9 @@ import uuid
 from copy import deepcopy
 # import logging
 # logger = logging.getLogger(__name__)
+from settings.models import Setting
 
 ENGINE_HTTP_TIMEOUT=getattr(settings, 'ENGINE_HTTP_TIMEOUT', 600)
-SCAN_JOB_DEFAULT_TIMEOUT=getattr(settings, 'SCAN_JOB_DEFAULT_TIMEOUT', 7200)
-SCAN_JOB_DEFAULT_SPLIT_ASSETS=getattr(settings, 'SCAN_JOB_DEFAULT_SPLIT_ASSETS', 100)
-NB_MAX_RETRIES=5
-
 
 def _get_engine_status(engine):
     engine_status = "undefined"
@@ -101,11 +98,28 @@ def _run_scan(evt_prefix, scan_id):
     #   * Scan options
     #   * Engine policy option
     #   * Application default setting (SCAN_JOB_DEFAULT_SPLIT_ASSETS)
-    assets_chunk_size = SCAN_JOB_DEFAULT_SPLIT_ASSETS
+
     if 'split_assets_by' in scan.scan_definition.engine_policy.options.keys():
         sab = scan.scan_definition.engine_policy.options['split_assets_by']
         if sab not in ['', None] and sab.isnumeric():
             assets_chunk_size = int(sab)
+            Event.objects.create(
+                message="{} Scan Option will be used. SCAN_JOB_DEFAULT_SPLIT_ASSETS: {}".format(evt_prefix,
+                                                                                                  assets_chunk_size),
+                type="INFO",
+                severity="INFO", scan=scan)
+    elif Setting.objects.filter(key="SCAN_JOB_DEFAULT_SPLIT_ASSETS").exists():
+        assets_chunk_size = int(Setting.objects.get(key="SCAN_JOB_DEFAULT_SPLIT_ASSETS").value.strip())
+        Event.objects.create(
+            message="{} Global Option will be used. SCAN_JOB_DEFAULT_SPLIT_ASSETS: {}".format(evt_prefix, assets_chunk_size),
+            type="INFO",
+            severity="INFO", scan=scan)
+    else:
+        assets_chunk_size = getattr(settings, 'SCAN_JOB_DEFAULT_SPLIT_ASSETS', 100)
+        Event.objects.create(
+            message="{} Environment/Config Option will be used. SCAN_JOB_DEFAULT_SPLIT_ASSETS: {}".format(evt_prefix, assets_chunk_size),
+            type="INFO",
+            severity="INFO", scan=scan)
     try:
         jobs_sig = []
         position = 1
@@ -151,7 +165,7 @@ def _finish_scan(self, evt_prefix, scan_id):
 
 # @shared_task(bind=True, acks_late=True, ignore_result=False)
 @shared_task(bind=True, ignore_result=False)
-def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_timeout=SCAN_JOB_DEFAULT_TIMEOUT):
+def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1):
     try:
         scan = Scan.objects.get(id=scan_id)
     except Exception:
@@ -164,11 +178,50 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
     # 2. Engine policy options ("max_scanjob_timeout": "99999")
     # 3. Application default value (SCAN_JOB_DEFAULT_TIMEOUT)
 
-    try:
-        if 'max_scanjob_timeout' in scan.scan_definition.engine_policy.options.keys() and scan.scan_definition.engine_policy.options['max_scanjob_timeout'].isnumeric():
+    # Get Global Configs
+    if Setting.objects.filter(key="DELAY_ENGINE_REQUEST").exists():
+        delay_engine_requests = int(Setting.objects.get(key="DELAY_ENGINE_REQUEST").value.strip())
+        Event.objects.create(message="{} Global Option will be used. DELAY_ENGINE_REQUEST: {}".format(evt_prefix, delay_engine_requests), type="INFO",
+                             severity="INFO", scan=scan)
+    else:
+        delay_engine_requests = 50
+        Event.objects.create(
+            message="{} Default Option will be used. DELAY_ENGINE_REQUEST: {}".format(evt_prefix,delay_engine_requests),
+            type="INFO",
+            severity="INFO", scan=scan)
+    # Get Global Configs
+    if Setting.objects.filter(key="NB_MAX_RETRIES").exists():
+        NB_MAX_RETRIES = int(Setting.objects.get(key="NB_MAX_RETRIES").value.strip())
+        Event.objects.create(
+            message="{} Global Option will be used. NB_MAX_RETRIES: {}".format(evt_prefix, NB_MAX_RETRIES),
+            type="INFO",
+            severity="INFO", scan=scan)
+    else:
+        NB_MAX_RETRIES = 5
+        Event.objects.create(
+            message="{} Default Option will be used. NB_MAX_RETRIES: {}".format(evt_prefix, NB_MAX_RETRIES),
+            type="INFO",
+            severity="INFO", scan=scan)
+    if 'max_scanjob_timeout' in scan.scan_definition.engine_policy.options.keys():
+        if scan.scan_definition.engine_policy.options['max_scanjob_timeout'].isnumeric():
             max_timeout = int(scan.scan_definition.engine_policy.options['max_scanjob_timeout'])
-    except Exception:
-        pass
+            Event.objects.create(
+                message="{} Scan Option will be used. SCAN_JOB_DEFAULT_TIMEOUT: {}".format(evt_prefix, max_timeout),
+                type="INFO",
+                severity="INFO", scan=scan)
+    elif Setting.objects.filter(key="SCAN_JOB_DEFAULT_TIMEOUT").exists():
+        max_timeout = int(Setting.objects.get(key="SCAN_JOB_DEFAULT_TIMEOUT").value.strip())
+        Event.objects.create(
+            message="{} Global Option will be used. SCAN_JOB_DEFAULT_TIMEOUT: {}".format(evt_prefix, max_timeout),
+            type="INFO",
+            severity="INFO", scan=scan)
+    else:
+        max_timeout = getattr(settings, 'SCAN_JOB_DEFAULT_TIMEOUT', 7200)
+        Event.objects.create(
+            message="{} Environment/Config Option will be used. SCAN_JOB_DEFAULT_TIMEOUT: {}".format(evt_prefix, max_timeout),
+            type="INFO",
+            severity="INFO", scan=scan)
+
 
     timeout = time.time() + max_timeout
     Event.objects.create(message="{} BeforeScan - ScanJob timeout: {}.".format(evt_prefix, timeout), type="INFO", severity="INFO", scan=scan)
@@ -311,7 +364,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
         else:
             Event.objects.create(message="{} DuringScan - bad scanner status: {} (retries left={}).".format(evt_prefix, scan_status, retries), type="ERROR", severity="ERROR", scan=scan)
             retries -= 1
-        time.sleep(5)
+        time.sleep(delay_engine_requests)
         scan_status = _get_scan_status(engine=engine_inst, scan_id=scan_job.id)
         print("scan status (in loop): {}".format(scan_status))
 
