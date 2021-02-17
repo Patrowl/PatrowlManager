@@ -29,6 +29,7 @@ def _search_findings(request):
     filter_by_status_cond = request.GET.get('_status_cond', None)
     filter_by_asset_id = request.GET.get('_asset_id', None)
     filter_by_asset_group_id = request.GET.get('_asset_group_id', None)
+    filter_by_asset_owner_id = request.GET.get('_asset_owner_id', None)
     filter_by_asset_group_name = request.GET.get('_asset_group_name', None)
     filter_by_engine = request.GET.get('_engine', None)
     filter_by_type = request.GET.get('_type', None)
@@ -93,6 +94,9 @@ def _search_findings(request):
         filters.update({"engine_type": filter_by_engine})
     if filter_by_scope:
         filters.update({"scan__engine_policy__scopes__in": filter_by_scope})
+
+    if filter_by_asset_owner_id:
+        filters.update({"asset__assetowner": filter_by_asset_owner_id})
 
     if teamid_selected >= 0:
         if str(filter_limit).isdigit():

@@ -27,6 +27,8 @@ urlpatterns = [
     url(r'^owners/list$', views.list_asset_owners_view, name='list_asset_owners_view'),
     # ex: /assets/owners/add
     url(r'^owners/add$', views.add_asset_owner_view, name='add_asset_owner_view'),
+    # ex: /assets/owners/edit/8
+    url(r'^owners/edit/(?P<asset_owner_id>[0-9]+)$', views.edit_asset_owner_view, name='edit_asset_owner_view'),
     # ex: /assets/owners/delete/8
     url(r'^owners/delete/(?P<asset_owner_id>[0-9]+)$', views.delete_asset_owner_view, name='delete_asset_owner_view'),
     # ex: /assets/owners/details/8
@@ -124,6 +126,10 @@ urlpatterns = [
     url(r'^api/v1/owners/addcontact/(?P<asset_owner_id>[0-9]+)$', apis.add_asset_owner_contact_api, name='add_asset_owner_contact_api'),
     # ex: /assets/api/v1/owners/editcom/8
     url(r'^api/v1/owners/editcom/(?P<asset_owner_id>[0-9]+)$', apis.edit_asset_owner_comments_api, name='edit_asset_owner_comments_api'),
+    # ex: /assets/api/v1/owners/delete-assets/2
+    url(r'^api/v1/owners/delete-assets/(?P<asset_owner_id>[0-9]+)$', apis.delete_assets_from_owner_api, name='delete_assets_from_owner_api'),
+    # ex: /assets/api/v1/owners/delete-assets/2
+    url(r'^api/v1/owners/delete-asset/(?P<asset_owner_id>[0-9]+)/(?P<asset_id>[0-9]+)$', apis.delete_asset_from_owner_api, name='delete_asset_from_owner_api'),
 ]
 
 urlpatterns += [

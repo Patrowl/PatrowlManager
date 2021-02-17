@@ -655,7 +655,8 @@ def detail_asset_group_view(request, assetgroup_id):
 
     for finding in findings:
         findings_stats['total'] = findings_stats.get('total', 0) + 1
-        findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
+        if finding.status not in ["false-positive", "duplicate"]:
+            findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
         if finding.status == 'new':
             findings_stats['new'] = findings_stats.get('new', 0) + 1
         if finding.status == 'ack':
@@ -768,6 +769,41 @@ def add_asset_owner_view(request):
             return redirect('list_asset_owners_view')
     return render(request, 'add-asset-owner.html', {'form': form})
 
+#todo Fix edit owner view
+@pro_group_required('AssetsManager')
+def edit_asset_owner_view(request, asset_owner_id):
+    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
+
+    form = AssetOwnerForm(instance=owner, user=request.user)
+    if request.method == 'GET':
+        form = AssetOwnerForm(instance=owner,user=request.user)
+    elif request.method == 'POST':
+        form = AssetOwnerForm(request.POST, instance=owner, user=request.user)
+
+        if form.is_valid():
+            if owner.name != form.cleaned_data['name']:
+                owner.name = form.cleaned_data['name']
+            owner.url = form.cleaned_data['url']
+            owner.comments = form.cleaned_data['comments']
+
+            # Update assets
+            owner.assets.clear()
+
+            for asset_id in form.data.getlist('assets'):
+                owner.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
+            owner.save()
+
+            owner.evaluate_risk()
+            owner.save()
+
+            owner.calc_risk_grade()
+            owner.save()
+
+            messages.success(request, 'Update submission successful')
+
+            return redirect('list_asset_owners_view')
+    return render(request, 'add-asset-owner.html', {'form': form})
+
 
 @pro_group_required('AssetsManager')
 def delete_asset_owner_view(request, asset_owner_id):
@@ -781,5 +817,75 @@ def delete_asset_owner_view(request, asset_owner_id):
 
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def details_asset_owner_view(request, asset_owner_id):
-    owner = model_to_dict(get_object_or_404(AssetOwner, id=asset_owner_id))
-    return render(request, 'details-asset-owner.html', {'owner': owner})
+    owner = get_object_or_404(AssetOwner, id=asset_owner_id)
+    assets_list = owner.assets.all().order_by("-risk_level__grade", "criticity", "type")
+
+    findings = Finding.objects.severity_ordering().filter(asset__in=owner.assets.all()).annotate(
+        scope_list=ArrayAgg('scopes__name')).order_by('-severity_order', 'asset', 'type', 'updated_at').only("severity",
+        "status", "engine_type", "risk_info", "vuln_refs", "title", "id", "solution", "updated_at", "type", "asset_id",
+        "asset_name")
+
+    asset_scopes = {}
+    for scope in EnginePolicyScope.objects.all():
+        asset_scopes.update(
+            {scope.name: {'priority': scope.priority, 'id': scope.id, 'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0}})
+
+    findings_stats = {'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0, 'new': 0, 'ack': 0}
+    engines_stats = {}
+
+    for finding in findings:
+        findings_stats['total'] = findings_stats.get('total', 0) + 1
+        if finding.status not in ["false-positive", "duplicate"]:
+            findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
+        if finding.status == 'new':
+            findings_stats['new'] = findings_stats.get('new', 0) + 1
+        if finding.status == 'ack':
+            findings_stats['ack'] = findings_stats.get('ack', 0) + 1
+        for fs in finding.scope_list:
+            if fs is not None:
+                c = asset_scopes[fs]
+                asset_scopes[fs].update({'total': c['total'] + 1, finding.severity: c[finding.severity] + 1})
+        if finding.engine_type not in engines_stats.keys():
+            engines_stats.update({finding.engine_type: 0})
+        engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
+
+
+
+    # Paginations
+    # Pagination assets
+    nb_rows = int(request.GET.get('n_assets', 25))
+    assets_paginator = Paginator(assets_list, nb_rows)
+    page = request.GET.get('p_assets')
+    try:
+        assets = assets_paginator.page(page)
+    except PageNotAnInteger:
+        assets = assets_paginator.page(1)
+    except EmptyPage:
+        assets = assets_paginator.page(assets_paginator.num_pages)
+
+    # calculate automatically risk grade
+    asset_owner_risk_grade = {'now': owner.get_risk_grade(),
+        # 'day_ago': asset_group.get_risk_grade(history = 1),
+        # 'week_ago': asset_group.get_risk_grade(history = 7),
+        # 'month_ago': asset_group.get_risk_grade(history = 30),
+        # 'year_ago': asset_group.get_risk_grade(history = 365)
+    }
+
+    # Pagination findings
+    nb_rows = int(request.GET.get('n_findings', 50))
+    findings_paginator = Paginator(findings, nb_rows)
+    page = request.GET.get('p_findings')
+    try:
+        ag_findings = findings_paginator.page(page)
+    except PageNotAnInteger:
+        ag_findings = findings_paginator.page(1)
+    except EmptyPage:
+        ag_findings = findings_paginator.page(findings_paginator.num_pages)
+    return render(request, 'details-asset-owner.html', {
+        'assets': assets,
+        'asset_owner_risk_grade': asset_owner_risk_grade,
+        'findings': ag_findings,
+        'findings_stats': findings_stats,
+        'engines_stats': engines_stats,
+        'asset_scopes': list(asset_scopes.items()),
+        'owner': owner})
