@@ -358,7 +358,8 @@ function toggle(source, element) {
 							</div>
             </div>
 
-              <div class="form-group">
+            {% if not PRO_EDITION %}
+            <div class="form-group">
               <label class="col-sm-2 control-label" for="filter_finding_own_label">Finding owner</label>
 							<div class="col-sm-2">
 	              <select class="form-control input-sm" id="filter_finding_own_condition">
@@ -367,14 +368,15 @@ function toggle(source, element) {
 	              </select>
 							</div>
 							<div class="col-sm-3">
-                                <select class="form-control input-sm" id="filter_finding_own_input">
-                                <option value=""></option>
-                                    {% for owner in owners %}
-                                    <option value="{{ owner.id }}">{{ owner.name }}</option>
-                                    {% endfor %}
-                                    </select>
+                <select class="form-control input-sm" id="filter_finding_own_input">
+                  <option value=""></option>
+                  {% for owner in owners %}
+                  <option value="{{ owner.id }}">{{ owner.name }}</option>
+                  {% endfor %}
+                </select>
 							</div>
             </div>
+            {% endif %}
 
             <!-- <div class="form-group">
               <label class="col-sm-2 control-label" for="filter_asset_tags">Asset tags</label>
@@ -482,7 +484,7 @@ function toggle(source, element) {
       if (url.searchParams.get("team", "-1") != null) {
         filter_findings_url+="&team="+url.searchParams.get("team", "-1");
       }
-      
+
       window.location = filter_findings_url;
 		})
 
