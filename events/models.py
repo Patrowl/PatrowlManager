@@ -151,8 +151,9 @@ class Alert(models.Model):
         else:
             rules = Rule.objects.filter(enabled=True, scope='alert', trigger=trigger)
         nb_matches = 0
-        kwargs =[]
+
         for rule in rules:
+            kwargs = []
             kwargs.append(Q(**{'id': self.id}))
             # kwargs = {
             #     "id": self.id,
