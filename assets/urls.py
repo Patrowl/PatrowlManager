@@ -124,6 +124,8 @@ urlpatterns = [
     url(r'^api/v1/owners/addcontact/(?P<asset_owner_id>[0-9]+)$', apis.add_asset_owner_contact_api, name='add_asset_owner_contact_api'),
     # ex: /assets/api/v1/owners/editcom/8
     url(r'^api/v1/owners/editcom/(?P<asset_owner_id>[0-9]+)$', apis.edit_asset_owner_comments_api, name='edit_asset_owner_comments_api'),
+    # ex: /assets/api/v1/update_owners
+    url(r'^api/v1/update_owners$', apis.update_owners_assets_api, name='update_owners_assets_api'),
 ]
 
 urlpatterns += [
