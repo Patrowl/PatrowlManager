@@ -3,8 +3,34 @@
 """URL routes for alerting rules."""
 
 from django.conf.urls import url
+
+from django.urls import path
 from . import views, apis
 
+
+alertrule_list = apis.AlertRuleSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+
+alertrule_detail = apis.AlertRuleSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
+
+alertrule_enable = apis.AlertRuleSet.as_view({
+    'get': 'enable'
+})
+
+alertrule_disable = apis.AlertRuleSet.as_view({
+    'get': 'disable'
+})
+
+alertrule_duplicate = apis.AlertRuleSet.as_view({
+    'get': 'duplicate'
+})
 
 urlpatterns = [
     # API Views
@@ -33,9 +59,17 @@ urlpatterns = [
     # url(r'^api/v1/send/slack$',
     #     apis.send_slack_message_api, name='send_slack_message_api'),
 
+
+    # AlertRule
+    path('api/v1/alertrule/', alertrule_list, name='alertrule-list'),
+    path('api/v1/alertrule/<int:pk>/', alertrule_detail, name='alertrule-detail'),
+    path('api/v1/alertrule/<int:pk>/enable/', alertrule_enable, name='alertrule-enable'),
+    path('api/v1/alertrule/<int:pk>/disable/', alertrule_disable, name='alertrule-disable'),
+    path('api/v1/alertrule/<int:pk>/duplicate/', alertrule_duplicate, name='alertrule-duplicate'),
+
     # WEB Views
     # ex: /rules/list
-    url(r'^list$',
-        views.list_rules_view, name='list_rules_view'),
+    url(r'^list$', views.list_rules_view, name='list_rules_view'),
+    url(r'^alerts/list$', views.list_alertrules_view, name='list_alertrules_view'),
 
 ]

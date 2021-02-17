@@ -6,9 +6,65 @@ from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.contrib import messages
 from rest_framework.decorators import api_view
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from events.models import AuditLog
-from .models import Rule
+from common.utils.pagination import StandardResultsSetPagination
+from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from rest_framework_datatables.pagination import DatatablesLimitOffsetPagination
+from rest_framework_datatables.filters import DatatablesFilterBackend
+from .models import Rule, AlertRule
+from .serializers import AlertRuleSerializer
 import json
+
+
+class AlertRuleSet(viewsets.ModelViewSet):
+    """API endpoint that allows engines to be viewed or edited."""
+
+    serializer_class = AlertRuleSerializer
+    queryset = AlertRule.objects.all().order_by('title')
+    pagination_class = StandardResultsSetPagination
+    # pagination_class = DatatablesPageNumberPagination
+    # pagination_class = DatatablesLimitOffsetPagination
+    filter_backends = [DatatablesFilterBackend]
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        if 'iDisplayLength' in request.GET:
+            if not request.GET._mutable:
+                request.GET._mutable = True
+            request.GET['limit'] = request.GET['iDisplayLength']
+            request.GET['page'] = int(request.GET.get('iDisplayStart', 0))+1
+        return super().list(request, *args, **kwargs)  # you should return them
+
+    def enable(self, *args, **kwargs):
+        instance = self.get_object()
+        instance.enabled = True
+        instance.save()
+        response = Response()
+        response['status'] = "success"
+        return response
+
+    def disable(self, *args, **kwargs):
+        instance = self.get_object()
+        instance.enabled = False
+        instance.save()
+        response = Response()
+        response['status'] = "success"
+        return response
+
+    def duplicate(self, *args, **kwargs):
+        new_rule = get_object_or_404(AlertRule, id=self.get_object().id)
+        new_rule.title = new_rule.title + " (copy)"
+        new_rule.pk = None
+        new_rule.save()
+        response = Response()
+        response['status'] = "success"
+        response['data'] = {
+            "id": new_rule.id
+        }
+        return response
 
 
 @api_view(['GET'])

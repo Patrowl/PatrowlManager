@@ -50,19 +50,25 @@ RULE_SCOPE_ATTRIBUTES = {
     },
     "alert": {
         'title': {"type": "text"},
-        'severity': {"type": "list", "values": ['info', 'low', 'medium', 'high', 'critical']},
-        'status': {"type": "list", "values": ['new', 'read', 'archived']},
+        'severity': {
+            "type": "list",
+            "values": ['info', 'low', 'medium', 'high', 'critical']
+        },
+        'status': {
+            "type": "list",
+            "values": ['new', 'read', 'archived']
+        },
     },
 }
 
 RULE_TARGETS = (
     # ('event',   'Patrowl event'),
     # ('logfile', 'To logfile'),
-    ('email',   'Send email'),
-    ('thehive', 'TheHive Event'),
     # ('splunk',  'To Splunk'),
-    ('slack',   'Slack'),
-    ('alert',   'Alert'),
+    ('email',   'Send Email'),
+    ('slack',   'Create Slack notification'),
+    ('thehive', 'Create TheHive Event'),
+    ('alert',   'Create Alert'),
 )
 
 RULE_TRIGGERS = (
@@ -88,11 +94,11 @@ RULE_CONDITIONS = {
 }
 
 RULE_SEVERITIES = (
-    ('Info', 'Info'),
-    ('Low', 'Low'),
-    ('Medium', 'Medium'),
-    ('High', 'High'),
-    ('Critical', 'Critical'),
+    ('Info', 'info'),
+    ('Low', 'low'),
+    ('Medium', 'medium'),
+    ('High', 'high'),
+    ('Critical', 'critical'),
 )
 
 
@@ -168,6 +174,107 @@ def rule_delete_log(sender, **kwargs):
     AuditLog.objects.create(
         message=message,
         scope='rule', type='rule_delete',
+        request_context=inspect.stack())
+
+
+class AlertRuleFilter:
+    def __init__(self, scope, scope_attr, condition, condition_value):
+        self.scope = self._is_valid_scope(scope)
+        self.scope_attr = self._is_valid_scope_attr(scope_attr)
+        self.condition = self._is_valid_condition(condition)
+        self.condition_value = condition_value
+
+    def _is_valid_scope(self, scope):
+        if scope not in RULE_SCOPE_ATTRIBUTES.keys():
+            raise ValueError("Invalid scope")
+        return scope
+
+    def _is_valid_scope_attr(self, scope_attr):
+        if scope_attr not in RULE_SCOPE_ATTRIBUTES[self.scope].keys():
+            raise ValueError("Invalid scope attribute")
+        return scope_attr
+
+    def _is_valid_condition(self, condition):
+        condition_type = RULE_SCOPE_ATTRIBUTES[self.scope][self.scope_attr]["type"]
+        if condition not in RULE_CONDITIONS[condition_type].keys():
+            raise ValueError("Invalid condition")
+        return condition
+
+
+class AlertRule(models.Model):
+    title            = models.CharField(max_length=256)
+    comments         = models.TextField(default='n/a')
+    filters          = JSONField(null=True, blank=True, default=dict)
+    actions          = JSONField(null=True, blank=True, default=dict)
+    severity         = models.CharField(choices=RULE_SEVERITIES, default='Low', max_length=10)
+    # scope            = models.CharField(choices=RULE_SCOPES, default='finding', max_length=10)
+    # scope_attr       = models.CharField(max_length=20, null=True, blank=True)
+    # condition        = JSONField(null=True, blank=True)
+    # target           = models.CharField(choices=RULE_TARGETS, default='event', max_length=10)
+    # trigger          = models.CharField(choices=RULE_TRIGGERS, default='auto', max_length=10)
+    # trigger_attr     = models.CharField(max_length=20, null=True, blank=True)
+    # summary          = JSONField(null=True, blank=True)
+    # periodic_task    = models.ForeignKey(PeriodicTask, null=True, blank=True, on_delete=models.CASCADE)
+    # nb_matches       = models.IntegerField(default=0)
+    # owner            = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
+    enabled          = models.BooleanField(default=False)
+    created_at       = models.DateTimeField(default=timezone.now)
+    updated_at       = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'alert_rules'
+
+    def __str__(self):
+        return "{}/{}".format(self.id, self.title)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            self.updated_at = timezone.now()
+        return super(AlertRule, self).save(*args, **kwargs)
+
+    # def notify(self, message="", asset=None, description="", finding=None):
+    #     # print('into Rule.notify()')
+    #     if self.target == 'email':
+    #         send_email_message(self, message, description)
+    #     elif self.target == 'slack':
+    #         send_slack_message(self, message)
+    #     elif self.target == 'thehive':
+    #         send_thehive_message(self, message, asset, description)
+    #     elif self.target == 'alert':
+    #         send_alert_message(self, message, description, finding)
+    #     elif self.target == 'event':
+    #         Event.objects.create(
+    #             message="[Alert][Rule={}]{}".format(self.title, message),
+    #             type="ALERT", severity="INFO")
+    #
+    #     self.nb_matches += 1
+    #     self.save()
+
+
+@receiver(post_save, sender=AlertRule)
+def alert_rule_create_update_log(sender, **kwargs):
+    message = ""
+    if kwargs['created']:
+        message = "[AlertRule] New alert rule created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
+    else:
+        message = "[AlertRule] Alert rule '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='alert_rule', type='alert_rule_create_update',
+        request_context=inspect.stack())
+
+
+@receiver(post_delete, sender=AlertRule)
+def rule_delete_log(sender, **kwargs):
+    message = "[AlertRule] Alert rule '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='alert_rule', type='alert_rule_delete',
         request_context=inspect.stack())
 
 

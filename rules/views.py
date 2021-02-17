@@ -8,7 +8,8 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from settings.models import Setting
 from events.models import AuditLog
-from .models import Rule, RULE_SCOPES, RULE_SCOPE_ATTRIBUTES, RULE_TARGETS
+from .models import Rule, AlertRule
+from .models import RULE_SCOPES, RULE_SCOPE_ATTRIBUTES, RULE_TARGETS
 from .models import RULE_TRIGGERS, RULE_CONDITIONS, RULE_SEVERITIES
 import json
 import requests
@@ -54,6 +55,43 @@ def list_rules_view(request):
         rules = paginator.page(paginator.num_pages)
     return render(request, 'list-rules.html', {
         'rules': rules, 'form_options': form_options})
+
+
+def list_alertrules_view(request):
+    """View: List alerting rules.
+
+    **Context**
+
+    ``AlertRule``
+        An instance of :model:`rules.models.AlertRule`.
+
+    **Template:**
+
+    :template:`rules/templates/list-alertrules.html`
+    """
+    form_options = {
+        "rule_scopes": RULE_SCOPES,
+        "rule_scope_attributes": json.dumps(RULE_SCOPE_ATTRIBUTES),
+        "rule_conditions": json.dumps(RULE_CONDITIONS),
+        "rule_targets": RULE_TARGETS,
+        "rule_triggers": RULE_TRIGGERS,
+        "rule_severities": RULE_SEVERITIES,
+    }
+    alertrules_list = AlertRule.objects.all().order_by('-created_at')
+
+    nb_rows = int(request.GET.get('n', 20))
+    paginator = Paginator(alertrules_list, nb_rows)
+    page = request.GET.get('page')
+    try:
+        alertrules = paginator.page(page)
+    except PageNotAnInteger:
+        alertrules = paginator.page(1)
+    except EmptyPage:
+        alertrules = paginator.page(paginator.num_pages)
+    return render(request, 'list-alertrules.html', {
+        'alertrules': alertrules, 
+        'form_options': form_options
+    })
 
 
 @csrf_exempt  # not secure

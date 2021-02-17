@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="{% url 'list_alertrules_view' %}">Alert Rules</a></li>
+  <li class="active">List</li>
+</ul>
+
+<div class="container-fluid">
+  <table id="alertrules-datatable" class="table table-striped" style="width:100%">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Severity</th>
+            <th>Enabled</th>
+            <th>Filters</th>
+            <th>Targets</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+  </table>
+
+  <button class="btn btn-xs btn-success" data-toggle="modal" data-target="#modal-addedit-alertrule">Add new</button>
+</div>
+
+
+<!-- Alert rule Add/Edit modal -->
+<div class="modal fade" id="modal-addedit-alertrule" tabindex="-1" role="dialog" aria-labelledby="modal-addedit-alertrule" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="modal-addedit-alertrule-title">Alert Rule</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="addedit-alertrule">
+          <!-- Content -->
+        </div>
+        Test
+        <div class="modal-addedit-alertrule-content"></div>
+
+
+        <button type="button" class="btn btn-xs btn-warning btn-alertrule-addedit-confirm" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete rule modal -->
+<div class="modal fade" id="modal-delete-alertrule" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Alert Rule ?</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-alertrule">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-alertrule-delete-confirm" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  url = new URL(window.location.href);
+
+  var gotopage = function gotopage(page_num, target = "alertrules") {
+    url.searchParams.set("page", page_num);
+    window.location = url.search;
+  };
+
+  $(function() {
+    // $('#modal-addedit-alertrule').hasClass('in');
+    $(document).on('show.bs.modal', '#modal-addedit-alertrule', function () {
+      // run your validation... ( or shown.bs.modal )
+      console.log(2)
+  });
+
+
+    // Build the DataTables
+    $(document).ready( function () {
+      var alertrules_table = $('#alertrules-datatable').DataTable({
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        // lengthMenu: [[1, 10, 25, 50, -1], [1, 10, 25, 50, "All"]],
+        searching: false,
+        ordering: false,
+        // serverSide: true,
+        sAjaxSource: "/rules/api/v1/alertrule/?format=datatables",
+        columns: [
+          { data: "title" },
+          {
+            data: "severity",
+            render: function(data, type) {
+              return '<span class="label label-'+data.toLowerCase()+'">'+data+'</span>';
+            }
+          },
+          {
+            data: "enabled", searchable: false,
+            render: function(data, type) {
+              if (data === 'true') {
+                return '<span class="alertrule-status label label-success">Yes</span>';
+              } else {
+                return '<span class="alertrule-status label label-danger">No</span>';
+              }
+            }
+          },
+          {
+            data: null, searchable: false,
+            render: function(data, type) {
+              return Object.keys(data.filters).length;
+            }
+          },
+          {
+            data: null, searchable: false,
+            render: function(data, type) {
+              if (data.actions === null) {
+                return 0;
+              } else {
+                return Object.keys(data.actions).length;
+              }
+            }
+          },
+          {
+            data: null,
+            render: function(data, type) {
+              if(type === 'display'){
+                return '\
+                  <button class="btn btn-xs btn-default btn-alertrule-duplicate" rule-id="'+data.id+'" rule-title="'+data.title+'"><span class="glyphicon glyphicon-duplicate"/></button>\
+                  <button class="btn btn-xs btn-warning btn-alertrule-edit"><span class="glyphicon glyphicon-edit"/></button>\
+                  <button class="btn btn-xs btn-danger btn-alertrule-delete" data-toggle="modal" data-target="#modal-delete-rule" rule-id="'+data.id+'" rule-title="'+data.title+'"><span class="glyphicon glyphicon-remove"/></button>\
+                ';
+              }
+              return data;
+            },
+            searchable: false
+          }
+        ],
+        drawCallback: function () {
+          $("a.paginate_button").addClass("btn btn-default btn-xs").removeClass("paginate_button");
+        }
+      });
+
+      // Toggle alert rule status (enable/disable)
+      $('#alertrules-datatable tbody').on('dblclick', 'span.alertrule-status', function(){
+        var data = alertrules_table.row( $(this).parents('tr') ).data();
+        var request = $.ajax({
+          url: "{% url 'alertrule-detail' 0 %}".replace("0", data.id),
+          method: "PATCH",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          success: function(e){
+            console.log(e)
+            console.log($(this))
+            // if (e.currentTarget.textContent == "No") {
+            //   $(e.currentTarget).removeClass("label-danger");
+            //   $(e.currentTarget).addClass("label-success");
+            //   e.currentTarget.textContent = "Yes";
+            // } else {
+            //   $(e.currentTarget).removeClass("label-success");
+            //   $(e.currentTarget).addClass("label-danger");
+            //   e.currentTarget.textContent = "No";
+            // }
+          }
+        });
+      });
+
+      // Duplicate button
+      $('#alertrules-datatable tbody').on('click', 'button.btn-alertrule-duplicate', function(){
+        var data = alertrules_table.row( $(this).parents('tr') ).data();
+        rule_id = data.id;
+        var request = $.ajax({
+          url: "{% url 'alertrule-duplicate' 0 %}".replace("0", rule_id),
+          method: "GET",
+          success: function(){location.reload();}
+        });
+      });
+      // Delete button - open modal
+      $('#alertrules-datatable tbody').on('click', 'button.btn-alertrule-delete', function(){
+        var data = alertrules_table.row( $(this).parents('tr') ).data();
+        $('#modal-delete-alertrule').modal('show');
+        $("div#delete-alertrule").attr('rule-id', data.id);
+        $("div#delete-alertrule").html("Name: <b>"+data.title+"</b><br/>");
+        $("button.btn-alertrule-delete-confirm").attr('rule-id', data.id);
+      });
+      // Delete button - confirmed
+      $("button.btn-alertrule-delete-confirm").on('click', function(e) {
+        rule_id = e.currentTarget.getAttribute('rule-id');
+
+        var request = $.ajax({
+          url: "{% url 'alertrule-detail' 0 %}".replace("0", rule_id),
+          method: "DELETE",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          success: function(){location.reload();}
+        });
+      });
+
+    });
+
+  });
+</script>
+{% endblock %}
