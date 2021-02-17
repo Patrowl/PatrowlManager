@@ -534,3 +534,38 @@ def add_scan_def_api(request):
         return JsonResponse({'status': 'success', 'scan_def_id': scan_def.id})
     else:
         return JsonResponse({'status': 'failed'}, status=403)
+
+
+@api_view(['GET'])
+@pro_group_required('ScansManager')
+def add_retest_finding_scan_def_api(request, finding_id):
+    finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
+    try:
+        scan_def_original = finding.scan.scan_definition
+        if scan_def_original is None:
+            return JsonResponse({'status': 'error', 'reason': 'Unable to find scan definition. Deleted ?'}, status=404)
+    except Exception:
+        return JsonResponse({'status': 'error', 'reason': 'Unable to find scan definition. Deleted ?'}, status=404)
+
+    try:
+        scan_def = ScanDefinition.objects.create(
+            scan_type='single',
+            title="Retest finding '{}/{}'".format(finding.id, finding.title),
+            description="Retest finding '{}/{}' for asset '{}'".format(finding.id, finding.title, finding.asset),
+            engine_type=scan_def_original.engine_type,
+            engine=scan_def_original.engine,
+            engine_policy=scan_def_original.engine_policy,
+            owner=request.user,
+            timeout_delay=scan_def_original.timeout_delay,
+        )
+        scan_def.assets_list.set(scan_def_original.assets_list.all())
+        scan_def.assetgroups_list.set(scan_def_original.assetgroups_list.all())
+        scan_def.teams.set(scan_def_original.teams.all())
+        scan_def.save()
+    except Exception as e:
+        print(e)
+        logger.error(e)
+        return JsonResponse({'status': 'error', 'reason': 'Unable to create scan definition'}, status=404)
+
+    _run_scan(scan_def.id, request.user.id)
+    return JsonResponse({'status': 'success', 'scan_def_id': scan_def.id})
