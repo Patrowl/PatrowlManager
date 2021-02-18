@@ -271,7 +271,7 @@ def send_thehive_message(rule, message, asset, description):
     thehive_user = Setting.objects.get(key="alerts.endpoint.thehive.user")
     alert_message = "[Alert][Rule={}]{}".format(rule.title, message)
 
-    api = TheHiveApi(thehive_url.value, thehive_apikey.value)
+    api = TheHiveApi(thehive_url.value, thehive_apikey.value, cert=False)
     sourceRef = str(uuid.uuid4())[0:6]
     # Severity 1 is the lower severity for TheHive
     rule_severity = 1
