@@ -92,7 +92,7 @@ def _run_scan(scan_def_id, owner_id, eta=None):
                 "datatype": a.type
             })
     for taggroup in scan_def.taggroups_list.all():
-        for a in taggroup.assets.all():
+        for a in taggroup.asset_set.all():
             scan.assets.add(a)
             assets_list.append({
                 "id": a.id,
