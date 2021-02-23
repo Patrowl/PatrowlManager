@@ -767,6 +767,19 @@ def get_asset_group_report_csv_api(request, asset_group_id):
 
     return response
 
+@api_view(['POST'])
+@pro_group_required('AssetsManager')
+def update_owners_assets_api(request):
+    data = request.data
+    assets = data['assets']
+    owner = data['owner']
+    g = AssetOwner.objects.get(id=owner)
+    for asset_id in assets:
+        a = Asset.objects.for_user(request.user).get(id=asset_id)
+        g.assets.add(a)
+
+    return JsonResponse({'status': 'success'})
+
 
 @api_view(['GET'])
 @pro_group_required('AssetsManager', 'AssetsViewer')

@@ -306,10 +306,14 @@ function toggle(source, element) {
                     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
                     <a href="#" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modal-finding-update" finding-id="{{ finding.id }}">
                       <span class="glyphicon glyphicon-pencil"></span></a>
+                    <a href="#" class="btn btn-success btn-xs btn-finding-retest" finding-id="{{ finding.id }}">
+                      <span class="glyphicon glyphicon-forward"></span></a>
                     {% endif %}
                   {% else %}
                   <a href="#" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modal-finding-update" finding-id="{{ finding.id }}">
                     <span class="glyphicon glyphicon-pencil"></span></a>
+                  <a href="#" class="btn btn-success btn-xs btn-finding-retest" finding-id="{{ finding.id }}">
+                    <span class="glyphicon glyphicon-forward"></span></a>
                   {% endif %}
                 </div>
               </td>
@@ -684,6 +688,30 @@ function toggle(source, element) {
   </div>
 </div>
 
+<!-- Retest finding modal -->
+<div class="modal fade" id="modal-retest-finding" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Retest a finding</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="retest-finding">
+          <!-- Content -->
+        </div>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 
   //Goto selected #tab when page loads
@@ -792,6 +820,41 @@ function toggle(source, element) {
     var request = $.ajax({
       url: rerun_url,
       method: "GET",
+    });
+  });
+
+
+  // Retest vuln
+  $('a.btn-finding-retest').on('click', function(e){
+    finding_id = $("a.btn-finding-retest").attr('finding-id');
+    retest_url = "{% url 'add_retest_finding_scan_def_api' 0 %}".replace("0", finding_id);
+    $('#modal-retest-finding').modal('toggle');
+    var request = $.ajax({
+      url: retest_url,
+      method: "GET",
+      success: function(data){
+        console.log(data.scan_def_id)
+        $("div#retest-finding").append('\
+        <div class="alert alert-dismissible alert-success">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>Success !</strong>\
+        </div>Restest scan submitted: <a href="/scans/defs/details/'+data.scan_def_id+'">go</a><br/><br/>');
+        setTimeout(function(){
+          // $("div#retest-finding div.alert-success").remove();
+          $('#modal-retest-finding').modal('toggle');
+        }, 4000);
+      },
+      error: function(data){
+        $("div#retest-finding").append('\
+        <div class="alert alert-dismissible alert-danger">\
+          <button type="button" class="close" data-dismiss="alert">&times;</button>\
+          <strong>Error:</strong> Unable to retest finding: '+data.reason+'.\
+        </div>');
+        setTimeout(function(){
+          $("div#retest-finding div.alert-danger").remove();
+          $('#modal-retest-finding').modal('toggle');
+        }, 4000);
+      }
     });
   });
 

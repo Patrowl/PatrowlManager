@@ -12,6 +12,7 @@ from .utils import _search_findings
 from assets.models import Asset
 from users.models import Team, TeamUser
 from engines.tasks import importfindings_task
+from assets.models import AssetOwner
 import os
 import time
 import collections
@@ -38,6 +39,7 @@ def list_findings_view(request):
     nb_rows = request.GET.get('n', 50)
     findings_paginator = Paginator(findings, nb_rows)
     page = request.GET.get('page')
+    owners = AssetOwner.objects.all()
     try:
         findings_p = findings_paginator.page(page)
     except PageNotAnInteger:
@@ -48,7 +50,8 @@ def list_findings_view(request):
     return render(request, 'list-findings.html', {
         'findings': findings_p,
         'nb_findings': nb_findings,
-        'teams': teams
+        'teams': teams,
+        'owners': owners
     })
 
 

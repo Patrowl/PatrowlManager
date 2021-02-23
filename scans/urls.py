@@ -34,6 +34,8 @@ urlpatterns = [
     url(r'^api/v1/stop$', apis.stop_scans_api, name='stop_scans_api'),
     # ex: /scans/api/v1/stop/33
     url(r'^api/v1/stop/(?P<scan_id>[0-9]+)$', apis.stop_scan_api, name='stop_scan_api'),
+    # ex: /scans/api/v1/stop/33
+    url(r'^api/v1/retest/(?P<finding_id>[0-9]+)$', apis.add_retest_finding_scan_def_api, name='add_retest_finding_scan_def_api'),
     # ex: /scans/api/v1/report/json/33
     url(r'^api/v1/report/json/(?P<scan_id>[0-9]+)$', apis.get_scan_report_json_api, name='get_scan_report_json_api'),
     # ex: /scans/api/v1/report/csv/33
