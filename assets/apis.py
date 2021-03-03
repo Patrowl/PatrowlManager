@@ -140,7 +140,7 @@ def get_asset_trends_api(request, asset_id):
             'risk_grade': 'n/a',
             'date': str(enddate.date())}
 
-        for f in asset.finding_set.filter(created_at__lte=enddate).exclude(Q(status='false-positive') | Q(status='duplicate')).values("severity", "status"):
+        for f in asset.finding_set.filter(created_at__lte=enddate).exclude(Q(status='falsepositive') | Q(status='duplicate')).values("severity", "status"):
             findings_stats['total'] = findings_stats.get('total') + 1
             findings_stats[f["severity"]] = findings_stats.get(f["severity"]) + 1
             if f["status"] == 'new':

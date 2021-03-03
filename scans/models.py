@@ -229,13 +229,13 @@ class Scan(models.Model):
         raw_findings = self.rawfinding_set.all()
         self.summary = {
             "total": raw_findings.count(),
-            "critical": raw_findings.filter(severity='critical').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "high":  raw_findings.filter(severity='high').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "medium": raw_findings.filter(severity='medium').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "low":   raw_findings.filter(severity='low').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+            "critical": raw_findings.filter(severity='critical').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+            "high":  raw_findings.filter(severity='high').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+            "medium": raw_findings.filter(severity='medium').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+            "low":   raw_findings.filter(severity='low').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
             "info":  raw_findings.filter(severity='info').exclude(status='duplicate').count(),
             "new":   self.finding_set.count(),
-            "false-positive": raw_findings.filter(Q(status='false-positive') | Q(status='duplicate')).count(),
+            "falsepositive": raw_findings.filter(Q(status='falsepositive') | Q(status='duplicate')).count(),
             "missing": 0  # todo
         }
 

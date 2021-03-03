@@ -173,16 +173,18 @@ def get_findings_stats_api(request):
     data = {
         "nb_findings": findings.count(),
         "nb_info": findings.filter(severity="info").count(),
-        "nb_low": findings.filter(severity="low").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "nb_medium": findings.filter(severity="medium").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "nb_high": findings.filter(severity="high").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "nb_critical": findings.filter(severity="critical").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "nb_low": findings.filter(severity="low").exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+        "nb_medium": findings.filter(severity="medium").exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+        "nb_high": findings.filter(severity="high").exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+        "nb_critical": findings.filter(severity="critical").exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
         "nb_new_findings": findings.filter(status="new").count(),
         "nb_new_info": findings.filter(status="new", severity="info").count(),
         "nb_new_low": findings.filter(status="new", severity="low").count(),
         "nb_new_medium": findings.filter(status="new", severity="medium").count(),
         "nb_new_high": findings.filter(status="new", severity="high").count(),
         "nb_new_critical": findings.filter(status="new", severity="critical").count(),
+        "nb_false_positive": findings.filter(status="falsepositive").count(),
+        "nb_duplicate": findings.filter(status="duplicate").count(),
     }
 
     return JsonResponse(data)

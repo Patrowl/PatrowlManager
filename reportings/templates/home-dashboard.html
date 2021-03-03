@@ -239,33 +239,33 @@ td.bg-grade-F-high {background-color: black; color: white;}
     <div class="tile col-sm-25">
       <div class="tile-content">
         <div class="tile-header with-border">
-          <h4>Most critical findings</h4>
+          <h4>Groups Per Finding</h4>
         </div>
         <div class="tile-body">
           <table class="table table-hover table-tile">
             <thead>
               <tr>
-                <th>Severity</th>
-                <th>Title</th>
-                <th>Asset</th>
+                <th style="text-align: center;">Group</th>
+                <th style="text-align: center;">Critical</th>
+                <th style="text-align: center;">High</th>
+                <th style="text-align: center;">Medium</th>
+                <th style="text-align: center;">Low</th>
+                <th style="text-align: center;">Info</th>
+                <th style="text-align: center;">False Positive</th>
+                <th style="text-align: center;">Duplicate</th>
               </tr>
             </thead>
             <tbody>
-              {% for finding in top_critical_findings %}
-              <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}'>
-                {% if finding.severity == 'critical' %}
-                <td><span class="label label-critical">{{ finding.severity }}</span></td>
-                {% elif finding.severity == 'high' %}
-                <td><span class="label label-high">{{ finding.severity }}</span></td>
-                {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-                <td><span class="label label-medium">{{ finding.severity }}</span></td>
-                {% elif finding.severity == 'low' %}
-                <td><span class="label label-low">{{ finding.severity }}</span></td>
-                {% else %}
-                <td><span class="label label-info">{{ finding.severity }}</span></td>
-                {% endif %}
-                <td>{{finding.title|truncatechars:40}}</td>
-                <td>{{finding.asset_name|truncatechars:30}}</td>
+              {% for group in assetgroups_findings_stats_list %}
+              <tr class='dblclickable-row' data-href='/assets/groups/details/{{group.id}}'>
+                <td style="text-align: center;">{{ group.name }}</td>
+                <td style="text-align: center;">{{ group.nb_critical }}</td>
+              <td style="text-align: center;">{{ group.nb_high }}</td>
+              <td style="text-align: center;">{{ group.nb_medium }}</td>
+              <td style="text-align: center;">{{ group.nb_low }}</td>
+              <td style="text-align: center;">{{ group.nb_info }}</td>
+              <td style="text-align: center;">{{ group.nb_false_positive }}</td>
+              <td style="text-align: center;">{{ group.nb_duplicate }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -419,7 +419,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
       </div>
     </div>
-    <div class="tile col-sm-25">
+    <div class="tile col-sm-15">
       <div class="tile-content">
         <div class="tile-header with-border">
           <h4>Top CVE</h4>
@@ -431,7 +431,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
       </div>
     </div>
-    <div class="tile col-sm-25">
+    <div class="tile col-sm-15">
       <div class="tile-content">
         <div class="tile-header with-border">
           <h4>Top CWE</h4>
@@ -444,6 +444,45 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
       </div>
     </div>
+
+    <div class="tile col-sm-25">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Most critical findings</h4>
+        </div>
+        <div class="tile-body">
+          <table class="table table-hover table-tile">
+            <thead>
+              <tr>
+                <th>Severity</th>
+                <th>Title</th>
+                <th>Asset</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for finding in top_critical_findings %}
+              <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}'>
+                {% if finding.severity == 'critical' %}
+                <td><span class="label label-critical">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'high' %}
+                <td><span class="label label-high">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+                <td><span class="label label-medium">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'low' %}
+                <td><span class="label label-low">{{ finding.severity }}</span></td>
+                {% else %}
+                <td><span class="label label-info">{{ finding.severity }}</span></td>
+                {% endif %}
+                <td>{{finding.title|truncatechars:40}}</td>
+                <td>{{finding.asset_name|truncatechars:30}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
   </div>
   <!-- End 4th row -->
 

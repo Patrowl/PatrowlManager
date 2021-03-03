@@ -93,25 +93,29 @@ def homepage_dashboard_view(request):
     global_stats["asset_types"] = assets.aggregate(**asset_types_stats_params)
 
     # finding counters
-    findings_stats = findings.exclude(Q(status='false-positive') | Q(status='duplicate')).aggregate(
+    findings_stats = findings.aggregate(
         nb_new=Coalesce(Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()), 0),
         nb_critical=Coalesce(Sum(Case(When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
         nb_high=Coalesce(Sum(Case(When(severity='high', then=1)), output_field=models.IntegerField()), 0),
         nb_medium=Coalesce(Sum(Case(When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
         nb_low=Coalesce(Sum(Case(When(severity='low', then=1)), output_field=models.IntegerField()), 0),
         nb_info=Coalesce(Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()), 0),
+        nb_false_positive=Coalesce(Sum(Case(When(status='falsepositive', then=1)), output_field=models.IntegerField()), 0),
+        nb_duplicate=Coalesce(Sum(Case(When(status='duplicate', then=1)), output_field=models.IntegerField()), 0),
     )
     global_stats["findings"] = {
         # "total_raw": RawFinding.objects.count(),
         # "total_raw": RawFinding.objects.count(),
         # "total": findings.count(),
-        "total": findings_stats["nb_critical"]+findings_stats["nb_high"]+findings_stats["nb_medium"]+findings_stats["nb_low"]+findings_stats["nb_info"],
+        "total": findings_stats["nb_critical"]+findings_stats["nb_high"]+findings_stats["nb_medium"]+findings_stats["nb_low"]+findings_stats["nb_info"]+findings_stats["nb_false_positive"]+findings_stats["nb_duplicate"],
         "new": findings_stats["nb_new"],
         "critical": findings_stats["nb_critical"],
         "high": findings_stats["nb_high"],
         "medium": findings_stats["nb_medium"],
         "low": findings_stats["nb_low"],
         "info": findings_stats["nb_info"],
+        "falsepositive": findings_stats["nb_false_positive"],
+        "duplicate": findings_stats["nb_duplicate"],
     }
 
     # update nb_matches
@@ -180,22 +184,42 @@ def homepage_dashboard_view(request):
     for key in sorted(assetgroup_grades_map.keys()):
         assetgroup_grades_map_list.append({key: assetgroup_grades_map[key]})
 
+    # Findings per Asset groups
+    assetgroups_findings_stats_list = []
+    assetgroups_findings_stats = {}
+    ags = assetgroups.all()
+
+    for assetgroup in ags:
+        assetgroups_findings_stats = findings.filter(asset__in=assetgroup.assets.all()).aggregate(
+        nb_new=Coalesce(Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()), 0),
+        nb_critical=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
+        nb_high=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='high', then=1)), output_field=models.IntegerField()), 0),
+        nb_medium=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
+        nb_low=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='low', then=1)), output_field=models.IntegerField()), 0),
+        nb_info=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='info', then=1)), output_field=models.IntegerField()), 0),
+        nb_false_positive=Coalesce(Sum(Case(When(status='falsepositive', then=1)), output_field=models.IntegerField()), 0),
+        nb_duplicate=Coalesce(Sum(Case(When(status='duplicate', then=1)), output_field=models.IntegerField()), 0),
+        )
+        assetgroups_findings_stats['name'] = assetgroup.name
+        assetgroups_findings_stats['id'] = assetgroup.id
+        assetgroups_findings_stats_list.append(assetgroups_findings_stats)
+
     # Critical findings
     top_critical_findings = []
     MAX_CF = 6
-    for finding in findings.filter(severity="critical").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+    for finding in findings.filter(severity="critical").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
         if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="high").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="high").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="medium").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="medium").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="low").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="low").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="info").only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="info").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
 
     # CVSS
@@ -221,7 +245,7 @@ def homepage_dashboard_view(request):
     # finding_cves_list = Finding.objects.for_user(request.user).exclude(
     finding_cves_list = findings.exclude(
             Q(vuln_refs__CVE__isnull=True)|
-            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive', 'duplicate'])
+            Q(status__in=['mitigated', 'patched', 'closed', 'falsepositive', 'duplicate'])
         ).annotate(
             cvelist=KeyTextTransform("CVE", 'vuln_refs')
         ).values('cvelist')
@@ -229,7 +253,7 @@ def homepage_dashboard_view(request):
     # finding_cwes_list = Finding.objects.for_user(request.user).exclude(
     finding_cwes_list = findings.exclude(
             Q(vuln_refs__CWE__isnull=True)|
-            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive', 'duplicate'])
+            Q(status__in=['mitigated', 'patched', 'closed', 'falsepositive', 'duplicate'])
         ).annotate(
             cwelist=KeyTextTransform("CWE", 'vuln_refs')
         ).values('cwelist')
@@ -275,6 +299,7 @@ def homepage_dashboard_view(request):
         'top_critical_findings': top_critical_findings,
         'cvss_scores': cvss_scores,
         'cxe_stats': cxe_stats,
+        'assetgroups_findings_stats_list':assetgroups_findings_stats_list,
         'teams': teams
     })
 

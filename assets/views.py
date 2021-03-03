@@ -513,7 +513,7 @@ def detail_asset_view(request, asset_id):
 
     findings_stats = {
         'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
-        'new': 0, 'ack': 0, 'cvss_gte_7': 0}
+        'new': 0, 'ack': 0, 'falsepositive': 0, 'duplicate': 0, 'cvss_gte_7': 0}
     engines_stats = {}
     references = {}
 
@@ -534,8 +534,12 @@ def detail_asset_view(request, asset_id):
 
     for finding in findings:
         findings_stats['total'] = findings_stats.get('total', 0) + 1
-        if finding.status not in ["false-positive","duplicate"]:
+        if finding.status not in ["falsepositive","duplicate"]:
             findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
+        if finding.status == 'duplicate':
+            findings_stats['duplicate'] = findings_stats.get('duplicate', 0) + 1
+        if finding.status == 'falsepositive':
+            findings_stats['falsepositive'] = findings_stats.get('falsepositive', 0) + 1
         if finding.status == 'new':
             findings_stats['new'] = findings_stats.get('new', 0) + 1
         if finding.status == 'ack':
@@ -657,7 +661,12 @@ def detail_asset_group_view(request, assetgroup_id):
 
     for finding in findings:
         findings_stats['total'] = findings_stats.get('total', 0) + 1
-        findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
+        if finding.status not in ["falsepositive","duplicate"]:
+            findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
+        if finding.status == 'duplicate':
+            findings_stats['duplicate'] = findings_stats.get('duplicate', 0) + 1
+        if finding.status == 'falsepositive':
+            findings_stats['falsepositive'] = findings_stats.get('falsepositive', 0) + 1
         if finding.status == 'new':
             findings_stats['new'] = findings_stats.get('new', 0) + 1
         if finding.status == 'ack':
