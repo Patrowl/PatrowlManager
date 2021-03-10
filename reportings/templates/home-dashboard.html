@@ -242,7 +242,10 @@ td.bg-grade-F-high {background-color: black; color: white;}
           <h4>Groups Per Finding</h4>
         </div>
         <div class="tile-body">
-          <table class="table table-hover table-tile">
+        <div id="chart-findings-by-group">
+        <canvas id="chart_findings_by_group" width="600" height="200"/>
+        </div>
+          {% comment %} <table class="table table-hover table-tile">
             <thead>
               <tr>
                 <th style="text-align: center;">Group</th>
@@ -269,7 +272,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
               </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table> {% endcomment %}
         </div>
       </div>
     </div>
@@ -482,7 +485,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
       </div>
     </div>
-    
+
   </div>
   <!-- End 4th row -->
 
@@ -531,6 +534,71 @@ td.bg-grade-F-high {background-color: black; color: white;}
     // Hide 'info' findings
     window.cfbc_pie_chart.getDatasetMeta(0).data[4].hidden = true;
     window.cfbc_pie_chart.update();
+
+var chart_findings_by_group = [];
+var chart_findings_by_group_critical = [];
+var chart_findings_by_group_high = [];
+var chart_findings_by_group_medium = [];
+var chart_findings_by_group_low = [];
+var chart_findings_by_group_info = [];
+var chart_findings_by_group_false_positive = [];
+var chart_findings_by_group_duplicate = [];
+{% for group in assetgroups_findings_stats_list %}
+  chart_findings_by_group.push("{{ group.name }}");
+  chart_findings_by_group_critical.push("{{ group.nb_critical }}");
+  chart_findings_by_group_high.push("{{ group.nb_high }}");
+  chart_findings_by_group_medium.push("{{ group.nb_medium }}");
+  chart_findings_by_group_low.push("{{ group.nb_low }}");
+  chart_findings_by_group_info.push("{{ group.nb_info }}");
+  chart_findings_by_group_false_positive.push("{{ group.nb_false_positive }}");
+  chart_findings_by_group_duplicate.push("{{ group.nb_duplicate }}");
+{% endfor %}
+
+
+
+  cfbc_config_by_group = {
+      type: 'horizontalBar',
+      data: {
+          labels: chart_findings_by_group,
+          datasets: [
+          {label: 'Critical', data: chart_findings_by_group_critical, backgroundColor: '#cc0500'},
+          {label: 'High', data: chart_findings_by_group_high, backgroundColor: '#df3d03'},
+          {label: 'Medium', data: chart_findings_by_group_medium, backgroundColor: '#f9a009'},
+          {label: 'Low', data: chart_findings_by_group_low, backgroundColor: '#ffcb0d'},
+          //{label: 'Info', data: chart_findings_by_group_info, backgroundColor: '#ffcb0d'},
+          //{label: 'False Positive', data: chart_findings_by_group_false_positive, backgroundColor: '#ffcb0d'},
+          //{label: 'Duplicate', data: chart_findings_by_group_duplicate, backgroundColor: '#ffcb0d'},
+          ]
+      },
+      options: {
+        scales: {
+            xAxes: [{
+                stacked: true,
+                ticks: {
+                  beginAtZero: true,
+                  stepSize: 1
+                }
+            }],
+            yAxes: [{
+                stacked: true,
+                ticks: {
+                  beginAtZero: true,
+                  stepSize: 1
+                }
+            }]
+        },
+        responsive: false,
+        // responsive: true,
+        maintainAspectRatio: false,
+        // maintainAspectRatio: true,
+        legend: {
+          display: true
+        }
+      }
+    };
+
+    var chart_findings_by_group = document.getElementById("chart_findings_by_group").getContext("2d");
+    window.cfbc_stacked_bars= new Chart(chart_findings_by_group,cfbc_config_by_group);
 
     // jQuery
     url = new URL(window.location.href);
