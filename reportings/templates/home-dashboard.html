@@ -544,14 +544,16 @@ var chart_findings_by_group_info = [];
 var chart_findings_by_group_false_positive = [];
 var chart_findings_by_group_duplicate = [];
 {% for group in assetgroups_findings_stats_list %}
-  chart_findings_by_group.push("{{ group.name }}");
-  chart_findings_by_group_critical.push("{{ group.nb_critical }}");
-  chart_findings_by_group_high.push("{{ group.nb_high }}");
-  chart_findings_by_group_medium.push("{{ group.nb_medium }}");
-  chart_findings_by_group_low.push("{{ group.nb_low }}");
-  chart_findings_by_group_info.push("{{ group.nb_info }}");
-  chart_findings_by_group_false_positive.push("{{ group.nb_false_positive }}");
-  chart_findings_by_group_duplicate.push("{{ group.nb_duplicate }}");
+  {% if group.nb_critical > 0 or group.nb_high > 0 or group.nb_medium > 0 or group.nb_low > 0  %}
+    chart_findings_by_group.push("{{ group.name }}");
+    chart_findings_by_group_critical.push("{{ group.nb_critical }}");
+    chart_findings_by_group_high.push("{{ group.nb_high }}");
+    chart_findings_by_group_medium.push("{{ group.nb_medium }}");
+    chart_findings_by_group_low.push("{{ group.nb_low }}");
+    chart_findings_by_group_info.push("{{ group.nb_info }}");
+    chart_findings_by_group_false_positive.push("{{ group.nb_false_positive }}");
+    chart_findings_by_group_duplicate.push("{{ group.nb_duplicate }}");
+  {% endif %}
 {% endfor %}
 
 
