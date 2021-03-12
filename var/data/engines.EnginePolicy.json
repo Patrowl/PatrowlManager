@@ -1312,4 +1312,23 @@
     "updated_at": "2020-12-08T15:57:40.141Z",
     "scopes": [4]
   }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 74,
+  "fields": {
+    "engine": 27,
+    "owner": 1,
+    "name": "Checkmarx default policy",
+    "default": true,
+    "description": "Checkmarx default policy",
+    "options": {
+        "command": "scans"
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2020-03-12T11:30:12.503Z",
+    "updated_at": "2020-03-12T11:30:12.503Z",
+    "scopes": [3]
+  }
 }]
