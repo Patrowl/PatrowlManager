@@ -204,6 +204,7 @@ def homepage_dashboard_view(request):
         assetgroups_findings_stats['id'] = assetgroup.id
         assetgroups_findings_stats_list.append(assetgroups_findings_stats)
 
+    assetgroups_findings_stats_list = sorted(assetgroups_findings_stats_list, key = lambda i: (i['nb_critical'], i['nb_high'], i['nb_medium'], i['nb_low']), reverse=True)
     # Critical findings
     top_critical_findings = []
     MAX_CF = 6
