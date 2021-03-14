@@ -545,7 +545,7 @@ var chart_findings_by_group_false_positive = [];
 var chart_findings_by_group_duplicate = [];
 {% for group in assetgroups_findings_stats_list %}
   {% if group.nb_critical > 0 or group.nb_high > 0 or group.nb_medium > 0 or group.nb_low > 0  %}
-    {% if forloop.counter < 10 %}
+    {% if forloop.counter < 11 %}
       chart_findings_by_group.push("{{ group.name }}");
       chart_findings_by_group_critical.push("{{ group.nb_critical }}");
       chart_findings_by_group_high.push("{{ group.nb_high }}");
@@ -577,12 +577,12 @@ var chart_findings_by_group_duplicate = [];
       },
       options: {
         plugins: {
-      datalabels: {
-         display: true,
-         align: 'center',
-         anchor: 'center'
-      }
-   },
+          datalabels: {
+            display: true,
+            align: 'center',
+            anchor: 'center'
+            }
+        },
         scales: {
             xAxes: [{
                 stacked: true,
