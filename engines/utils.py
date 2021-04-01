@@ -681,5 +681,28 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
         # Caculate the risk grade
         asset_group.calc_risk_grade()
         asset_group.save()
+    
+    if "new_assets_group" in scan.scan_definition.engine_policy.options.keys() and scan.scan_definition.engine_policy.options["new_assets_group"] not in ["", None]:
+        asset_groupname = str(scan.scan_definition.engine_policy.options["new_assets_group"])
+        Event.objects.create(message="{} Looking for a group named : {}".format(evt_prefix, asset_groupname), type="DEBUG", severity="INFO", scan=scan)
+        asset_group = AssetGroup.objects.filter(name=asset_groupname).first()
+        if asset_group is None:
+            assetgroup_args = {
+               'name': asset_groupname,
+               'criticity': criticity,
+               'description': "AssetGroup dynamically created by policy",
+               'owner': owner
+            }
+            asset_group = AssetGroup(**assetgroup_args)
+            asset_group.save()
+
+        Event.objects.create(message="{} Add {} in group {}".format(evt_prefix, asset, asset_groupname), type="DEBUG", severity="INFO", scan=scan)
+        # Add the asset to the group
+        asset_group.assets.add(asset)
+        asset_group.save()
+
+        # Caculate the risk grade
+        asset_group.calc_risk_grade()
+        asset_group.save()
 
     return asset

@@ -38,6 +38,8 @@ urlpatterns = [
     # ex: /assets/api/v1/by-id/2
     url(r'^api/v1/by-id/(?P<asset_id>[0-9]+)$', apis.get_asset_api, name='get_asset_api'),
     # ex: /assets/api/v1/by-id/2
+    url(r'^api/v1/by-value/(?P<value>[\w\.\ \:\/-]+)$', apis.get_asset_value_api, name='get_asset_value_api'),
+    # ex: /assets/api/v1/by-id/2
     url(r'^api/v1/by-id/(?P<asset_id>[0-9]+)/findings$', apis.get_asset_findings_api, name='get_asset_findings_api'),
     # ex: /assets/api/v1/list
     url(r'^api/v1/list$', apis.list_assets_api, name='list_assets_api'),
@@ -104,6 +106,8 @@ urlpatterns = [
     url(r'^api/v1/groups/list$', apis.list_asset_groups_api, name='list_asset_groups_api'),
     # ex: /assets/api/v1/groups/by-id/2
     url(r'^api/v1/groups/by-id/(?P<assetgroup_id>[0-9]+)$', apis.get_asset_group_api, name='get_asset_group_api'),
+    # ex: /assets/api/v1/groups/by-id/2
+    url(r'^api/v1/groups/by-name/(?P<assetgroup_name>[\w\.\ -]+)$', apis.get_asset_group_name_api, name='get_asset_group_name_api'),
     # ex: /assets/api/v1/groups/details/3/add_tag
     url(r'^api/v1/groups/details/(?P<assetgroup_id>[0-9]+)/add_tag$', apis.add_asset_group_tags_api, name='add_asset_group_tags_api'),
     # ex: /assets/api/v1/groups/details/3/del_tag

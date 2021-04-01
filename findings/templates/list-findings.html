@@ -114,6 +114,7 @@ function toggle(source, element) {
 
   <a href="#" class="btn-compare-selected">// Compare findings</a><br/>
   <a class="text-default btn-export-selected" href="#">% Export selected findings (CSV)</a><br/>
+  <a class="text-default btn-export-filtered" href="#">% Export filtered findings (CSV)</a><br/>
 
   {% if PRO_EDITION %}
     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
@@ -563,6 +564,22 @@ function toggle(source, element) {
 	        document.body.removeChild(link);
 				});
       }
+    });
+
+    // Export filtered findings
+    $("a.btn-export-filtered").on('click', function(eventObject) {
+      var request = $.ajax({
+        url: "{% url 'export_filtered_findings_csv_api' %}"+window.location.search,
+        method: "GET",
+      }).done(function(response){
+				var blob = new Blob([response], { type: 'text/csv' });
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = "findings_export.csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+			});
     });
 
     // Change the finding status

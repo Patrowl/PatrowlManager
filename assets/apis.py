@@ -35,6 +35,13 @@ def get_asset_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def get_asset_value_api(request, value):
+    asset = get_object_or_404(Asset.objects.for_user(request.user), value__iexact=value.lower())
+    return JsonResponse(asset.to_dict(), safe=False)
+
+
+@api_view(['GET'])
 @pro_group_required('AssetsManager')
 def ack_asset_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
@@ -46,6 +53,13 @@ def ack_asset_api(request, asset_id):
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_group_api(request, assetgroup_id):
     assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    return JsonResponse(assetgroup.to_dict(), safe=False)
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def get_asset_group_name_api(request, assetgroup_name):
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), name__iexact=assetgroup_name.lower())
     return JsonResponse(assetgroup.to_dict(), safe=False)
 
 

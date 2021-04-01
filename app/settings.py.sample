@@ -18,6 +18,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '*** omg this is the secret !***')
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = True
 
+SESSION_COOKIE_NAME = 'patrowl-manager-sc'
+
 #SESSION_COOKIE_SECURE = True # Only if HTTPS is enabled
 SESSION_COOKIE_HTTPONLY = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

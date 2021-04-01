@@ -67,16 +67,16 @@ def export_findings_csv_api(request):
     response['Content-Disposition'] = 'attachment; filename=export_findings.csv'
     writer = csv.writer(response, delimiter=';')
     writer.writerow([
-        'asset_value', 'asset_type',
+        'asset_value', 'asset_type', 'asset_groupname',
+        'asset_exposure', 'asset_criticality', 'asset_tags',
         'engine_type',
         'scan_title', 'scan_policy',
         'finding_id', 'finding_type', 'finding_status', 'finding_tags',
         'finding_severity', 'finding_description', 'finding_solution',
         'finding_hash', 'finding_creation_date', 'finding_risk_info',
         'finding_cvss', 'finding_links'
-        ])
+    ])
 
-    # findings = json.loads(request.body)
     findings = request.data
     for finding_id in findings:
         finding = Finding.objects.for_user(request.user).get(id=finding_id)
@@ -85,16 +85,95 @@ def export_findings_csv_api(request):
         else:
             finding_links = None
 
-        writer.writerow([
-            finding.asset.value, finding.asset.type,
-            finding.scan.engine_type.name,
-            finding.scan.title, finding.scan.engine_policy.name,
-            finding.id, finding.type, finding.status, ','.join(finding.tags),
-            finding.severity, finding.description, finding.solution,
-            finding.hash, finding.created_at, finding.risk_info,
-            finding.risk_info['cvss_base_score'],
-            finding_links
-        ])
+        if finding.scan is None:
+            finding_scan_title = ""
+            finding_engine_policy_name = ""
+            finding_engine_type_name = ""
+        else:
+            finding_scan_title = finding.scan.title
+
+        finding_engine_policy_name = ""
+        if finding.scan.engine_policy is not None:
+            finding_engine_policy_name = finding.scan.engine_policy.name
+        finding_engine_type_name = ""
+        if finding.scan.engine_type.name is not None:
+            finding_engine_type_name = finding.scan.engine_type.name
+
+        asset_groupnames = ','.join([g.name for g in finding.asset.assetgroup_set.all()])
+        asset_tags = ','.join([c.value for c in finding.asset.categories.all()])
+        
+        try:
+            writer.writerow([
+                finding.asset.value, finding.asset.type, asset_groupnames,
+                finding.asset.exposure, finding.asset.criticity, asset_tags,
+                finding_engine_type_name,
+                finding_scan_title, finding_engine_policy_name,
+                finding.id, finding.type, finding.status, ','.join(finding.tags),
+                finding.severity, finding.description, finding.solution,
+                finding.hash, finding.created_at, finding.risk_info,
+                finding.risk_info['cvss_base_score'],
+                finding_links
+            ])
+        except Exception:
+            pass
+
+    return response
+
+
+@api_view(['GET'])
+@pro_group_required('FindingsManager', 'FindingsViewer')
+def export_filtered_findings_csv_api(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=export_findings.csv'
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'asset_value', 'asset_type', 'asset_groupname',
+        'asset_exposure', 'asset_criticality', 'asset_tags',
+        'engine_type',
+        'scan_title', 'scan_policy',
+        'finding_id', 'finding_type', 'finding_status', 'finding_tags',
+        'finding_severity', 'finding_description', 'finding_solution',
+        'finding_hash', 'finding_creation_date', 'finding_risk_info',
+        'finding_cvss', 'finding_links'
+    ])
+
+    for finding in _search_findings(request):
+        if 'links' in finding.risk_info.keys():
+            finding_links = ", ".join(finding.risk_info['links'])
+        else:
+            finding_links = None
+
+        if finding.scan is None:
+            finding_scan_title = ""
+            finding_engine_policy_name = ""
+            finding_engine_type_name = ""
+        else:
+            finding_scan_title = finding.scan.title
+
+        finding_engine_policy_name = ""
+        if finding.scan.engine_policy is not None:
+            finding_engine_policy_name = finding.scan.engine_policy.name
+        finding_engine_type_name = ""
+        if finding.scan.engine_type.name is not None:
+            finding_engine_type_name = finding.scan.engine_type.name
+
+        asset_groupnames = ','.join([g.name for g in finding.asset.assetgroup_set.all()])
+        asset_tags = ','.join([c.value for c in finding.asset.categories.all()])
+
+        try:
+            writer.writerow([
+                finding.asset.value, finding.asset.type, asset_groupnames,
+                finding.asset.exposure, finding.asset.criticity, asset_tags,
+                finding_engine_type_name,
+                finding_scan_title, finding_engine_policy_name,
+                finding.id, finding.type, finding.status, ','.join(finding.tags),
+                finding.severity, finding.description, finding.solution,
+                finding.hash, finding.created_at, finding.risk_info,
+                finding.risk_info['cvss_base_score'],
+                finding_links
+            ])
+        except Exception:
+            pass
 
     return response
 

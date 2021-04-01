@@ -1,4 +1,4 @@
 asset_value;asset_name;asset_type;asset_description;asset_criticality;asset_groupname;asset_tags;asset_teams;asset_exposure
 patrowl.io;Patrowl domain name;domain;Patrowl domain name;high;recently_imported;my_tag;default;external
-193.252.172.10;Patrowl public IP addr;ip;Patrowl public IP addr;low;recently_imported;my_tag;default;external
-193.252.172.11;Patrowl public IP addr 2;ip;Patrowl public IP addr 2;low;recently_imported;my_tag;;external
+8.8.8.8;Google DNS A IP addr;ip;Google DNS A IP addr;low;recently_imported;my_tag;default;external
+8.8.4.4;Google DNS B IP addr;ip;Google DNS B IP addr;low;recently_imported;my_tag;default;external
