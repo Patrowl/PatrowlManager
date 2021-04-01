@@ -420,7 +420,7 @@ class AssetGroup(models.Model):
     owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True)
-    categories  = models.ManyToManyField(AssetCategory)
+    categories  = models.ManyToManyField(AssetCategory, blank=True)
     created_at  = models.DateTimeField(default=timezone.now)
     updated_at  = models.DateTimeField(default=timezone.now)
     teams       = models.ManyToManyField('users.team', blank=True)
