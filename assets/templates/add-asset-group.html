@@ -43,10 +43,10 @@ label.radio {
       </div>
     </div>
 
-      <!-- Criticity -->
+    <!-- Criticality -->
     <div class="form-group">
-      <label class="col-sm-2 control-label" for="id_criticity">Criticity</label>
-      <div class="col-sm-4">
+      <label class="col-sm-2 control-label" for="id_criticity">Criticality</label>
+      <div class="col-sm-5">
         <select name="criticity" class="form-control form-control-sm" id="id_criticity">
             <option value="low">low</option>
             <option value="medium">medium</option>
@@ -55,6 +55,17 @@ label.radio {
       </div>
     </div>
 
+    <!-- Teams -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_team_list">Teams</label>
+      <div class="col-sm-5">
+        <select class="form-control form-control-sm" id="id_scan_team_list" name="scan_team_list" disabled>
+          {% for team in teams_list %}
+          <option value="{{team.id}}">{{team.name}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
 
     <!-- Asset selection -->
     <div class="form-group">
@@ -77,13 +88,10 @@ label.radio {
       </div>
     </div>
 
-
-
-
     <div class="form-group submit-div">
       <div class="col-sm-2">
       </div>
-      <div class="col-sm-4">
+      <div class="col-sm-5">
         <button type="submit" class="btn btn-warning col-sm-12">Create a new asset group</button>
       </div>
     </div>

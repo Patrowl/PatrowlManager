@@ -264,7 +264,7 @@ def add_asset_view(request):
                 asset_group.save()
 
             messages.success(request, 'New asset created')
-            return redirect('list_assets_view')
+            return redirect('detail_asset_view', asset_id=asset.id)
 
     return render(request, 'add-asset.html', {'form': form})
 
@@ -306,7 +306,7 @@ def edit_asset_view(request, asset_id):
             asset.save()
 
             messages.success(request, 'Update submission successful')
-            return redirect('list_assets_view')
+            return redirect('detail_asset_view', asset_id=asset_id)
 
     return render(request, 'edit-asset.html', {'form': form, 'asset': asset})
 
@@ -317,6 +317,7 @@ def add_asset_group_view(request):
 
     if request.method == 'GET':
         form = AssetGroupForm(user=request.user)
+        teams_list = request.user.users_team.values('id', 'name').order_by('name')
     elif request.method == 'POST':
         form = AssetGroupForm(request.POST, user=request.user)
         if form.is_valid():
@@ -348,8 +349,8 @@ def add_asset_group_view(request):
             asset_group.save()
             messages.success(request, 'Creation submission successful')
 
-            return redirect('list_assets_view')
-    return render(request, 'add-asset-group.html', {'form': form})
+            return redirect('detail_asset_group_view', assetgroup_id=asset_group.id)
+    return render(request, 'add-asset-group.html', {'form': form, 'teams_list': teams_list})
 
 
 @pro_group_required('AssetsManager')
@@ -385,7 +386,7 @@ def edit_asset_group_view(request, assetgroup_id):
             asset_group.save()
 
             messages.success(request, 'Update submission successful')
-            return redirect('list_assets_view')
+            return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
 
     return render(request, 'edit-asset-group.html', {
         'form': form,
@@ -615,7 +616,7 @@ def detail_asset_view(request, asset_id):
         'investigation_links': investigation_links,
         'engines_stats': engines_stats,
         'asset_scopes': list(engine_scopes.items())
-        })
+    })
 
 
 @pro_group_required('AssetsManager', 'AssetsViewer')
