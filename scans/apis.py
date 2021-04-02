@@ -375,22 +375,26 @@ def get_scan_report_html_api(request, scan_id):
 
     findings_stats = {
         "total": findings.count(),
-        "high": findings.filter(severity='high').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "medium": findings.filter(severity='medium').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "low": findings.filter(severity='low').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "high": findings.filter(severity='high').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+        "medium": findings.filter(severity='medium').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+        "low": findings.filter(severity='low').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
         "info": findings.filter(severity='info').count(),
-        "critical": findings.filter(severity='critical').exclude(Q(status='false-positive') | Q(status='duplicate')).count()
+        "critical": findings.filter(severity='critical').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+        "falsepositive": findings.filter(status='falsepositive').count(),
+        "duplicate": findings.filter(status='duplicate').count()
     }
 
     for asset in scan.assets.all():
         findings_stats.update({
             asset.value: {
                 "total": findings.filter(asset=asset).count(),
-                "critical": findings.filter(asset=asset, severity='critical').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-                "high": findings.filter(asset=asset, severity='high').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-                "medium": findings.filter(asset=asset, severity='medium').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-                "low": findings.filter(asset=asset, severity='low').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-                "info": findings.filter(asset=asset, severity='info').count(),
+                "critical": findings.filter(asset=asset, severity='critical').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+                "high": findings.filter(asset=asset, severity='high').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+                "medium": findings.filter(asset=asset, severity='medium').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+                "low": findings.filter(asset=asset, severity='low').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+                "info": findings.filter(asset=asset, severity='info').exclude(Q(status='falsepositive') | Q(status='duplicate')).count(),
+                "falsepositive": findings.filter(asset=asset, status='falsepositive').count(),
+                "duplicate": findings.filter(asset=asset, status='duplicate').count(),
             }
         })
 

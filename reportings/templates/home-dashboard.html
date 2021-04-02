@@ -239,37 +239,40 @@ td.bg-grade-F-high {background-color: black; color: white;}
     <div class="tile col-sm-25">
       <div class="tile-content">
         <div class="tile-header with-border">
-          <h4>Most critical findings</h4>
+          <h4>Top Ten Groups Per Finding</h4>
         </div>
         <div class="tile-body">
-          <table class="table table-hover table-tile">
+        <div id="chart-findings-by-group">
+        <canvas id="chart_findings_by_group" width="600" height="200"/>
+        </div>
+          {% comment %} <table class="table table-hover table-tile">
             <thead>
               <tr>
-                <th>Severity</th>
-                <th>Title</th>
-                <th>Asset</th>
+                <th style="text-align: center;">Group</th>
+                <th style="text-align: center;">Critical</th>
+                <th style="text-align: center;">High</th>
+                <th style="text-align: center;">Medium</th>
+                <th style="text-align: center;">Low</th>
+                <th style="text-align: center;">Info</th>
+                <th style="text-align: center;">False Positive</th>
+                <th style="text-align: center;">Duplicate</th>
               </tr>
             </thead>
             <tbody>
-              {% for finding in top_critical_findings %}
-              <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}'>
-                {% if finding.severity == 'critical' %}
-                <td><span class="label label-critical">{{ finding.severity }}</span></td>
-                {% elif finding.severity == 'high' %}
-                <td><span class="label label-high">{{ finding.severity }}</span></td>
-                {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
-                <td><span class="label label-medium">{{ finding.severity }}</span></td>
-                {% elif finding.severity == 'low' %}
-                <td><span class="label label-low">{{ finding.severity }}</span></td>
-                {% else %}
-                <td><span class="label label-info">{{ finding.severity }}</span></td>
-                {% endif %}
-                <td>{{finding.title|truncatechars:40}}</td>
-                <td>{{finding.asset_name|truncatechars:30}}</td>
+              {% for group in assetgroups_findings_stats_list %}
+              <tr class='dblclickable-row' data-href='/assets/groups/details/{{group.id}}'>
+                <td style="text-align: center;">{{ group.name }}</td>
+                <td style="text-align: center;">{{ group.nb_critical }}</td>
+              <td style="text-align: center;">{{ group.nb_high }}</td>
+              <td style="text-align: center;">{{ group.nb_medium }}</td>
+              <td style="text-align: center;">{{ group.nb_low }}</td>
+              <td style="text-align: center;">{{ group.nb_info }}</td>
+              <td style="text-align: center;">{{ group.nb_false_positive }}</td>
+              <td style="text-align: center;">{{ group.nb_duplicate }}</td>
               </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table> {% endcomment %}
         </div>
       </div>
     </div>
@@ -419,7 +422,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
       </div>
     </div>
-    <div class="tile col-sm-25">
+    <div class="tile col-sm-15">
       <div class="tile-content">
         <div class="tile-header with-border">
           <h4>Top CVE</h4>
@@ -431,7 +434,7 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
       </div>
     </div>
-    <div class="tile col-sm-25">
+    <div class="tile col-sm-15">
       <div class="tile-content">
         <div class="tile-header with-border">
           <h4>Top CWE</h4>
@@ -444,6 +447,45 @@ td.bg-grade-F-high {background-color: black; color: white;}
         </div>
       </div>
     </div>
+
+    <div class="tile col-sm-25">
+      <div class="tile-content">
+        <div class="tile-header with-border">
+          <h4>Most critical findings</h4>
+        </div>
+        <div class="tile-body">
+          <table class="table table-hover table-tile">
+            <thead>
+              <tr>
+                <th>Severity</th>
+                <th>Title</th>
+                <th>Asset</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for finding in top_critical_findings %}
+              <tr class='dblclickable-row' data-href='/findings/details/{{finding.id}}'>
+                {% if finding.severity == 'critical' %}
+                <td><span class="label label-critical">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'high' %}
+                <td><span class="label label-high">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'medium' or finding.severity == 'moderate' %}
+                <td><span class="label label-medium">{{ finding.severity }}</span></td>
+                {% elif finding.severity == 'low' %}
+                <td><span class="label label-low">{{ finding.severity }}</span></td>
+                {% else %}
+                <td><span class="label label-info">{{ finding.severity }}</span></td>
+                {% endif %}
+                <td>{{finding.title|truncatechars:40}}</td>
+                <td>{{finding.asset_name|truncatechars:30}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
   <!-- End 4th row -->
 
@@ -492,6 +534,83 @@ td.bg-grade-F-high {background-color: black; color: white;}
     // Hide 'info' findings
     window.cfbc_pie_chart.getDatasetMeta(0).data[4].hidden = true;
     window.cfbc_pie_chart.update();
+
+var chart_findings_by_group = [];
+var chart_findings_by_group_critical = [];
+var chart_findings_by_group_high = [];
+var chart_findings_by_group_medium = [];
+var chart_findings_by_group_low = [];
+var chart_findings_by_group_info = [];
+var chart_findings_by_group_false_positive = [];
+var chart_findings_by_group_duplicate = [];
+{% for group in assetgroups_findings_stats_list %}
+  {% if group.nb_critical > 0 or group.nb_high > 0 or group.nb_medium > 0 or group.nb_low > 0  %}
+    {% if forloop.counter < 11 %}
+      chart_findings_by_group.push("{{ group.name }}");
+      chart_findings_by_group_critical.push("{{ group.nb_critical }}");
+      chart_findings_by_group_high.push("{{ group.nb_high }}");
+      chart_findings_by_group_medium.push("{{ group.nb_medium }}");
+      chart_findings_by_group_low.push("{{ group.nb_low }}");
+      chart_findings_by_group_info.push("{{ group.nb_info }}");
+      chart_findings_by_group_false_positive.push("{{ group.nb_false_positive }}");
+      chart_findings_by_group_duplicate.push("{{ group.nb_duplicate }}");
+      {{ forloop.counter }}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+
+
+
+  cfbc_config_by_group = {
+      type: 'horizontalBar',
+      data: {
+          labels: chart_findings_by_group,
+          datasets: [
+          {label: 'Critical', data: chart_findings_by_group_critical, backgroundColor: '#cc0500'},
+          {label: 'High', data: chart_findings_by_group_high, backgroundColor: '#df3d03'},
+          {label: 'Medium', data: chart_findings_by_group_medium, backgroundColor: '#f9a009'},
+          {label: 'Low', data: chart_findings_by_group_low, backgroundColor: '#ffcb0d'},
+          //{label: 'Info', data: chart_findings_by_group_info, backgroundColor: '#ffcb0d'},
+          //{label: 'False Positive', data: chart_findings_by_group_false_positive, backgroundColor: '#ffcb0d'},
+          //{label: 'Duplicate', data: chart_findings_by_group_duplicate, backgroundColor: '#ffcb0d'},
+          ]
+      },
+      options: {
+        plugins: {
+          datalabels: {
+            display: true,
+            align: 'center',
+            anchor: 'center'
+            }
+        },
+        scales: {
+            xAxes: [{
+                stacked: true,
+                ticks: {
+                  beginAtZero: true,
+                  stepSize: 1
+                }
+            }],
+            yAxes: [{
+                stacked: true,
+                ticks: {
+                  beginAtZero: true,
+                  stepSize: 1
+                }
+            }]
+        },
+        responsive: false,
+        // responsive: true,
+        maintainAspectRatio: false,
+        // maintainAspectRatio: true,
+        legend: {
+          display: true
+        }
+      }
+    };
+
+    var chart_findings_by_group = document.getElementById("chart_findings_by_group").getContext("2d");
+    window.cfbc_stacked_bars= new Chart(chart_findings_by_group,cfbc_config_by_group);
 
     // jQuery
     url = new URL(window.location.href);
