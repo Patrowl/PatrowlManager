@@ -1331,4 +1331,22 @@
     "updated_at": "2020-03-12T11:30:12.503Z",
     "scopes": [3]
   }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 75,
+  "fields": {
+    "engine": 28,
+    "owner": 1,
+    "name": "Tfsec default policy",
+    "default": true,
+    "description": "Tfsec default policy",
+    "options": {
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2021-04-09T16:04:33.509Z",
+    "updated_at": "2021-04-09T16:04:33.509Z",
+    "scopes": [3]
+  }
 }]
