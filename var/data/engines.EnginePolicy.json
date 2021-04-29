@@ -1331,4 +1331,24 @@
     "updated_at": "2020-03-12T11:30:12.503Z",
     "scopes": [3]
   }
-}]
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 75,
+  "fields": {
+    "engine": 28,
+    "owner": 1,
+    "name": "CybelAngel default policy",
+    "default": true,
+    "description": "CybelAngel default policy",
+    "options": {
+        "since": "3600"
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2021-28-12T11:30:12.503Z",
+    "updated_at": "2021-28-12T11:30:12.503Z",
+    "scopes": [3, 6]
+  }
+}
+]

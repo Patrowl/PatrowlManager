@@ -221,6 +221,7 @@ def list_assets_api(request):
     taggroups_list = list(taggroups)
     return JsonResponse(assets_list + assetgroups_list + taggroups_list, safe=False)
 
+
 @api_view(['GET'])
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def list_only_assets_api(request):
@@ -244,6 +245,7 @@ def list_only_assets_api(request):
 
     assets_list = list(assets)
     return JsonResponse(assets_list, safe=False)
+
 
 @api_view(['GET'])
 @pro_group_required('AssetsManager', 'AssetsViewer')
