@@ -1337,6 +1337,24 @@
   "fields": {
     "engine": 28,
     "owner": 1,
+    "name": "Tfsec default policy",
+    "default": true,
+    "description": "Tfsec default policy",
+    "options": {
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2021-28-12T11:30:12.503Z",
+    "updated_at": "2021-28-12T11:30:12.503Z",
+    "scopes": [3, 6]
+  }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 76,
+  "fields": {
+    "engine": 29,
+    "owner": 1,
     "name": "CybelAngel default policy",
     "default": true,
     "description": "CybelAngel default policy",
@@ -1346,9 +1364,8 @@
     "file": "",
     "status": "active",
     "is_default": true,
-    "created_at": "2021-28-12T11:30:12.503Z",
-    "updated_at": "2021-28-12T11:30:12.503Z",
-    "scopes": [3, 6]
+    "created_at": "2021-04-09T16:04:33.509Z",
+    "updated_at": "2021-04-09T16:04:33.509Z",
+    "scopes": [3]
   }
-}
-]
+}]
