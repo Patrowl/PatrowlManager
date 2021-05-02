@@ -1,5 +1,5 @@
 amqp==2.5.1
-Babel==2.4.0
+Babel==2.9.1
 backports-abc==0.5
 billiard==3.6.1.0
 celery==4.4.0rc3
