@@ -193,11 +193,11 @@
 
   {% if PRO_EDITION %}
     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
-    <a class="btn-read-selected text-warning" href="#">* Ack selected alerts</a><br/>
+    <a class="btn-read-selected text-warning" href="#">* Mark selected alerts as read</a><br/>
     <a class="btn-archive-selected text-danger" href="#">! Archive selected alerts</a><br/>
     {% endif %}
   {% else %}
-  <a class="btn-read-selected text-warning" href="#">* Ack selected alerts</a><br/>
+  <a class="btn-read-selected text-warning" href="#">* Mark selected alerts as read</a><br/>
   <a class="btn-archive-selected text-danger" href="#">! Archive selected alerts</a><br/>
   {% endif %}
   <br/>

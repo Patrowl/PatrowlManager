@@ -881,7 +881,7 @@
     "default": false,
     "description": "Policy for Drupal CMS scanning",
     "options": {
-      "scan_drupal": 1
+      "cms": "drupal"
     },
     "file": "",
     "status": "",
@@ -900,7 +900,7 @@
     "default": false,
     "description": "Policy for Joomla CMS scanning",
     "options": {
-      "scan_joomla": 1
+      "cms": "joomla"
     },
     "file": "",
     "status": "",
@@ -919,7 +919,7 @@
     "default": false,
     "description": "Policy for Moodle CMS scanning",
     "options": {
-      "scan_moodle": 1
+      "cms": "moodle"
     },
     "file": "",
     "status": "",
@@ -938,7 +938,7 @@
     "default": false,
     "description": "Policy for Silverstripe CMS scanning",
     "options": {
-      "scan_silverstripe": 1
+      "cms": "silverstripe"
     },
     "file": "",
     "status": "",
@@ -1345,8 +1345,8 @@
     "file": "",
     "status": "active",
     "is_default": true,
-    "created_at": "2021-28-12T11:30:12.503Z",
-    "updated_at": "2021-28-12T11:30:12.503Z",
+    "created_at": "2020-03-12T11:30:12.503Z",
+    "updated_at": "2020-03-12T11:30:12.503Z",
     "scopes": [3, 6]
   }
 }, {
