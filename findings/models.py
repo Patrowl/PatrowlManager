@@ -10,11 +10,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
-# from events.models import Event
-# from assets.models import Asset
-# from scans.models import Scan
 from rules.models import Rule
-# from engines.models import EnginePolicyScope
 from common.utils.encoding import json_serial
 
 import json
@@ -246,7 +242,8 @@ class Finding(models.Model):
     def get_risk(self):
         return (self.severity, self.confidence)
 
-    def save(self, *args, **kwargs):
+    def save(self, apply_overrides=False, *args, **kwargs):
+        print("finding.save()", "args:", args, "kwargs:", kwargs, "apply_overrides:", apply_overrides)
         self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
         if self.severity == "info":
             self.severity_num = 1
@@ -260,6 +257,9 @@ class Finding(models.Model):
             self.severity_num = 5
         else:
             self.severity_num = 0
+
+        if apply_overrides:
+            FindingOverride.apply_overrides(self, self.__class__)
 
         # update the 'updated_at' entry on each update except on creation
         if not self._state.adding:
@@ -305,3 +305,72 @@ def finding_delete_log(sender, **kwargs):
 
     Event.objects.create(message="[Finding] Finding '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
                  type="DELETE", severity="DEBUG")
+
+
+FINDING_OVERRIDE_ACTIONS = (
+    ('set-status', 'Set custom status'),
+    ('set-severity', 'Set custom severity'),
+)
+
+FINDING_OVERRIDE_PARAMS = {
+    'set-status': {
+        'filters': {
+            'title__icontains': '###CHANGEME###',
+        },
+        'actions': {
+            'final_status': 'ack',
+        },
+    },
+    'set-severity': {
+        'filters': {
+            'title__icontains': '###CHANGEME###',
+        },
+        'actions': {
+            'final_severity': 'info',
+        },
+    },
+}
+
+
+def get_default_override_params():
+    return dict(FINDING_OVERRIDE_PARAMS['set-status'])
+
+
+class FindingOverride(models.Model):
+    name = models.CharField(max_length=256)
+    enabled = models.BooleanField(default=True)
+    engine_type = models.CharField(max_length=20)
+    action = models.CharField(choices=FINDING_OVERRIDE_ACTIONS, default="set-status", max_length=32)
+    params = JSONField(default=get_default_override_params)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'finding_override'
+
+    def __str__(self):
+        return "{}/{}".format(self.id, self.name)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            self.updated_at = timezone.now()
+        return super(FindingOverride, self).save(*args, **kwargs)
+
+    @classmethod
+    def apply_overrides(cls, finding, finding_class):
+        # print("into apply_overrides()", finding_class, finding)
+        for o in cls.objects.filter(enabled=True):
+            filters = o.params['filters']
+            filters.update({
+                # 'id': finding.id
+                'engine_type': finding.engine_type,
+                'asset': finding.asset
+            })
+            if finding_class.objects.filter(**filters).count() > 0:
+                if o.action == 'set-status':
+                    finding.status = o.params['actions']['final_status']
+                    finding.save()
+                elif o.action == 'set-severity':
+                    finding.status = o.params['actions']['final_severity']
+                    finding.save()
+        return finding

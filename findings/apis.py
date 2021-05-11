@@ -101,7 +101,7 @@ def export_findings_csv_api(request):
 
         asset_groupnames = ','.join([g.name for g in finding.asset.assetgroup_set.all()])
         asset_tags = ','.join([c.value for c in finding.asset.categories.all()])
-        
+    
         try:
             writer.writerow([
                 finding.asset.value, finding.asset.type, asset_groupnames,

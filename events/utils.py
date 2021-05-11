@@ -4,7 +4,7 @@ from assets.models import Asset
 
 
 def new_finding_alert(finding_id, severity="info"):
-    finding = RawFinding.objects.filter(id=finding_id).first()
+    finding = RawFinding.objects.filter(id=finding_id, status="new").first()
     if finding is None:
         return None
 
