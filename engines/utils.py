@@ -522,7 +522,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     f.status = "undone"
                 f.save()
                 new_raw_finding.status = f.status
-                new_raw_finding.save()
+                # new_raw_finding.save()
+                new_raw_finding.save(apply_overrides=True)
 
                 # Evaluate alerting rules
                 # try:
@@ -572,6 +573,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 for scope in scan_scopes:
                     new_finding.scopes.add(scope.id)
                 new_finding.save()
+                # new_finding.save(apply_overrides=True)
 
                 # Evaluate alerting rules
                 try:
