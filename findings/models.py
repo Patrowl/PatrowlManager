@@ -128,7 +128,7 @@ class RawFinding(models.Model):
     def get_risk(self):
         return (self.severity, self.confidence)
 
-    def save(self, *args, **kwargs):
+    def save(self, apply_overrides=False, *args, **kwargs):
         if self.hash == '':
             self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
         if self.severity == "info":
@@ -143,6 +143,11 @@ class RawFinding(models.Model):
             self.severity_num = 5
         else:
             self.severity_num = 0
+
+        if apply_overrides:
+            # print("rawfinding.save()", "args:", args, "kwargs:", kwargs, "apply_overrides:", apply_overrides)
+            FindingOverride.apply_overrides(self, self.__class__)
+
         # update the 'updated_at' entry on each update except on creation
         if not self._state.adding:
             self.updated_at = timezone.now()
@@ -243,7 +248,7 @@ class Finding(models.Model):
         return (self.severity, self.confidence)
 
     def save(self, apply_overrides=False, *args, **kwargs):
-        print("finding.save()", "args:", args, "kwargs:", kwargs, "apply_overrides:", apply_overrides)
+        # print("finding.save()", "args:", args, "kwargs:", kwargs, "apply_overrides:", apply_overrides)
         self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
         if self.severity == "info":
             self.severity_num = 1
@@ -362,7 +367,7 @@ class FindingOverride(models.Model):
         for o in cls.objects.filter(enabled=True):
             filters = o.params['filters']
             filters.update({
-                # 'id': finding.id
+                'id': finding.id,
                 'engine_type': finding.engine_type,
                 'asset': finding.asset
             })
@@ -371,6 +376,6 @@ class FindingOverride(models.Model):
                     finding.status = o.params['actions']['final_status']
                     finding.save()
                 elif o.action == 'set-severity':
-                    finding.status = o.params['actions']['final_severity']
+                    finding.severity = o.params['actions']['final_severity']
                     finding.save()
         return finding
