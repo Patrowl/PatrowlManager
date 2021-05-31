@@ -3,6 +3,9 @@ MAINTAINER Patrowl.io "getsupport@patrowl.io"
 LABEL Name="PatrowlManager" Version="1.6.18"
 
 ENV PYTHONUNBUFFERED 1
+ARG arg_http_proxy
+ENV http_proxy $arg_http_proxy
+ENV https_proxy $arg_http_proxy
 RUN mkdir -p /opt/patrowl-manager/
 WORKDIR /opt/patrowl-manager/
 
