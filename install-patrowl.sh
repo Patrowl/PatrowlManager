@@ -5,8 +5,8 @@
 
 echo "[+] Setting variables if not set in env"
 # PG Database
-DB_HOST = ${DB_HOST:-localhost}
-DB_PORT = ${DB_PORT:-5432}
+DB_HOST = ${POSTGRES_HOST:-localhost}
+DB_PORT = ${POSTGRES_PORT:-5432}
 # RabbitMQ
 RABBITMQ_HOST = ${RABBITMQ_HOST:-rabbitmq}
 RABBITMQ_PORT = ${RABBITMQ_PORT:-5672}
@@ -29,7 +29,7 @@ git clone https://github.com/Patrowl/PatrowlEngines $PE_INSTALL_PATH
 
 
 echo "[+] Wait for DB availability"
-while !</dev/tcp/$DB_HOST/$DB_PORT; do sleep 1; done
+while !</dev/tcp/$POSTGRES_HOST/$POSTGRES_PORT; do sleep 1; done
 
 echo "[+] Wait for RabbitMQ availability"
 while !</dev/tcp/$RABBITMQ_HOST/$RABBITMQ_PORT; do sleep 1; done

@@ -1,12 +1,12 @@
 #!/bin/bash
-export DB_HOST=${DB_HOST:-db}
-export DB_PORT=${DB_PORT:-5432}
+export POSTGRES_HOST=${POSTGRES_HOST:-db}
+export POSTGRES_PORT=${POSTGRES_PORT:-5432}
 export RABBITMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
 export RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
 # export UPDATE_DB_SCHEMA=${UPDATE_DB_SCHEMA:-0}
 
 echo "[+] Wait for DB availability"
-while !</dev/tcp/$DB_HOST/$DB_PORT; do sleep 1; done
+while !</dev/tcp/$POSTGRES_HOST/$POSTGRES_PORT; do sleep 1; done
 
 echo "[+] Wait for RabbitMQ availability"
 while !</dev/tcp/$RABBITMQ_HOST/$RABBITMQ_PORT; do sleep 1; done
