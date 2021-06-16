@@ -164,7 +164,7 @@ def _search_scans(request):
     if filter_by_title:
         if filter_by_title_cond in ["exact", "icontains", "istartwith", "iendwith"]:
             filters.update({"title__{}".format(filter_by_title_cond): filter_by_title})
-        elif filter_by_asset_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_title_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
             excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
     if filter_by_status and filter_by_status in SCAN_STATUS:
         if filter_by_status_cond == "exact":

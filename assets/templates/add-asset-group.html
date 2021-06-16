@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-    <style>
+<style>
 
 #scrollable-dropdown-menu .tt-menu {
   max-height: 150px;
@@ -8,14 +8,15 @@
 }
 
 .no_padding {
-    padding-left: 0px;
-    padding-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 label.radio {
   margin-left: 20px;
 }
 </style>
+
 <ul class="breadcrumb">
   <li><a href="{% url 'list_assets_view' %}">assets</a></li>
   <li class="active">add new asset group manually [<a href="{% url 'list_assets_view' %}">back</a>]</li>

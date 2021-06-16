@@ -4,11 +4,11 @@
 import xml.etree.cElementTree as ET
 import re
 import hashlib
+from events.models import Event
 
 
 def parse_report(report_filename, min_level=0):
     """Parse a Nessus report file."""
-
     summary = {
         "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
         "new": 0, "total": 0
