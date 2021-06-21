@@ -30,7 +30,7 @@ services:
     environment:
       - POSTGRES_HOST=db
       - DEBUG=False
-      - RABBIT_HOSTNAME=rabbitmq:5672
+      - RABBITMQ_HOSTNAME=rabbitmq:5672
     depends_on:
       - db
       - rabbitmq

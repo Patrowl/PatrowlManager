@@ -268,7 +268,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 ENGINE_HTTP_TIMEOUT = int(os.environ.get('ENGINE_HTTP_TIMEOUT', 600))
 
 # RABBITMQ
-RABBIT_HOSTNAME = os.environ.get('RABBIT_HOSTNAME', 'localhost:5672')
+RABBIT_HOSTNAME = os.environ.get('RABBITMQ_HOSTNAME', 'localhost:5672')
 
 if RABBIT_HOSTNAME.startswith('tcp://'):
     RABBIT_HOSTNAME = RABBIT_HOSTNAME.split('//')[1]
