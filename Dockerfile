@@ -1,6 +1,6 @@
 FROM python:3.7-slim
 MAINTAINER Patrowl.io "getsupport@patrowl.io"
-LABEL Name="PatrowlManager" Version="1.6.21"
+LABEL Name="PatrowlManager" Version="1.6.24"
 
 ENV PYTHONUNBUFFERED 1
 ARG arg_http_proxy
@@ -11,7 +11,7 @@ RUN mkdir -p /opt/patrowl-manager/
 WORKDIR /opt/patrowl-manager/
 
 RUN apt-get update -yq  \
-	&& apt-get install -yq --no-install-recommends apt-utils python3 python3-pip libmagic-dev python3-dev gcc \
+	&& apt-get install -yq --no-install-recommends apt-utils python3 python3-pip libmagic-dev python3-dev gcc wget \
 	&& apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
 	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
