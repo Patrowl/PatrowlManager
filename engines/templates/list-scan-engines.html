@@ -11,13 +11,13 @@
   <table class="table table-hover">
     <thead>
       <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Funct. Status</th>
-        <th>Oper.State</th>
-        <th>API URL</th>
-        <th>Last update</th>
-        <th>Actions</th>
+        <th scope="col">Type</th>
+        <th scope="col">Name</th>
+        <th scope="col">Funct. Status</th>
+        <th scope="col">Oper.State</th>
+        <th scope="col">API URL</th>
+        <th scope="col">Last update</th>
+        <th scope="col">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -196,24 +196,24 @@
           $("div#info-engine").html("Loading...");
         },
         success: function(data, textStatus, jqXHR){
-          info_data = "Engine: <b>"+data["engine"]["name"]+"</b><br/>";
-          info_data+= "API URL: <b>"+data["engine"]["api_url"]+"</b><br/>";
+          info_data = "Engine: <strong>"+data["engine"]["name"]+"</strong><br/>";
+          info_data+= "API URL: <strong>"+data["engine"]["api_url"]+"</strong><br/>";
 
           if(data["engine_infos"]["status"] == "ERROR") {
-            info_data+= "Oper status: <b>ERROR</b><br/>";
+            info_data+= "Oper status: <strong>ERROR</strong><br/>";
             if(data["engine_infos"]["details"]){
-              info_data+= "Request: <b>"+data["engine_infos"]["details"]["request"]+"</b></br>"
-              info_data+= "Reason: <b>"+data["engine_infos"]["details"]["reason"]+"</b></br>"
+              info_data+= "Request: <strong>"+data["engine_infos"]["details"]["request"]+"</strong></br>"
+              info_data+= "Reason: <strong>"+data["engine_infos"]["details"]["reason"]+"</strong></br>"
             }
           } else {
-            info_data+= "Nb scans: <b>"+data["nb_scans"]+"</b><br/>";
-            info_data+= "Oper status: <b>"+data["engine_infos"]["engine_config"]["status"]+"</b><br/>";
-            info_data+= "Version: <b>"+data["engine_infos"]["engine_config"]["version"]+"</b><br/>";
-            info_data+= "Description: <b>"+data["engine_infos"]["engine_config"]["description"]+"</b><br/>";
+            info_data+= "Nb scans: <strong>"+data["nb_scans"]+"</strong><br/>";
+            info_data+= "Oper status: <strong>"+data["engine_infos"]["engine_config"]["status"]+"</strong><br/>";
+            info_data+= "Version: <strong>"+data["engine_infos"]["engine_config"]["version"]+"</strong><br/>";
+            info_data+= "Description: <strong>"+data["engine_infos"]["engine_config"]["description"]+"</strong><br/>";
 
             current_scans=data["current_scans"];
             if (current_scans == null || Object.keys(current_scans).length === 0) {
-              info_data+= "Current scans: <b>no scan in progress</b><br/>";
+              info_data+= "Current scans: <strong>no scan in progress</strong><br/>";
             } else {
               info_data+= "Current scans: <br/>";
               for (var scan in current_scans){
@@ -235,7 +235,7 @@
       engine_id = e.relatedTarget.getAttribute('engine-id');
       engine_name = e.relatedTarget.getAttribute('engine-name');
       $("div#delete-engine").attr('engine-id', engine_id);
-      $("div#delete-engine").html("Engine: <b>"+engine_name+"</b><br/><br/>");
+      $("div#delete-engine").html("Engine: <strong>"+engine_name+"</strong><br/><br/>");
     });
     $("button.btn-delete-engine").on('click', function (e) {
       engine_id = $("div#delete-engine").attr('engine-id');

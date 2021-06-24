@@ -134,13 +134,13 @@
   <table class="table table-hover" id="table">
     <thead>
       <tr>
-        <th><input type="checkbox" onClick="toggle(this)" /></th>
-        <th>ID</th>
-        <th>Run at</th>
-        <th>Findings</th>
-        <th>Report</th>
-        <th>Status</th>
-        <th>Actions</th>
+        <th scope="col"><input type="checkbox" onClick="toggle(this)" /></th>
+        <th scope="col">ID</th>
+        <th scope="col">Run at</th>
+        <th scope="col">Findings</th>
+        <th scope="col">Report</th>
+        <th scope="col">Status</th>
+        <th scope="col">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -269,7 +269,7 @@
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
   </ul>
   {% endif %}

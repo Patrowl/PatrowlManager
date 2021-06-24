@@ -11,9 +11,9 @@
   <table class="table table-hover">
     <thead>
       <tr>
-        <th></th>
-        <th><a href="/findings/details/{{finding_a.id}}">Finding A (ID: {{finding_a.id}})</a></th>
-        <th><a href="/findings/details/{{finding_a.id}}">Finding B (ID: {{finding_b.id}})</a></th>
+        <th scope="col"></th>
+        <th scope="col"><a href="/findings/details/{{finding_a.id}}">Finding A (ID: {{finding_a.id}})</a></th>
+        <th scope="col"><a href="/findings/details/{{finding_a.id}}">Finding B (ID: {{finding_b.id}})</a></th>
       </tr>
     </thead>
     <tbody>
@@ -23,7 +23,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Title</b></td>
+        <td><strong>Title</strong></td>
         <td>{{ finding_a.title }}</td>
         <td>{{ finding_b.title }}</td>
       </tr>
@@ -34,7 +34,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Severity</b></td>
+        <td><strong>Severity</strong></td>
         <td>{{ finding_a.severity }}</td>
         <td>{{ finding_b.severity }}</td>
       </tr>
@@ -45,7 +45,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Asset</b></td>
+        <td><strong>Asset</strong></td>
         <td>{{ finding_a.asset.value }}</td>
         <td>{{ finding_b.asset.value }}</td>
       </tr>
@@ -56,7 +56,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Description</b></td>
+        <td><strong>Description</strong></td>
         <td>{{ finding_a.description|linebreaks }}</td>
         <td>{{ finding_b.description|linebreaks }}</td>
       </tr>
@@ -67,12 +67,12 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Solution</b></td>
+        <td><strong>Solution</strong></td>
         <td>{{ finding_a.solution|linebreaks }}</td>
         <td>{{ finding_b.solution|linebreaks }}</td>
       </tr>
       <tr>
-        <td><b>Risk info</b></td>
+        <td><strong>Risk info</strong></td>
         <td>
           {% if not finding_a.risk_info %}
             n/a.
@@ -93,7 +93,7 @@
         </td>
       </tr>
       <tr>
-        <td><b>Vuln info</b></td>
+        <td><strong>Vuln info</strong></td>
         <td>
           {% if not finding_a.vuln_refs %}
             n/a.
@@ -114,7 +114,7 @@
         </td>
       </tr>
       <tr>
-        <td><b>Links</b></td>
+        <td><strong>Links</strong></td>
         <td>
           {% if not finding_a.links %}
             No links.
@@ -135,7 +135,7 @@
         </td>
       </tr>
       <tr>
-        <td><b>Tags</b></td>
+        <td><strong>Tags</strong></td>
         <td>
           {% if not finding_a.tags %}
             No Tags.
@@ -162,7 +162,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Created at</b></td>
+        <td><strong>Created at</strong></td>
         <td>{{ finding_a.created_at|date:"Y/m/d\-H:i:s"  }}</td>
         <td>{{ finding_b.created_at|date:"Y/m/d\-H:i:s"  }}</td>
       </tr>
@@ -173,7 +173,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Scan title</b></td>
+        <td><strong>Scan title</strong></td>
         <td>{{ finding_a.scan.title }} <a href="/scans/defs/details/{{finding_a.scan.scan_definition.id}}"><span class='glyphicon glyphicon-share-alt'></span></a></td>
         <td>{{ finding_b.scan.title }} <a href="/scans/defs/details/{{finding_b.scan.scan_definition.id}}"><span class='glyphicon glyphicon-share-alt'></span></a></td>
       </tr>
@@ -184,7 +184,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Scan policy</b></td>
+        <td><strong>Scan policy</strong></td>
         <td>{{ finding_a.scan.engine_policy.name }} <a href="/engines/policies/edit/{{finding_a.scan.engine_policy.id}}"><span class='glyphicon glyphicon-share-alt'></span></a></td>
         <td>{{ finding_b.scan.engine_policy.name }} <a href="/engines/policies/edit/{{finding_b.scan.engine_policy.id}}"><span class='glyphicon glyphicon-share-alt'></span></a></td>
       </tr>
@@ -195,7 +195,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Scan engine</b></td>
+        <td><strong>Scan engine</strong></td>
         <td>{{ finding_a.scan.engine_type }} - {{ finding_a.scan.engine.name }}</td>
         <td>{{ finding_b.scan.engine_type }} - {{ finding_b.scan.engine.name }}</td>
       </tr>
@@ -206,7 +206,7 @@
       {% else %}
       <tr>
       {% endif %}
-        <td><b>Hash</b></td>
+        <td><strong>Hash</strong></td>
         <td>{{ finding_a.hash }}</td>
         <td>{{ finding_b.hash }}</td>
       </tr> -->

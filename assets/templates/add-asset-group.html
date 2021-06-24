@@ -58,7 +58,7 @@ label.radio {
 
     <!-- Teams -->
     <div class="form-group">
-      <label class="col-sm-2 control-label" for="id_team_list">Teams</label>
+      <label class="col-sm-2 control-label" for="id_scan_team_list">Teams</label>
       <div class="col-sm-5">
         <select class="form-control form-control-sm" id="id_scan_team_list" name="scan_team_list" disabled>
           {% for team in teams_list %}
@@ -73,7 +73,7 @@ label.radio {
       <label class="col-sm-2 control-label" for="id_assets_list">Search asset(s):</label>
       <div class="col-sm-5 has-feedback">
         <div id="scrollable-dropdown-menu">
-          <input class="typeahead form-control" type="text" placeholder="Search assets">
+          <input class="typeahead form-control" type="text" placeholder="Search assets" id="search-asset">
           <i class="form-control-feedback glyphicon glyphicon-search"></i>
         </div>
       </div>
@@ -103,7 +103,7 @@ label.radio {
 {% if messages %}
 <ul class="messages">
     {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
     {% endfor %}
 </ul>
 {% endif %}

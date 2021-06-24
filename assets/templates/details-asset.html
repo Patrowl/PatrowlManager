@@ -78,7 +78,7 @@ div.risk-trends {
     <div class="col-md-4">
       <dl class="dl-horizontal">
         <dt>Name</dt>
-        <dd><b>{{ asset.name }}</b> ({{asset.type}})</dd>
+        <dd><strong>{{ asset.name }}</strong> ({{asset.type}})</dd>
 
         <dt>Value</dt>
         <dd>{{ asset.value }}</dd>
@@ -142,7 +142,7 @@ div.risk-trends {
 
     <div class="col-md-6 tiles"> <!-- Second col -->
       <div class="row">
-        <b>Findings Stats </b><span class="glyphicon glyphicon-stats"></span>
+        <strong>Findings Stats </strong><span class="glyphicon glyphicon-stats"></span>
       </div>
       <div class="row finding-stats">
         <div class="col-md-2">
@@ -173,10 +173,10 @@ div.risk-trends {
       </div>
       <div class="row">
         <div class="col-md-12">
-      		<b># Findings</b>: <i>{{findings_stats.total}} ({{findings_stats.new}} news, {{findings_stats.ack}} ackd.)</i><br/>
-      		<b># Findings with CVSS > 7.0</b>: {% if findings_stats.cvss_gte_7 > 0 %} <i class="text-danger">{{findings_stats.cvss_gte_7}}{% else %} <i>0{% endif %}</i><br/>
-      		<b># Scans related</b>: <i>{{scans_stats.performed}} performed, {{scans_stats.defined}} defined, {{scans_stats.running}} currently running</i><br/>
-      		<b># Scans from engines</b>: <i>
+      		<strong># Findings</strong>: <i>{{findings_stats.total}} ({{findings_stats.new}} news, {{findings_stats.ack}} ackd.)</i><br/>
+      		<strong># Findings with CVSS > 7.0</strong>: {% if findings_stats.cvss_gte_7 > 0 %} <i class="text-danger">{{findings_stats.cvss_gte_7}}{% else %} <i>0{% endif %}</i><br/>
+      		<strong># Scans related</strong>: <i>{{scans_stats.performed}} performed, {{scans_stats.defined}} defined, {{scans_stats.running}} currently running</i><br/>
+      		<strong># Scans from engines</strong>: <i>
           {% for engine, counter in engines_stats.items %}
             {{ engine }}: {{ counter }}{% if not forloop.last %}, {% endif %}
           {% endfor %}</i><br/>
@@ -186,12 +186,12 @@ div.risk-trends {
 
     <div class="col-md-2 text-center"> <!-- Thrird col -->
       <div class="row">
-      <b>Global Security Rating </b><span class="glyphicon glyphicon-dashboard"></span>
+      <strong>Global Security Rating </strong><span class="glyphicon glyphicon-dashboard"></span>
         <div class="risk-grade risk-grade-{{asset_risk_grade|keyvalue:'now'}}">
-          <b>{{asset_risk_grade|keyvalue:"now"}}</b></div>
+          <strong>{{asset_risk_grade|keyvalue:"now"}}</strong></div>
         </div><br/>
       <div class="row risk-trends">
-      <span data-toggle="modal" data-target="#modal-asset-trends"><b>Trends </b><span class="glyphicon glyphicon-time"></span></span>
+      <span data-toggle="modal" data-target="#modal-asset-trends"><strong>Trends </strong><span class="glyphicon glyphicon-time"></span></span>
       </div>
       <div class="row">
         <div class="col-md-4" title="1 day ago">-1d
@@ -286,14 +286,14 @@ div.risk-trends {
       <table class="table table-hover" id="table" data-toggle="table">
         <thead>
           <tr>
-            <th><input type="checkbox" onClick="toggle(this)" /></th>
-            <th>Title</th>
-            <th>Type</th>
-            <th>Severity</th>
-            <th>Status</th>
-            <th>From</th>
-            <th>Last update</th>
-            <th>Actions</th>
+            <th scope="col"><input type="checkbox" onClick="toggle(this)" /></th>
+            <th scope="col">Title</th>
+            <th scope="col">Type</th>
+            <th scope="col">Severity</th>
+            <th scope="col">Status</th>
+            <th scope="col">From</th>
+            <th scope="col">Last update</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -351,12 +351,12 @@ div.risk-trends {
       <table class="table table-hover" id="table" data-toggle="table">
         <thead>
           <tr>
-            <th>Severity</th>
-            <th>Remediations</th>
-            <th>Scopes</th>
-            <th>Related findings</th>
-            <th>Status</th>
-            <th>Last update</th>
+            <th scope="col">Severity</th>
+            <th scope="col">Remediations</th>
+            <th scope="col">Scopes</th>
+            <th scope="col">Related findings</th>
+            <th scope="col">Status</th>
+            <th scope="col">Last update</th>
           </tr>
         </thead>
         <tbody>
@@ -403,13 +403,13 @@ div.risk-trends {
       <table class="table table-hover" id="table" data-toggle="table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th># Scans</th>
-            <th>Type</th>
-            <th>Engine</th>
-            <th>Status</th>
-            <th>Last update</th>
-            <th>Actions</th>
+            <th scope="col">Title</th>
+            <th scope="col"># Scans</th>
+            <th scope="col">Type</th>
+            <th scope="col">Engine</th>
+            <th scope="col">Status</th>
+            <th scope="col">Last update</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -683,7 +683,7 @@ div.risk-trends {
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       <!-- <div class="alert alert-dismissible alert-success fade in">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
@@ -713,13 +713,13 @@ div.risk-trends {
           <table class="table table-sum table-hover">
             <thead>
               <tr>
-                <th>Scopes</th>
-                <th>Critical</th>
-                <th>High</th>
-                <th>Medium</th>
-                <th>Low</th>
-                <th>Info</th>
-                <th>Total</th>
+                <th scope="col">Scopes</th>
+                <th scope="col">Critical</th>
+                <th scope="col">High</th>
+                <th scope="col">Medium</th>
+                <th scope="col">Low</th>
+                <th scope="col">Info</th>
+                <th scope="col">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -815,7 +815,7 @@ div.risk-trends {
       <div class="modal-body">
         <div id="asset-tags">
           <!-- Content -->
-          <b>Current tags</b>: {{ asset.categories.all|join:", " }}<br/>
+          <strong>Current tags</strong>: {{ asset.categories.all|join:", " }}<br/>
           <p class="text-warning">
             Warning: <br/>
             1/ All sub-tags will be deleted if a parent tag is added<br/>
@@ -864,6 +864,32 @@ div.risk-trends {
           <canvas id="chart-asset-trends"/>
         </div>
         <button type="button" class="btn btn-xs btn-primary col-sm-12" data-dismiss="modal">Cancel</button><br/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete scan modal -->
+<div class="modal fade" id="modal-delete-scan" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Scan</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-scan">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-scan" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
       </div>
     </div>
   </div>
@@ -1176,7 +1202,7 @@ div.risk-trends {
       finding_id = e.relatedTarget.getAttribute('finding-id');
       finding_title = e.relatedTarget.getAttribute('finding-title');
       $("div#delete-finding").attr('finding-id', finding_id);
-      $("div#delete-finding").html("Finding: <b>"+finding_title+"</b><br/><br/>");
+      $("div#delete-finding").html("Finding: <strong>"+finding_title+"</strong><br/><br/>");
     });
     $("button.btn-delete-finding").on('click', function (e) {
       finding_id = $("div#delete-finding").attr('finding-id');
@@ -1184,6 +1210,25 @@ div.risk-trends {
       var request = $.ajax({
         url: delete_finding_url,
         method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
+    // Delete scan modal
+    $("#modal-delete-scan").on('show.bs.modal', function (e) {
+      id = e.relatedTarget.getAttribute('scan-id');
+      scan_title = e.relatedTarget.getAttribute('scan-title');
+      $("div#delete-scan").attr('scan-id', id);
+      $("div#delete-scan").html("Title: <strong>"+scan_title+"</strong><br/><br/>");
+    });
+    $("button.btn-delete-scan").on('click', function (e) {
+      id = $("div#delete-scan").attr('scan-id');
+      var request = $.ajax({
+        url: "{% url 'delete_scan_api' 0 %}".replace("0", id),
+        method: "DELETE",
         headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           location.reload();

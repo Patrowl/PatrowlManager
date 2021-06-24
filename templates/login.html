@@ -27,10 +27,8 @@
                           {% csrf_token %}
                           {{form.as_p}}
                         </p>
-                        <p class="bs-component">
-                            <center>
-                                <input class="btn btn-success btn-sm" type="submit" value="Login" />
-                            </center>
+                        <p class="bs-component" style="text-align: center;">
+                          <input class="btn btn-success btn-sm" type="submit" value="Login" />
                         </p>
                         <input type="hidden" name="next" value="{{ next }}" />
                     </form>
@@ -43,12 +41,10 @@
         <div class="col-md-4 col-md-offset-4">
             <div class="login-panel panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Sign In with SSO</h3>
+                  <h3 class="panel-title">Sign In with SSO</h3>
                 </div>
-                <div class="panel-body">
-                  <center>
-                      <a href="{{LOGIN_SSO_URL}}" class="btn btn-sm btn-success">Login</a>
-                  </center>
+                <div class="panel-body" style="text-align: center;">
+                  <a href="{{ LOGIN_SSO_URL }}" class="btn btn-sm btn-success">Login</a>
                 </div>
             </div>
         </div>
@@ -63,7 +59,6 @@
 <script>
     {% if not user.is_authenticated %}
     $("ul.nav.navbar-nav.navbar-right").css("display", "none");
-
     {% endif %}
 </script>
 

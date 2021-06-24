@@ -54,25 +54,25 @@
       </tr>
     </thead>
     <tbody>
-      <tr><th>User Data</th></tr>
+      <tr><th scope="col">User Data</th></tr>
       <tr><td>- Logged User:</td><td>{{ user.username }}</td></tr>
       <tr><td>- Logged User ID:</td><td>{{ user.id }}</td></tr>
       <tr><td>- Logged User Last login:</td><td>{{ user.last_login }}</td></tr>
       <tr><td>- Logged User groups:</td><td>{{ user.groups }}</td></tr>
 
-      <tr><th>Assets Data</th></tr>
+      <tr><th scope="col">Assets Data</th></tr>
       <tr><td>- Assets #:</td><td>{{ assets.count }} (low: {{ assets.count_low }}, medium: {{ assets.count_medium }}, high: {{ assets.count_high }})</td></tr>
       <tr><td>- Asset Groups #:</td><td>{{ assets.countgroups }} (low: {{ assets.countgroups_low }}, medium: {{ assets.countgroups_medium }}, high: {{ assets.countgroups_high }})</td></tr>
 
-      <tr><th>Findings Data</th></tr>
+      <tr><th scope="col">Findings Data</th></tr>
       <tr><td>- Findings #:</td><td>{{ findings.count }} (info: {{ findings.count_info }}, low: {{ findings.count_low }}, medium: {{ findings.count_medium }}, high: {{ findings.count_high }})</td></tr>
 
-      <tr><th>Scans Data</th></tr>
+      <tr><th scope="col">Scans Data</th></tr>
       <tr><td>- Scans #:</td><td>{{ scans.count_scans }}</td></tr>
       <tr><td>- Scans campaigns #:</td><td>{{ scans.count_scan_campaigns }}</td></tr>
       <tr><td>- Scan definitions #:</td><td>{{ scans.count_scan_definitions }} (#active: {{ scans.count_active_periodic_scans }})</td></tr>
 
-      <tr><th>Engines Data</th></tr>
+      <tr><th scope="col">Engines Data</th></tr>
       <tr><td>- Engines #:</td><td>{{ engines.count }}: {{ engines.names }}</td></tr>
     </tbody>
   </table>

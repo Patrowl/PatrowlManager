@@ -30,13 +30,13 @@
     <thead>
       <tr>
         <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
-        <th>Title</th>
-        <th># Scans</th>
-        <th>Scan Type</th>
-        <th>Engine</th>
-        <th>Status</th>
-        <th>Last update</th>
-        <th>Actions</th>
+        <th scope="col">Title</th>
+        <th scope="col"># Scans</th>
+        <th scope="col">Scan Type</th>
+        <th scope="col">Engine</th>
+        <th scope="col">Status</th>
+        <th scope="col">Last update</th>
+        <th scope="col">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -157,7 +157,7 @@
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
   </ul>
   {% endif %}

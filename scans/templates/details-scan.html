@@ -508,7 +508,7 @@ function toggle(source, element) {
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
   </ul>
   {% endif %}
@@ -565,9 +565,9 @@ function toggle(source, element) {
         <p><i>Ex: 'assets:"google" asset.criticity:high findings.title:"ssl certificates"'</i></p>
         <table class="table table-hover">
           <tr>
-            <th>Prefix</th>
-            <th>Description</th>
-            <th>Examples</th>
+            <th scope="col">Prefix</th>
+            <th scope="col">Description</th>
+            <th scope="col">Examples</th>
           </tr>
           <tr>
             <td>a<br/>assets<br/>a.value<br/>asset.value</td>

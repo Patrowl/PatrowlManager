@@ -77,13 +77,13 @@
     <thead>
       <tr>
         <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'alert')" /></th>
-        <th>Message</th>
-        <th>Status</th>
-        <th>Severity</th>
-        <th>Finding</th>
-        <th>Scan</th>
-        <th>Updated</th>
-        <th>Actions</th>
+        <th scope="col">Message</th>
+        <th scope="col">Status</th>
+        <th scope="col">Severity</th>
+        <th scope="col">Finding</th>
+        <th scope="col">Scan</th>
+        <th scope="col">Updated</th>
+        <th scope="col">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -205,7 +205,7 @@
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
   </ul>
   {% endif %}
