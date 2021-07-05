@@ -599,18 +599,20 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
             missing_finding_alert(mf.id, scan.id, mf.severity)
             # If missing one time close finding
-            missing_finding=Finding.objects.filter(id=mf.id)
+            missing_finding = Finding.objects.filter(raw_finding=mf).first()
             if missing_finding.status in ('ack', 'new'):
                 missing_finding.status = 'closed'
+                missing_finding.save()
     # - check if two previous scan exists
     older_scan = scan.scan_definition.scan_set.exclude(id=scan.id).order_by('-id')[1]
     if older_scan is not None:
         # Loop in missing findings
         for mf in older_scan.rawfinding_set.exclude(hash__in=known_findings_list):
             # If missing two time close finding
-            missing_finding = Finding.objects.filter(id=mf.id)
+            missing_finding = Finding.objects.filter(raw_finding=mf).first()
             if missing_finding.status in ('closed'):
                 missing_finding.status = 'mitigated'
+                missing_finding.save()
 
     scan.save()
     Event.objects.create(message="{} Findings imported.".format(evt_prefix), type="INFO", severity="INFO", scan=scan)
