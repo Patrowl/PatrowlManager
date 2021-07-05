@@ -33,3 +33,6 @@ app.conf.task_default_exchange_type = 'direct'
 app.conf.task_default_routing_key = 'default'
 
 app.conf.enable_utc = False
+
+app.conf.CELERY_ALWAYS_EAGER = True
+app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True

@@ -102,12 +102,14 @@ def homepage_dashboard_view(request):
         nb_info=Coalesce(Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()), 0),
         nb_false_positive=Coalesce(Sum(Case(When(status='falsepositive', then=1)), output_field=models.IntegerField()), 0),
         nb_duplicate=Coalesce(Sum(Case(When(status='duplicate', then=1)), output_field=models.IntegerField()), 0),
+        nb_closed=Coalesce(Sum(Case(When(status='closed', then=1)), output_field=models.IntegerField()), 0),
+        nb_mitigated=Coalesce(Sum(Case(When(status='mitigated', then=1)), output_field=models.IntegerField()), 0),
     )
     global_stats["findings"] = {
         # "total_raw": RawFinding.objects.count(),
         # "total_raw": RawFinding.objects.count(),
         # "total": findings.count(),
-        "total": findings_stats["nb_critical"]+findings_stats["nb_high"]+findings_stats["nb_medium"]+findings_stats["nb_low"]+findings_stats["nb_info"]+findings_stats["nb_false_positive"]+findings_stats["nb_duplicate"],
+        "total": findings_stats["nb_critical"]+findings_stats["nb_high"]+findings_stats["nb_medium"]+findings_stats["nb_low"]+findings_stats["nb_info"]+findings_stats["nb_false_positive"]+findings_stats["nb_duplicate"]+findings_stats["nb_closed"]+findings_stats["nb_mitigated"],
         "new": findings_stats["nb_new"],
         "critical": findings_stats["nb_critical"],
         "high": findings_stats["nb_high"],
@@ -116,6 +118,8 @@ def homepage_dashboard_view(request):
         "info": findings_stats["nb_info"],
         "falsepositive": findings_stats["nb_false_positive"],
         "duplicate": findings_stats["nb_duplicate"],
+        "closed": findings_stats["nb_closed"],
+        "mitigated": findings_stats["nb_mitigated"],
     }
 
     # update nb_matches
@@ -192,13 +196,15 @@ def homepage_dashboard_view(request):
     for assetgroup in ags:
         assetgroups_findings_stats = findings.filter(asset__in=assetgroup.assets.all()).aggregate(
         nb_new=Coalesce(Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()), 0),
-        nb_critical=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
-        nb_high=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='high', then=1)), output_field=models.IntegerField()), 0),
-        nb_medium=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
-        nb_low=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='low', then=1)), output_field=models.IntegerField()), 0),
-        nb_info=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(severity='info', then=1)), output_field=models.IntegerField()), 0),
+        nb_critical=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0), When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
+        nb_high=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0), When(severity='high', then=1)), output_field=models.IntegerField()), 0),
+        nb_medium=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0), When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
+        nb_low=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0), When(severity='low', then=1)), output_field=models.IntegerField()), 0),
+        nb_info=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0), When(severity='info', then=1)), output_field=models.IntegerField()), 0),
         nb_false_positive=Coalesce(Sum(Case(When(status='falsepositive', then=1)), output_field=models.IntegerField()), 0),
         nb_duplicate=Coalesce(Sum(Case(When(status='duplicate', then=1)), output_field=models.IntegerField()), 0),
+        nb_closed=Coalesce(Sum(Case(When(status='closed', then=1)), output_field=models.IntegerField()), 0),
+        nb_mitigated=Coalesce(Sum(Case(When(status='mitigated', then=1)), output_field=models.IntegerField()), 0),
         )
         assetgroups_findings_stats['name'] = assetgroup.name
         assetgroups_findings_stats['id'] = assetgroup.id
@@ -208,19 +214,19 @@ def homepage_dashboard_view(request):
     # Critical findings
     top_critical_findings = []
     MAX_CF = 6
-    for finding in findings.filter(severity="critical").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+    for finding in findings.filter(severity="critical").exclude(Q(status='falsepositive') | Q(status='duplicate')| Q(status='closed')| Q(status='mitigated')).only("id", "severity", "title", "asset_name"):
         if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="high").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="high").exclude(Q(status='falsepositive') | Q(status='duplicate')| Q(status='closed')| Q(status='mitigated')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="medium").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="medium").exclude(Q(status='falsepositive') | Q(status='duplicate')| Q(status='closed')| Q(status='mitigated')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="low").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="low").exclude(Q(status='falsepositive') | Q(status='duplicate')| Q(status='closed')| Q(status='mitigated')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="info").exclude(Q(status='falsepositive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="info").exclude(Q(status='falsepositive') | Q(status='duplicate')| Q(status='closed')| Q(status='mitigated')).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
 
     # CVSS

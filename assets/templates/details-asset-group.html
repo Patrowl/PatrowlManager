@@ -181,10 +181,20 @@ div.risk-trends {
       		    <div>Duplicate:</div><span class="label label-info">{{findings_stats.duplicate}}</span>
           </div>
       </div>
+          <div class="col-md-2">
+          <div class="tile tile-closed">
+      		    <div>Closed:</div><span class="label label-info">{{findings_stats.closed}}</span>
+          </div>
+      </div>
+          <div class="col-md-2">
+          <div class="tile tile-mitigated">
+      		    <div>Mitigated:</div><span class="label label-info">{{findings_stats.mitigated}}</span>
+          </div>
+      </div>
       </div>
       <div class="row">
         <div class="col-md-12">
-      		<b># Findings</b>: <i>{{findings_stats.total}} ({{findings_stats.new}} news, {{findings_stats.ack}} ackd. , {{findings_stats.duplicate}} duplicate, {{findings_stats.falsepositive}} False Positive)</i><br/>
+      		<b># Findings</b>: <i>{{findings_stats.total}} ({{findings_stats.new}} news, {{findings_stats.ack}} ackd. , {{findings_stats.duplicate}} duplicate, {{findings_stats.falsepositive}} False Positive, {{findings_stats.closed}} Closed, {{findings_stats.mitigated}} Mitigated)</i><br/>
       		<b># Scans related</b>: <i>{{scans_stats.performed}} performed, {{scans_stats.defined}} defined, {{scans_stats.running}} currently running</i><br/>
       		<b># Scans from engines</b>: <i>
           {% for engine, counter in engines_stats.items %}
