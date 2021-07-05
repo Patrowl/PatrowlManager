@@ -35,6 +35,13 @@ def get_asset_api(request, asset_id):
 
 
 @api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def get_asset_value_api(request, value):
+    asset = get_object_or_404(Asset.objects.for_user(request.user), value__iexact=value.lower())
+    return JsonResponse(asset.to_dict(), safe=False)
+
+
+@api_view(['GET'])
 @pro_group_required('AssetsManager')
 def ack_asset_api(request, asset_id):
     asset = get_object_or_404(Asset.objects.for_user(request.user), id=asset_id)
@@ -46,6 +53,13 @@ def ack_asset_api(request, asset_id):
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_group_api(request, assetgroup_id):
     assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    return JsonResponse(assetgroup.to_dict(), safe=False)
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def get_asset_group_name_api(request, assetgroup_name):
+    assetgroup = get_object_or_404(AssetGroup.objects.for_user(request.user), name__iexact=assetgroup_name.lower())
     return JsonResponse(assetgroup.to_dict(), safe=False)
 
 
@@ -166,7 +180,7 @@ def list_assets_api(request):
                 Q(value__icontains=q) | Q(name__icontains=q)
             ).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type')
+            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).filter(
                 name__icontains=q
             ).annotate(
@@ -174,24 +188,63 @@ def list_assets_api(request):
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
+        taggroups = AssetCategory.objects.filter(
+                value__icontains=q
+            ).annotate(
+                name=F("value")
+            ).annotate(
+                format=Value("taggroup", output_field=CharField())
+            ).values('id', 'value', 'format','name')
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type')
+            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).annotate(
                 value=F("name")
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
+        taggroups = AssetCategory.objects.annotate(
+            name=F("value")
+        ).annotate(
+            format=Value("taggroup", output_field=CharField())
+        ).values('id', 'value', 'format', 'name')
 
     # Filter by team
     if team is not None and len(team) > 0:
         assets = assets.filter(teams__in=team)
         assetgroups = assetgroups.filter(teams__in=team)
+        taggroups = taggroups.filter(teams__in=team)
 
     assets_list = list(assets)
     assetgroups_list = list(assetgroups)
-    return JsonResponse(assets_list + assetgroups_list, safe=False)
+    taggroups_list = list(taggroups)
+    return JsonResponse(assets_list + assetgroups_list + taggroups_list, safe=False)
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def list_only_assets_api(request):
+    q = request.GET.get("q", None)
+    team = request.GET.get("team", None)
+
+    if q:
+        assets = Asset.objects.for_user(request.user).filter(
+                Q(value__icontains=q) | Q(name__icontains=q)
+            ).annotate(
+                format=Value("asset", output_field=CharField())
+            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
+    else:
+        assets = Asset.objects.for_user(request.user).annotate(
+                format=Value("asset", output_field=CharField())
+            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
+
+    # Filter by team
+    if team is not None and len(team) > 0:
+        assets = assets.filter(teams__in=team)
+
+    assets_list = list(assets)
+    return JsonResponse(assets_list, safe=False)
 
 
 @api_view(['GET'])

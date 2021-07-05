@@ -18,6 +18,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '*** omg this is the secret !***')
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = True
 
+SESSION_COOKIE_NAME = 'patrowl-manager-sc'
+
 #SESSION_COOKIE_SECURE = True # Only if HTTPS is enabled
 SESSION_COOKIE_HTTPONLY = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -201,7 +203,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'app.wsgi.application'
 
-CONN_MAX_AGE = os.environ.get('DB_ENV_POSTGRES_CONN_MAX_AGE', '0').lower()
+CONN_MAX_AGE = os.environ.get('POSTGRES_CONN_MAX_AGE', '0').lower()
 if CONN_MAX_AGE == 'none':
     CONN_MAX_AGE = None
 else:
@@ -211,13 +213,13 @@ else:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_ENV_DB', 'patrowl_db'),
-        'USER': os.environ.get('DB_ENV_POSTGRES_USER', 'PATROWL_DB_USER'),
-        'PASSWORD': os.environ.get('DB_ENV_POSTGRES_PASSWORD', 'PATROWL_DB_PASSWD_TO_CHANGE'),
-        'HOST': os.environ.get('DB_PORT_5432_TCP_HOST', 'localhost'),
-        'PORT': int(os.environ.get('DB_PORT_5432_TCP_PORT', 5432)),
+        'NAME': os.environ.get('POSTGRES_DBNAME', 'patrowl_db'),
+        'USER': os.environ.get('POSTGRES_USER', 'PATROWL_DB_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'PATROWL_DB_PASSWD_TO_CHANGE'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': int(os.environ.get('POSTGRES_PORT', 5432)),
         'OPTIONS': {
-            'options': os.environ.get('DB_ENV_POSTGRES_OPTIONS', '')
+            'options': os.environ.get('POSTGRES_OPTIONS', '')
         },
         'CONN_MAX_AGE': CONN_MAX_AGE
     }
@@ -266,7 +268,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 ENGINE_HTTP_TIMEOUT = int(os.environ.get('ENGINE_HTTP_TIMEOUT', 600))
 
 # RABBITMQ
-RABBIT_HOSTNAME = os.environ.get('RABBIT_PORT_5672_TCP', 'localhost:5672')
+RABBIT_HOSTNAME = os.environ.get('RABBITMQ_HOSTNAME', 'localhost:5672')
 
 if RABBIT_HOSTNAME.startswith('tcp://'):
     RABBIT_HOSTNAME = RABBIT_HOSTNAME.split('//')[1]

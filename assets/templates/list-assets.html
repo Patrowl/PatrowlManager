@@ -10,8 +10,6 @@ span.badge-risk-grade-D { background-color: darkorange; }
 span.badge-risk-grade-E { background-color: orangered; }
 span.badge-risk-grade-F { background-color: red; }
 span.badge-risk-grade-- { background-color: lightgray; }
-
-
 </style>
 
 <script language="JavaScript">
@@ -324,7 +322,7 @@ function toggle(source, element) {
     {% if messages %}
     <ul class="messages">
         {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
         {% endfor %}
     </ul>
     {% endif %}

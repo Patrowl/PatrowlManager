@@ -75,7 +75,7 @@ def _search_findings(request):
             excludes.update({"severity__{}".format(filter_by_severity_cond[4:]): filter_by_severity})
 
     # Filter by finding owner
-    if filter_by_owner and int(filter_by_owner) in AssetOwner.objects.all().values_list('id', flat=True):
+    if filter_by_owner and filter_by_owner.isnumeric() and int(filter_by_owner) in AssetOwner.objects.all().values_list('id', flat=True):
         if filter_by_owner_cond == "exact" or filter_by_owner_cond is None:
             filter_by_owner_cond = "exact"
             filters.update({"asset__assetowner__{}".format(filter_by_owner_cond): filter_by_owner})

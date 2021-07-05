@@ -42,6 +42,8 @@ urlpatterns = [
     url(r'^api/v1/rstatus$', apis.change_rawfindings_status_api, name='change_rawfindings_status_api'),
     # ex: /findings/export (POST params)
     url(r'^api/v1/export$', apis.export_findings_csv_api, name='export_findings_csv_api'),
+    # ex: /findings/filtered-export (GET params)
+    url(r'^api/v1/filteredexport$', apis.export_filtered_findings_csv_api, name='export_filtered_findings_csv_api'),
     # ex: /findings/api/v1/stats
     url(r'^api/v1/stats$', apis.get_findings_stats_api, name='get_findings_stats_api'),
     # ex: /findings/api/v1/gen_alerts/2

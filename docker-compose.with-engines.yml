@@ -28,9 +28,9 @@ services:
     build: .
     image: patrowl/patrowl-manager-community-edition:${PATROWL_MANAGER_VERSION}
     environment:
-      - DB_PORT_5432_TCP_HOST=db
+      - POSTGRES_HOST=db
       - DEBUG=False
-      - RABBIT_PORT_5672_TCP=rabbitmq:5672
+      - RABBITMQ_HOSTNAME=rabbitmq:5672
     depends_on:
       - db
       - rabbitmq
@@ -45,7 +45,6 @@ services:
     entrypoint: ./docker-entrypoint.with-engines.sh
 
   nginx:
-    # image: nginx:latest
     image: nginx:stable-alpine
     container_name: patrowl-nginx
     ports:

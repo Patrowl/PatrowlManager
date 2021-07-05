@@ -881,7 +881,7 @@
     "default": false,
     "description": "Policy for Drupal CMS scanning",
     "options": {
-      "scan_drupal": 1
+      "cms": "drupal"
     },
     "file": "",
     "status": "",
@@ -900,7 +900,7 @@
     "default": false,
     "description": "Policy for Joomla CMS scanning",
     "options": {
-      "scan_joomla": 1
+      "cms": "joomla"
     },
     "file": "",
     "status": "",
@@ -919,7 +919,7 @@
     "default": false,
     "description": "Policy for Moodle CMS scanning",
     "options": {
-      "scan_moodle": 1
+      "cms": "moodle"
     },
     "file": "",
     "status": "",
@@ -938,7 +938,7 @@
     "default": false,
     "description": "Policy for Silverstripe CMS scanning",
     "options": {
-      "scan_silverstripe": 1
+      "cms": "silverstripe"
     },
     "file": "",
     "status": "",
@@ -1311,5 +1311,61 @@
     "created_at": "2020-12-08T15:57:40.141Z",
     "updated_at": "2020-12-08T15:57:40.141Z",
     "scopes": [4]
+  }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 74,
+  "fields": {
+    "engine": 27,
+    "owner": 1,
+    "name": "Checkmarx default policy",
+    "default": true,
+    "description": "Checkmarx default policy",
+    "options": {
+        "command": "scans"
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2020-03-12T11:30:12.503Z",
+    "updated_at": "2020-03-12T11:30:12.503Z",
+    "scopes": [3]
+  }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 75,
+  "fields": {
+    "engine": 28,
+    "owner": 1,
+    "name": "Tfsec default policy",
+    "default": true,
+    "description": "Tfsec default policy",
+    "options": {
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2020-03-12T11:30:12.503Z",
+    "updated_at": "2020-03-12T11:30:12.503Z",
+    "scopes": [3, 6]
+  }
+}, {
+  "model": "engines.enginepolicy",
+  "pk": 76,
+  "fields": {
+    "engine": 29,
+    "owner": 1,
+    "name": "CybelAngel default policy",
+    "default": true,
+    "description": "CybelAngel default policy",
+    "options": {
+        "since": "3600"
+    },
+    "file": "",
+    "status": "active",
+    "is_default": true,
+    "created_at": "2021-04-09T16:04:33.509Z",
+    "updated_at": "2021-04-09T16:04:33.509Z",
+    "scopes": [3]
   }
 }]

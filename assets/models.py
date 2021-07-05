@@ -288,14 +288,14 @@ class Asset(models.Model):
             "total": 0, "grade": "-"}
 
         if not history:
-            findings = self.finding_set.all().values("severity","status")
+            findings = self.finding_set.all().values("severity", "status")
         else:
             startdate = datetime.datetime.today()
             enddate = startdate - datetime.timedelta(days=history)
-            findings = self.finding_set.filter(created_at__lte=enddate).values("severity","status")
+            findings = self.finding_set.filter(created_at__lte=enddate).values("severity", "status")
 
         for finding in findings:
-            if finding['status'] not in ["false-positive","duplicate"]:
+            if finding['status'] not in ["false-positive", "duplicate"]:
                 risk_level['total'] = risk_level.get('total', 0) + 1
                 risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
         if risk_level['critical'] == 0 and risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
@@ -420,7 +420,7 @@ class AssetGroup(models.Model):
     owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
     status      = models.CharField(max_length=30, null=True, blank=True)
-    categories  = models.ManyToManyField(AssetCategory)
+    categories  = models.ManyToManyField(AssetCategory, blank=True)
     created_at  = models.DateTimeField(default=timezone.now)
     updated_at  = models.DateTimeField(default=timezone.now)
     teams       = models.ManyToManyField('users.team', blank=True)

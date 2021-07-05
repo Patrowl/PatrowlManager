@@ -43,10 +43,10 @@
       <table class="table table-hover">
         <thead>
           <tr>
-            <th></th>
-            <th>Asset</th>
-            <th>Title</th>
-            <th>Severity</th>
+            <th scope="col"></th>
+            <th scope="col">Asset</th>
+            <th scope="col">Title</th>
+            <th scope="col">Severity</th>
           </tr>
         </thead>
         <tbody>
@@ -112,10 +112,10 @@
         <table class="table table-hover">
           <thead>
             <tr>
-              <th></th>
-              <th>Asset</th>
-              <th>Title</th>
-              <th>Severity</th>
+              <th scope="col"></th>
+              <th scope="col">Asset</th>
+              <th scope="col">Title</th>
+              <th scope="col">Severity</th>
             </tr>
           </thead>
           <tbody>
@@ -158,7 +158,7 @@
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
   </ul>
   {% endif %}

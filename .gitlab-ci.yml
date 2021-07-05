@@ -1,0 +1,29 @@
+---
+stages:
+  - build
+  - test
+  - clean
+
+build-job:
+  stage: build
+  before_script:
+    - docker-compose --version
+  script:
+    - echo "Building Patrowl Manager on branch $CI_COMMIT_BRANCH"
+    - docker-compose build --force-rm
+
+run-job:
+  stage: test
+  script:
+    - echo "Running Patrowl Manager on branch $CI_COMMIT_BRANCH"
+    - docker-compose up --detach
+  needs: ["build-job"]
+  after_script:
+    - docker ps -a
+
+clean-job:
+  stage: clean
+  script:
+    - echo "Stopping Patrowl Manager on branch $CI_COMMIT_BRANCH"
+    - docker-compose stop
+  needs: ["run-job"]

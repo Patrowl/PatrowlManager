@@ -64,13 +64,3 @@ def search_view(request):
 
     results = _search(kw)
     return render(request, 'search-results.html', {'results': results, 'search_term': kw})
-
-
-def search_api(request):
-    kw = request.GET.get('srch-term', None)
-
-    if not kw:
-        return JsonResponse()
-
-    results = _search(kw)
-    return render(request, 'search-results.html', {'results': results, 'search_term': kw})

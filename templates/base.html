@@ -410,7 +410,7 @@
                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" %}
                 <li role="separator" class="divider"></li>
                 <li class="dropdown-submenu">
-                  <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
+                  <a href="/engines/types/list">Scan Engine Types</a>
                   <li><a href="/engines/types/add">+ Add engine type</a></li>
                 </li>
                 {% endif %}
@@ -418,7 +418,7 @@
               {% else %}
               <li role="separator" class="divider"></li>
               <li class="dropdown-submenu">
-              <a href="/engines/types/list"><strong>Scan Engine Types</strong></a>
+              <a href="/engines/types/list">Scan Engine Types</a>
               <li><a href="/engines/types/add">+ Add engine type</a></li>
               </li>
               {% endif %}

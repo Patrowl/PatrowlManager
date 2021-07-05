@@ -6,7 +6,7 @@ from .models import EngineInstance
 from assets.models import Asset, AssetGroup
 from events.models import Event
 from events.utils import new_finding_alert, missing_finding_alert
-from findings.models import Finding, RawFinding
+from findings.models import Finding, RawFinding, FindingOverride
 from scans.models import ScanJob, Scan
 from common.utils import chunked_queryset
 from common.utils import net
@@ -522,7 +522,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     f.status = "undone"
                 f.save()
                 new_raw_finding.status = f.status
-                new_raw_finding.save()
+                # new_raw_finding.save()
+                new_raw_finding.save(apply_overrides=True)
 
                 # Evaluate alerting rules
                 # try:
@@ -534,9 +535,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 known_findings_list.append(new_raw_finding.hash)
             else:
                 new_raw_finding.status = tmp_status
-                new_raw_finding.save()
+                new_raw_finding.save(apply_overrides=True)
+
                 # Raise an alert
-                if tmp_status != "duplicate":
+                # if tmp_status != "duplicate":
+                if tmp_status == "new":
                     new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
                 # Create an event if logging level OK
@@ -570,6 +573,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 for scope in scan_scopes:
                     new_finding.scopes.add(scope.id)
                 new_finding.save()
+                # new_finding.save(apply_overrides=True)
 
                 # Evaluate alerting rules
                 try:
@@ -675,6 +679,29 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
 
         Event.objects.create(message="{} Add {} in group {}".format(evt_prefix, asset, parent), type="DEBUG", severity="INFO", scan=scan)
         # Add the asset to the new group
+        asset_group.assets.add(asset)
+        asset_group.save()
+
+        # Caculate the risk grade
+        asset_group.calc_risk_grade()
+        asset_group.save()
+
+    if "new_assets_group" in scan.scan_definition.engine_policy.options.keys() and scan.scan_definition.engine_policy.options["new_assets_group"] not in ["", None]:
+        asset_groupname = str(scan.scan_definition.engine_policy.options["new_assets_group"])
+        Event.objects.create(message="{} Looking for a group named : {}".format(evt_prefix, asset_groupname), type="DEBUG", severity="INFO", scan=scan)
+        asset_group = AssetGroup.objects.filter(name=asset_groupname).first()
+        if asset_group is None:
+            assetgroup_args = {
+               'name': asset_groupname,
+               'criticity': criticity,
+               'description': "AssetGroup dynamically created by policy",
+               'owner': owner
+            }
+            asset_group = AssetGroup(**assetgroup_args)
+            asset_group.save()
+
+        Event.objects.create(message="{} Add {} in group {}".format(evt_prefix, asset, asset_groupname), type="DEBUG", severity="INFO", scan=scan)
+        # Add the asset to the group
         asset_group.assets.add(asset)
         asset_group.save()
 

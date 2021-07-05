@@ -258,4 +258,34 @@
     "created_at": "2020-12-08T15:53:32.110Z",
     "updated_at": "2020-12-08T15:53:32.110Z"
   }
+}, {
+  "model": "engines.engine",
+  "pk": 27,
+  "fields": {
+    "name": "CHECKMARX",
+    "description": "Checkmarx scans",
+    "allowed_asset_types": "[u'url']",
+    "created_at": "2021-03-12T11:25:46.428Z",
+    "updated_at": "2021-03-12T11:25:46.428Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 28,
+  "fields": {
+    "name": "TFSEC",
+    "description": "Tfsec scanner",
+    "allowed_asset_types": "[u'url']",
+    "created_at": "2021-04-09T16:04:33.509Z",
+    "updated_at": "2021-04-09T16:04:33.509Z"
+  }
+}, {
+  "model": "engines.engine",
+  "pk": 29,
+  "fields": {
+    "name": "CYBELANGEL",
+    "description": "CyberAngel scans",
+    "allowed_asset_types": "[u'domain']",
+    "created_at": "2020-03-12T11:25:46.428Z",
+    "updated_at": "2020-03-12T11:25:46.428Z"
+  }
 }]

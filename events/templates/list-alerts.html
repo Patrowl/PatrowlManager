@@ -77,13 +77,13 @@
     <thead>
       <tr>
         <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'alert')" /></th>
-        <th>Message</th>
-        <th>Status</th>
-        <th>Severity</th>
-        <th>Finding</th>
-        <th>Scan</th>
-        <th>Updated</th>
-        <th>Actions</th>
+        <th scope="col">Message</th>
+        <th scope="col">Status</th>
+        <th scope="col">Severity</th>
+        <th scope="col">Finding</th>
+        <th scope="col">Scan</th>
+        <th scope="col">Updated</th>
+        <th scope="col">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -193,11 +193,11 @@
 
   {% if PRO_EDITION %}
     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
-    <a class="btn-read-selected text-warning" href="#">* Ack selected alerts</a><br/>
+    <a class="btn-read-selected text-warning" href="#">* Mark selected alerts as read</a><br/>
     <a class="btn-archive-selected text-danger" href="#">! Archive selected alerts</a><br/>
     {% endif %}
   {% else %}
-  <a class="btn-read-selected text-warning" href="#">* Ack selected alerts</a><br/>
+  <a class="btn-read-selected text-warning" href="#">* Mark selected alerts as read</a><br/>
   <a class="btn-archive-selected text-danger" href="#">! Archive selected alerts</a><br/>
   {% endif %}
   <br/>
@@ -205,7 +205,7 @@
   {% if messages %}
   <ul class="messages">
       {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
       {% endfor %}
   </ul>
   {% endif %}
