@@ -31,6 +31,9 @@ services:
       - POSTGRES_HOST=db
       - DEBUG=False
       - RABBITMQ_HOSTNAME=rabbitmq:5672
+      - LDAP_URI=ldap://192.168.1.1
+      - LDAP_BIND_DN=CN=BindUser,OU=Users,DC=patrowl,DC=io
+      - LDAP_BIND_PASSWORD=P@$$w0rd
     depends_on:
       - db
       - rabbitmq

@@ -11,7 +11,7 @@ RUN mkdir -p /opt/patrowl-manager/
 WORKDIR /opt/patrowl-manager/
 
 RUN apt-get update -yq  \
-	&& apt-get install -yq --no-install-recommends apt-utils python3 python3-pip libmagic-dev python3-dev gcc wget \
+	&& apt-get install -yq --no-install-recommends apt-utils python3 python3-pip libmagic-dev python3-dev gcc wget libldap2-dev libsasl2-dev ldap-utils\
 	&& apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
 	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

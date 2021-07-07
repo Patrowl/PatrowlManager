@@ -65,3 +65,4 @@ django-organizations==1.1.2
 django-annoying==0.10.6
 django-reset-migrations
 django-dbconn-retry
+django-auth-ldap
