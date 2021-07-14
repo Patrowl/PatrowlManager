@@ -1,0 +1,37 @@
+---
+variables:
+  CI_DEBUG_TRACE: "false"
+  REGISTRY_URL: "registry.local:5000/patrowl/docker-images"
+  STACK: "patrowl-manager"
+  FOLDER_PATH: "."
+
+stages:
+  - build
+  - run
+
+build-push-manager:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - VERSION=$(cat $CI_PROJECT_DIR/$FOLDER_PATH/VERSION | cut -d " " -f1)
+    - echo "Building Dockerfile $REGISTRY_URL/$STACK:$VERSION on branch $CI_COMMIT_BRANCH"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{$(echo \"${REGISTRY_URL}\" | cut -d '/' -f1)\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
+    - /kaniko/executor --insecure --cache=true --cache-ttl=6h --context $CI_PROJECT_DIR/$FOLDER_PATH --dockerfile $CI_PROJECT_DIR/$FOLDER_PATH/Dockerfile --destination $REGISTRY_URL/$STACK:$VERSION
+
+# run-job-manager:
+#   stage: run
+#   image:
+#     name: $REGISTRY_URL/$STACK:$VERSION
+#   script:
+#     - echo "Running $STACK on branch $CI_COMMIT_BRANCH"
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH
+#       changes:
+#         - $FOLDER_PATH/*
+#   after_script:
+#     - docker images | grep $STACK
+#     - docker stop $(docker ps -a -q --filter ancestor=$REGISTRY_URL/$STACK:$VERSION)
