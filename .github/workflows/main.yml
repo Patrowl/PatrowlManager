@@ -56,17 +56,3 @@ jobs:
           DST_REPO_TOKEN_USER: ${{ env.DST_REPO_TOKEN_USER }}
           SRC_REPO_TOKEN: ${{ env.SRC_REPO_TOKEN }}
           DST_REPO_TOKEN: ${{ env.DST_REPO_TOKEN }}
-  
-  clean:
-    needs: [build]
-    runs-on: self-hosted
-    timeout-minutes: 15
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:   
-    - name: Clean runner workspace path
-      if: always()
-      run: |
-        echo "Cleaning up previous run on ${GITHUB_WORKSPACE}"
-        rm -rf "${GITHUB_WORKSPACE}"
-      env:
-        GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
