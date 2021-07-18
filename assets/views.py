@@ -189,6 +189,11 @@ def add_asset_view(request):
             asset = Asset(**asset_args)
             asset.save()
 
+            # Auto add Type as Tag
+            new_tag = _add_asset_tags(asset, form.cleaned_data['type'])
+            asset.categories.add(new_tag)
+            asset.save()
+
             # Add categories (M2M)
             if len(form.cleaned_data['categories']) == 0:
                 asset.categories.add(AssetCategory.objects.get(id=1))

@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from celery import shared_task, chord, group
 from .models import EngineInstance
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, AssetCategory
 from events.models import Event
 from events.utils import new_finding_alert, missing_finding_alert
 from findings.models import Finding, RawFinding, FindingOverride
@@ -17,6 +17,8 @@ import time
 import datetime
 import uuid
 from copy import deepcopy
+import re
+from assets.apis import _add_asset_tags
 # import logging
 # logger = logging.getLogger(__name__)
 
@@ -580,26 +582,88 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     new_finding.evaluate_alert_rules(trigger='auto')
                 except Exception as e:
                     Event.objects.create(message="{} Error in alerting".format(evt_prefix),
-                        type="ERROR", severity="ERROR", scan=scan, description=str(e))
+                                         type="ERROR", severity="ERROR", scan=scan, description=str(e))
 
-    scan.save()
-    scan.update_sumary()
+                # Vtasio Add Tags
+            if ip_up is False:
+                if asset.type == "ip" and scan.engine_type.name == "NMAP":
+                    invalid_tag = _add_asset_tags(asset, 'active-ip')
+                    asset.categories.remove(invalid_tag)
+                    asset.save()
+                    new_tag = _add_asset_tags(asset, 'inactive-ip')
+                    asset.categories.add(new_tag)
+                    asset.save()
+            if 'is running on port' in finding['title'] and scan.engine_type.name == "NMAP":
+                service = re.findall(r"'(.*?)'", finding['title'])
+                new_tag = _add_asset_tags(asset, service[0])
+                Event.objects.create(
+                    message="[EngineTasks/_import_findings()/scan_id={}] New Tag: {}".format(scan_id,
+                                                                                             service[0]),
+                    description="Asset: {}\nFinding: {}".format(asset.value, finding['title']), type="DEBUG",
+                    severity="INFO", scan=scan)
+                asset.categories.add(new_tag)
+                asset.save()
+            if domain_unresolved is False:
+                if 'Failed to resolve' in finding['title'] and asset.type == "domain" and scan.engine_type.name == "NMAP":
+                    domain_unresolved = True
+                    invalid_tag = _add_asset_tags(asset, 'Resolved-domain')
+                    asset.categories.remove(invalid_tag)
+                    asset.save()
+                    new_tag = _add_asset_tags(asset, 'Unresolved-domain')
+                    asset.categories.add(new_tag)
+                    asset.save()
+                elif 'Failed to resolve' not in finding['title'] and asset.type == "domain" and scan.engine_type.name == "NMAP":
+                    invalid_tag = _add_asset_tags(asset, 'Unresolved-domain')
+                    asset.categories.remove(invalid_tag)
+                    asset.save()
+                    new_tag = _add_asset_tags(asset, 'Resolved-domain')
+                    asset.categories.add(new_tag)
+                    asset.save()
 
-    # Reevaluate the risk level of the asset on new risk
-    for a in scan.assets.all():
-        a.calc_risk_grade()
-    for ag in scan.scan_definition.assetgroups_list.all():
-        ag.calc_risk_grade()
+            if domain_up is False:
+                if 'Host' in finding['title'] and 'is up' in finding['title'] and asset.type == "domain" and scan.engine_type.name == "NMAP":
+                    domain_up = True
+                    invalid_tag = _add_asset_tags(asset, 'inactive-domain')
+                    asset.categories.remove(invalid_tag)
+                    asset.save()
+                    new_tag = _add_asset_tags(asset, 'active-domain')
+                    asset.categories.add(new_tag)
+                    asset.save()
+            if ip_up is False:
+                if ('Host' in finding['title'] and 'is up' in finding['title']) and asset.type == "ip" and scan.engine_type.name == "NMAP":
+                    ip_up = True
+                    invalid_tag = _add_asset_tags(asset, 'inactive-ip')
+                    asset.categories.remove(invalid_tag)
+                    asset.save()
+                    new_tag = _add_asset_tags(asset, 'active-ip')
+                    asset.categories.add(new_tag)
+                    asset.save()
 
-    # Search missing findings
-    # - check if a previous scan exists
-    last_scan = scan.scan_definition.scan_set.exclude(id=scan.id).order_by('-id').first()
-    if last_scan is not None:
-        # Loop in missing findings
-        for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
-            missing_finding_alert(mf.id, scan.id, mf.severity)
+            scan.save()
+            scan.update_sumary()
 
-    scan.save()
+            # Reevaluate the risk level of the asset on new risk
+            for a in scan.assets.all():
+                a.calc_risk_grade()
+            for ag in scan.scan_definition.assetgroups_list.all():
+                ag.calc_risk_grade()
+
+            # Search missing findings
+            # - check if a previous scan exists
+            last_scan = scan.scan_definition.scan_set.exclude(id=scan.id).order_by('-id').first()
+            if last_scan is not None:
+                # Loop in missing findings
+                for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
+                    missing_finding_alert(mf.id, scan.id, mf.severity)
+                    # Remove Tags for missing findings
+                    rawfinding = RawFinding.objects.filter(id=mf.id).first()
+                    if 'is running on port' in rawfinding.title and scan.engine_type.name == "NMAP":
+                        service = re.findall(r"'(.*?)'", rawfinding.title)
+                        invalid_tag = _add_asset_tags(asset, service[0])
+                        asset.categories.remove(invalid_tag)
+                        asset.save()
+
+            scan.save()
     Event.objects.create(message="{} Findings imported.".format(evt_prefix), type="INFO", severity="INFO", scan=scan)
     return True
 
@@ -651,6 +715,12 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
     }
     asset = Asset(**asset_args)
     asset.save()
+
+    # Auto add Type as Tag
+    new_tag = _add_asset_tags(asset, asset_type)
+    asset.categories.add(new_tag)
+    asset.save()
+
     scan.assets.add(asset)
 
     # Then add the asset to every related asset groups
