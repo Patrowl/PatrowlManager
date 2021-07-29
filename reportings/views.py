@@ -95,11 +95,11 @@ def homepage_dashboard_view(request):
     # finding counters
     findings_stats = findings.aggregate(
         nb_new=Coalesce(Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()), 0),
-        nb_critical=Coalesce(Sum(Case(When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
-        nb_high=Coalesce(Sum(Case(When(severity='high', then=1)), output_field=models.IntegerField()), 0),
-        nb_medium=Coalesce(Sum(Case(When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
-        nb_low=Coalesce(Sum(Case(When(severity='low', then=1)), output_field=models.IntegerField()), 0),
-        nb_info=Coalesce(Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()), 0),
+        nb_critical=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0),When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
+        nb_high=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0),When(severity='high', then=1)), output_field=models.IntegerField()), 0),
+        nb_medium=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0),When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
+        nb_low=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0),When(severity='low', then=1)), output_field=models.IntegerField()), 0),
+        nb_info=Coalesce(Sum(Case(When(status='duplicate', then=0), When(status='falsepositive', then=0), When(status='mitigated', then=0), When(status='closed', then=0),When(severity='info', then=1)), output_field=models.IntegerField()), 0),
         nb_false_positive=Coalesce(Sum(Case(When(status='falsepositive', then=1)), output_field=models.IntegerField()), 0),
         nb_duplicate=Coalesce(Sum(Case(When(status='duplicate', then=1)), output_field=models.IntegerField()), 0),
         nb_closed=Coalesce(Sum(Case(When(status='closed', then=1)), output_field=models.IntegerField()), 0),
