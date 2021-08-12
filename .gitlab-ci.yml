@@ -4,9 +4,9 @@ variables:
   REGISTRY_URL: "registry.local:5000/patrowl/docker-images"
   STACK: "patrowl-manager"
   FOLDER_PATH: "."
-
 stages:
   - build
+  - test
   - run
 
 build-push-manager:
@@ -20,7 +20,24 @@ build-push-manager:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{$(echo \"${REGISTRY_URL}\" | cut -d '/' -f1)\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - cat /kaniko/.docker/config.json
-    - /kaniko/executor --insecure --cache=true --cache-ttl=6h --context $CI_PROJECT_DIR/$FOLDER_PATH --dockerfile $CI_PROJECT_DIR/$FOLDER_PATH/Dockerfile --destination $REGISTRY_URL/$STACK:$VERSION
+    - /kaniko/executor --insecure --cleanup --context $CI_PROJECT_DIR/$FOLDER_PATH --dockerfile $CI_PROJECT_DIR/$FOLDER_PATH/Dockerfile --destination $REGISTRY_URL/$STACK:$VERSION
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - VERSION
+
+test-build-manager:
+  stage: test
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "Building Dockerfile $REGISTRY_URL/$STACK:$VERSION on branch $CI_COMMIT_BRANCH"
+    - /kaniko/executor --insecure --cleanup --context $CI_PROJECT_DIR/$FOLDER_PATH --dockerfile $CI_PROJECT_DIR/$FOLDER_PATH/Dockerfile --no-push
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: never
+    - when: always
 
 # run-job-manager:
 #   stage: run
