@@ -794,7 +794,7 @@ ASSET_INVESTIGATION_LINKS = [
     },
     {
         "name": "URLVoid",
-        "link": "http://www.urlvoid.com/scan/%asset%",
+        "link": "https://www.urlvoid.com/scan/%asset%",
         "datatypes": ["url"]
     },
     {
@@ -824,7 +824,7 @@ ASSET_INVESTIGATION_LINKS = [
     },
     {
         "name": "Whois",
-        "link": "http://whois.domaintools.com/%asset%",
+        "link": "https://whois.domaintools.com/%asset%",
         "datatypes": ["domain", "ip"]
     },
     {

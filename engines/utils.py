@@ -176,7 +176,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
     # Check Scan status
     if scan.status not in ["started", "enqueued"]:
         Event.objects.create(message="{} BeforeScan - Bad scan status: '{}'. Task aborted.".format(evt_prefix, scan.status), type="ERROR", severity="ERROR", scan=scan)
-        scan_job.update_status('finished', 'finished_at')
+        # scan_job.update_status('finished', 'finished_at')
         return False
 
     scan_job = ScanJob.objects.create(
@@ -261,7 +261,7 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
             "datatype": a.type
         })
 
-    scan_params ={
+    scan_params = {
         "assets": assets_list,
         "options": scan.scan_definition.engine_policy.options,
         "engine_id": engine_inst.id,
@@ -398,7 +398,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     - Create an alert if a neww or a missing finding is found
     - Update asset score and scan summary
     """
-
     scan_id = None
     if scan:
         Event.objects.create(message="[EngineTasks/_import_findings()/scan_id={}/{}] Importing findings for scan '{}'.".format(scan.id, scanjob_id, scan.title), type="DEBUG", severity="INFO", scan=scan)
@@ -501,9 +500,9 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             # Check if this finding is new (don't already exists)
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
-            #Check description . If CGI in text count the vulnerable parameteres . Only for Nessus
-            count__old_vuln_params =0
-            count__new_vuln_params =0
+            # Check description . If CGI in text count the vulnerable parameteres . Only for Nessus
+            # count__old_vuln_params = 0
+            # count__new_vuln_params = 0
             tmp_status = "new"
             if scan.engine_type.name == "NESSUS" and "CGI" in finding['title']:
 
