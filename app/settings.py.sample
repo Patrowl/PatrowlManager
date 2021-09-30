@@ -332,6 +332,8 @@ FINDINGS_MAX = int(os.environ.get('PATROWL_FINDINGS_MAX', -1))
 ENGINES_MAX = int(os.environ.get('PATROWL_ENGINES_MAX', 5))
 ENGINE_POLICIES_MAX = int(os.environ.get('PATROWL_ENGINE_POLICIES_MAX', 100))
 ENGINES_MANAGE_ENABLED = os.environ.get('PATROWL_ENGINES_MANAGE_ENABLED', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
+ALERTS_AUTO_NEW_ENABLED = os.environ.get('ALERTS_AUTO_NEW_ENABLED', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
+ALERTS_AUTO_MISSING_ENABLED = os.environ.get('ALERTS_AUTO_MISSING_ENABLED', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
 
 ## Pro edition - Load extra settings
 PRO_EDITION = os.environ.get('PRO_EDITION', "").lower() in ['true', '1', 'yes', 'y', 'on']

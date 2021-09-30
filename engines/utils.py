@@ -537,8 +537,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 new_raw_finding.save(apply_overrides=True)
 
                 # Raise an alert
-                # if tmp_status != "duplicate":
-                if tmp_status == "new":
+                if settings.ALERTS_AUTO_NEW_ENABLED is True and tmp_status == "new":
                     new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
                 # Create an event if logging level OK
@@ -596,7 +595,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     if last_scan is not None:
         # Loop in missing findings
         for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
-            missing_finding_alert(mf.id, scan.id, mf.severity)
+            if settings.ALERTS_AUTO_MISSING_ENABLED is True:
+                missing_finding_alert(mf.id, scan.id, mf.severity)
 
     scan.save()
     Event.objects.create(message="{} Findings imported.".format(evt_prefix), type="INFO", severity="INFO", scan=scan)

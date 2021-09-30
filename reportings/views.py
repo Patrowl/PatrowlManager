@@ -183,16 +183,17 @@ def homepage_dashboard_view(request):
     # Critical findings
     top_critical_findings = []
     MAX_CF = 6
-    for finding in findings.filter(severity="critical").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+    # for finding in findings.filter(severity="critical").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+    for finding in findings.filter(severity="critical").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
         if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="high").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="high").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="medium").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="medium").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="low").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="low").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
         for finding in findings.filter(severity="info").only("id", "severity", "title", "asset_name"):
