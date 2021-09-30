@@ -1,29 +1,54 @@
 ---
+variables:
+  CI_DEBUG_TRACE: "false"
+  REGISTRY_URL: "registry.local:5000/patrowl/docker-images"
+  STACK: "patrowl-manager"
+  FOLDER_PATH: "."
 stages:
   - build
   - test
-  - clean
+  - run
 
-build-job:
+build-push-manager:
   stage: build
-  before_script:
-    - docker-compose --version
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
-    - echo "Building Patrowl Manager on branch $CI_COMMIT_BRANCH"
-    - docker-compose build --force-rm
+    - VERSION=$(cat $CI_PROJECT_DIR/$FOLDER_PATH/VERSION | cut -d " " -f1)
+    - echo "Building Dockerfile $REGISTRY_URL/$STACK:$VERSION on branch $CI_COMMIT_BRANCH"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{$(echo \"${REGISTRY_URL}\" | cut -d '/' -f1)\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
+    - /kaniko/executor --insecure --cleanup --context $CI_PROJECT_DIR/$FOLDER_PATH --dockerfile $CI_PROJECT_DIR/$FOLDER_PATH/Dockerfile --destination $REGISTRY_URL/$STACK:$VERSION
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - VERSION
 
-run-job:
+test-build-manager:
   stage: test
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
-    - echo "Running Patrowl Manager on branch $CI_COMMIT_BRANCH"
-    - docker-compose up --detach
-  needs: ["build-job"]
-  after_script:
-    - docker ps -a
+    - echo "Building Dockerfile $REGISTRY_URL/$STACK:$VERSION on branch $CI_COMMIT_BRANCH"
+    - /kaniko/executor --insecure --cleanup --context $CI_PROJECT_DIR/$FOLDER_PATH --dockerfile $CI_PROJECT_DIR/$FOLDER_PATH/Dockerfile --no-push
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: never
+    - when: always
 
-clean-job:
-  stage: clean
-  script:
-    - echo "Stopping Patrowl Manager on branch $CI_COMMIT_BRANCH"
-    - docker-compose stop
-  needs: ["run-job"]
+# run-job-manager:
+#   stage: run
+#   image:
+#     name: $REGISTRY_URL/$STACK:$VERSION
+#   script:
+#     - echo "Running $STACK on branch $CI_COMMIT_BRANCH"
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH
+#       changes:
+#         - $FOLDER_PATH/*
+#   after_script:
+#     - docker images | grep $STACK
+#     - docker stop $(docker ps -a -q --filter ancestor=$REGISTRY_URL/$STACK:$VERSION)
