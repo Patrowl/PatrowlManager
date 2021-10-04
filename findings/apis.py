@@ -101,7 +101,7 @@ def export_findings_csv_api(request):
 
         asset_groupnames = ','.join([g.name for g in finding.asset.assetgroup_set.all()])
         asset_tags = ','.join([c.value for c in finding.asset.categories.all()])
-    
+
         try:
             writer.writerow([
                 finding.asset.value, finding.asset.type, asset_groupnames,
@@ -185,7 +185,7 @@ def delete_rawfindings_api(request):
     for finding_id in findings:
         f = RawFinding.objects.for_user(request.user).get(id=finding_id)
 
-        # reevaluate related asset critity
+        # reevaluate related asset criticality
         Asset.objects.for_user(request.user).get(id=f.asset.id).evaluate_risk()
         f.delete()
 
@@ -252,10 +252,10 @@ def get_findings_stats_api(request):
     data = {
         "nb_findings": findings.count(),
         "nb_info": findings.filter(severity="info").count(),
-        "nb_low": findings.filter(severity="low").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "nb_medium": findings.filter(severity="medium").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "nb_high": findings.filter(severity="high").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-        "nb_critical": findings.filter(severity="critical").exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
+        "nb_low": findings.filter(severity="low").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).count(),
+        "nb_medium": findings.filter(severity="medium").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).count(),
+        "nb_high": findings.filter(severity="high").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).count(),
+        "nb_critical": findings.filter(severity="critical").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).count(),
         "nb_new_findings": findings.filter(status="new").count(),
         "nb_new_info": findings.filter(status="new", severity="info").count(),
         "nb_new_low": findings.filter(status="new", severity="low").count(),

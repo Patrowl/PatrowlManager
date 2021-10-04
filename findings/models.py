@@ -248,7 +248,6 @@ class Finding(models.Model):
         return (self.severity, self.confidence)
 
     def save(self, apply_overrides=False, *args, **kwargs):
-        # print("finding.save()", "args:", args, "kwargs:", kwargs, "apply_overrides:", apply_overrides)
         self.hash = hashlib.sha1(str(self.asset_name).encode('utf-8')+str(self.title).encode('utf-8')).hexdigest()
         if self.severity == "info":
             self.severity_num = 1

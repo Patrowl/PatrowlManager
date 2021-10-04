@@ -490,7 +490,8 @@ def detail_asset_view(request, asset_id):
 
     findings_stats = {
         'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
-        'new': 0, 'ack': 0, 'cvss_gte_7': 0}
+        'new': 0, 'ack': 0, 'false-positive': 0, 'duplicate': 0, 'closed': 0,
+        'mitigated': 0, 'cvss_gte_7': 0}
     engines_stats = {}
     references = {}
 
@@ -511,12 +512,20 @@ def detail_asset_view(request, asset_id):
 
     for finding in findings:
         findings_stats['total'] = findings_stats.get('total', 0) + 1
-        if finding.status not in ["false-positive", "duplicate"]:
+        if finding.status not in ["false-positive", "duplicate", "closed", "mitigated", "undone", "patched"]:
             findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
         if finding.status == 'new':
             findings_stats['new'] = findings_stats.get('new', 0) + 1
         if finding.status == 'ack':
             findings_stats['ack'] = findings_stats.get('ack', 0) + 1
+        if finding.status == 'duplicate':
+            findings_stats['duplicate'] = findings_stats.get('duplicate', 0) + 1
+        if finding.status == 'false-positive':
+            findings_stats['false-positive'] = findings_stats.get('false-positive', 0) + 1
+        if finding.status == 'closed':
+            findings_stats['closed'] = findings_stats.get('closed', 0) + 1
+        if finding.status == 'mitigated':
+            findings_stats['mitigated'] = findings_stats.get('mitigated', 0) + 1
         for fs in finding.scope_list:
             if fs is not None:
                 c = engine_scopes[fs]
@@ -640,6 +649,14 @@ def detail_asset_group_view(request, assetgroup_id):
             findings_stats['new'] = findings_stats.get('new', 0) + 1
         if finding.status == 'ack':
             findings_stats['ack'] = findings_stats.get('ack', 0) + 1
+        if finding.status == 'duplicate':
+            findings_stats['duplicate'] = findings_stats.get('duplicate', 0) + 1
+        if finding.status == 'false-positive':
+            findings_stats['false-positive'] = findings_stats.get('false-positive', 0) + 1
+        if finding.status == 'closed':
+            findings_stats['closed'] = findings_stats.get('closed', 0) + 1
+        if finding.status == 'mitigated':
+            findings_stats['mitigated'] = findings_stats.get('mitigated', 0) + 1
         for fs in finding.scope_list:
             if fs is not None:
                 c = asset_scopes[fs]
