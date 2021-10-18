@@ -525,11 +525,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 new_raw_finding.save(apply_overrides=True)
 
                 # Evaluate alerting rules
-                # try:
-                #     new_raw_finding.evaluate_alert_rules(trigger='auto')
-                # except Exception as e:
-                #     Event.objects.create(message="{} Error in alerting".format(evt_prefix),
-                #         type="ERROR", severity="ERROR", scan=scan, description=str(e))
+                try:
+                    new_raw_finding.evaluate_alert_rules(trigger='auto')
+                except Exception as e:
+                    Event.objects.create(message="{} Error in alerting".format(evt_prefix),
+                        type="ERROR", severity="ERROR", scan=scan, description=str(e))
 
                 known_findings_list.append(new_raw_finding.hash)
             else:
@@ -573,7 +573,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 new_finding.save()
                 # new_finding.save(apply_overrides=True)
 
-                # Evaluate alerting rules
+             # Evaluate alerting rules
                 try:
                     new_finding.evaluate_alert_rules(trigger='auto')
                 except Exception as e:

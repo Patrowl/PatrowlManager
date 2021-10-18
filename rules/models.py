@@ -10,6 +10,7 @@ from django.core.mail import send_mail
 from events.models import Event, AuditLog, Alert
 from settings.models import Setting
 from django_celery_beat.models import PeriodicTask
+from assets.models import AssetCategory
 
 import json
 import requests
@@ -63,6 +64,8 @@ RULE_TARGETS = (
     # ('splunk',  'To Splunk'),
     ('slack',   'Slack'),
     ('alert',   'Alert'),
+    ('addtag', 'Add Tag'),
+    ('removetag', 'Remove Tag'),
 )
 
 RULE_TRIGGERS = (
@@ -77,6 +80,7 @@ RULE_CONDITIONS = {
         "__icontains":   "contains",
         "__istartswith": "starts with",
         "__iendswith":   "ends with",
+        "custom":      "Custom",
     },
     'numeric': {
         "__gt":  "greater than",
@@ -139,6 +143,8 @@ class Rule(models.Model):
             Event.objects.create(
                 message="[Alert][Rule={}]{}".format(self.title, message),
                 type="ALERT", severity="INFO")
+        elif self.target in ['addtag','removetag']:
+            autotag(self, asset)
 
         self.nb_matches += 1
         self.save()
@@ -327,3 +333,57 @@ def send_thehive_message(rule, message, asset, description):
                 message="[Rule][send_thehive_message()] Unable to send alert "
                 "to TheHive with (error={}, message ='{}')".format(e, message),
                 type="ERROR", severity="ERROR")
+
+def autotag(rule, asset):
+    if rule.target == 'addtag':
+        mess = "[Rule] Rule '{}' AutoTag creation (asset={})".format(rule, asset)
+        Event.objects.create(message=mess, type="CREATE", severity="DEBUG")
+        AuditLog.objects.create(
+            message=mess,
+            scope='rule', type='rule_add_autotag',
+            request_context=inspect.stack())
+        if asset:
+            new_tag = _add_asset_tags(asset, rule.title)
+            asset.categories.add(new_tag)
+            asset.save()
+    elif rule.target == 'removetag':
+        mess = "[Rule] Rule '{}' AutoTag remove (asset={})".format(rule, asset)
+        Event.objects.create(message=mess, type="CREATE", severity="DEBUG")
+        AuditLog.objects.create(
+            message=mess,
+            scope='rule', type='rule_remove_autotag',
+            request_context=inspect.stack())
+        if asset:
+            invalid_tag = _add_asset_tags(asset, rule.title)
+            asset.categories.remove(invalid_tag)
+            asset.save()
+
+def _add_asset_tags(asset, new_value):
+    new_tag = AssetCategory.objects.filter(value__iexact=new_value).first()
+    if not new_tag:
+        if not AssetCategory.objects.filter(value="Custom").first():
+            AssetCategory.objects.create(value="Custom", comments="custom tags")
+        custom_tags = AssetCategory.objects.get(value="Custom")
+        new_tag = custom_tags.add_child(value=new_value)
+
+        Event.objects.create(message="[AssetCategory/add_asset_tags()] New AssetCategory created: '{}' with id: {}.".format(new_value, new_tag.id),
+                     type="INFO", severity="INFO")
+
+    if new_tag not in asset.categories.all():  # Not already set
+        # Check if futures parents has been already selected. If True: delete them
+        cats = list(asset.categories.all().values_list('value', flat=True))
+        if new_tag.get_all_parents():
+            pars = [t.value for t in new_tag.get_all_parents()]
+        else:
+            pars = []
+        intersec_par = set(pars).intersection(cats)
+        if intersec_par:
+            asset.categories.remove(AssetCategory.objects.get(value=list(intersec_par)[0]))
+
+        # Check if current tags are not children of the new tag.
+        # If True: delete them
+        chis = [t.value for t in new_tag.get_children()]
+        for c in set(chis).intersection(cats):
+            asset.categories.remove(AssetCategory.objects.get(value=c))
+
+    return new_tag
