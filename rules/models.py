@@ -23,7 +23,7 @@ RULE_SCOPES = (
     ('asset', 'Asset'),
     ('finding', 'Finding'),
     ('scan', 'Scan'),
-    ('alert', 'Alert'),
+    # ('alert', 'Alert'),
 )
 
 RULE_SCOPE_ATTRIBUTES = {
@@ -48,11 +48,11 @@ RULE_SCOPE_ATTRIBUTES = {
     "scan": {
         'status': {"type": "text"},
     },
-    "alert": {
-        'title': {"type": "text"},
-        'severity': {"type": "list", "values": ['info', 'low', 'medium', 'high', 'critical']},
-        'status': {"type": "list", "values": ['new', 'read', 'archived']},
-    },
+    # "alert": {
+    #     'title': {"type": "text"},
+    #     'severity': {"type": "list", "values": ['info', 'low', 'medium', 'high', 'critical']},
+    #     'status': {"type": "list", "values": ['new', 'read', 'archived']},
+    # },
 }
 
 RULE_TARGETS = (
