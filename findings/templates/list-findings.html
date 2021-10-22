@@ -260,6 +260,25 @@ function toggle(source, element) {
             </div>
 
             <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_assetgroup_value_label">Asset Group</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_assetgroup_value_condition">
+	                <option value="exact">is exactly</option>
+	                <option value="not_exact">is not exactly</option>
+	                <option value="icontains">contains</option>
+	                <option value="not_icontains">does not contain</option>
+	                <option value="istartwith">start with</option>
+	                <option value="not_istartwith">does not start with</option>
+	                <option value="iendwith">end with</option>
+	                <option value="not_iendwith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_assetgroup_value_input">
+							</div>
+            </div>
+
+            <div class="form-group">
               <label class="col-sm-2 control-label" for="filter_finding_title_label">Finding title</label>
 							<div class="col-sm-2">
 	              <select class="form-control input-sm" id="filter_finding_title_condition">
@@ -455,6 +474,10 @@ function toggle(source, element) {
 			if ($('input#filter_asset_value_input').val() != "") {
 				filter_findings_url+="&_asset_value="+$('#filter_asset_value_input').val();
 				filter_findings_url+="&_asset_value_cond="+$('#filter_asset_value_condition').val();
+			}
+			if ($('input#filter_assetgroup_value_input').val() != "") {
+				filter_findings_url+="&_assetgroup_value="+$('#filter_assetgroup_value_input').val();
+				filter_findings_url+="&_assetgroup_value_cond="+$('#filter_assetgroup_value_condition').val();
 			}
 			if ($('input#filter_finding_title_input').val() != "") {
 				filter_findings_url+="&_title="+$('#filter_finding_title_input').val();

@@ -18,6 +18,8 @@ def _search_findings(request):
 
     filter_by_asset = request.GET.get('_asset_value', None)
     filter_by_asset_cond = request.GET.get('_asset_value_cond', None)
+    filter_by_assetgroup = request.GET.get('_assetgroup_value', None)
+    filter_by_assetgroup_cond = request.GET.get('_assetgroup_value_cond', None)
     filter_by_title = request.GET.get('_title', None)
     filter_by_title_cond = request.GET.get('_title_cond', None)
     filter_by_type = request.GET.get('_type', None)
@@ -52,6 +54,13 @@ def _search_findings(request):
             filters.update({"asset_name__{}".format(filter_by_asset_cond): filter_by_asset})
         elif filter_by_asset_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
             excludes.update({"asset_name__{}".format(filter_by_asset_cond[4:]): filter_by_asset})
+
+    # Filter by asset group name
+    if filter_by_assetgroup and filter_by_assetgroup_cond:
+        if filter_by_assetgroup_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+            filters.update({"asset__assetgroup__name__{}".format(filter_by_assetgroup_cond): filter_by_assetgroup})
+        elif filter_by_assetgroup_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+            excludes.update({"asset__assetgroup__name__{}".format(filter_by_assetgroup_cond[4:]): filter_by_assetgroup})
 
     # Filter by finding type
     if filter_by_type:
