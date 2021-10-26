@@ -18,10 +18,14 @@ def _search_findings(request):
 
     filter_by_asset = request.GET.get('_asset_value', None)
     filter_by_asset_cond = request.GET.get('_asset_value_cond', None)
+    filter_by_asset_tags = request.GET.get('_asset_tags_value', None)
+    filter_by_asset_tags_cond = request.GET.get('_asset_tags_value_cond', None)
     filter_by_assetgroup = request.GET.get('_assetgroup_value', None)
     filter_by_assetgroup_cond = request.GET.get('_assetgroup_value_cond', None)
     filter_by_title = request.GET.get('_title', None)
     filter_by_title_cond = request.GET.get('_title_cond', None)
+    filter_by_tags = request.GET.get('_tags', None)
+    filter_by_tags_cond = request.GET.get('_tags_cond', None)
     filter_by_type = request.GET.get('_type', None)
     filter_by_type_cond = request.GET.get('_type_cond', None)
     filter_by_severity = request.GET.get('_severity', None)
@@ -55,6 +59,13 @@ def _search_findings(request):
         elif filter_by_asset_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
             excludes.update({"asset_name__{}".format(filter_by_asset_cond[4:]): filter_by_asset})
 
+    # Filter by asset tags
+    if filter_by_asset_tags and filter_by_asset_tags_cond:
+        if filter_by_asset_tags_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+            filters.update({"asset__categories__value__{}".format(filter_by_asset_tags_cond): filter_by_asset_tags})
+        elif filter_by_asset_tags_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+            excludes.update({"asset__categories__value__{}".format(filter_by_asset_tags_cond[4:]): filter_by_asset_tags})
+
     # Filter by asset group name
     if filter_by_assetgroup and filter_by_assetgroup_cond:
         if filter_by_assetgroup_cond in ["exact", "icontains", "istartwith", "iendwith"]:
@@ -75,6 +86,15 @@ def _search_findings(request):
             filters.update({"title__{}".format(filter_by_title_cond): filter_by_title})
         elif filter_by_title_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
             excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
+
+    # Filter by finding tags
+    if filter_by_tags:
+        if filter_by_tags_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+            # filters.update({"tags__keys__{}".format(filter_by_tags_cond): filter_by_tags})
+            filters.update({"tags__{}".format(filter_by_tags_cond): filter_by_tags})
+        elif filter_by_tags_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+            # excludes.update({"tags__keys__{}".format(filter_by_tags_cond[4:]): filter_by_tags})
+            excludes.update({"tags__{}".format(filter_by_tags_cond[4:]): filter_by_tags})
 
     # Filter by finding severity
     if filter_by_severity and filter_by_severity in ["info", "low", "medium", "high", "critical"]:

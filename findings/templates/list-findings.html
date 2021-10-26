@@ -260,7 +260,27 @@ function toggle(source, element) {
             </div>
 
             <div class="form-group">
-              <label class="col-sm-2 control-label" for="filter_assetgroup_value_label">Asset Group</label>
+              <label class="col-sm-2 control-label" for="filter_asset_tags_value_label">Asset tags</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_asset_tags_value_condition">
+	                <option value="exact">is exactly</option>
+	                <option value="not_exact">is not exactly</option>
+	                <option value="icontains">contains</option>
+	                <option value="not_icontains">does not contain</option>
+	                <option value="istartwith">start with</option>
+	                <option value="not_istartwith">does not start with</option>
+	                <option value="iendwith">end with</option>
+	                <option value="not_iendwith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_asset_tags_value_input">
+							</div>
+            </div>
+
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_assetgroup_value_label">Asset Group name</label>
 							<div class="col-sm-2">
 	              <select class="form-control input-sm" id="filter_assetgroup_value_condition">
 	                <option value="exact">is exactly</option>
@@ -341,6 +361,25 @@ function toggle(source, element) {
 							</div>
             </div>
 
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_tags_label">Finding tags</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_tags_condition">
+									<option value="exact">is exactly</option>
+									<option value="not_exact">is not exactly</option>
+									<option value="icontains">contains</option>
+									<option value="not_icontains">does not contain</option>
+									<option value="istartwith">start with</option>
+									<option value="not_istartwith">does not start with</option>
+									<option value="iendwith">end with</option>
+									<option value="not_iendwith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_finding_tags_input">
+							</div>
+            </div>
+
 						<div class="form-group">
               <label class="col-sm-2 control-label" for="filter_finding_type_label">Finding type</label>
 							<div class="col-sm-2">
@@ -398,27 +437,6 @@ function toggle(source, element) {
             </div>
             {% endif %}
 
-            <!-- <div class="form-group">
-              <label class="col-sm-2 control-label" for="filter_asset_tags">Asset tags</label>
-							<div class="col-sm-1">
-								<select class="form-control input-sm" id="filter_asset_tag_condition">
-	                <option value="is">is</option>
-	                <option value="is_not">is not</option>
-	                <option value="contains">contains</option>
-	                <option value="contains_not">does not contain</option>
-	                <option value="start">start with</option>
-	                <option value="start_not">does not start with</option>
-	                <option value="end">end with</option>
-	                <option value="end_not">does not end with</option>
-	              </select>
-							</div>
-							<div class="col-sm-4">
-	              <input type="text" class="form-control input-sm" id="filter_asset_tags">
-							</div>
-            </div> -->
-
-		        <!-- <button type="submit" class="btn btn-xs btn-warning btn-save-filters" data-dismiss="modal">Yes</button>
-		        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button> -->
 						<div>
 							<label class="col-sm-2 control-label">Apply Filters?</label>
 							<div class="btn-group">
@@ -475,6 +493,10 @@ function toggle(source, element) {
 				filter_findings_url+="&_asset_value="+$('#filter_asset_value_input').val();
 				filter_findings_url+="&_asset_value_cond="+$('#filter_asset_value_condition').val();
 			}
+			if ($('input#filter_asset_tags_value_input').val() != "") {
+				filter_findings_url+="&_asset_tags_value="+$('#filter_asset_tags_value_input').val();
+				filter_findings_url+="&_asset_tags_value_cond="+$('#filter_asset_tags_value_condition').val();
+			}
 			if ($('input#filter_assetgroup_value_input').val() != "") {
 				filter_findings_url+="&_assetgroup_value="+$('#filter_assetgroup_value_input').val();
 				filter_findings_url+="&_assetgroup_value_cond="+$('#filter_assetgroup_value_condition').val();
@@ -486,6 +508,10 @@ function toggle(source, element) {
 			if ($('input#filter_finding_type_input').val() != "") {
 				filter_findings_url+="&_type="+$('#filter_finding_type_input').val();
 				filter_findings_url+="&_type_cond="+$('#filter_finding_type_condition').val();
+			}
+			if ($('input#filter_finding_tags_input').val() != "") {
+				filter_findings_url+="&_tags="+$('#filter_finding_tags_input').val();
+				filter_findings_url+="&_tags_cond="+$('#filter_finding_tags_condition').val();
 			}
 			if ($('input#filter_finding_severity_selection').val() != "") {
 				filter_findings_url+="&_severity="+$('#filter_finding_severity_selection').val();
