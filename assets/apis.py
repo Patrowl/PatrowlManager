@@ -3,6 +3,7 @@
 from django.http import JsonResponse, HttpResponse, QueryDict
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_str
+from django.utils.text import slugify
 from django.db.models import Value, CharField, Q, F
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import FileSystemStorage
@@ -324,7 +325,7 @@ def export_assets_api(request, assetgroup_id=None):
 
     writer.writerow([
         'asset_value', 'asset_name', 'asset_type', 'asset_description',
-        'asset_criticity', 'asset_tags', 'owner', 'team', 'asset_exposure', 'created_at'])
+        'asset_criticality', 'asset_tags', 'owner', 'team', 'asset_exposure', 'created_at'])
     for asset in assets:
         try:
             asset_owner = asset.owner.username
@@ -352,13 +353,12 @@ def export_assetgroups_api(request):
         message="Export asset groups as CSV file".format(request.user),
         scope='asset', type='assetgroups_export_csv', owner=request.user, context=request)
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
+    response['Content-Disposition'] = 'attachment; filename="patrowl_asset_groups.csv"'
     writer = csv.writer(response, delimiter=';')
 
     writer.writerow([
-        'assetgroup_name',
         'asset_value', 'asset_name', 'asset_type', 'asset_description',
-        'asset_criticity', 'asset_tags', 'owner', 'team', 'asset_exposure',
+        'asset_criticality', 'asset_groupname', 'asset_tags', 'owner', 'team', 'asset_exposure',
         'created_at'])
 
     for assetgroup in AssetGroup.objects.for_user(request.user).all().order_by('name'):
@@ -369,12 +369,12 @@ def export_assetgroups_api(request):
                 asset_owner = ""
 
             writer.writerow([
-                smart_str(assetgroup.name),
                 smart_str(asset.value),
                 asset.name,
                 asset.type,
                 smart_str(asset.description),
                 asset.criticity,
+                smart_str(assetgroup.name),
                 ",".join([a.value for a in asset.categories.all()]),
                 asset_owner,
                 ",".join([t.name for t in asset.teams.all()]),
@@ -783,7 +783,7 @@ def get_asset_group_report_json_api(request, asset_group_id):
 def get_asset_group_report_csv_api(request, asset_group_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="patrowl_assetgroup_{}.csv"'.format(asset_group_id)
+    response['Content-Disposition'] = 'attachment; filename="patrowl_assetgroup_{}.csv"'.format(slugify(asset_group.name))
     writer = csv.writer(response, delimiter=';')
     writer.writerow([
         'asset_value',

@@ -184,16 +184,16 @@ def homepage_dashboard_view(request):
     top_critical_findings = []
     MAX_CF = 6
     # for finding in findings.filter(severity="critical").exclude(Q(status='false-positive') | Q(status='duplicate')).only("id", "severity", "title", "asset_name"):
-    for finding in findings.filter(severity="critical").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
+    for finding in findings.filter(severity="critical").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone', 'mitigated']).only("id", "severity", "title", "asset_name"):
         if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="high").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="high").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone', 'mitigated']).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="medium").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="medium").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone', 'mitigated']).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
-        for finding in findings.filter(severity="low").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone']).only("id", "severity", "title", "asset_name"):
+        for finding in findings.filter(severity="low").exclude(status__in=['false-positive', 'duplicate', 'closed', 'patched', 'undone', 'mitigated']).only("id", "severity", "title", "asset_name"):
             if len(top_critical_findings) <= MAX_CF: top_critical_findings.append(finding)
     if len(top_critical_findings) <= MAX_CF:
         for finding in findings.filter(severity="info").only("id", "severity", "title", "asset_name"):
@@ -222,7 +222,7 @@ def homepage_dashboard_view(request):
     # finding_cves_list = Finding.objects.for_user(request.user).exclude(
     finding_cves_list = findings.exclude(
             Q(vuln_refs__CVE__isnull=True)|
-            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive', 'duplicate'])
+            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive', 'duplicate', 'mitigated'])
         ).annotate(
             cvelist=KeyTextTransform("CVE", 'vuln_refs')
         ).values('cvelist')
@@ -230,7 +230,7 @@ def homepage_dashboard_view(request):
     # finding_cwes_list = Finding.objects.for_user(request.user).exclude(
     finding_cwes_list = findings.exclude(
             Q(vuln_refs__CWE__isnull=True)|
-            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive', 'duplicate'])
+            Q(status__in=['mitigated', 'patched', 'closed', 'false-positive', 'duplicate', 'mitigated'])
         ).annotate(
             cwelist=KeyTextTransform("CWE", 'vuln_refs')
         ).values('cwelist')

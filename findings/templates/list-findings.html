@@ -50,7 +50,8 @@ function toggle(source, element) {
       <li><a href="{% url 'list_findings_view' %}?_status=ack">Show acked findings</a></li>
     </ul>
   </div>
-  or <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#modal-filters">Advanced filters</button>
+  / <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#modal-filters">Advanced filters</button>
+
   <table class="table table-hover" id="table-findings">
     <thead>
       <tr>
@@ -350,12 +351,13 @@ function toggle(source, element) {
 	                <option value="none" selected>-</option>
 	                <option value="new">New</option>
 	                <option value="ack">Acknowledged</option>
+	                <option value="reopened">Reopened</option>
 	                <option value="mitigated">Mitigated</option>
 	                <option value="confirmed">Confirmed</option>
 	                <option value="patched">Patched</option>
 	                <option value="closed">Closed</option>
 	                <option value="false-positive">False-Positive</option>
-                      <option value="duplicate">Duplicate</option>
+                  <option value="duplicate">Duplicate</option>
 	                <option value="undone">Undone</option>
 	              </select>
 							</div>

@@ -23,7 +23,7 @@ FINDING_SEVERITIES = (
     ('low', 'low'),
     ('medium', 'medium'),
     ('high', 'high'),
-    ('critical', 'critical')
+    ('critical', 'critical'),
 )
 
 FINDING_STATUS = (
@@ -35,7 +35,8 @@ FINDING_STATUS = (
     ('closed', 'Closed'),
     ('false-positive', 'False-Positive'),
     ('undone', 'Undone'),
-    ('duplicate', 'Duplicate')
+    ('duplicate', 'Duplicate'),
+    ('reopened', 'Reopened'),
 )
 
 

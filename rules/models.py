@@ -42,7 +42,7 @@ RULE_SCOPE_ATTRIBUTES = {
         'hash':         {"type": "text"},
         'solution':     {"type": "text"},
         'severity':     {"type": "list", "values": ['info', 'low', 'medium', 'high', 'critical']},
-        'status':       {"type": "list", "values": ['new', 'ack']},
+        'status':       {"type": "list", "values": ['new', 'ack', 'mitigated', 'confirmed', 'patched', 'closed', 'false-positive', 'undone', 'duplicate', 'reopened']},
         # 'tags':         {"type": "in_list"},
         },
     "scan": {
@@ -56,13 +56,10 @@ RULE_SCOPE_ATTRIBUTES = {
 }
 
 RULE_TARGETS = (
-    # ('event',   'Patrowl event'),
-    # ('logfile', 'To logfile'),
     ('email',   'Send email'),
-    ('thehive', 'TheHive Event'),
-    # ('splunk',  'To Splunk'),
-    ('slack',   'Slack'),
-    ('alert',   'Alert'),
+    ('thehive', 'TheHive event'),
+    ('slack',   'Slack notification'),
+    ('alert',   'Patrowl alert'),
 )
 
 RULE_TRIGGERS = (
