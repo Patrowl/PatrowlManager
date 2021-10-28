@@ -437,6 +437,24 @@ function toggle(source, element) {
             </div>
             {% endif %}
 
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_engine_name_label">Engine</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_engine_name_condition">
+	                <option value="exact">is</option>
+	                <option value="not_exact">is not</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <select class="form-control input-sm" id="filter_engine_name_selection">
+	                <option value="none" selected>-</option>
+                  {% for engine in engines %}
+                  <option value="{{engine.name}}">{{engine.name}}</option>
+                  {% endfor %}
+	              </select>
+							</div>
+            </div>
+
 						<div>
 							<label class="col-sm-2 control-label">Apply Filters?</label>
 							<div class="btn-group">
@@ -520,6 +538,10 @@ function toggle(source, element) {
 			if ($('input#filter_finding_status_selection').val() != "") {
 				filter_findings_url+="&_status="+$('#filter_finding_status_selection').val();
 				filter_findings_url+="&_status_cond="+$('#filter_finding_status_condition').val();
+			}
+			if ($('input#filter_engine_name_selection').val() != "") {
+				filter_findings_url+="&_engine="+$('#filter_engine_name_selection').val();
+				filter_findings_url+="&_engine_cond="+$('#filter_engine_name_condition').val();
 			}
 			if ($('input#filter_finding_ref_input').val() != "") {
 				filter_findings_url+="&_reference="+$('#filter_finding_ref_input').val();

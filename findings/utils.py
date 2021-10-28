@@ -4,6 +4,7 @@ from django.conf import settings
 from .models import Finding
 from .forms import FindingForm
 from assets.models import AssetOwner
+from engines.models import Engine
 
 import datetime
 
@@ -38,6 +39,7 @@ def _search_findings(request):
     filter_by_asset_group_id = request.GET.get('_asset_group_id', None)
     filter_by_asset_group_name = request.GET.get('_asset_group_name', None)
     filter_by_engine = request.GET.get('_engine', None)
+    filter_by_engine_cond = request.GET.get('_engine_cond', None)
     filter_by_type = request.GET.get('_type', None)
     # filter_by_asset_tags = request.GET.get('_tags', None)
     filter_by_scope = request.GET.get('_scope', None)
@@ -124,14 +126,22 @@ def _search_findings(request):
         if filter_by_reference:
             filters.update({"vuln_refs__{}__icontains".format(filter_by_reference_id): filter_by_reference})
 
+    # Filter by engine name
+    if filter_by_engine and filter_by_engine in Engine.objects.all().values_list('name', flat=True):
+        if filter_by_engine_cond == "exact" or filter_by_engine_cond is None:
+            filter_by_engine_cond = "exact"
+            filters.update({"engine_type": filter_by_engine})
+        elif filter_by_engine_cond == "not_exact":
+            excludes.update({"engine_type": filter_by_engine})
+
     if filter_by_asset_id:
         filters.update({"asset_id": filter_by_asset_id})
     if filter_by_asset_group_id:
         filters.update({"asset__assetgroup": filter_by_asset_group_id})
     if filter_by_asset_group_name:
         filters.update({"asset__assetgroup__name__icontains": filter_by_asset_group_name})
-    if filter_by_engine:
-        filters.update({"engine_type": filter_by_engine})
+    # if filter_by_engine:
+    #     filters.update({"engine_type": filter_by_engine})
     if filter_by_scope:
         filters.update({"scan__engine_policy__scopes__in": filter_by_scope})
 
