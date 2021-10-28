@@ -455,6 +455,25 @@ function toggle(source, element) {
 							</div>
             </div>
 
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_scan_title_label">Scan title</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_scan_title_condition">
+									<option value="exact">is exactly</option>
+									<option value="not_exact">is not exactly</option>
+									<option value="icontains">contains</option>
+									<option value="not_icontains">does not contain</option>
+									<option value="istartwith">start with</option>
+									<option value="not_istartwith">does not start with</option>
+									<option value="iendwith">end with</option>
+									<option value="not_iendwith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_scan_title_input">
+							</div>
+            </div>
+
 						<div>
 							<label class="col-sm-2 control-label">Apply Filters?</label>
 							<div class="btn-group">
@@ -550,6 +569,10 @@ function toggle(source, element) {
 			if ($('input#filter_finding_own_input').val() != "") {
 				filter_findings_url+="&_owner="+$('#filter_finding_own_input').val();
 				filter_findings_url+="&_owner_cond="+$('#filter_finding_own_condition').val();
+			}
+      if ($('input#filter_scan_title_input').val() != "") {
+				filter_findings_url+="&_scan_title="+$('#filter_scan_title_input').val();
+				filter_findings_url+="&_scan_title_cond="+$('#filter_scan_title_condition').val();
 			}
 
       // Set the team

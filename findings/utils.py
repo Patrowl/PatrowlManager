@@ -46,6 +46,8 @@ def _search_findings(request):
     filter_by_reference = request.GET.get('_reference', None)
     filter_by_reference_id = request.GET.get('_reference_cond', None)
     # filter_by_reference_cond = request.GET.get('_reference_cond', None)
+    filter_by_scan = request.GET.get('_scan_title', None)
+    filter_by_scan_cond = request.GET.get('_scan_title_cond', None)
 
     filter_by_owner = request.GET.get('_owner', None)
     filter_by_owner_cond = request.GET.get('_owner_cond', None)
@@ -133,6 +135,13 @@ def _search_findings(request):
             filters.update({"engine_type": filter_by_engine})
         elif filter_by_engine_cond == "not_exact":
             excludes.update({"engine_type": filter_by_engine})
+
+    # Filter by scan title
+    if filter_by_scan:
+        if filter_by_scan_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+            filters.update({"scan__title__{}".format(filter_by_scan_cond): filter_by_scan})
+        elif filter_by_scan_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+            excludes.update({"scan__title__{}".format(filter_by_scan_cond[4:]): filter_by_scan})
 
     if filter_by_asset_id:
         filters.update({"asset_id": filter_by_asset_id})
