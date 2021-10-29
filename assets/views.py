@@ -327,6 +327,7 @@ def edit_asset_group_view(request, assetgroup_id):
     form = AssetGroupForm(user=request.user)
     if request.method == 'GET':
         form = AssetGroupForm(instance=asset_group, user=request.user)
+        teams_list = request.user.users_team.values('id', 'name').order_by('name')
     elif request.method == 'POST':
         form = AssetGroupForm(request.POST, instance=asset_group, user=request.user)
         if form.is_valid():
@@ -358,7 +359,8 @@ def edit_asset_group_view(request, assetgroup_id):
     return render(request, 'edit-asset-group.html', {
         'form': form,
         'assetgroup_id': assetgroup_id,
-        'asset_group': asset_group
+        'asset_group': asset_group,
+        'teams_list': teams_list
     })
 
 
