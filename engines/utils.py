@@ -602,6 +602,13 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     if last_scan is not None:
         # Loop in missing findings
         for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
+            # Update the Finding status to 'mitigated'
+            # find related Finding
+            initial_finding = Finding.objects.filter(title=mf.title, asset=mf.asset, engine_type=mf.engine_type).first()
+            if initial_finding is not None and initial_finding.status in ['new', 'ack', 'confirmed', 'reopened']:
+                initial_finding.status = 'mitigated'
+
+            # Create an alert
             if settings.ALERTS_AUTO_MISSING_ENABLED is True:
                 missing_finding_alert(mf.id, scan.id, mf.severity)
 

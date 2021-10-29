@@ -29,8 +29,8 @@ FINDING_SEVERITIES = (
 FINDING_STATUS = (
     ('new', 'New'),
     ('ack', 'Acknowledged'),
-    ('mitigated', 'Mitigated'),
     ('confirmed', 'Confirmed'),
+    ('mitigated', 'Mitigated'),
     ('patched', 'Patched'),
     ('closed', 'Closed'),
     ('false-positive', 'False-Positive'),
