@@ -133,7 +133,7 @@ function toggle(source, element) {
 	<div style="display: inline-flex;">
 		<ul class="pagination pagination-xs">
 			{% if findings.number == 1 %}
-				<li class="disabled"><span>⇤</span></li>
+				<li class="page-item disabled"><span>&laquo;&laquo;</span></li>
 			{% else %}
 				<li class="page-item"><a class="page-link" href="#" onclick="gotopage(1);">&laquo;&laquo;</a></li>
 			{% endif %}
@@ -249,10 +249,10 @@ function toggle(source, element) {
 	                <option value="not_exact">is not exactly</option>
 	                <option value="icontains">contains</option>
 	                <option value="not_icontains">does not contain</option>
-	                <option value="istartwith">start with</option>
-	                <option value="not_istartwith">does not start with</option>
-	                <option value="iendwith">end with</option>
-	                <option value="not_iendwith">does not end with</option>
+	                <option value="istartswith">start with</option>
+	                <option value="not_istartswith">does not start with</option>
+	                <option value="iendswith">end with</option>
+	                <option value="not_iendswith">does not end with</option>
 	              </select>
 							</div>
 							<div class="col-sm-3">
@@ -268,10 +268,10 @@ function toggle(source, element) {
 	                <option value="not_exact">is not exactly</option>
 	                <option value="icontains">contains</option>
 	                <option value="not_icontains">does not contain</option>
-	                <option value="istartwith">start with</option>
-	                <option value="not_istartwith">does not start with</option>
-	                <option value="iendwith">end with</option>
-	                <option value="not_iendwith">does not end with</option>
+	                <option value="istartswith">start with</option>
+	                <option value="not_istartswith">does not start with</option>
+	                <option value="iendswith">end with</option>
+	                <option value="not_iendswith">does not end with</option>
 	              </select>
 							</div>
 							<div class="col-sm-3">
@@ -288,10 +288,10 @@ function toggle(source, element) {
 	                <option value="not_exact">is not exactly</option>
 	                <option value="icontains">contains</option>
 	                <option value="not_icontains">does not contain</option>
-	                <option value="istartwith">start with</option>
-	                <option value="not_istartwith">does not start with</option>
-	                <option value="iendwith">end with</option>
-	                <option value="not_iendwith">does not end with</option>
+	                <option value="istartswith">start with</option>
+	                <option value="not_istartswith">does not start with</option>
+	                <option value="iendswith">end with</option>
+	                <option value="not_iendswith">does not end with</option>
 	              </select>
 							</div>
 							<div class="col-sm-3">
@@ -307,10 +307,10 @@ function toggle(source, element) {
 									<option value="not_exact">is not exactly</option>
 									<option value="icontains">contains</option>
 									<option value="not_icontains">does not contain</option>
-									<option value="istartwith">start with</option>
-									<option value="not_istartwith">does not start with</option>
-									<option value="iendwith">end with</option>
-									<option value="not_iendwith">does not end with</option>
+									<option value="istartswith">start with</option>
+									<option value="not_istartswith">does not start with</option>
+									<option value="iendswith">end with</option>
+									<option value="not_iendswith">does not end with</option>
 	              </select>
 							</div>
 							<div class="col-sm-3">
@@ -371,10 +371,10 @@ function toggle(source, element) {
 									<option value="not_exact">is not exactly</option>
 									<option value="icontains">contains</option>
 									<option value="not_icontains">does not contain</option>
-									<option value="istartwith">start with</option>
-									<option value="not_istartwith">does not start with</option>
-									<option value="iendwith">end with</option>
-									<option value="not_iendwith">does not end with</option>
+									<option value="istartswith">start with</option>
+									<option value="not_istartswith">does not start with</option>
+									<option value="iendswith">end with</option>
+									<option value="not_iendswith">does not end with</option>
 	              </select>
 							</div>
 							<div class="col-sm-3">
@@ -390,10 +390,10 @@ function toggle(source, element) {
 									<option value="not_exact">is not exactly</option>
 									<option value="icontains">contains</option>
 									<option value="not_icontains">does not contain</option>
-									<option value="istartwith">start with</option>
-									<option value="not_istartwith">does not start with</option>
-									<option value="iendwith">end with</option>
-									<option value="not_iendwith">does not end with</option>
+									<option value="istartswith">start with</option>
+									<option value="not_istartswith">does not start with</option>
+									<option value="iendswith">end with</option>
+									<option value="not_iendswith">does not end with</option>
 	              </select>
 							</div>
 							<div class="col-sm-3">
@@ -465,10 +465,10 @@ function toggle(source, element) {
 									<option value="not_exact">is not exactly</option>
 									<option value="icontains">contains</option>
 									<option value="not_icontains">does not contain</option>
-									<option value="istartwith">start with</option>
-									<option value="not_istartwith">does not start with</option>
-									<option value="iendwith">end with</option>
-									<option value="not_iendwith">does not end with</option>
+									<option value="istartswith">start with</option>
+									<option value="not_istartswith">does not start with</option>
+									<option value="iendswith">end with</option>
+									<option value="not_iendswith">does not end with</option>
 	              </select>
 							</div>
 							<div class="col-sm-3">
@@ -477,11 +477,12 @@ function toggle(source, element) {
             </div>
 
 						<div>
-							<label class="col-sm-2 control-label">Apply Filters?</label>
+							<label class="col-sm-2 control-label">Apply ?</label>
 							<div class="btn-group">
-							 <button type="submit" class="btn btn-xs btn-warning btn-save-filters" data-dismiss="modal" style="margin-left: 5px;">Yes</button>
+							 <button type="submit" class="btn btn-xs btn-success btn-save-filters" data-dismiss="modal" style="margin-left: 5px;">Yes</button>
 							 <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
 							</div>
+							<button type="button" class="btn btn-xs btn-warning" onclick="resetFilterForm()">Reset</button>
 						</div>
           </form>
         </div>
@@ -499,8 +500,65 @@ function toggle(source, element) {
 		window.location = url.search;
 	};
 
+  function resetFilterForm(){
+    window.location = window.location.href.split("?")[0];
+  };
+
+  function initFilterForm(){
+    if (url.searchParams.get("_asset_value") != null && url.searchParams.get("_asset_value_cond") != null) {
+      $('#filter_asset_value_input').val(url.searchParams.get("_asset_value"))
+      $('#filter_asset_value_condition').val(url.searchParams.get("_asset_value_cond"))
+    }
+    if (url.searchParams.get("_asset_tags_value") != null && url.searchParams.get("_asset_tags_value_cond") != null) {
+      $('#filter_asset_tags_value_input').val(url.searchParams.get("_asset_tags_value"))
+      $('#filter_asset_tags_value_condition').val(url.searchParams.get("_asset_tags_value_cond"))
+    }
+    if (url.searchParams.get("_assetgroup_value") != null && url.searchParams.get("_assetgroup_value_cond") != null) {
+      $('#filter_assetgroup_value_input').val(url.searchParams.get("_assetgroup_value"))
+      $('#filter_assetgroup_value_condition').val(url.searchParams.get("_assetgroup_value_cond"))
+    }
+    if (url.searchParams.get("_title") != null && url.searchParams.get("_title_cond") != null) {
+      $('#filter_finding_title_input').val(url.searchParams.get("_title"))
+      $('#filter_finding_title_condition').val(url.searchParams.get("_title_cond"))
+    }
+    if (url.searchParams.get("_type") != null && url.searchParams.get("_type_cond") != null) {
+      $('#filter_finding_type_input').val(url.searchParams.get("_type"))
+      $('#filter_finding_type_condition').val(url.searchParams.get("_type_cond"))
+    }
+    if (url.searchParams.get("_tags") != null && url.searchParams.get("_tags_cond") != null) {
+      $('#filter_finding_tags_input').val(url.searchParams.get("_tags"))
+      $('#filter_finding_tags_condition').val(url.searchParams.get("_tags_cond"))
+    }
+    if (url.searchParams.get("_severity") != null && url.searchParams.get("_severity_cond") != null) {
+      $('#filter_finding_severity_selection').val(url.searchParams.get("_severity"))
+      $('#filter_finding_severity_condition').val(url.searchParams.get("_severity_cond"))
+    }
+    if (url.searchParams.get("_status") != null && url.searchParams.get("_status_cond") != null) {
+      $('#filter_finding_status_selection').val(url.searchParams.get("_status"))
+      $('#filter_finding_status_condition').val(url.searchParams.get("_status_cond"))
+    }
+    if (url.searchParams.get("_engine") != null && url.searchParams.get("_engine_cond") != null) {
+      $('#filter_engine_name_selection').val(url.searchParams.get("_engine"))
+      $('#filter_engine_name_condition').val(url.searchParams.get("_engine_cond"))
+    }
+    if (url.searchParams.get("_reference") != null && url.searchParams.get("_reference_cond") != null) {
+      $('#filter_finding_ref_input').val(url.searchParams.get("_reference"))
+      $('#filter_finding_ref_condition').val(url.searchParams.get("_reference_cond"))
+    }
+    if (url.searchParams.get("_owner") != null && url.searchParams.get("_owner_cond") != null) {
+      $('#filter_finding_own_input').val(url.searchParams.get("_owner"))
+      $('#filter_finding_own_condition').val(url.searchParams.get("_owner_cond"))
+    }
+    if (url.searchParams.get("_scan_title") != null && url.searchParams.get("_scan_title_cond") != null) {
+      $('#filter_scan_title_input').val(url.searchParams.get("_scan_title"))
+      $('#filter_scan_title_condition').val(url.searchParams.get("_scan_title_cond"))
+    }
+  };
+
 
   $(function() {
+
+    initFilterForm();
 
     // Select team by id
     $('#team_select').val(url.searchParams.get("team", "-1"));

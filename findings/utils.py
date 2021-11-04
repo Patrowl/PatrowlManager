@@ -58,45 +58,45 @@ def _search_findings(request):
     excludes = {}
     # Filter by asset value
     if filter_by_asset and filter_by_asset_cond:
-        if filter_by_asset_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+        if filter_by_asset_cond in ["exact", "icontains", "istartswith", "iendswith"]:
             filters.update({"asset_name__{}".format(filter_by_asset_cond): filter_by_asset})
-        elif filter_by_asset_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_asset_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             excludes.update({"asset_name__{}".format(filter_by_asset_cond[4:]): filter_by_asset})
 
     # Filter by asset tags
     if filter_by_asset_tags and filter_by_asset_tags_cond:
-        if filter_by_asset_tags_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+        if filter_by_asset_tags_cond in ["exact", "icontains", "istartswith", "iendswith"]:
             filters.update({"asset__categories__value__{}".format(filter_by_asset_tags_cond): filter_by_asset_tags})
-        elif filter_by_asset_tags_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_asset_tags_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             excludes.update({"asset__categories__value__{}".format(filter_by_asset_tags_cond[4:]): filter_by_asset_tags})
 
     # Filter by asset group name
     if filter_by_assetgroup and filter_by_assetgroup_cond:
-        if filter_by_assetgroup_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+        if filter_by_assetgroup_cond in ["exact", "icontains", "istartswith", "iendswith"]:
             filters.update({"asset__assetgroup__name__{}".format(filter_by_assetgroup_cond): filter_by_assetgroup})
-        elif filter_by_assetgroup_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_assetgroup_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             excludes.update({"asset__assetgroup__name__{}".format(filter_by_assetgroup_cond[4:]): filter_by_assetgroup})
 
     # Filter by finding type
     if filter_by_type:
-        if filter_by_type_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+        if filter_by_type_cond in ["exact", "icontains", "istartswith", "iendswith"]:
             filters.update({"type__{}".format(filter_by_type_cond): filter_by_type})
-        elif filter_by_type_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_type_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             excludes.update({"type__{}".format(filter_by_type_cond[4:]): filter_by_type})
 
     # Filter by finding title
     if filter_by_title:
-        if filter_by_title_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+        if filter_by_title_cond in ["exact", "icontains", "istartswith", "iendswith"]:
             filters.update({"title__{}".format(filter_by_title_cond): filter_by_title})
-        elif filter_by_title_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_title_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
 
     # Filter by finding tags
     if filter_by_tags:
-        if filter_by_tags_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+        if filter_by_tags_cond in ["exact", "icontains", "istartswith", "iendswith"]:
             # filters.update({"tags__keys__{}".format(filter_by_tags_cond): filter_by_tags})
             filters.update({"tags__{}".format(filter_by_tags_cond): filter_by_tags})
-        elif filter_by_tags_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_tags_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             # excludes.update({"tags__keys__{}".format(filter_by_tags_cond[4:]): filter_by_tags})
             excludes.update({"tags__{}".format(filter_by_tags_cond[4:]): filter_by_tags})
 
@@ -138,9 +138,9 @@ def _search_findings(request):
 
     # Filter by scan title
     if filter_by_scan:
-        if filter_by_scan_cond in ["exact", "icontains", "istartwith", "iendwith"]:
+        if filter_by_scan_cond in ["exact", "icontains", "istartswith", "iendswith"]:
             filters.update({"scan__title__{}".format(filter_by_scan_cond): filter_by_scan})
-        elif filter_by_scan_cond in ["not_exact", "not_icontains", "not_istartwith", "not_iendwith"]:
+        elif filter_by_scan_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             excludes.update({"scan__title__{}".format(filter_by_scan_cond[4:]): filter_by_scan})
 
     if filter_by_asset_id:
