@@ -5,6 +5,7 @@ from .models import Finding
 from .forms import FindingForm
 from assets.models import AssetOwner
 from engines.models import Engine
+from common.utils.date import validate_datetime
 
 import datetime
 
@@ -31,8 +32,8 @@ def _search_findings(request):
     filter_by_type_cond = request.GET.get('_type_cond', None)
     filter_by_severity = request.GET.get('_severity', None)
     filter_by_severity_cond = request.GET.get('_severity_cond', None)
-    # filter_by_startdate = request.GET.get('_startdate', None)
-    # filter_by_enddate = request.GET.get('_enddate', None)
+    filter_by_startdate = request.GET.get('_startdate', None)
+    filter_by_enddate = request.GET.get('_enddate', None)
     filter_by_status = request.GET.get('_status', None)
     filter_by_status_cond = request.GET.get('_status_cond', None)
     filter_by_asset_id = request.GET.get('_asset_id', None)
@@ -48,14 +49,22 @@ def _search_findings(request):
     # filter_by_reference_cond = request.GET.get('_reference_cond', None)
     filter_by_scan = request.GET.get('_scan_title', None)
     filter_by_scan_cond = request.GET.get('_scan_title_cond', None)
-
     filter_by_owner = request.GET.get('_owner', None)
     filter_by_owner_cond = request.GET.get('_owner_cond', None)
-
+    # Results per page
     filter_limit = request.GET.get('limit', None)
 
     filters = {}
     excludes = {}
+
+    # Filter by Start date
+    if filter_by_startdate and validate_datetime(filter_by_startdate):
+        filters.update({"created_at__gte": filter_by_startdate})
+
+    # Filter by End date
+    if filter_by_enddate and validate_datetime(filter_by_enddate):
+        filters.update({"created_at__lte": filter_by_enddate})
+
     # Filter by asset value
     if filter_by_asset and filter_by_asset_cond:
         if filter_by_asset_cond in ["exact", "icontains", "istartswith", "iendswith"]:

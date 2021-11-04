@@ -505,6 +505,12 @@ function toggle(source, element) {
   };
 
   function initFilterForm(){
+    if (url.searchParams.get("_startdate") != null) {
+      $('#filter_startdate').val(url.searchParams.get("_startdate"))
+    }
+    if (url.searchParams.get("_enddate") != null) {
+      $('#filter_enddate').val(url.searchParams.get("_enddate"))
+    }
     if (url.searchParams.get("_asset_value") != null && url.searchParams.get("_asset_value_cond") != null) {
       $('#filter_asset_value_input').val(url.searchParams.get("_asset_value"))
       $('#filter_asset_value_condition').val(url.searchParams.get("_asset_value_cond"))
@@ -586,6 +592,12 @@ function toggle(source, element) {
 		// Apply filters
 		$('button.btn-save-filters').on('click', function (e){
 			filter_findings_url = "{% url 'list_findings_view' %}?";
+			if ($('input#filter_startdate').val() != "") {
+				filter_findings_url+="&_startdate="+$('#filter_startdate').val();
+			}
+			if ($('input#filter_enddate').val() != "") {
+				filter_findings_url+="&_enddate="+$('#filter_enddate').val();
+			}
 			if ($('input#filter_asset_value_input').val() != "") {
 				filter_findings_url+="&_asset_value="+$('#filter_asset_value_input').val();
 				filter_findings_url+="&_asset_value_cond="+$('#filter_asset_value_condition').val();
