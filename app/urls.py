@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.conf.urls import include, url
+from django.conf.urls import handler400, handler403, handler404, handler500
 from django.urls import path
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -13,7 +14,6 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
-from django.conf.urls import handler400, handler403, handler404, handler500
 
 from users import views as user_views
 
@@ -57,13 +57,18 @@ urlpatterns = [
 ]
 
 # Debug toolbar & download file
-if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+# if settings.DEBUG:
+#     import debug_toolbar
+#     urlpatterns = [
+#         path('__debug__/', include(debug_toolbar.urls)),
+#     ] + urlpatterns
+# if settings.DEBUG:
+import debug_toolbar
+urlpatterns = [
+    path('__debug__/', include(debug_toolbar.urls)),
+] + urlpatterns
 
-urlpatterns += staticfiles_urlpatterns()
+# urlpatterns += staticfiles_urlpatterns()
 
 # Add PRO edition urls
 if settings.PRO_EDITION:
@@ -73,3 +78,5 @@ if settings.PRO_EDITION:
         urlpatterns += pro_urlpatterns
     except ImportError as e:
         print(e)
+
+urlpatterns += staticfiles_urlpatterns()

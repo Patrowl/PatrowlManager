@@ -155,7 +155,7 @@ class RawFinding(models.Model):
         return super(RawFinding, self).save(*args, **kwargs)
 
     def evaluate_alert_rules(self, trigger='all'):
-        print("RF-evaluate_alert_rules")
+        # print("RF-evaluate_alert_rules")
         if trigger == "all":
             rules = Rule.objects.filter(enabled=True, scope__in=['finding', 'asset', 'scan'])
         else:

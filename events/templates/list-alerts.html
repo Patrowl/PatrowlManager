@@ -112,7 +112,8 @@
         {% else %}
         <td><span class="label label-info">{{ alert.severity }}</span></td>
         {% endif %}
-        <td><span class='glyphicon glyphicon-share-alt'></span><a href="/findings/details/{{ alert.metadata.finding_id}}?raw=true">Finding</a></td>
+        <!-- <td><span class='glyphicon glyphicon-share-alt'></span><a href="/findings/details/{{ alert.metadata.finding_id}}?raw=true">Finding</a></td> -->
+        <td><span class='glyphicon glyphicon-share-alt'></span><a href="/findings/details/{{ alert.metadata.finding_id}}">Finding</a></td>
         <td><span class='glyphicon glyphicon-share-alt'></span><a href="/scans/details/{{ alert.metadata.scan_id}}">Scan</a></td>
         <td>{{ alert.updated_at|smartdate }}</td>
         {% if PRO_EDITION %}

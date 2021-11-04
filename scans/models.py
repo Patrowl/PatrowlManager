@@ -227,8 +227,13 @@ class Scan(models.Model):
             setattr(self, field, timezone.now())
         self.save()
 
-    def update_sumary(self):
+    def update_sumary(self, missing=0):
         raw_findings = self.rawfinding_set.all()
+
+        # Keep the previous missing counter
+        if self.summary is not None and 'missing' in dict(self.summary):
+            missing = self.summary['missing']
+
         self.summary = {
             "total": raw_findings.count(),
             "critical": raw_findings.filter(severity='critical').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
@@ -238,7 +243,7 @@ class Scan(models.Model):
             "info":  raw_findings.filter(severity='info').exclude(status='duplicate').count(),
             "new":   self.finding_set.count(),
             "false-positive": raw_findings.filter(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "missing": 0  # todo
+            "missing": missing
         }
 
         return self.summary

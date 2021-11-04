@@ -38,7 +38,7 @@ def list_findings_view(request):
 
     # Pagination findings
     nb_rows = request.GET.get('n', 50)
-    findings_paginator = Paginator(findings, nb_rows)
+    findings_paginator = Paginator(findings.order_by('-updated_at'), nb_rows)
     page = request.GET.get('page')
     owners = AssetOwner.objects.all()
     try:

@@ -5,7 +5,7 @@ from celery import shared_task, chord, group
 from .models import EngineInstance
 from assets.models import Asset, AssetGroup
 from events.models import Event
-from events.utils import new_finding_alert, missing_finding_alert
+from events.utils import new_finding_alert, missing_finding_alert, reopened_finding_alert
 from findings.models import Finding, RawFinding, FindingOverride
 from scans.models import ScanJob, Scan
 from common.utils import chunked_queryset
@@ -517,8 +517,13 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             if f is not None:
                 # We already see you
                 f.checked_at = timezone.now()
-                if f.status in ['patched', 'closed']:
-                    f.status = "undone"
+
+                # Reopen a Finding if the same raw finding appears
+                if f.status in ['mitigated', 'patched', 'closed', 'false-positive', 'duplicate']:
+                    f.status = "reopened"
+                    # Send an alert
+                    reopened_finding_alert(f.id, scan.id, f.severity)
+
                 f.save()
                 new_raw_finding.status = f.status
                 # new_raw_finding.save()
@@ -535,10 +540,6 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             else:
                 new_raw_finding.status = tmp_status
                 new_raw_finding.save(apply_overrides=True)
-
-                # Raise an alert
-                if settings.ALERTS_AUTO_NEW_ENABLED is True and tmp_status == "new":
-                    new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
 
                 # Create an event if logging level OK
                 Event.objects.create(
@@ -573,6 +574,11 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 new_finding.save()
                 # new_finding.save(apply_overrides=True)
 
+                # Raise an alert
+                if settings.ALERTS_AUTO_NEW_ENABLED is True and tmp_status == "new":
+                    # new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
+                    new_finding_alert(new_finding.id, scan.id, new_finding.severity)
+
                 # # Evaluate alerting rules
                 # try:
                 #     new_finding.evaluate_alert_rules(trigger='auto')
@@ -588,7 +594,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     type="ERROR", severity="ERROR", scan=scan, description=str(e))
 
     scan.save()
-    scan.update_sumary()
+    # scan.update_sumary()
 
     # Reevaluate the risk level of the asset on new risk
     for a in scan.assets.all():
@@ -597,22 +603,27 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         ag.calc_risk_grade()
 
     # Search missing findings
+    nb_missing = 0
     # - check if a previous scan exists
     last_scan = scan.scan_definition.scan_set.exclude(id=scan.id).order_by('-id').first()
     if last_scan is not None:
         # Loop in missing findings
         for mf in last_scan.rawfinding_set.exclude(hash__in=known_findings_list):
+            nb_missing += 1
             # Update the Finding status to 'mitigated'
             # find related Finding
             initial_finding = Finding.objects.filter(title=mf.title, asset=mf.asset, engine_type=mf.engine_type).first()
             if initial_finding is not None and initial_finding.status in ['new', 'ack', 'confirmed', 'reopened']:
                 initial_finding.status = 'mitigated'
+                initial_finding.save()
 
             # Create an alert
             if settings.ALERTS_AUTO_MISSING_ENABLED is True:
-                missing_finding_alert(mf.id, scan.id, mf.severity)
+                missing_finding_alert(initial_finding.id, scan.id, initial_finding.severity)
 
+    scan.update_sumary(missing=nb_missing)
     scan.save()
+
     Event.objects.create(message="{} Findings imported.".format(evt_prefix), type="INFO", severity="INFO", scan=scan)
     return True
 
