@@ -238,13 +238,13 @@ def list_scans_view(request):
         scan_list = Scan.objects.for_team(request.user, teamid_selected).filter(**scans_filters).annotate(
             scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
             ).only(
-            "engine_type", "title", "status", "summary", "updated_at"
+                "engine_type", "title", "status", "summary", "updated_at", "finished_at"
             ).order_by('-finished_at')
     else:
         scan_list = Scan.objects.for_user(request.user).filter(**scans_filters).annotate(
             scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
             ).only(
-            "engine_type", "title", "status", "summary", "updated_at"
+                "engine_type", "title", "status", "summary", "updated_at", "finished_at"
             ).order_by('-finished_at')
 
     paginator = Paginator(scan_list, 10)

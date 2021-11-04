@@ -30,19 +30,26 @@ def homepage_dashboard_view(request):
 
     # Findings
     if teamid_selected >= 0:
-        findings = Finding.objects.for_team(request.user, teamid_selected).all().only("status", "severity")
+        findings = Finding.objects.for_team(request.user, teamid_selected).all().only("status", "severity", "vuln_refs", "risk_info", "title", "asset_name")
         assets = Asset.objects.for_team(request.user, teamid_selected).all()
         assetgroups = AssetGroup.objects.for_team(request.user, teamid_selected).all()
         scan_definitions = ScanDefinition.objects.for_team(request.user, teamid_selected).all()
         scans = Scan.objects.for_team(request.user, teamid_selected).all()
         alerts_new = Alert.objects.for_team(request.user, teamid_selected).filter(status="new")
     else:
-        findings = Finding.objects.for_user(request.user).all().only("status", "severity")
+        findings = Finding.objects.for_user(request.user).all().only("status", "severity", "vuln_refs", "risk_info", "title", "asset_name")
         assets = Asset.objects.for_user(request.user).all()
         assetgroups = AssetGroup.objects.for_user(request.user).all()
         scan_definitions = ScanDefinition.objects.for_user(request.user).all()
         scans = Scan.objects.for_user(request.user).all()
         alerts_new = Alert.objects.for_user(request.user).filter(status="new")
+
+    alerts_new_info = Count('id', filter=Q(severity="info"))
+    alerts_new_low = Count('id', filter=Q(severity="low"))
+    alerts_new_medium = Count('id', filter=Q(severity="medium"))
+    alerts_new_high = Count('id', filter=Q(severity="high"))
+    alerts_new_critical = Count('id', filter=Q(severity="critical"))
+    alerts = alerts_new.aggregate(alerts_new_info=alerts_new_info,alerts_new_low=alerts_new_low,alerts_new_medium=alerts_new_medium,alerts_new_high=alerts_new_high,alerts_new_critical=alerts_new_critical)
 
     global_stats = {
         "assets": {
@@ -73,11 +80,11 @@ def homepage_dashboard_view(request):
         },
         "alerts": {
             "total_new": alerts_new.count(),
-            "new_info": alerts_new.filter(severity="info").count(),
-            "new_low": alerts_new.filter(severity="low").count(),
-            "new_medium": alerts_new.filter(severity="medium").count(),
-            "new_high": alerts_new.filter(severity="high").count(),
-            "new_critical": alerts_new.filter(severity="critical").count(),
+            "new_info": alerts['alerts_new_info'],
+            "new_low": alerts['alerts_new_low'],
+            "new_medium": alerts['alerts_new_medium'],
+            "new_high": alerts['alerts_new_high'],
+            "new_critical": alerts['alerts_new_critical'],
         },
     }
 
@@ -94,17 +101,14 @@ def homepage_dashboard_view(request):
 
     # finding counters
     findings_stats = findings.exclude(Q(status='false-positive') | Q(status='duplicate')).aggregate(
-        nb_new=Coalesce(Sum(Case(When(status='new', then=1)), output_field=models.IntegerField()), 0),
-        nb_critical=Coalesce(Sum(Case(When(severity='critical', then=1)), output_field=models.IntegerField()), 0),
-        nb_high=Coalesce(Sum(Case(When(severity='high', then=1)), output_field=models.IntegerField()), 0),
-        nb_medium=Coalesce(Sum(Case(When(severity='medium', then=1)), output_field=models.IntegerField()), 0),
-        nb_low=Coalesce(Sum(Case(When(severity='low', then=1)), output_field=models.IntegerField()), 0),
-        nb_info=Coalesce(Sum(Case(When(severity='info', then=1)), output_field=models.IntegerField()), 0),
+        nb_new=Count('id', filter=Q(status='new')),
+        nb_critical=Count('id', filter=Q(severity='critical')),
+        nb_high=Count('id', filter=Q(severity='high')),
+        nb_medium=Count('id', filter=Q(severity='medium')),
+        nb_low=Count('id', filter=Q(severity='low')),
+        nb_info=Count('id', filter=Q(severity='info')),
     )
     global_stats["findings"] = {
-        # "total_raw": RawFinding.objects.count(),
-        # "total_raw": RawFinding.objects.count(),
-        # "total": findings.count(),
         "total": findings_stats["nb_critical"]+findings_stats["nb_high"]+findings_stats["nb_medium"]+findings_stats["nb_low"]+findings_stats["nb_info"],
         "new": findings_stats["nb_new"],
         "critical": findings_stats["nb_critical"],
@@ -207,12 +211,14 @@ def homepage_dashboard_view(request):
     #     if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})
     #     if finding.risk_info["cvss_base_score"] >= 9.0 and finding.risk_info["cvss_base_score"] < 10: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
     #     if finding.risk_info["cvss_base_score"] == 10.0: cvss_scores.update({'eq10': cvss_scores['eq10']+1})
-    for finding in findings.prefetch_related("risk_info__cvss_base_score").only("risk_info"):
+    # for finding in findings.prefetch_related("risk_info__cvss_base_score").only("risk_info"):
+    # for finding in findings.only("risk_info"):
+    for finding in findings:
         if finding.risk_info["cvss_base_score"] < 5.0: cvss_scores.update({'lte5': cvss_scores['lte5']+1})
-        if finding.risk_info["cvss_base_score"] >= 5.0 and finding.risk_info["cvss_base_score"] <= 7.0: cvss_scores.update({'5to7': cvss_scores['5to7']+1})
-        if finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})
-        if finding.risk_info["cvss_base_score"] >= 9.0 and finding.risk_info["cvss_base_score"] < 10: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
-        if finding.risk_info["cvss_base_score"] == 10.0: cvss_scores.update({'eq10': cvss_scores['eq10']+1})
+        elif finding.risk_info["cvss_base_score"] >= 5.0 and finding.risk_info["cvss_base_score"] <= 7.0: cvss_scores.update({'5to7': cvss_scores['5to7']+1})
+        elif finding.risk_info["cvss_base_score"] >= 7.0: cvss_scores.update({'gte7': cvss_scores['gte7']+1})
+        elif finding.risk_info["cvss_base_score"] >= 9.0 and finding.risk_info["cvss_base_score"] < 10: cvss_scores.update({'gte9': cvss_scores['gte9']+1})
+        elif finding.risk_info["cvss_base_score"] == 10.0: cvss_scores.update({'eq10': cvss_scores['eq10']+1})
 
     # CVE & CWE
     cxe_stats = {}

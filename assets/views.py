@@ -69,9 +69,9 @@ def list_assets_view(request):
     # filter_fields = {}
 
     if teamid_selected >= 0:
-        assets_list = Asset.objects.for_team(request.user, teamid_selected).all()
+        assets_list = Asset.objects.for_team(request.user, teamid_selected).prefetch_related('teams', 'categories').all()
     else:
-        assets_list = Asset.objects.for_user(request.user).all()
+        assets_list = Asset.objects.for_user(request.user).prefetch_related('teams', 'categories').all()
     filters = Q()
     if filter_name and filter_name != 'null':
         filter_name = filter_name.split(',')
@@ -121,14 +121,14 @@ def list_assets_view(request):
     # List asset groups
     asset_groups = []
     if teamid_selected >= 0:
-        ags = AssetGroup.objects.for_team(request.user, teamid_selected).all().annotate(
+        ags = AssetGroup.objects.for_team(request.user, teamid_selected).prefetch_related('teams', 'categories').all().annotate(
                 asset_list=ArrayAgg('assets__value')
             ).only(
                 "id", "name", "assets", "criticity",
                 "updated_at", "risk_level", "teams"
             )
     else:
-        ags = AssetGroup.objects.for_user(request.user).all().annotate(
+        ags = AssetGroup.objects.for_user(request.user).prefetch_related('teams', 'categories').all().annotate(
                 asset_list=ArrayAgg('assets__value')
             ).only(
                 "id", "name", "assets", "criticity",
