@@ -55,9 +55,6 @@ A commercial Pro Edition is available and officially supported by the PatrOwl co
 - [x] Terraform+Ansible deployment scripts
 - [x] Pro Engines including: ZAP, Nikto, Microsoft Cloud App Security, CloudSploit and Onyphe
 - [x] Pro Support
-- [ ] Autonomous asset discovery (in progress, planned to Q2 2021)
-- [ ] Vulnerability prioritization (in progress, planned to Q1 2021)
-- [ ] Ticketing system integration, including JIRA, ServiceNow, ZenDesk and GLPI (in progress, planned to Q2 2021)
 
 This version is also available on the official SaaS platform.
 See: https://patrowl.io/get-started
