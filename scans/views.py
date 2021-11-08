@@ -499,7 +499,8 @@ def edit_scan_def_view(request, scan_def_id):
     request_user_id = request.user.id
     scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
     scan_cats = EnginePolicyScope.objects.all().values()
-    scan_policies = list(EnginePolicy.objects.all().prefetch_related("engine", "scopes"))
+    # scan_policies = list(EnginePolicy.objects.all().prefetch_related("engine", "scopes"))
+    scan_policies = EnginePolicy.objects.prefetch_related("engine", "scopes").all()
     scan_engines = []
     for sc in EngineInstance.objects.all().values('engine__name', 'engine__id').order_by('engine__name').distinct():
         scan_engines.append({
@@ -511,7 +512,12 @@ def edit_scan_def_view(request, scan_def_id):
 
     scan_policies_json = []
     for p in scan_policies:
-        scan_policies_json.append(p.as_dict())
+        scan_policies_json.append({
+            "id": p.id,
+            "engine": p.engine_id,
+            "name": p.name,
+            "scopes": list(p.scopes.values_list("id", flat=True)),
+        })
 
     form = None
     if request.method == 'GET':

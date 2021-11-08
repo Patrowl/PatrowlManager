@@ -258,7 +258,7 @@ class EnginePolicy(models.Model):
             'name': self.name,
             'engine': self.engine.id,
             'engine_name': self.engine.name,
-            'owner': self.owner.id,
+            'owner': self.owner_id,
             'default': self.default,
             'description': self.description,
             'options': self.options,

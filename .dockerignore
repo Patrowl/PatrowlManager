@@ -1,5 +1,6 @@
 .DS_Store
 app/settings.py
+app/assets_detection_rules.py
 var/log/*.log
 var/log/*.log.[0-9]*
 var/tmp/*.pid

@@ -288,4 +288,14 @@
     "created_at": "2020-03-12T11:25:46.428Z",
     "updated_at": "2020-03-12T11:25:46.428Z"
   }
+}, {
+  "model": "engines.engine",
+  "pk": 30,
+  "fields": {
+    "name": "NUCLEI",
+    "description": "Nuclei scans",
+    "allowed_asset_types": "[u'url', u'domain', u'fqdn', u'ip']",
+    "created_at": "2020-03-12T11:25:46.428Z",
+    "updated_at": "2020-03-12T11:25:46.428Z"
+  }
 }]

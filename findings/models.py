@@ -93,7 +93,6 @@ class RawFinding(models.Model):
     asset_name  = models.CharField(max_length=256)
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
     scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE)
-    # owner       = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, null=True, blank=True)
     owner       = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     title       = models.CharField(max_length=256)
     type        = models.CharField(max_length=50)

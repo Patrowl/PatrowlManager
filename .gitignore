@@ -8,6 +8,7 @@ db.sqlite3
 dump.rdb
 app/settings.py
 app/settings-*.py
+app/assets_detection_rules.py
 media/imports/*
 media/owners_docs/*
 media/policies/*
