@@ -194,6 +194,11 @@ hr {
           {% endif %}
         </a>
         </dd>
+        <dt>Asset tags:</dt><dd>
+          {% for tag in finding.asset.categories.all %}
+          <span class="label label-primary">{{tag.value|lower}}</span>
+          {% endfor %}
+        </dd>
         <dt>From engine:</dt><dd>{{ finding.scan.engine.name }} ({{ finding.engine_type }})</dd>
         <dt>From scan:</dt><dd><a href="/scans/details/{{finding.scan.id}}">{{ finding.scan.title }}</a></dd>
         <dt>From policy:</dt><dd><a href="/engines/policies/edit/{{finding.scan.engine_policy.id}}">{{ finding.scan.engine_policy.name }}</a></dd>
