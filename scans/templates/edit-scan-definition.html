@@ -470,9 +470,9 @@ function AddHooks(){
         },
         suggestion: function(data) {
           if (data.format == "asset"){
-            return '<div>' + data.value + ' - '+ data.name + '</div>';
+            return '<div>' + encodeURIComponent(data.value) + ' - '+ encodeURIComponent(data.name) + '</div>';
           } else {
-            return '<div> [Group] ' + data.value + ' - '+ data.name + '</div>';
+            return '<div> [Group] ' + encodeURIComponent(data.value) + ' - '+ encodeURIComponent(data.name) + '</div>';
           }
         }
       }

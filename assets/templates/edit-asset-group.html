@@ -174,7 +174,7 @@ $(function() {
           return '<div class="noitems"> No items found</div>';
         },
         suggestion: function(data) {
-            return '<div>' + data.value + ' - '+ data.name + '</div>';
+            return '<div>' + encodeURIComponent(data.value) + ' - '+ encodeURIComponent(data.name) + '</div>';
         }
       }
     }).bind("typeahead:selected", function(e, datum, name) {
