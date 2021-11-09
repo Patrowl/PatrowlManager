@@ -675,6 +675,12 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
     }
     asset = Asset(**asset_args)
     asset.save()
+
+    # Add teams related to scan
+    for team in scan.scan_definition.teams.all():
+        asset.teams.add(team)
+
+    # Add the asset to the scan
     scan.assets.add(asset)
 
     # Then add the asset to every related asset groups

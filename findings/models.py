@@ -190,11 +190,9 @@ class RawFinding(models.Model):
 def rawfinding_create_update_log(sender, **kwargs):
     from events.models import Event
     if kwargs['created']:
-        Event.objects.create(message="[RawFinding] New raw finding created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']),
-                             type="CREATE", severity="DEBUG")
+        Event.objects.create(message="[RawFinding] New raw finding created (id={}): {}".format(kwargs['instance'].id, kwargs['instance']), type="CREATE", severity="DEBUG")
     else:
-        Event.objects.create(message="[RawFinding] Raw finding '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                             type="UPDATE", severity="DEBUG")
+        Event.objects.create(message="[RawFinding] Raw finding '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id), type="UPDATE", severity="DEBUG")
 
 
 @receiver(post_delete, sender=RawFinding)
@@ -275,6 +273,14 @@ class Finding(models.Model):
             self.updated_at = timezone.now()
         return super(Finding, self).save(*args, **kwargs)
 
+    def evaluate_assets(self):
+        """Create assets by analysing results."""
+        # print("evaluate_assets", settings.ASSET_DETECTION_RULES)
+        new_assets = []
+        rules = settings.ASSET_DETECTION_RULES
+        for rule in rules:
+            print(rule)
+        return new_assets
 
     def evaluate_alert_rules(self, trigger='all'):
         if trigger == "all":
