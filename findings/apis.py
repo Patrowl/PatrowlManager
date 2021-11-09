@@ -295,13 +295,17 @@ def send_finding_alerts_api(request, finding_id):
 @api_view(['GET'])
 @pro_group_required('FindingsManager')
 def generate_finding_alerts_api(request, finding_id):
-    if request.GET.get("raw", None) and request.GET.get("raw") == "true":
-        finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
-    else:
-        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
+    # if request.GET.get("raw", None) and request.GET.get("raw") == "true":
+    #     finding = get_object_or_404(RawFinding.objects.for_user(request.user), id=finding_id)
+    # else:
+    #     finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
 
-    nb_matches = finding.evaluate_alert_rules()
-    return JsonResponse({"status": "success", "nb_matches": nb_matches})
+    try:
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
+        nb_matches = finding.evaluate_alert_rules()
+        return JsonResponse({"status": "success", "nb_matches": nb_matches})
+    except Exception:
+        return JsonResponse({"status": "error", "nb_matches": 0})
 
 
 @api_view(['POST'])

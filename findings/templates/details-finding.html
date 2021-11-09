@@ -123,10 +123,12 @@ hr {
       <hr class="my-1">
     {% if PRO_EDITION %}
         {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+        {% if raw == False %}
         <div class="generate-alerts">
           <button class="btn btn-danger btn-xs btn-generate-alerts" style="width: 100%;">Generate alerts</button>
           <i class="alerts_summary"></i>
         </div>
+        {% endif %}
         <div class="change-finding-status">
           {% if raw == True %}
           <a href="/findings/edit/{{ finding.id }}?raw=true"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
@@ -136,10 +138,12 @@ hr {
         </div>
         {% endif %}
       {% else %}
+      {% if raw == False %}
       <div class="generate-alerts">
         <button class="btn btn-danger btn-xs btn-generate-alerts" style="width: 100%;">Generate alerts</button>
         <i class="alerts_summary"></i>
       </div>
+      {% endif %}
       <div class="change-finding-status">
         {% if raw == True %}
         <a href="/findings/edit/{{ finding.id }}?raw=true"><button class="btn btn-default btn-xs btn-change-finding-infos" style="width: 100%;">Update info</button></a>
@@ -319,15 +323,8 @@ hr {
 
   // Generate alerts
   $('button.btn-generate-alerts').on('click', function(e){
-    finding_id = "{{finding.id}}";
-    gen_alert_url = ""
-    if (qs('raw') == "true") {
-      gen_alert_url = "/findings/api/v1/gen_alerts/"+finding_id+"?raw=true";
-    } else {
-      gen_alert_url = "/findings/api/v1/gen_alerts/"+finding_id;
-    }
     var request = $.ajax({
-      url: gen_alert_url,
+      url: "/findings/api/v1/gen_alerts/{{finding.id}}?raw=true",
       method: "GET",
       success: function(data){
         $('i.alerts_summary')[0].textContent = data["nb_matches"]+" alert(s) generated";

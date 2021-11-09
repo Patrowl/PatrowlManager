@@ -153,37 +153,37 @@ class RawFinding(models.Model):
             self.updated_at = timezone.now()
         return super(RawFinding, self).save(*args, **kwargs)
 
-    def evaluate_alert_rules(self, trigger='all'):
-        # print("RF-evaluate_alert_rules")
-        if trigger == "all":
-            rules = Rule.objects.filter(enabled=True, scope__in=['finding', 'asset', 'scan'])
-        else:
-            rules = Rule.objects.filter(enabled=True, scope__in=['finding', 'asset', 'scan'], trigger=trigger)
-        nb_matches = 0
-        for rule in rules.exclude(target='alert'):
-            rck, rcv = list(rule.condition.items())[0]
-            kwargs = {
-                "id": self.id,
-                rule.scope_attr + rck: rcv
-            }
-            if RawFinding.objects.filter(**kwargs):
-                nb_matches += 1
-                rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
-        for rule in rules.filter(target='alert'):
-            rck, rcv = list(rule.condition.items())[0]
-            field = ""
-            if rule.scope == "asset":
-                field = "asset__"
-            elif rule.scope == "scan":
-                field = "scan__"
-            kwargs = {
-                "id": self.id,
-                field + rule.scope_attr + rck: rcv
-            }
-            for rf in RawFinding.objects.filter(**kwargs):
-                nb_matches += 1
-                rule.notify(message="[Rule={}]".format(rule.title), asset=self.asset, description=self.description, finding=rf)
-        return nb_matches
+    # def evaluate_alert_rules(self, trigger='all'):
+    #     # print("RF-evaluate_alert_rules")
+    #     if trigger == "all":
+    #         rules = Rule.objects.filter(enabled=True, scope__in=['finding', 'asset', 'scan'])
+    #     else:
+    #         rules = Rule.objects.filter(enabled=True, scope__in=['finding', 'asset', 'scan'], trigger=trigger)
+    #     nb_matches = 0
+    #     for rule in rules.exclude(target='alert'):
+    #         rck, rcv = list(rule.condition.items())[0]
+    #         kwargs = {
+    #             "id": self.id,
+    #             rule.scope_attr + rck: rcv
+    #         }
+    #         if RawFinding.objects.filter(**kwargs):
+    #             nb_matches += 1
+    #             rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
+    #     for rule in rules.filter(target='alert'):
+    #         rck, rcv = list(rule.condition.items())[0]
+    #         field = ""
+    #         if rule.scope == "asset":
+    #             field = "asset__"
+    #         elif rule.scope == "scan":
+    #             field = "scan__"
+    #         kwargs = {
+    #             "id": self.id,
+    #             field + rule.scope_attr + rck: rcv
+    #         }
+    #         for rf in RawFinding.objects.filter(**kwargs):
+    #             nb_matches += 1
+    #             rule.notify(message="[Rule={}]".format(rule.title), asset=self.asset, description=self.description, finding=rf)
+    #     return nb_matches
 
 
 @receiver(post_save, sender=RawFinding)
@@ -275,42 +275,36 @@ class Finding(models.Model):
             self.updated_at = timezone.now()
         return super(Finding, self).save(*args, **kwargs)
 
+
     def evaluate_alert_rules(self, trigger='all'):
         if trigger == "all":
-            rules = Rule.objects.filter(enabled=True, scope='finding')
+            rules = Rule.objects.filter(enabled=True, scope__in=['finding', 'asset', 'scan'])
         else:
-            rules = Rule.objects.filter(enabled=True, scope='finding', trigger=trigger)
+            rules = Rule.objects.filter(enabled=True, scope__in=['finding', 'asset', 'scan'], trigger=trigger)
         nb_matches = 0
-        for rule in rules:
+        for rule in rules.exclude(target='alert'):
+            rck, rcv = list(rule.condition.items())[0]
             kwargs = {
                 "id": self.id,
-                # rule.scope_attr+next(iter(rule.condition)): rule.condition.itervalues().next()
-                rule.scope_attr+next(iter(rule.condition)): next(iter(rule.condition.values()))
+                rule.scope_attr + rck: rcv
             }
             if Finding.objects.filter(**kwargs):
                 nb_matches += 1
                 rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
-
-        # nb_matches = 0
-        # for rule in rules.exclude(target='alert'):
-        #     rck, rcv = list(rule.condition.items())[0]
-        #     kwargs = {
-        #         "id": self.id,
-        #         # rule.scope_attr + next(iter(rule.condition)): rule.condition.itervalues().next()
-        #         rule.scope_attr + rck: rcv
-        #     }
-        #     if Finding.objects.filter(**kwargs):
-        #         nb_matches += 1
-        #         rule.notify(message="[Asset={}] {}".format(self.asset.value, self.title), asset=self.asset, description=self.description)
-        # for rule in rules.filter(target='alert'):
-        #     rck, rcv = list(rule.condition.items())[0]
-        #     kwargs = {
-        #         "id": self.id,
-        #         rule.scope_attr + rck: rcv
-        #     }
-        #     for rf in Finding.objects.filter(**kwargs):
-        #         nb_matches += 1
-        #         rule.notify(message="[Rule={}]".format(rule.title), asset=self.asset, description=self.description, finding=rf)
+        for rule in rules.filter(target='alert'):
+            rck, rcv = list(rule.condition.items())[0]
+            field = ""
+            if rule.scope == "asset":
+                field = "asset__"
+            elif rule.scope == "scan":
+                field = "scan__"
+            kwargs = {
+                "id": self.id,
+                field + rule.scope_attr + rck: rcv
+            }
+            for rf in Finding.objects.filter(**kwargs):
+                nb_matches += 1
+                rule.notify(message="[Rule={}]".format(rule.title), asset=self.asset, description=self.description, finding=rf)
         return nb_matches
 
 
