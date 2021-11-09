@@ -37,7 +37,7 @@ function toggle(source, element) {
     </select>
   </li>
   {% endif %}
-  <li class="active">list ({{ nb_findings }} results)</li>
+  <li class="active">list ({{ findings.number }} results)</li>
 </ul>
 
 <div class="container-fluid">
@@ -319,6 +319,25 @@ function toggle(source, element) {
             </div>
 
             <div class="form-group">
+              <label class="col-sm-2 control-label" for="filter_finding_description_label">Finding description</label>
+							<div class="col-sm-2">
+	              <select class="form-control input-sm" id="filter_finding_description_condition">
+									<option value="exact">is exactly</option>
+									<option value="not_exact">is not exactly</option>
+									<option value="icontains">contains</option>
+									<option value="not_icontains">does not contain</option>
+									<option value="istartswith">start with</option>
+									<option value="not_istartswith">does not start with</option>
+									<option value="iendswith">end with</option>
+									<option value="not_iendswith">does not end with</option>
+	              </select>
+							</div>
+							<div class="col-sm-3">
+	              <input type="text" class="form-control input-sm" id="filter_description_title_input">
+							</div>
+            </div>
+
+            <div class="form-group">
               <label class="col-sm-2 control-label" for="filter_finding_severity_label">Finding severity</label>
 							<div class="col-sm-2">
 	              <select class="form-control input-sm" id="filter_finding_severity_condition">
@@ -527,6 +546,10 @@ function toggle(source, element) {
       $('#filter_finding_title_input').val(url.searchParams.get("_title"))
       $('#filter_finding_title_condition').val(url.searchParams.get("_title_cond"))
     }
+    if (url.searchParams.get("_description") != null && url.searchParams.get("_description_cond") != null) {
+      $('#filter_finding_description_input').val(url.searchParams.get("_description"))
+      $('#filter_finding_description_condition').val(url.searchParams.get("_description_cond"))
+    }
     if (url.searchParams.get("_type") != null && url.searchParams.get("_type_cond") != null) {
       $('#filter_finding_type_input').val(url.searchParams.get("_type"))
       $('#filter_finding_type_condition').val(url.searchParams.get("_type_cond"))
@@ -613,6 +636,10 @@ function toggle(source, element) {
 			if ($('input#filter_finding_title_input').val() != "") {
 				filter_findings_url+="&_title="+$('#filter_finding_title_input').val();
 				filter_findings_url+="&_title_cond="+$('#filter_finding_title_condition').val();
+			}
+			if ($('input#filter_finding_description_input').val() != "") {
+				filter_findings_url+="&_description="+$('#filter_finding_description_input').val();
+				filter_findings_url+="&_description_cond="+$('#filter_finding_description_condition').val();
 			}
 			if ($('input#filter_finding_type_input').val() != "") {
 				filter_findings_url+="&_type="+$('#filter_finding_type_input').val();

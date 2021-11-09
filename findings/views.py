@@ -34,7 +34,6 @@ def list_findings_view(request):
             })
 
     findings = _search_findings(request)
-    nb_findings = findings.count()
 
     # Pagination findings
     nb_rows = request.GET.get('n', 50)
@@ -50,7 +49,6 @@ def list_findings_view(request):
 
     return render(request, 'list-findings.html', {
         'findings': findings_p,
-        'nb_findings': nb_findings,
         'teams': teams,
         'engines': Engine.objects.all().values('name').order_by('name'),
         'owners': owners

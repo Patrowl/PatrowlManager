@@ -26,6 +26,8 @@ def _search_findings(request):
     filter_by_assetgroup_cond = request.GET.get('_assetgroup_value_cond', None)
     filter_by_title = request.GET.get('_title', None)
     filter_by_title_cond = request.GET.get('_title_cond', None)
+    filter_by_description = request.GET.get('_description', None)
+    filter_by_description_cond = request.GET.get('_description_cond', None)
     filter_by_tags = request.GET.get('_tags', None)
     filter_by_tags_cond = request.GET.get('_tags_cond', None)
     filter_by_type = request.GET.get('_type', None)
@@ -99,6 +101,13 @@ def _search_findings(request):
             filters.update({"title__{}".format(filter_by_title_cond): filter_by_title})
         elif filter_by_title_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
             excludes.update({"title__{}".format(filter_by_title_cond[4:]): filter_by_title})
+
+    # Filter by finding description
+    if filter_by_description:
+        if filter_by_description_cond in ["exact", "icontains", "istartswith", "iendswith"]:
+            filters.update({"description__{}".format(filter_by_description_cond): filter_by_description})
+        elif filter_by_description_cond in ["not_exact", "not_icontains", "not_istartswith", "not_iendswith"]:
+            excludes.update({"description__{}".format(filter_by_description_cond[4:]): filter_by_description})
 
     # Filter by finding tags
     if filter_by_tags:
