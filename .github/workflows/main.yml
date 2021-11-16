@@ -5,9 +5,14 @@ name: CI mirroring
 # Controls when the action will run. 
 on:
   push:
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  '30 2 * * *'
+    branches:
+      - '**'
+    tags-ignore:
+      - '*.*'
+  pull_request:
+#   schedule:
+#     # * is a special character in YAML so you have to quote this string
+#     - cron:  '30 2 * * *'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
