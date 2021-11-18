@@ -12,6 +12,8 @@ from django.forms.models import model_to_dict
 
 from rules.models import Rule
 from common.utils.encoding import json_serial
+from assets.models import Asset
+from assets.utils import _add_new_asset
 
 import json
 import uuid
@@ -208,7 +210,6 @@ class Finding(models.Model):
     asset_name  = models.CharField(max_length=256) #todo: delete this
     task_id     = models.UUIDField(default=uuid.uuid4, editable=True)
     scan        = models.ForeignKey('scans.Scan', on_delete=models.CASCADE, blank=True, null=True)
-    # owner       = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, null=True, blank=True)
     owner       = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     title       = models.CharField(max_length=256, default='title')
     type        = models.CharField(max_length=50)
@@ -276,11 +277,39 @@ class Finding(models.Model):
     def evaluate_assets(self):
         """Create assets by analysing results."""
         # print("evaluate_assets", settings.ASSET_DETECTION_RULES)
-        new_assets = []
         rules = settings.ASSET_DETECTION_RULES
+        new_assets = []
+        # new_assets_tmp = []
+        matches = []
         for rule in rules:
-            print(rule)
-        return new_assets
+            rule_query = Q()
+            for rule_filter in rule['filters']:
+                print(rule_filter)
+                rule_filter.update({'id': self.id, 'asset__type__in': rule['allowed_datatypes']})
+                rule_query = rule_query | Q(**rule_filter)
+
+            matches = Finding.objects.filter(rule_query).first()
+
+            if matches is not None:
+                asset_value = rule['output_pattern'].replace('__asset__', self.asset_name)
+                print("asset_value:", asset_value)
+
+                # Check if the asset is already created
+                if Asset.objects.filter(value=asset_value).only('id').first() is None:
+                    # print(asset_value)
+                    tmp_asset = {
+                        "datatype": rule['datatype'],
+                        "rule_name": rule['name'],
+                        "group_name": rule['group_name'],
+                        "asset_value": asset_value,
+                        "original_asset_value": self.asset.value,
+                        "asset_teams": self.asset.teams.all(),
+                        "owner": self.owner,
+                    }
+                    print(tmp_asset)
+                    tmp_asset_id = _add_new_asset(tmp_asset)
+                    new_assets.append(tmp_asset_id)
+        return list(set(new_assets))
 
     def evaluate_alert_rules(self, trigger='all'):
         if trigger == "all":

@@ -80,6 +80,13 @@ ALERT_STATUSES = (
     ('archived', 'Archived'),
 )
 
+ALERT_TYPES = (
+    ('other', 'Other'),
+    ('new_finding', 'New Finding'),
+    ('missing_finding', 'Missing Finding'),
+    ('reopened_finding', 'Reopened Finding'),
+)
+
 
 class AlertManager(models.Manager):
     """Class definition of AlertManager."""
@@ -118,6 +125,7 @@ class Alert(models.Model):
     severity = models.CharField(choices=ALERT_SEVERITIES, default='info', max_length=10)
     status = models.CharField(choices=ALERT_STATUSES, default='new', max_length=10)
     metadata = JSONField(default=dict)
+    type = models.CharField(choices=ALERT_TYPES, default='other', max_length=20)
     owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)

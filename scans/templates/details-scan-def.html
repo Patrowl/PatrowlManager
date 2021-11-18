@@ -15,12 +15,12 @@
       <dd>
         {% if PRO_EDITION %}
           {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
-          <a href="/scans/defs/edit/{{ scan_def.id }}">{{ scan_def.title }}</a>
+          {{ scan_def.title }} [<a href="/scans/defs/edit/{{ scan_def.id }}">edit</a>]
           {% else %}
           <a href="/scans/defs/list">{{ scan_def.title }}</a>
           {% endif %}
         {% else %}
-        <a href="/scans/defs/edit/{{ scan_def.id }}">{{ scan_def.title }}</a>
+        {{ scan_def.title }} [<a href="/scans/defs/edit/{{ scan_def.id }}">edit</a>]
         {% endif %}
       </dd>
       <dt>Assets</dt>

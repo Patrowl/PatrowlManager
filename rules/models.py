@@ -193,9 +193,12 @@ def send_alert_message(rule, message, description, finding):
         metadata={
             "finding_id": finding.id,
             "finding_title": finding.title,
+            "finding_tags": finding.tags,
             "scan_id": finding.scan.id,
+            "scan_definition_id": finding.scan.scan_definition.id,
             "asset_name": finding.asset_name,
-            "asset_id": finding.asset.id
+            "asset_id": finding.asset.id,
+            "asset_tags": [t.value for t in finding.asset.categories.all()],
         },
         owner=finding.owner
     )

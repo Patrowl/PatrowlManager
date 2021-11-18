@@ -35,6 +35,7 @@ class AlertSerializer(serializers.ModelSerializer):
             'message',
             'severity',
             'status',
+            'metadata',
             'created_at',
             'updated_at',
         ]

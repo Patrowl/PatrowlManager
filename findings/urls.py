@@ -52,13 +52,15 @@ urlpatterns = [
     url(r'^api/v1/update_comments/(?P<finding_id>[0-9]+)$', apis.update_finding_comments_api, name='update_finding_comments_api'),
     # ex: /findings/api/v1/alert/2
     url(r'^api/v1/alert/(?P<finding_id>[0-9]+)$', apis.send_finding_alerts_api, name='send_finding_alerts_api'),
+    # ex: /findings/api/v1/evaluate_assets/2
+    url(r'^api/v1/evaluate_assets/(?P<finding_id>[0-9]+)$', apis.evaluate_assets, name='finding_evaluate_assets_api'),
     # ex: /findings/api/v1/update/2?severity=high
     url(r'^api/v1/update/(?P<finding_id>[0-9]+)$', apis.update_finding_api, name='update_finding_api'),
     # ex: /findings/api/v1/export/2?format=html|csv
     url(r'^api/v1/export/(?P<finding_id>[0-9]+)$', apis.export_finding_api, name='export_finding_api'),
     # ex: /findings/api/v1/8
     url(r'^api/v1/(?P<finding_id>[0-9]+)$', apis.get_finding_api, name='get_finding_api'),
-    # ex: /findings/api/v1/8
+    # ex: /findings/api/v1/by-id/8
     url(r'^api/v1/by-id/(?P<finding_id>[0-9]+)$', apis.get_finding_api, name='get_finding_byid_api'),
     # ex: /findings/api/v1/raw/8
     url(r'^api/v1/raw/(?P<finding_id>[0-9]+)$', apis.get_raw_finding_api, name='get_raw_finding_api'),

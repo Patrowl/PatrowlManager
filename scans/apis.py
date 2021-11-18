@@ -569,3 +569,18 @@ def add_retest_finding_scan_def_api(request, finding_id):
 
     _run_scan(scan_def.id, request.user.id)
     return JsonResponse({'status': 'success', 'scan_def_id': scan_def.id})
+
+
+@api_view(['GET'])
+@pro_group_required('ScansManager')
+def evaluate_assets(request, scan_id):
+    assets = []
+    try:
+        scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
+        for finding in scan.finding_set.all():
+            finding.evaluate_assets()
+        # assets =
+    except Exception as e:
+        print(e)
+        return JsonResponse({"status": "error"})
+    return JsonResponse({"status": "success", "assets": assets})

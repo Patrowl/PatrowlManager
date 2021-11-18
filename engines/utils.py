@@ -500,9 +500,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             # Check if this finding is new (don't already exists)
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
 
-            # Check description . If CGI in text count the vulnerable parameteres . Only for Nessus
-            # count__old_vuln_params = 0
-            # count__new_vuln_params = 0
+            # Check description. If CGI in text count the vulnerable parameteres . Only for Nessus
             tmp_status = "new"
             if scan.engine_type.name == "NESSUS" and "CGI" in finding['title']:
 
@@ -546,6 +544,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     message="{} New finding: {}".format(evt_prefix, finding['title']),
                     description="Asset: {}\nFinding: {}".format(asset.value, finding['title']),
                     type="DEBUG", severity="INFO", scan=scan)
+
                 new_finding = Finding.objects.create(
                     raw_finding = new_raw_finding,
                     asset       = asset,
@@ -584,6 +583,13 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     new_finding.evaluate_alert_rules(trigger='auto')
                 except Exception as e:
                     Event.objects.create(message="{} Error in alerting".format(evt_prefix),
+                        type="ERROR", severity="ERROR", scan=scan, description=str(e))
+
+                # Evaluate asset creation rules (if any)
+                try:
+                    new_finding.evaluate_assets()
+                except Exception as e:
+                    Event.objects.create(message="{} Error in finding evaluation for new assets".format(evt_prefix),
                         type="ERROR", severity="ERROR", scan=scan, description=str(e))
 
             # # Evaluate alerting rules

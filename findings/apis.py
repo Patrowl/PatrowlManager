@@ -304,8 +304,21 @@ def generate_finding_alerts_api(request, finding_id):
         finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
         nb_matches = finding.evaluate_alert_rules()
         return JsonResponse({"status": "success", "nb_matches": nb_matches})
-    except Exception:
+    except Exception as e:
+        print(e.message)
         return JsonResponse({"status": "error", "nb_matches": 0})
+
+@api_view(['GET'])
+@pro_group_required('FindingsManager')
+def evaluate_assets(request, finding_id):
+    assets = []
+    try:
+        finding = get_object_or_404(Finding.objects.for_user(request.user), id=finding_id)
+        assets = finding.evaluate_assets()
+    except Exception as e:
+        print(e)
+        return JsonResponse({"status": "error"})
+    return JsonResponse({"status": "success", "assets": assets})
 
 
 @api_view(['POST'])

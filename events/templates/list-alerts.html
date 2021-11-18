@@ -78,6 +78,7 @@
       <tr>
         <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'alert')" /></th>
         <th scope="col">Message</th>
+        <th scope="col">Type</th>
         <th scope="col">Status</th>
         <th scope="col">Severity</th>
         <th scope="col">Finding</th>
@@ -96,6 +97,7 @@
           <!-- - <a href="/findings/details/{{ alert.metadata.finding_id}}?raw=true">finding</a>
           - <a href="/scans/details/{{ alert.metadata.scan_id}}">scan</a> -->
         </td>
+        <td>{{ alert.type }}</td>
         {% if alert.status == 'new' %}
         <td class="text-danger">{{ alert.status }}</td>
         {% else %}
