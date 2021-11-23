@@ -21,14 +21,14 @@ def _search(kw):
         Q(description__icontains=kw) | Q(name__icontains=kw) | Q(categories__value__icontains=kw)):
         results.append({"type": "asset_group", "value": asset_group.name, "id": asset_group.id, "link": "/assets/groups/details/"+str(asset_group.id)})
 
-    # search by asset owner name, url or comments
-    for asset_owner in AssetOwner.objects.filter(Q(name__icontains=kw) | Q(url__icontains=kw) | Q(comments__icontains=kw)):
-        results.append({"type": "asset_owner", "value": asset_owner.name, "id": asset_owner.id, "link": "/assets/owners/details/"+str(asset_owner.id)})
-
-    # search by asset owner contacts name, info
-    for asset_owner_contact in AssetOwnerContact.objects.filter(
-        Q(name__icontains=kw) | Q(department__icontains=kw) | Q(title__icontains=kw) | Q(url__icontains=kw) | Q(comments__icontains=kw)):
-        results.append({"type": "asset_owner_contact", "value": asset_owner_contact.name, "id": asset_owner_contact.id, "link": "/assets/owners/list"})
+    # # search by asset owner name, url or comments
+    # for asset_owner in AssetOwner.objects.filter(Q(name__icontains=kw) | Q(url__icontains=kw) | Q(comments__icontains=kw)):
+    #     results.append({"type": "asset_owner", "value": asset_owner.name, "id": asset_owner.id, "link": "/assets/owners/details/"+str(asset_owner.id)})
+    #
+    # # search by asset owner contacts name, info
+    # for asset_owner_contact in AssetOwnerContact.objects.filter(
+    #     Q(name__icontains=kw) | Q(department__icontains=kw) | Q(title__icontains=kw) | Q(url__icontains=kw) | Q(comments__icontains=kw)):
+    #     results.append({"type": "asset_owner_contact", "value": asset_owner_contact.name, "id": asset_owner_contact.id, "link": "/assets/owners/list"})
 
     # search by asset document doctitle or comments
     for asset_owner_doc in AssetOwnerDocument.objects.filter(Q(doctitle__icontains=kw) | Q(comments__icontains=kw)):
@@ -50,7 +50,8 @@ def _search(kw):
 
     # search on findings title, type, references
     for finding in Finding.objects.filter(
-        Q(title__icontains=kw) | Q(description__icontains=kw) | Q(type__icontains=kw) | Q(solution__icontains=kw) | Q(vuln_refs__icontains=kw) | Q(links__icontains=kw) | Q(tags__icontains=kw)):
+        # Q(title__icontains=kw) | Q(description__icontains=kw) | Q(type__icontains=kw) | Q(solution__icontains=kw) | Q(vuln_refs__icontains=kw) | Q(links__icontains=kw) | Q(tags__icontains=kw)):
+        Q(title__contains=kw) | Q(description__contains=kw) | Q(type__contains=kw) | Q(solution__contains=kw) | Q(vuln_refs__contains=kw) | Q(links__contains=kw) | Q(tags__contains=kw)):
         results.append({"type": "finding", "value": finding.title, "id": finding.id, "link": "/findings/details/"+str(finding.id)})
 
     return results

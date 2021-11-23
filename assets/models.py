@@ -415,7 +415,7 @@ class AssetGroup(models.Model):
     # Attributes
     assets      = models.ManyToManyField(Asset)
     name        = models.CharField(max_length=256, unique=True)
-    criticity   = models.CharField(choices=ASSET_CRITICITIES, default='None', max_length=10)
+    criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)
     risk_level  = JSONField(default=get_default_risk_level)
     owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)

@@ -43,7 +43,7 @@
 
 <div class="container-fluid">
   <div class="pull-left">
-      <span>Status filter:</span>
+      <span>Filter by status:</span>
       <input type='radio' value='reset' id="reset" name='status' style="visibility: hidden" onclick="changeStatusFilter(this);"/>
       <label for="reset">Reset</label>
       <input type='radio' value='new' id="new" name='status' style="visibility: hidden" onclick="changeStatusFilter(this);"/>
@@ -56,7 +56,7 @@
 </div>
 <div class="container-fluid">
   <div class="pull-left">
-      <span>Severity filter:</span>
+      <span>Filter by severity:</span>
       <input type='radio' value='all' id="all" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
       <label for="all">All</label>
       <input type='radio' value='info' id="info" name='severity' style="visibility: hidden" onclick="changeSeverityFilter(this);"/>
@@ -71,6 +71,23 @@
       <label for="critical">Critical</label>
   </div>
 </div>
+<div class="container-fluid">
+  <div class="pull-left">
+      <span>Filter by type:</span>
+      <input type='radio' value='all_types' id="all_types" name='type' style="visibility: hidden" onclick="changeTypeFilter(this);"/>
+      <label for="all_types">All</label>
+      <input type='radio' value='other' id="other" name='type' style="visibility: hidden" onclick="changeTypeFilter(this);"/>
+      <label for="other">Other</label>
+      <input type='radio' value='new_finding' id="new_finding" name='type' style="visibility: hidden" onclick="changeTypeFilter(this);"/>
+      <label for="new_finding">New</label>
+      <input type='radio' value='missing_finding' id="missing_finding" name='type' style="visibility: hidden" onclick="changeTypeFilter(this);"/>
+      <label for="missing_finding">Missing</label>
+      <input type='radio' value='reopened_finding' id="reopened_finding" name='type' style="visibility: hidden" onclick="changeTypeFilter(this);"/>
+      <label for="reopened_finding">Reopened</label>
+  </div>
+</div>
+
+<hr/>
 
 <div class="container-fluid">
   <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
@@ -182,14 +199,14 @@
       {% endif %}
     </ul>
     <div style="margin: 21px;">
-            <select id="nb_rows_per_page" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
-              <option value="20" selected>20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-              <option value="200">200</option>
-            </select>
-            alerts per page
-          </div>
+      <select id="nb_rows_per_page" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+        <option value="20" selected>20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+      </select>
+      alerts per page
+    </div>
   </div>
   <br/>
 
@@ -235,6 +252,14 @@
     $('input[name="severity"][id="all"]').prop("checked", true );
   }
 
+  // Set the type filter
+  type = url.searchParams.get('type');
+  if ( ['new_finding', 'missing_finding', 'reopened_finding', 'other'].indexOf(type) >= 0 ) {
+    $('input[name="type"][id="'+type+'"]').prop("checked", true );
+  } else {
+    $('input[name="type"][id="all_types"]').prop("checked", true );
+  }
+
   var gotopage = function gotopage(page_num, target = "alerts") {
     url.searchParams.set("p_alerts", page_num);
     window.location = url.search;
@@ -254,6 +279,11 @@
 
   function changeSeverityFilter(item) {
     url.searchParams.set("severity", item.value);
+    window.location = url.search;
+  }
+
+  function changeTypeFilter(item) {
+    url.searchParams.set("type", item.value);
     window.location = url.search;
   }
 

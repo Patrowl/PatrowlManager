@@ -645,8 +645,10 @@ def detail_asset_group_view(request, assetgroup_id):
         })
 
     findings_stats = {
-        'total': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
-        'new': 0, 'ack': 0}
+        'total': 0,
+        'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
+        'new': 0, 'ack': 0
+    }
     engines_stats = {}
 
     for finding in findings:
@@ -674,6 +676,17 @@ def detail_asset_group_view(request, assetgroup_id):
         if finding.engine_type not in engines_stats.keys():
             engines_stats.update({finding.engine_type: 0})
         engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
+
+    findings_stats = findings.aggregate(
+        nb_new=Count('id', filter=Q(status='new')),
+        nb_ack=Count('id', filter=Q(status='ack')),
+        nb_critical=Count('id', filter=Q(severity='critical')),
+        nb_high=Count('id', filter=Q(severity='high')),
+        nb_medium=Count('id', filter=Q(severity='medium')),
+        nb_low=Count('id', filter=Q(severity='low')),
+        nb_info=Count('id', filter=Q(severity='info')),
+
+    )
 
     # Scans
     scan_defs = ScanDefinition.objects.filter(Q(assetgroups_list__in=[asset_group])).annotate(engine_type_name=F('engine_type__name'))

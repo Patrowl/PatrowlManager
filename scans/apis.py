@@ -579,7 +579,6 @@ def evaluate_assets(request, scan_id):
         scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
         for finding in scan.finding_set.all():
             finding.evaluate_assets()
-        # assets =
     except Exception as e:
         print(e)
         return JsonResponse({"status": "error"})

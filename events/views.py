@@ -39,8 +39,11 @@ def list_alerts_view(request):
                 'name': tu.organization.name
             })
 
+    # Args
     status = request.GET.get('status', "")
     severity = request.GET.get('severity', "")
+    type = request.GET.get('type', "")
+
     alerts_list = []
     if teamid_selected >= 0:
         if status in ["archived", "read", "new"]:
@@ -56,7 +59,10 @@ def list_alerts_view(request):
     if severity in ["info", "low", "medium", "high", "critical"]:
         alerts_list = alerts_list.filter(severity=severity)
 
-    nb_alerts = alerts_list.count()
+    if type in ['new_finding', 'missing_finding', 'reopened_finding', 'other']:
+        alerts_list = alerts_list.filter(type=type)
+
+    # nb_alerts = alerts_list.count()
     # Pagination assets
     nb_rows = int(request.GET.get('n', 20))
     alert_paginator = Paginator(alerts_list, nb_rows)
@@ -70,6 +76,6 @@ def list_alerts_view(request):
 
     return render(request, 'list-alerts.html', {
         'alerts': alerts,
-        'nb_alerts': nb_alerts,
+        # 'nb_alerts': nb_alerts,
         'teams': teams
     })
