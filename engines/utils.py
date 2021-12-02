@@ -3,13 +3,12 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from celery import shared_task, chord, group
 from .models import EngineInstance
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, AssetCategory
 from events.models import Event
 from events.utils import new_finding_alert, missing_finding_alert, reopened_finding_alert
 from findings.models import Finding, RawFinding, FindingOverride
 from scans.models import ScanJob, Scan
-from common.utils import chunked_queryset
-from common.utils import net
+from common.utils import chunked_queryset, net, cpe
 import json
 import random
 import requests
@@ -395,7 +394,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     - Create new asset if any
     - Create a RawFinding
     - Create ou update a Finding (if new or has changes)
-    - Create an alert if a neww or a missing finding is found
+    - Create an alert for new, missing and reopened Findings
     - Update asset score and scan summary
     """
     scan_id = None
@@ -496,6 +495,14 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
             for scope in scan_scopes:
                 new_raw_finding.scopes.add(scope.id)
             new_raw_finding.save()
+
+            # Auto-tag if CPE is set:
+            try:
+                if 'CPE' in new_raw_finding.vuln_refs.keys() and len(new_raw_finding.vuln_refs['CPE']) > 0:
+                    for cpe_vector in new_raw_finding.vuln_refs['CPE']:
+                        _add_cpe_tags(asset, cpe_vector)
+            except Exception:
+                pass
 
             # Check if this finding is new (don't already exists)
             f = Finding.objects.filter(asset=asset, title=finding['title']).only('checked_at', 'status').first()
@@ -631,6 +638,22 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
     scan.save()
 
     Event.objects.create(message="{} Findings imported.".format(evt_prefix), type="INFO", severity="INFO", scan=scan)
+    return True
+
+
+def _add_cpe_tags(asset, cpe_vector):
+    vendor, product = cpe.extract_cpe(cpe_vector)
+
+    if vendor is not None:
+        tag, created = AssetCategory.objects.get_or_create(value=f"vendor:{vendor}")
+        if tag not in asset.categories.all():
+            asset.categories.add(tag)
+
+    if product is not None:
+        tag, created = AssetCategory.objects.get_or_create(value=f"product:{product}")
+        if tag not in asset.categories.all():
+            asset.categories.add(tag)
+
     return True
 
 

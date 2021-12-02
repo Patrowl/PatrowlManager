@@ -139,10 +139,10 @@ def engineinstance_delete_log(sender, **kwargs):
 
 
 class EnginePolicyScope(models.Model):
-    name        = models.CharField(max_length=250)
-    priority    = models.IntegerField(null=True, blank=True)
-    created_at  = models.DateTimeField(default=timezone.now)
-    updated_at  = models.DateTimeField(default=timezone.now)
+    name = models.CharField(max_length=250)
+    priority = models.IntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     # class Meta:
     #     db_table = 'engine_policy_scopes'
@@ -189,18 +189,18 @@ def enginepolicyscope_delete_log(sender, **kwargs):
 
 
 class EnginePolicy(models.Model):
-    engine      = models.ForeignKey(Engine, on_delete=models.CASCADE)
-    owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
-    name        = models.CharField(max_length=200)
-    default     = models.BooleanField(default=False)
+    engine = models.ForeignKey(Engine, on_delete=models.CASCADE)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    name = models.CharField(max_length=200)
+    default = models.BooleanField(default=False)
     description = models.CharField(max_length=200)
-    options     = JSONField(null=True, blank=True, default=dict)
-    file        = models.FileField(upload_to='./policies/', null=True, blank=True)
-    status      = models.CharField(max_length=50)    #active / trashed
-    is_default  = models.BooleanField(default=False)
-    scopes      = models.ManyToManyField(EnginePolicyScope)
-    created_at  = models.DateTimeField(default=timezone.now)
-    updated_at  = models.DateTimeField(default=timezone.now)
+    options = JSONField(null=True, blank=True, default=dict)
+    file = models.FileField(upload_to='./policies/', null=True, blank=True)
+    status = models.CharField(max_length=50)  # active / trashed
+    is_default = models.BooleanField(default=False)
+    scopes = models.ManyToManyField(EnginePolicyScope)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         #db_table = 'engine_policies'
@@ -218,7 +218,9 @@ class EnginePolicy(models.Model):
             # ex: /media/policies/NESSUS/2/nessuspolicy.nessus
             new_name = '/'.join(['policies', self.engine.name, str(self.owner.id), os.path.basename(initial_path)])
             new_path = os.path.join(MEDIA_ROOT, 'policies',
-                self.engine.name, str(self.owner.id), os.path.basename(initial_path))
+                self.engine.name, str(self.owner.id),
+                os.path.basename(initial_path)
+            )
 
             # create /media/policies/<engine_name>/ if not exists
             if not os.path.exists(MEDIA_ROOT+"/policies/"+self.engine.name):

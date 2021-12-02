@@ -147,37 +147,39 @@ div.risk-trends {
       <div class="row finding-stats">
         <div class="col-md-2">
           <div class="tile tile-critical">
-              <div>Critical:</div><span class="label label-critical">{{findings_stats.critical}}</span>
+              <div>Critical</div><span class="label label-critical">{{findings_stats.nb_critical}}</span>
           </div>
         </div>
         <div class="col-md-2">
           <div class="tile tile-high">
-              <div>High:</div><span class="label label-high">{{findings_stats.high}}</span>
+              <div>High</div><span class="label label-high">{{findings_stats.nb_high}}</span>
           </div>
         </div>
         <div class="col-md-2">
           <div class="tile tile-medium">
-              <div>Medium:</div><span class="label label-medium">{{findings_stats.medium}}</span>
+              <div>Medium</div><span class="label label-medium">{{findings_stats.nb_medium}}</span>
           </div>
         </div>
         <div class="col-md-2">
           <div class="tile tile-low">
-              <div>Low:</div><span class="label label-low">{{findings_stats.low}}</span>
+              <div>Low</div><span class="label label-low">{{findings_stats.nb_low}}</span>
           </div>
         </div>
         <div class="col-md-2">
           <div class="tile tile-info">
-              <div>Info:</div><span class="label label-info">{{findings_stats.info}}</span>
+              <div>Info</div><span class="label label-info">{{findings_stats.nb_info}}</span>
           </div>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
-      		<strong># Findings</strong>: <i>{{findings_stats.total}} ({{findings_stats.new}} news, {{findings_stats.ack}} ackd.)</i><br/>
+      		<strong># Findings</strong>: <i>{{findings_stats.total}} ({{findings_stats.nb_new}} news, {{findings_stats.nb_ack}} ackd.)</i><br/>
       		<strong># Scans related</strong>: <i>{{scans_stats.performed}} performed, {{scans_stats.defined}} defined, {{scans_stats.running}} currently running</i><br/>
       		<strong># Scans from engines</strong>: <i>
-          {% for engine, counter in engines_stats.items %}
-            {{ engine }}: {{ counter }}{% if not forloop.last %}, {% endif %}
+          {% for engine, counter in findings_stats.items %}
+            {% if engine|slice:":7" == "engine_" and counter > 0 %}
+            {{ engine|slice:"7:" }}: {{ counter }}
+            {% endif %}
           {% endfor %}</i><br/>
       	</div>
       </div>
@@ -612,7 +614,7 @@ div.risk-trends {
           <tr>
             <td><input type="checkbox" class="radio" name="scan_defs" value="{{ scan_def.id }}"/></td>
             <td><a href="/scans/defs/details/{{ scan_def.id }}" class="text-primary">{{ scan_def.title }}</a></td>
-            <td>{{ scan_def.scan_set.count }}</td>
+            <td>{{ scan_def.nb_scans }}</td>
             <td>{{ scan_def.scan_type }}</td>
             <td>{{ scan_def.engine_type_name }}</td>
             {% if scan_def.scan_type == "periodic" %}

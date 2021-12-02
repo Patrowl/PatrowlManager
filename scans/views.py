@@ -500,7 +500,7 @@ def edit_scan_def_view(request, scan_def_id):
     scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
     scan_cats = EnginePolicyScope.objects.all().values()
     # scan_policies = list(EnginePolicy.objects.all().prefetch_related("engine", "scopes"))
-    scan_policies = EnginePolicy.objects.prefetch_related("engine", "scopes").all()
+    scan_policies = EnginePolicy.objects.prefetch_related("engine", "scopes").all().order_by(Lower('name'))
     scan_engines = []
     for sc in EngineInstance.objects.all().values('engine__name', 'engine__id').order_by('engine__name').distinct():
         scan_engines.append({

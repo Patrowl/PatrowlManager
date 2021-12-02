@@ -67,7 +67,7 @@ def list_asset_findings_view(request, asset_name):
         filters.update({"status": filter_by_status})
 
     findings = Finding.objects.for_user(request.user).filter(**filters).order_by(
-             'asset_name', 'severity', 'status', 'type')
+        'asset_name', 'severity', 'status', 'type')
 
     return render(request, 'list-findings.html', {'findings': findings})
 

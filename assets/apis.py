@@ -181,7 +181,7 @@ def list_assets_api(request):
                 Q(value__icontains=q) | Q(name__icontains=q)
             ).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
+            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'categories__value', 'assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).filter(
                 name__icontains=q
             ).annotate(
@@ -195,11 +195,11 @@ def list_assets_api(request):
                 name=F("value")
             ).annotate(
                 format=Value("taggroup", output_field=CharField())
-            ).values('id', 'value', 'format','name')
+            ).values('id', 'value', 'format', 'name')
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
+            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'categories__value', 'assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).annotate(
                 value=F("name")
             ).annotate(
@@ -234,11 +234,11 @@ def list_only_assets_api(request):
                 Q(value__icontains=q) | Q(name__icontains=q)
             ).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
+            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'categories__value', 'assetowner__name')
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name','type','exposure','categories__value','assetowner__name')
+            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'categories__value', 'assetowner__name')
 
     # Filter by team
     if team is not None and len(team) > 0:
@@ -313,11 +313,13 @@ def export_assets_api(request, assetgroup_id=None):
         scope='asset', type='assets_export_csv', owner=request.user, context=request)
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
+
     writer = csv.writer(response, delimiter=';')
 
     assets = []
     if assetgroup_id:
         asset_group = AssetGroup.objects.for_user(request.user).get(id=assetgroup_id)
+        response['Content-Disposition'] = 'attachment; filename="patrowl_assetgroup_{}.csv"'.format(slugify(asset_group.name))
         for asset in asset_group.assets.all():
             assets.append(asset)
     else:
@@ -686,7 +688,7 @@ def get_asset_report_json_api(request, asset_id):
         'asset': asset_dict,
         'findings': findings_tmp,
         'findings_stats': findings_stats
-        }, safe=False)
+    }, safe=False)
 
 
 @api_view(['GET'])

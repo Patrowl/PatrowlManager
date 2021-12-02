@@ -71,7 +71,7 @@ class ScanDefinition(models.Model):
 
     # Attributes
     scan_type        = models.CharField(choices=SCAN_TYPES, default='single', max_length=10)
-    assets_list      = models.ManyToManyField('assets.Asset',  blank=True)
+    assets_list      = models.ManyToManyField('assets.Asset', blank=True)
     assetgroups_list = models.ManyToManyField('assets.AssetGroup', blank=True)
     taggroups_list   = models.ManyToManyField('assets.AssetCategory', blank=True)
     title            = models.CharField(max_length=256)

@@ -14,7 +14,7 @@ from django.contrib import messages
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.shortcuts import render, redirect, get_object_or_404
 from findings.models import Finding
-from engines.models import EnginePolicyScope
+from engines.models import EnginePolicyScope, Engine
 from scans.models import Scan, ScanDefinition
 from users.models import Team, TeamUser
 from common.utils import encoding, pro_group_required
@@ -537,8 +537,8 @@ def detail_asset_view(request, asset_id):
             if fs is not None:
                 c = engine_scopes[fs]
                 engine_scopes[fs].update({
-                    'total': c['total']+1,
-                    finding.severity: c[finding.severity]+1
+                    'total': c['total'] + 1,
+                    finding.severity: c[finding.severity] + 1
                 })
         if finding.engine_type not in engines_stats.keys():
             engines_stats.update({finding.engine_type: 0})
@@ -614,20 +614,18 @@ def detail_asset_view(request, asset_id):
 @pro_group_required('AssetsManager', 'AssetsViewer')
 def detail_asset_group_view(request, assetgroup_id):
     """Return asset group details."""
-    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related('categories', 'assets'), id=assetgroup_id)
 
     assets_list = asset_group.assets.all().order_by("-risk_level__grade", "criticity", "type")
 
     findings = Finding.objects.severity_ordering().filter(
-            asset__in=asset_group.assets.all()
-        ).annotate(
-            scope_list=ArrayAgg('scopes__name')
-        ).order_by(
-            '-severity_order', 'asset', 'type', 'updated_at'
-        ).only(
-            "severity", "status", "engine_type", "risk_info", "vuln_refs",
-            "title", "id", "solution", "updated_at", "type", "asset_id",
-            "asset_name")
+        asset__in=asset_group.assets.all()
+    ).order_by(
+        '-severity_order', 'asset', 'type', 'updated_at'
+    ).only(
+        "severity", "status", "engine_type", "risk_info", "vuln_refs",
+        "title", "id", "solution", "updated_at", "type", "asset_id",
+        "asset_name")
 
     asset_scopes = {}
     for scope in EnginePolicyScope.objects.all():
@@ -651,32 +649,34 @@ def detail_asset_group_view(request, assetgroup_id):
     }
     engines_stats = {}
 
-    for finding in findings:
-        findings_stats['total'] = findings_stats.get('total', 0) + 1
-        findings_stats[finding.severity] = findings_stats.get(finding.severity, 0) + 1
-        if finding.status == 'new':
-            findings_stats['new'] = findings_stats.get('new', 0) + 1
-        elif finding.status == 'ack':
-            findings_stats['ack'] = findings_stats.get('ack', 0) + 1
-        elif finding.status == 'duplicate':
-            findings_stats['duplicate'] = findings_stats.get('duplicate', 0) + 1
-        elif finding.status == 'false-positive':
-            findings_stats['false-positive'] = findings_stats.get('false-positive', 0) + 1
-        elif finding.status == 'closed':
-            findings_stats['closed'] = findings_stats.get('closed', 0) + 1
-        elif finding.status == 'mitigated':
-            findings_stats['mitigated'] = findings_stats.get('mitigated', 0) + 1
-        elif finding.status == 'reopened':
-            findings_stats['reopened'] = findings_stats.get('reopened', 0) + 1
+    # for finding in findings:
+    #     for fs in finding.scope_list:
+    #         if fs is not None:
+    #             c = asset_scopes[fs]
+    #             asset_scopes[fs].update({'total': c['total']+1, finding.severity: c[finding.severity]+1})
+    #     if finding.engine_type not in engines_stats.keys():
+    #         engines_stats.update({finding.engine_type: 0})
+    #     engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
 
-        for fs in finding.scope_list:
-            if fs is not None:
-                c = asset_scopes[fs]
-                asset_scopes[fs].update({'total': c['total']+1, finding.severity: c[finding.severity]+1})
-        if finding.engine_type not in engines_stats.keys():
-            engines_stats.update({finding.engine_type: 0})
-        engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
+    engines_stats_filter_agg = {}
+    for engine in Engine.objects.values_list('name', flat=True):
+        engines_stats_filter_agg.update({
+            f"engine_{engine}": Count('id', filter=Q(engine_type=engine))
+        })
 
+    engines_scopes_filter_agg = {}
+    scope_names = EnginePolicyScope.objects.values_list('name', flat=True)
+    for scope in scope_names:
+        engines_scopes_filter_agg.update({
+            f"scope_{scope}_total": Count('id', filter=Q(scopes__name=scope)),
+            f"scope_{scope}_info": Count('id', filter=Q(scopes__name=scope, severity='info')),
+            f"scope_{scope}_low": Count('id', filter=Q(scopes__name=scope, severity='low')),
+            f"scope_{scope}_medium": Count('id', filter=Q(scopes__name=scope, severity='medium')),
+            f"scope_{scope}_high": Count('id', filter=Q(scopes__name=scope, severity='high')),
+            f"scope_{scope}_critical": Count('id', filter=Q(scopes__name=scope, severity='critical')),
+        })
+
+    # Sorry...
     findings_stats = findings.aggregate(
         nb_new=Count('id', filter=Q(status='new')),
         nb_ack=Count('id', filter=Q(status='ack')),
@@ -685,21 +685,44 @@ def detail_asset_group_view(request, assetgroup_id):
         nb_medium=Count('id', filter=Q(severity='medium')),
         nb_low=Count('id', filter=Q(severity='low')),
         nb_info=Count('id', filter=Q(severity='info')),
-
+        total=Count('id'),
+        **engines_stats_filter_agg,
+        **engines_scopes_filter_agg
     )
 
+    # Sorry again...
+    for scope in scope_names:
+        asset_scopes[scope].update({
+            'total': findings_stats['scope_'+scope+'_total'],
+            'info': findings_stats['scope_'+scope+'_info'],
+            'low': findings_stats['scope_'+scope+'_low'],
+            'medium': findings_stats['scope_'+scope+'_medium'],
+            'high': findings_stats['scope_'+scope+'_high'],
+            'critical': findings_stats['scope_'+scope+'_critical'],
+        })
+
     # Scans
-    scan_defs = ScanDefinition.objects.filter(Q(assetgroups_list__in=[asset_group])).annotate(engine_type_name=F('engine_type__name'))
-    scans = []
-    for scan_def in scan_defs:
-        scans = scans + list(scan_def.scan_set.all())
+    scan_defs = ScanDefinition.objects.filter(
+        Q(assetgroups_list__in=[asset_group])
+    ).annotate(
+        engine_type_name=F('engine_type__name'),
+        nb_scans=Count('scan')
+    )
+
+    scan_defs_stats = scan_defs.aggregate(
+        nb_periodic=Count('id', filter=Q(scan_type='periodic')),
+        nb_ondemand=Count('id', filter=Q(scan_type='single')),
+        nb_running=Count('id', filter=Q(scan_type='started')),
+    )
+
+    scans = Scan.objects.filter(scan_definition__in=scan_defs)
 
     scans_stats = {
         'performed': len(scans),
         'defined': len(scan_defs),
-        'periodic': scan_defs.filter(scan_type='periodic').count(),
-        'ondemand': scan_defs.filter(scan_type='single').count(),
-        'running': scan_defs.filter(status='started').count()
+        'periodic': scan_defs_stats['nb_periodic'],
+        'ondemand': scan_defs_stats['nb_ondemand'],
+        'running': scan_defs_stats['nb_running']
     }
 
     # calculate automatically risk grade
@@ -716,7 +739,7 @@ def detail_asset_group_view(request, assetgroup_id):
     # Pagination assets
     nb_rows = int(request.GET.get('n_assets', 25))
     assets_paginator = Paginator(assets_list, nb_rows)
-    page = request.GET.get('p_assets')
+    page = request.GET.get('p_assets', 1)
     try:
         assets = assets_paginator.page(page)
     except PageNotAnInteger:
@@ -727,7 +750,7 @@ def detail_asset_group_view(request, assetgroup_id):
     # Pagination findings
     nb_rows = int(request.GET.get('n_findings', 50))
     findings_paginator = Paginator(findings, nb_rows)
-    page = request.GET.get('p_findings')
+    page = request.GET.get('p_findings', 1)
     try:
         ag_findings = findings_paginator.page(page)
     except PageNotAnInteger:

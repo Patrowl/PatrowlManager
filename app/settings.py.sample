@@ -335,6 +335,13 @@ ENGINES_MANAGE_ENABLED = os.environ.get('PATROWL_ENGINES_MANAGE_ENABLED', 'true'
 ALERTS_AUTO_NEW_ENABLED = os.environ.get('ALERTS_AUTO_NEW_ENABLED', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
 ALERTS_AUTO_MISSING_ENABLED = os.environ.get('ALERTS_AUTO_MISSING_ENABLED', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
 
+ASSET_DETECTION_RULES_FILNAME = os.environ.get('ASSET_DETECTION_RULES_FILNAME', "app/assets_detection_rules.py")
+ASSET_DETECTION_RULES = None
+if os.path.isfile(ASSET_DETECTION_RULES_FILNAME):
+    from app.assets_detection_rules import *
+
+ASSET_AUTOTAG_CPE = os.environ.get('ASSET_AUTOTAG_CPE', 'true').lower() in ['true', '1', 'yes', 'y', 'on']
+
 ## Pro edition - Load extra settings
 PRO_EDITION = os.environ.get('PRO_EDITION', "").lower() in ['true', '1', 'yes', 'y', 'on']
 if PRO_EDITION is True and os.path.isdir('pro'):

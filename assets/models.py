@@ -237,12 +237,12 @@ class Asset(models.Model):
         return json.loads(json.dumps(data, default=json_serial))
 
     def set_criticity(self, criticity):
-        """Update the 'criticity' field"""
+        """Update the 'criticity' field."""
         self.criticity = criticity
         return super(Asset, self).save()
 
     def set_status(self, status):
-        """Update the 'status' field"""
+        """Update the 'status' field."""
         self.status = status
         return super(Asset, self).save()
 
