@@ -68,7 +68,7 @@ class AssetGroupForm(forms.ModelForm):
         super(AssetGroupForm, self).__init__(*args, **kwargs)
 
         # @Todo: RBAC_CHECK
-        assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all().order_by('value')]
+        assets = [Asset.objects.for_user(self.user).all().only('id', 'value').order_by('value').values()]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
         # Check allowed teams (Available in Pro Edition)
@@ -96,7 +96,8 @@ class AssetOwnerForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super(AssetOwnerForm, self).__init__(*args, **kwargs)
 
-        assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all()]
+        # assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all()]
+        assets = [Asset.objects.for_user(self.user).all().only('id', 'value').order_by('value').values()]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
 

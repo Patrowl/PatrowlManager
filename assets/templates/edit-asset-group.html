@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load patrowl_tags %}
 {% block content %}
 <style>
 
@@ -42,11 +43,12 @@ label.radio {
       <label class="col-sm-2 control-label" for="id_criticity">Criticality</label>
       <div class="col-sm-5">
         <select name="criticity" class="form-control form-control-sm" id="id_criticity">
-          <option value="low">low</option>
-          <option value="medium">medium</option>
-          <option value="high">high</option>
+          <option value="low" {% if asset_group.criticity == "low" %}selected{%endif%}>low</option>
+          <option value="medium" {% if asset_group.criticity == "medium" %}selected{%endif%}>medium</option>
+          <option value="high" {% if asset_group.criticity == "high" %}selected{%endif%}>high</option>
         </select>
       </div>
+
     </div>
 
     <!-- Teams -->
@@ -55,7 +57,11 @@ label.radio {
       <div class="col-sm-5">
         <select class="form-control form-control-sm" id="id_teams" name="teams" size="4" multiple>
           {% for team in teams_list %}
-          <option value="{{team.id}}">{{team.name}}</option>
+            {% if team.name in asset_group.teams.all|attr:"name" %}
+            <option value="{{team.id}}" selected>{{team.name}}</option>
+            {% else %}
+            <option value="{{team.id}}">{{team.name}}</option>
+            {% endif %}
           {% endfor %}
         </select>
       </div>

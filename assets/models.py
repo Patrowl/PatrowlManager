@@ -198,22 +198,23 @@ class Asset(models.Model):
     objects = AssetManager()
 
     # Attributes
-    value       = models.TextField(max_length=2048, unique=True, null=False)
-    name        = models.TextField(max_length=2048)
-    type        = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
-    criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
-    exposure    = models.CharField(choices=ASSET_EXPOSURES, default='unknown', max_length=16)  # unknown, external, internal, restricted
-    risk_level  = JSONField(default=get_default_risk_level)
-    owner       = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
+    value = models.TextField(max_length=2048, unique=True, null=False)
+    name = models.TextField(max_length=2048)
+    type = models.CharField(choices=ASSET_TYPES, default='ip', max_length=15)  # ipv4, ipv6, domain, fqdn, url
+    criticity = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)  # low, medium, high
+    exposure = models.CharField(choices=ASSET_EXPOSURES, default='unknown', max_length=16)  # unknown, external, internal, restricted
+    risk_level = JSONField(default=get_default_risk_level)
+    owner = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
-    status      = models.CharField(max_length=30, null=True, blank=True, default="new")
-    categories  = models.ManyToManyField(AssetCategory)
-    created_at  = models.DateTimeField(default=timezone.now)
-    updated_at  = models.DateTimeField(default=timezone.now)
-    teams       = models.ManyToManyField('users.team', blank=True)
+    status = models.CharField(max_length=30, null=True, blank=True, default="new")
+    categories = models.ManyToManyField(AssetCategory)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+    teams = models.ManyToManyField('users.team', blank=True)
 
     class Meta:
         """Metadata: DB name."""
+
         db_table = 'assets'
 
     @classmethod
@@ -413,17 +414,17 @@ class AssetGroup(models.Model):
     objects = AssetGroupManager()
 
     # Attributes
-    assets      = models.ManyToManyField(Asset)
-    name        = models.CharField(max_length=256, unique=True)
-    criticity   = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)
-    risk_level  = JSONField(default=get_default_risk_level)
-    owner       = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    assets = models.ManyToManyField(Asset)
+    name = models.CharField(max_length=256, unique=True)
+    criticity = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)
+    risk_level = JSONField(default=get_default_risk_level)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=256, null=True, blank=True)
-    status      = models.CharField(max_length=30, null=True, blank=True)
-    categories  = models.ManyToManyField(AssetCategory, blank=True)
-    created_at  = models.DateTimeField(default=timezone.now)
-    updated_at  = models.DateTimeField(default=timezone.now)
-    teams       = models.ManyToManyField('users.team', blank=True)
+    status = models.CharField(max_length=30, null=True, blank=True)
+    categories = models.ManyToManyField(AssetCategory, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+    teams = models.ManyToManyField('users.team', blank=True)
 
     class Meta:
         db_table = 'asset_groups'
@@ -563,16 +564,16 @@ def assetgroup_delete_log(sender, **kwargs):
 
 
 class AssetOwnerContact(models.Model):
-    name       = models.CharField(max_length=256)
+    name = models.CharField(max_length=256)
     department = models.CharField(max_length=256, null=True, blank=True)
-    title      = models.CharField(max_length=256, null=True, blank=True)
-    email      = models.EmailField(null=True, blank=True)
-    phone      = models.CharField(max_length=20, null=True, blank=True)
-    address    = models.CharField(max_length=256, null=True, blank=True)
-    url        = models.URLField(null=True, blank=True)
-    comments   = models.CharField(max_length=256, null=True, blank=True)
+    title = models.CharField(max_length=256, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    address = models.CharField(max_length=256, null=True, blank=True)
+    url = models.URLField(null=True, blank=True)
+    comments = models.CharField(max_length=256, null=True, blank=True)
     # owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    owner      = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -617,14 +618,14 @@ def assetownercontact_delete_log(sender, **kwargs):
 
 
 class AssetOwnerDocument(models.Model):
-    file       = models.FileField(null=True, blank=True)
-    doctitle   = models.CharField(max_length=256, null=True, blank=True)
-    filename   = models.CharField(max_length=256, null=True, blank=True)
-    filepath   = models.CharField(max_length=256, null=True, blank=True)
-    tlp_color  = models.CharField(choices=TLP_COLORS, default='red', max_length=10)
-    comments   = models.CharField(max_length=256, null=True, blank=True)
+    file = models.FileField(null=True, blank=True)
+    doctitle = models.CharField(max_length=256, null=True, blank=True)
+    filename = models.CharField(max_length=256, null=True, blank=True)
+    filepath = models.CharField(max_length=256, null=True, blank=True)
+    tlp_color = models.CharField(choices=TLP_COLORS, default='red', max_length=10)
+    comments = models.CharField(max_length=256, null=True, blank=True)
     # owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    owner      = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -665,14 +666,14 @@ def assetownerdoc_delete_log(sender, **kwargs):
 
 
 class AssetOwner(models.Model):
-    assets     = models.ManyToManyField(Asset)
-    contacts   = models.ManyToManyField(AssetOwnerContact)
-    documents  = models.ManyToManyField(AssetOwnerDocument)
+    assets = models.ManyToManyField(Asset)
+    contacts = models.ManyToManyField(AssetOwnerContact)
+    documents = models.ManyToManyField(AssetOwnerDocument)
     # owner      = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    owner      = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
-    name       = models.CharField(max_length=256)
-    url        = models.URLField(null=True, blank=True)
-    comments   = models.CharField(max_length=256, null=True, blank=True)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    name = models.CharField(max_length=256)
+    url = models.URLField(null=True, blank=True)
+    comments = models.CharField(max_length=256, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 

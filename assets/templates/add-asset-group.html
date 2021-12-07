@@ -58,9 +58,9 @@ label.radio {
 
     <!-- Teams -->
     <div class="form-group">
-      <label class="col-sm-2 control-label" for="id_scan_team_list">Teams</label>
+      <label class="col-sm-2 control-label" for="id_teams">Teams</label>
       <div class="col-sm-5">
-        <select class="form-control form-control-sm" id="id_scan_team_list" name="scan_team_list" disabled>
+        <select class="form-control form-control-sm" id="id_teams" name="teams" size="4" multiple>
           {% for team in teams_list %}
           <option value="{{team.id}}">{{team.name}}</option>
           {% endfor %}

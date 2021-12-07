@@ -322,7 +322,7 @@ def add_asset_group_view(request):
 @pro_group_required('AssetsManager')
 def edit_asset_group_view(request, assetgroup_id):
     """Edit an asset group."""
-    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related('teams', 'assets'), id=assetgroup_id)
 
     form = AssetGroupForm(user=request.user)
     if request.method == 'GET':
@@ -665,16 +665,16 @@ def detail_asset_group_view(request, assetgroup_id):
         })
 
     engines_scopes_filter_agg = {}
-    scope_names = EnginePolicyScope.objects.values_list('name', flat=True)
-    for scope in scope_names:
-        engines_scopes_filter_agg.update({
-            f"scope_{scope}_total": Count('id', filter=Q(scopes__name=scope)),
-            f"scope_{scope}_info": Count('id', filter=Q(scopes__name=scope, severity='info')),
-            f"scope_{scope}_low": Count('id', filter=Q(scopes__name=scope, severity='low')),
-            f"scope_{scope}_medium": Count('id', filter=Q(scopes__name=scope, severity='medium')),
-            f"scope_{scope}_high": Count('id', filter=Q(scopes__name=scope, severity='high')),
-            f"scope_{scope}_critical": Count('id', filter=Q(scopes__name=scope, severity='critical')),
-        })
+    # scope_names = EnginePolicyScope.objects.values_list('name', flat=True)
+    # for scope in scope_names:
+    #     engines_scopes_filter_agg.update({
+    #         f"scope_{scope}_total": Count('id', filter=Q(scopes__name=scope)),
+    #         f"scope_{scope}_info": Count('id', filter=Q(scopes__name=scope, severity='info')),
+    #         f"scope_{scope}_low": Count('id', filter=Q(scopes__name=scope, severity='low')),
+    #         f"scope_{scope}_medium": Count('id', filter=Q(scopes__name=scope, severity='medium')),
+    #         f"scope_{scope}_high": Count('id', filter=Q(scopes__name=scope, severity='high')),
+    #         f"scope_{scope}_critical": Count('id', filter=Q(scopes__name=scope, severity='critical')),
+    #     })
 
     # Sorry...
     findings_stats = findings.aggregate(
@@ -691,15 +691,15 @@ def detail_asset_group_view(request, assetgroup_id):
     )
 
     # Sorry again...
-    for scope in scope_names:
-        asset_scopes[scope].update({
-            'total': findings_stats['scope_'+scope+'_total'],
-            'info': findings_stats['scope_'+scope+'_info'],
-            'low': findings_stats['scope_'+scope+'_low'],
-            'medium': findings_stats['scope_'+scope+'_medium'],
-            'high': findings_stats['scope_'+scope+'_high'],
-            'critical': findings_stats['scope_'+scope+'_critical'],
-        })
+    # for scope in scope_names:
+    #     asset_scopes[scope].update({
+    #         'total': findings_stats['scope_'+scope+'_total'],
+    #         'info': findings_stats['scope_'+scope+'_info'],
+    #         'low': findings_stats['scope_'+scope+'_low'],
+    #         'medium': findings_stats['scope_'+scope+'_medium'],
+    #         'high': findings_stats['scope_'+scope+'_high'],
+    #         'critical': findings_stats['scope_'+scope+'_critical'],
+    #     })
 
     # Scans
     scan_defs = ScanDefinition.objects.filter(
