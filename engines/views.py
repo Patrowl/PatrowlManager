@@ -122,7 +122,8 @@ def import_policies_view(request):
             if not os.path.exists(policies_path):
                 os.makedirs(policies_path)
 
-            policies_file = policies_path + request.FILES['file'].name
+            # policies_file = policies_path + request.FILES['file'].name
+            policies_file = os.path.normpath(os.path.join(policies_path, request.FILES['file'].name))
             with open(policies_file, 'wb') as destfile:
                 for chunk in request.FILES['file'].chunks():
                     destfile.write(chunk)
