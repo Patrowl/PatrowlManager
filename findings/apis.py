@@ -11,7 +11,6 @@ from rules.models import Rule
 from rest_framework.decorators import api_view
 from common.utils.encoding import json_serial
 from common.utils import pro_group_required
-from django.db.models import Q
 import json
 import csv
 
@@ -118,6 +117,19 @@ def export_findings_csv_api(request):
             pass
 
     return response
+
+
+@api_view(['GET'])
+@pro_group_required('FindingsManager')
+def delete_filtered_findings_api(request):
+    """Delete all filtered findings."""
+    for finding in _search_findings(request):
+        try:
+            finding.delete()
+        except Exception:
+            pass
+
+    return JsonResponse({'status': 'success'})
 
 
 @api_view(['GET'])

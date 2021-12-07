@@ -9,10 +9,10 @@ from django.conf import settings
 from app.settings import LOGGING_LEVEL
 
 SEVERITY_LEVELS = (
-    ('INFO',    'INFO'),
+    ('INFO', 'INFO'),
     ('WARNING', 'WARNING'),
-    ('ERROR',   'ERROR'),
-    ('DEBUG',   'DEBUG')
+    ('ERROR', 'ERROR'),
+    ('DEBUG', 'DEBUG')
 )
 
 EVENT_TYPES = (
@@ -143,14 +143,14 @@ class Alert(models.Model):
 
 
 AUDIT_SCOPES = (
-    ('asset',   'Asset'),
-    ('scan',    'Scan'),
-    ('engine',  'Engine'),
+    ('asset', 'Asset'),
+    ('scan', 'Scan'),
+    ('engine', 'Engine'),
     ('finding', 'Finding'),
-    ('user',    'User'),
-    ('rule',    'Rule'),
+    ('user', 'User'),
+    ('rule', 'Rule'),
     ('setting', 'Setting'),
-    ('other',   'Other')
+    ('other', 'Other')
 )
 
 

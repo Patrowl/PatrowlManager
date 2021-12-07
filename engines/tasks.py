@@ -8,21 +8,14 @@ from django.shortcuts import get_object_or_404
 from celery import shared_task
 from celery.task.control import revoke
 from .models import EngineInstance, Engine, EnginePolicy
-from .utils import _get_engine_status, _get_scan_status, _run_scan, _import_findings
-from findings.models import Finding, RawFinding
-from assets.models import Asset, AssetGroup
+from .utils import _get_engine_status, _run_scan, _import_findings
 from scans.models import Scan, ScanDefinition
 from events.models import Event
-from events.utils import new_finding_alert, missing_finding_alert
 from common.utils import net
 import requests
 import json
-import time
 import datetime
-import random
 import uuid
-import os
-from copy import deepcopy
 
 NB_MAX_RETRIES = 5
 SLEEP_RETRY = 5

@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from celery import shared_task, chord, group
+from celery import shared_task, group
 from .models import EngineInstance
 from assets.models import Asset, AssetGroup, AssetCategory
 from events.models import Event
-from events.utils import new_finding_alert, missing_finding_alert, reopened_finding_alert
-from findings.models import Finding, RawFinding, FindingOverride
+# from events.utils import new_finding_alert, missing_finding_alert, reopened_finding_alert
+from events.utils import generate_finding_alert
+from findings.models import Finding, RawFinding
 from scans.models import ScanJob, Scan
 from common.utils import chunked_queryset, net, cpe
 import json
@@ -19,10 +20,10 @@ from copy import deepcopy
 # import logging
 # logger = logging.getLogger(__name__)
 
-ENGINE_HTTP_TIMEOUT=getattr(settings, 'ENGINE_HTTP_TIMEOUT', 600)
-SCAN_JOB_DEFAULT_TIMEOUT=getattr(settings, 'SCAN_JOB_DEFAULT_TIMEOUT', 7200)
-SCAN_JOB_DEFAULT_SPLIT_ASSETS=getattr(settings, 'SCAN_JOB_DEFAULT_SPLIT_ASSETS', 100)
-NB_MAX_RETRIES=5
+ENGINE_HTTP_TIMEOUT = getattr(settings, 'ENGINE_HTTP_TIMEOUT', 600)
+SCAN_JOB_DEFAULT_TIMEOUT = getattr(settings, 'SCAN_JOB_DEFAULT_TIMEOUT', 7200)
+SCAN_JOB_DEFAULT_SPLIT_ASSETS = getattr(settings, 'SCAN_JOB_DEFAULT_SPLIT_ASSETS', 100)
+NB_MAX_RETRIES = 5
 
 
 def _get_engine_status(engine):
@@ -47,7 +48,8 @@ def _get_scan_status(engine, scan_id):
     scan_status = "undefined"
 
     try:
-        resp = requests.get(url=str(engine.api_url)+"status/"+str(scan_id), verify=False, proxies=settings.PROXIES, timeout=ENGINE_HTTP_TIMEOUT)
+        status_url = f"{engine.api_url}status/{scan_id}"
+        resp = requests.get(url=status_url, verify=False, proxies=settings.PROXIES, timeout=ENGINE_HTTP_TIMEOUT)
         if resp.status_code == 200:
             scan_status = json.loads(resp.text)['status'].strip().upper()
         else:
@@ -268,9 +270,11 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
     }
     try:
         resp = requests.post(
-            url=str(engine_inst.api_url)+"startscan",
+            url=f"{engine_inst.api_url}startscan",
             data=json.dumps(scan_params),
-            headers={'Content-type': 'application/json', 'Accept': 'application/json'},
+            headers={
+                'Content-type': 'application/json',
+                'Accept': 'application/json'},
             proxies=settings.PROXIES,
             timeout=ENGINE_HTTP_TIMEOUT
         )
@@ -527,7 +531,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                 if f.status in ['mitigated', 'patched', 'closed', 'false-positive', 'duplicate']:
                     f.status = "reopened"
                     # Send an alert
-                    reopened_finding_alert(f.id, scan.id, f.severity)
+                    # reopened_finding_alert(f.id, scan.id, f.severity)
+                    generate_finding_alert(f.id, scan.id, f.severity, 'reopened_finding')
 
                 f.save()
                 new_raw_finding.status = f.status
@@ -582,8 +587,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
                 # Raise an alert
                 if settings.ALERTS_AUTO_NEW_ENABLED is True and tmp_status == "new":
-                    # new_finding_alert(new_raw_finding.id, new_raw_finding.severity)
-                    new_finding_alert(new_finding.id, scan.id, new_finding.severity)
+                    # new_finding_alert(new_finding.id, scan.id, new_finding.severity)
+                    generate_finding_alert(new_finding.id, scan.id, new_finding.severity, "new_finding")
 
                 # Evaluate alerting rules (if any)
                 try:
@@ -632,7 +637,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
 
             # Create an alert
             if settings.ALERTS_AUTO_MISSING_ENABLED is True:
-                missing_finding_alert(initial_finding.id, scan.id, initial_finding.severity)
+                # missing_finding_alert(initial_finding.id, scan.id, initial_finding.severity)
+                generate_finding_alert(initial_finding.id, scan.id, initial_finding.severity, 'missing_finding')
 
     scan.update_sumary(missing=nb_missing)
     scan.save()
@@ -728,10 +734,10 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
         if asset_group is None:   # Create an asset group dynamically
             Event.objects.create(message="{} Create a group named : {}".format(evt_prefix, parent), type="DEBUG", severity="INFO", scan=scan)
             assetgroup_args = {
-               'name': "{} assets".format(parent),
-               'criticity': criticity,
-               'description': "AssetGroup dynamically created",
-               'owner': owner
+                'name': "{} assets".format(parent),
+                'criticity': criticity,
+                'description': "AssetGroup dynamically created",
+                'owner': owner
             }
             asset_group = AssetGroup(**assetgroup_args)
             asset_group.save()
@@ -751,10 +757,10 @@ def _create_asset_on_import(asset_value, scan, asset_type='unknown', parent=None
         asset_group = AssetGroup.objects.filter(name=asset_groupname).first()
         if asset_group is None:
             assetgroup_args = {
-               'name': asset_groupname,
-               'criticity': criticity,
-               'description': "AssetGroup dynamically created by policy",
-               'owner': owner
+                'name': asset_groupname,
+                'criticity': criticity,
+                'description': "AssetGroup dynamically created by policy",
+                'owner': owner
             }
             asset_group = AssetGroup(**assetgroup_args)
             asset_group.save()

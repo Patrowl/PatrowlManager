@@ -115,19 +115,20 @@ function toggle(source, element) {
   </table>
 
   <a href="#" class="btn-compare-selected">// Compare findings</a><br/>
-  <a class="text-default btn-export-selected" href="#">% Export selected findings (CSV)</a><br/>
-  <a class="text-default btn-export-filtered" href="#">% Export filtered findings (CSV)</a><br/>
+  <a class="text-default btn-export-selected" href="#">% Export selected findings (CSV)</a> or <a class="text-default btn-export-filtered" href="#">Export all filtered findings (CSV)</a><br/>
 
   {% if PRO_EDITION %}
     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
     <a href="/findings/add">+ Add a new finding manually</a><br/>
     <a class="text-warning btn-ack" href="#">* Ack selected findings</a><br/>
-    <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a>
+    <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a> or
+       <a class="text-danger" data-toggle="modal" data-target="#modal-delete-filtered-findings">Delete all filtered findings</a>
     {% endif %}
   {% else %}
   <a href="/findings/add">+ Add a new finding manually</a><br/>
   <a class="text-warning btn-ack" href="#">* Ack selected findings</a><br/>
-  <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a>
+  <a class="text-danger btn-delete-selected" href="#">- Delete selected findings (no confirm)</a> or
+  <a class="text-danger" href="#" data-toggle="modal" data-target="#modal-delete-filtered-findings">Delete all filtered findings</a>
   {% endif %}
 	<br/><br/>
 
@@ -183,7 +184,7 @@ function toggle(source, element) {
   {% endif %}
 </div>
 
-<!-- Delete scan definition modal -->
+<!-- Delete finding modal -->
 <div class="modal fade" id="modal-delete-finding" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -203,6 +204,29 @@ function toggle(source, element) {
         </div>
         Confirm Deleting?
         <button type="button" class="btn btn-xs btn-warning btn-delete-finding" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete filtered findings modal -->
+<div class="modal fade" id="modal-delete-filtered-findings" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete all filtered finding(s) ?</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-warning btn-delete-filtered" data-dismiss="modal">Yes</button>
         <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
       </div>
     </div>
@@ -760,7 +784,7 @@ function toggle(source, element) {
       }
     });
 
-    // Export filtered findings
+    // Export all filtered findings
     $("a.btn-export-filtered").on('click', function(eventObject) {
       var request = $.ajax({
         url: "{% url 'export_filtered_findings_csv_api' %}"+window.location.search,
@@ -773,6 +797,18 @@ function toggle(source, element) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+			});
+    });
+
+    // Delete all filtered findings
+    $("a.btn-delete-filtered").on('click', function(eventObject) {
+      var request = $.ajax({
+        url: "{% url 'delete_filtered_findings_api' %}"+window.location.search,
+        method: "GET",
+      }).done(function(response){
+        if (response.status == 'success'){
+          location.reload();
+        }
 			});
     });
 
@@ -838,13 +874,13 @@ function toggle(source, element) {
 		$("#filter_asset_tags").autocomplete({
 			source: function(req, response) {
 				 $.ajax({
-					url: "/assets/get_tags",
-					dataType: "json",
-					success: function( data ) {
-						var re = $.ui.autocomplete.escapeRegex(req.term);
-						var matcher = new RegExp(re, "i" ); //Start with
-						response($.grep(data, function(item){return matcher.test(item.value || item.label || item);}) );
-						}
+  					url: "/assets/get_tags",
+  					dataType: "json",
+  					success: function( data ) {
+  						var re = $.ui.autocomplete.escapeRegex(req.term);
+  						var matcher = new RegExp(re, "i" ); //Start with
+  						response($.grep(data, function(item){return matcher.test(item.value || item.label || item);}) );
+  					}
 					});
 			 },
 			minLength: 2,

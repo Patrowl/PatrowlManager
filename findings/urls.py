@@ -32,6 +32,8 @@ urlpatterns = [
     url(r'^api/v1/add$', apis.add_finding_api, name='add_finding_api'),
     # ex: /findings/api/v1/delete (POST params)
     url(r'^api/v1/delete$', apis.delete_findings_api, name='delete_findings_api'),
+    # ex: /findings/api/v1/delete (POST params)
+    url(r'^api/v1/filtereddelete$', apis.delete_filtered_findings_api, name='delete_filtered_findings_api'),
     # ex: /findings/api/v1/rdelete (POST params)
     url(r'^api/v1/rdelete$', apis.delete_rawfindings_api, name='delete_rawfindings_api'),
     # ex: /findings/api/v1/status (POST params)

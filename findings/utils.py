@@ -179,7 +179,7 @@ def _search_findings(request):
         else:
             # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes).order_by(
             findings = Finding.objects.severity_ordering().for_team(request.user, teamid_selected).filter(**filters).exclude(**excludes).order_by(
-                     '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
+                '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
     else:
         if str(filter_limit).isdigit():
             # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes)[:int(filter_limit)]
@@ -187,8 +187,9 @@ def _search_findings(request):
         else:
             # findings = Finding.objects.severity_ordering().filter(**filters).exclude(**excludes).order_by(
             findings = Finding.objects.severity_ordering().for_user(request.user).filter(**filters).exclude(**excludes).order_by(
-                     '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
-    return findings.only("id", "asset_name", "title", "severity", "status", "engine_type", "updated_at")
+                '-severity_order', 'asset_name', 'status', 'type', 'engine_type')
+    # return findings.only("id", "asset_name", "title", "severity", "status", "engine_type", "updated_at")
+    return findings
 
 
 def _add_finding(request):
