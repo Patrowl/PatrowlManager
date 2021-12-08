@@ -42,12 +42,12 @@ jobs:
       - name: Get branch name (merge)
         if: github.event_name != 'pull_request'
         shell: bash
-        run: echo "BRANCH=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+        run: echo "BRANCH=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
 
       - name: Get branch name (pull request)
         if: github.event_name == 'pull_request'
         shell: bash
-        run: echo "BRANCH=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+        run: echo "BRANCH=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_ENV
         
       - name: github-sync and wait for gitlab pipeline
         shell: bash
