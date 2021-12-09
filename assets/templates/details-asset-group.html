@@ -1102,7 +1102,7 @@ div.risk-trends {
       finding_id = e.relatedTarget.getAttribute('finding-id');
       finding_title = e.relatedTarget.getAttribute('finding-title');
       $("div#delete-finding").attr('finding-id', finding_id);
-      $("div#delete-finding").html("Finding: <b>"+finding_title+"</b><br/><br/>");
+      $("div#delete-finding").html("Finding: <b>"+encodeURIComponent(finding_title)+"</b><br/><br/>");
     });
     $("button.btn-delete-finding").on('click', function (e) {
       finding_id = $("div#delete-finding").attr('finding-id');

@@ -327,7 +327,7 @@
     id = e.relatedTarget.getAttribute('setting-id');
     key = e.relatedTarget.getAttribute('setting-key');
     $("div#delete-setting").attr('setting-id', id);
-    $("div#delete-setting").html("Setting: <b>"+key+"</b><br/><br/>");
+    $("div#delete-setting").html("Setting: <b>"+encodeURIComponent(key)+"</b><br/><br/>");
   });
   $("button.btn-delete-setting").on('click', function (e) {
     id = $("div#delete-setting").attr('setting-id');
@@ -365,7 +365,7 @@
     setting_id=e.delegateTarget.getAttribute("setting-id");
     setting_value=$('div#setting_value_'+setting_id+' i').text();
     $('div#setting_value_'+setting_id).empty();
-    $('div#setting_value_'+setting_id).append("<input type='text' value='"+setting_value+"' name='setting_value' class='form-control form-control-sm'/>");
+    $('div#setting_value_'+setting_id).append("<input type='text' value='"+encodeURIComponent(setting_value)+"' name='setting_value' class='form-control form-control-sm'/>");
 
     //On Enter key press, update the field
     $('input[name="setting_value"]').keyup(function(e){
@@ -388,7 +388,7 @@
          success: function(){
            location.reload();
            $('div#setting_value_'+setting_id).empty();
-           $('div#setting_value_'+setting_id).append("<i>"+e.target.value+"</i>");
+           $('div#setting_value_'+setting_id).append("<i>"+encodeURIComponent(e.target.value)+"</i>");
          }
        });
     });
@@ -396,7 +396,7 @@
        setting_id = e.target.parentElement.getAttribute("setting-id");
        setting_value = e.target.getAttribute("value");
        $('div#setting_value_'+setting_id).empty();
-       $('div#setting_value_'+setting_id).append("<i>"+setting_value+"</i>");
+       $('div#setting_value_'+setting_id).append("<i>"+encodeURIComponent(setting_value)+"</i>");
     });
   };
 

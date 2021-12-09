@@ -467,7 +467,7 @@ input:checked + label {
         for (i = 0; i < data.length; ++i){
           scan_row_html = "<tr class='dblclickable-row' data-href='/scans/details/"+data[i]["scan_id"]+"'>\
             <td><input type='checkbox' class='radio' name='scan' value='"+data[i]["scan_id"]+"'/></td>\
-            <td><a href='/scans/details/"+data[i]["scan_id"]+"'>["+data[i]["engine_type"]+"] "+data[i]["title"]+"</a></td>"
+            <td><a href='/scans/details/"+data[i]["scan_id"]+"'>["+encodeURIComponent(data[i]["engine_type"])+"] "+encodeURIComponent(data[i]["title"])+"</a></td>"
             //<td><a href='/scans/defs/details/"+data[i]["scan_definition_id"]+"'>["+data[i]["engine_type"]+"] "+data[i]["title"]+"</a></td>"
 
           if (data[i]["status"] == "started"){
@@ -509,10 +509,10 @@ input:checked + label {
             <button type='button' class='btn btn-default btn-xs' title='Details' onclick='location.href=\"/scans/details/"+data[i]["scan_id"]+"\"'>details</button>\
               <button type='button' class='btn btn-default btn-xs' title='Export scan findings' onclick='location.href=\"/scans/api/v1/report/html/"+data[i]["scan_id"]+"\"'>\
                 <span class='glyphicon glyphicon-share'></span></button>\
-              <button type='button' class='btn btn-warning btn-xs btn-run-now' scan-id='"+data[i]["scan_definition_id"]+"' scan-title='"+data[i]["title"]+"' data-toggle='modal' data-target='#modal-run-scan'>\
+              <button type='button' class='btn btn-warning btn-xs btn-run-now' scan-id='"+data[i]["scan_definition_id"]+"' scan-title='"+encodeURIComponent(data[i]["title"])+"' data-toggle='modal' data-target='#modal-run-scan'>\
                 Run </button>\
               <button type='button' class='btn btn-danger btn-xs' data-toggle='modal' data-target='#modal-delete-scan'\
-                scan-id='"+data[i]["scan_id"]+"' scan-title='"+data[i]["title"]+" ["+data[i]["engine_type"]+"]'>\
+                scan-id='"+data[i]["scan_id"]+"' scan-title='"+encodeURIComponent(data[i]["title"])+" ["+encodeURIComponent(data[i]["engine_type"])+"]'>\
                 <span class='glyphicon glyphicon-remove'></button></td>\
           </tr>";
           $("div.container.all-scans table tbody").append(scan_row_html);
@@ -592,7 +592,7 @@ input:checked + label {
     // Run direct scan now Event
     $("#modal-run-scan").on('show.bs.modal', function (e) {
       scan_title = e.relatedTarget.getAttribute('scan-title');
-      $("div#run-scan").html("Scan started: <b>"+scan_title+"</b><br/><br/>");
+      $("div#run-scan").html("Scan started: <b>"+encodeURIComponent(scan_title)+"</b><br/><br/>");
 
       //Hide the modal 3 seconds later
       var myModal = $(this);
@@ -613,7 +613,7 @@ input:checked + label {
       id = e.relatedTarget.getAttribute('scan-id');
       scan_title = e.relatedTarget.getAttribute('scan-title');
       $("div#delete-scan").attr('scan-id', id);
-      $("div#delete-scan").html("Title: <b>"+scan_title+"</b><br/><br/>");
+      $("div#delete-scan").html("Title: <b>"+encodeURIComponent(scan_title)+"</b><br/><br/>");
     });
     $("button.btn-delete-scan").on('click', function (e) {
       id = $("div#delete-scan").attr('scan-id');

@@ -76,6 +76,13 @@
         window.history.back();
     }
 
+    function encodeURIComponent(str){
+      return String(str).replace(/[^\w. ]/gi, function(c){
+         return '\\u'+('0000'+c.charCodeAt(0).toString(16)).slice(-4);
+      });
+
+    }
+
     $(function(){
       $(".clickable-row").click(function() {
         var sel = getSelection().toString();
@@ -121,7 +128,7 @@
           engine = engines_json[engine_id];
           enabled = ""
           if (engine["enabled"] == true) {enabled = "Enabled";} else {enabled="Disabled"}
-          title = engine["name"] + " ("+enabled+"/"+engine["status"]+")";
+          title = encodeURIComponent(engine["name"]) + " ("+enabled+"/"+engine["status"]+")";
           status_color = "default";
           if (engine["enabled"] && engine["status"] == "READY" || engine["status"] == "WORKING") {
             status_color = "success";
@@ -484,7 +491,7 @@
               {% if PRO_EDITION %}
                 <!-- <li><a href="/users/pro/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li> -->
                 {% if request.user.is_superuser or request.user|is_team_admin == True %}
-                <li><a href="/users/pro/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li>
+                <li><a href="/users/list"><span class="glyphicon glyphicon-th-list"></span> Users</a></li>
                 {% else %}
                 <li><a href="#"><span class="glyphicon glyphicon-th-list"></span> Users (Admin only)</a></li>
                 {% endif %}

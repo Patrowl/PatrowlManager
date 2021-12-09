@@ -626,7 +626,7 @@ function toggle(source, element) {
       id = e.relatedTarget.getAttribute('asset-id');
       asset_value = e.relatedTarget.getAttribute('asset-value');
       $("div#delete-asset").attr('asset-id', id);
-      $("div#delete-asset").html("Asset: <b>"+asset_value+"</b><br/><br/>");
+      $("div#delete-asset").html("Asset: <b>"+encodeURIComponent(asset_value)+"</b><br/><br/>");
     });
     $("button.btn-delete-asset").on('click', function (e) {
       id = $("div#delete-asset").attr('asset-id');
@@ -641,12 +641,13 @@ function toggle(source, element) {
       });
     });
 
+
     // Delete asset group modal
     $("#modal-delete-asset-group").on('show.bs.modal', function (e) {
       id = e.relatedTarget.getAttribute('asset-group-id');
       asset_group_value = e.relatedTarget.getAttribute('asset-group-value');
       $("div#delete-asset-group").attr('asset-group-id', id);
-      $("div#delete-asset-group").html("Asset Group Name: <b>"+asset_group_value+"</b><br/><br/>");
+      $("div#delete-asset-group").html("Asset Group Name: <b>"+encodeURIComponent(asset_group_value)+"</b><br/><br/>");
     });
     $("button.btn-delete-asset-group").on('click', function (e) {
       id = $("div#delete-asset-group").attr('asset-group-id');

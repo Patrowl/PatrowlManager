@@ -2,6 +2,7 @@ from .models import Alert
 from findings.models import Finding
 from assets.models import Asset
 from rules.models import Rule
+from common.utils import cpe
 
 
 def _evaluate_alert_rules(finding, highest_severity="info"):
@@ -79,25 +80,57 @@ def generate_finding_alert(finding_id, scan_id, severity="info", action="new_fin
         asset_id = asset.id
         asset_type = asset.type
 
+    # Prepare alert metadata
+    metadata = {
+        "finding_id": finding.id,
+        "finding_title": finding.title,
+        "finding_description": finding.description,
+        "finding_tags": finding.tags,
+        "finding_cves": [],
+        "finding_cpes": [],
+        "scan_id": scan_id,
+        "scan_definition_id": finding.scan.scan_definition.id,
+        "asset_name": finding.asset_name,
+        "asset_type": asset_type,
+        "asset_id": asset_id,
+        "asset_tags": [t.value for t in finding.asset.categories.all()],
+    }
+
+    # Add CVE if any
+    if 'CVE' in finding.vuln_refs.keys():
+        try:
+            if type(finding.vuln_refs['CVE']) is list:
+                metadata.update({'finding_cves': finding.vuln_refs['CVE']})
+            else:
+                metadata.update({'finding_cves': [finding.vuln_refs['CVE']]})
+        except Exception:
+            pass
+
+    # Add CPE/Vendor/Product
+    if 'CPE' in finding.vuln_refs.keys():
+        try:
+            for c in finding.vuln_refs['CPE']:
+                for cc in c.split('\n'):
+                    vendor, product = cpe.extract_cpe(cc)
+                    metadata.update({'finding_cpes': {
+                        'vector': cc,
+                        'vendor': vendor,
+                        'product': product,
+                    }})
+        except Exception:
+            pass
+
+    # Create alert
     alert = Alert.objects.create(
         message=alert_message,
         type=alert_type,
         status='new',
         severity=severity,
-        metadata={
-            "finding_id": finding.id,
-            "finding_title": finding.title,
-            "finding_description": finding.description,
-            "finding_tags": finding.tags,
-            "scan_id": scan_id,
-            "scan_definition_id": finding.scan.scan_definition.id,
-            "asset_name": finding.asset_name,
-            "asset_type": asset_type,
-            "asset_id": asset_id,
-            "asset_tags": [t.value for t in finding.asset.categories.all()],
-        },
+        metadata=metadata,
         owner=finding.owner
     )
+
+    # Update Teams
     if finding.asset.teams.count() > 0:
         for team in finding.asset.teams.all():
             alert.teams.add(team)

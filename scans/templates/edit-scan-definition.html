@@ -218,6 +218,10 @@ label.radio {
   </form>
 </div>
 
+{{ scan_policies_json|json_script:"scan_policies_json_script" }}
+{{ engine_list|json_script:"engine_list_script" }}
+
+
 <script>
 
 _selected_team = '';
@@ -322,20 +326,20 @@ function InitForm(){
   $("input:radio[name='engine_policy'][value='{{scan_def.engine_policy.id}}']").attr("checked", "checked");
 
   // - Engine
-  engine_list = {{scan_engines_json|safe}}
+  engine_list = JSON.parse(document.getElementById('engine_list_script').textContent);
   $('select#id_engine').append("<option value='-1' selected>---- random (by default) ----</option>");
   for (i = 0; i< engine_list.length; i++){
     if(engine_list[i]["engine__name"] == "{{scan_def.engine_type.name}}"){
       $('select#id_engine').append($('<option>', {
           value: engine_list[i]['id'],
-          text: engine_list[i]['name']
+          text: encodeURIComponent(engine_list[i]['name'])
         })
       );
     }
 
   }
   if("{{scan_def.engine}}" != "None"){
-    $("select#id_engine option[value='{{scan_def.engine.id}}']").attr('selected','selected');
+    $("select#id_engine option[value='{{scan_def.engine.id}}']").attr('selected', 'selected');
   }
 
 }
@@ -480,15 +484,15 @@ function AddHooks(){
       // append the asset to the list
       if (_selected_assets.indexOf(datum["value"]) == -1){
         if (datum["format"] == "asset") {
-          _selected_assets.push(datum["value"]);
+          _selected_assets.push(encodeURIComponent(datum["value"]));
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"' checked/> "+e.target.value+"</label><br/>");
+            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"' checked/> "+encodeURIComponent(e.target.value)+"</label><br/>");
         } else {
-          _selected_assets.push(datum["value"]);
+          _selected_assets.push(encodeURIComponent(datum["value"]));
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assetgroups_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_assetgroups_list_"+_id_asset+"' class='custom-control-input' name='assetgroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+e.target.value+" (group)</label><br/>");
+            <input id='id_assetgroups_list_"+_id_asset+"' class='custom-control-input' name='assetgroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+encodeURIComponent(e.target.value)+" (group)</label><br/>");
         }
       }
     });
@@ -542,7 +546,7 @@ function AddHooks(){
     // });
 
     // List appropriate engine instances depending on scan policy
-    engine_list = {{scan_engines_json|safe}}
+    engine_list = JSON.parse(document.getElementById('engine_list_script').textContent);
     $("[name='engine_policy']").change(function(e){
       engine_name = e.currentTarget.getAttribute('engine-name');
       $('select#id_engine').empty();
@@ -551,7 +555,7 @@ function AddHooks(){
         if(engine_list[i]["engine__name"] == engine_name){
           $('select#id_engine').append($('<option>', {
               value: engine_list[i]['id'],
-              text: engine_list[i]['name']
+              text: encodeURIComponent(engine_list[i]['name'])
             })
           );
         }
@@ -591,7 +595,7 @@ function UpdatePolicieslist(active_engine){
 }
 
 // global variables
-var policies_list = {{ scan_policies_json | safe }};
+var policies_list = JSON.parse(document.getElementById('scan_policies_json_script').textContent);
 var hidden_policies_by_cat = [];
 var hidden_policies_by_engine = [];
 

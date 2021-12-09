@@ -848,7 +848,7 @@ function toggle(source, element) {
         $("div#retest-finding").append('\
         <div class="alert alert-dismissible alert-danger">\
           <button type="button" class="close" data-dismiss="alert">&times;</button>\
-          <strong>Error:</strong> Unable to retest finding: '+data.reason+'.\
+          <strong>Error:</strong> Unable to retest finding: '+encodeURIComponent(data.reason)+'.\
         </div>');
         setTimeout(function(){
           $("div#retest-finding div.alert-danger").remove();

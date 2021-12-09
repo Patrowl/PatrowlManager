@@ -372,7 +372,7 @@
       rule_id = e.relatedTarget.getAttribute('rule-id');
       rule_title = e.relatedTarget.getAttribute('rule-title');
       $("div#delete-rule").attr('rule-id', rule_id);
-      $("div#delete-rule").html("Name: <b>"+rule_title+"</b><br/>");
+      $("div#delete-rule").html("Name: <b>"+encodeURIComponent(rule_title)+"</b><br/>");
     });
     $("button.btn-delete-rule").on('click', function (e) {
       delete_rule_args = {
