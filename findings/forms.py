@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 from django import forms
 from .models import Finding, FINDING_SEVERITIES
 
@@ -7,6 +8,13 @@ ENGINE_TYPES = (
     ('json', 'json'),
     ('nessus', 'Nessus'),
 )
+
+
+def validate_file_extension(value):
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = ['.xml', '.nessus', '.json']
+    if ext not in valid_extensions:
+        raise ValidationError(u'File not supported!')
 
 
 class ImportFindingsForm(forms.Form):
@@ -20,14 +28,19 @@ class ImportFindingsForm(forms.Form):
         attrs={'class': 'form-control form-control-sm'},
         choices=FINDING_SEVERITIES),
         label='Minimum severity')
-    file = forms.FileField()
+    file = forms.FileField(widget=forms.FileInput(
+        attrs={'accept': 'text/xml,application/json'}),
+        validators=[validate_file_extension]
+    )
 
 
 class FindingForm(forms.ModelForm):
     class Meta:
         model = Finding
-        fields = ['title', 'type', 'severity', 'status', 'description', 'tags',
-            'solution', 'risk_info', 'vuln_refs', 'links', 'comments', 'asset']
+        fields = [
+            'title', 'type', 'severity', 'status', 'description', 'tags',
+            'solution', 'risk_info', 'vuln_refs', 'links', 'comments', 'asset'
+        ]
         widgets = {
             'description': forms.Textarea(
                 attrs={'class': 'form-control form-control-sm'}),
