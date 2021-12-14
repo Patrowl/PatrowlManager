@@ -1,6 +1,6 @@
 FROM python:3.7-slim
 MAINTAINER Patrowl.io "getsupport@patrowl.io"
-LABEL Name="PatrowlManager" Version="1.7.6"
+LABEL Name="PatrowlManager" Version="1.7.7"
 
 ENV PYTHONUNBUFFERED 1
 ARG arg_http_proxy
