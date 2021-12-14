@@ -124,18 +124,18 @@ def list_assets_view(request):
     asset_groups = []
     if teamid_selected >= 0:
         ags = AssetGroup.objects.for_team(request.user, teamid_selected).prefetch_related('teams', 'categories').all().annotate(
-                asset_list=ArrayAgg('assets__value')
-            ).only(
-                "id", "name", "assets", "criticity",
-                "updated_at", "risk_level", "teams"
-            )
+            asset_list=ArrayAgg('assets__value')
+        ).only(
+            "id", "name", "assets", "criticity",
+            "updated_at", "risk_level", "teams"
+        )
     else:
         ags = AssetGroup.objects.for_user(request.user).prefetch_related('teams', 'categories').all().annotate(
-                asset_list=ArrayAgg('assets__value')
-            ).only(
-                "id", "name", "assets", "criticity",
-                "updated_at", "risk_level", "teams"
-            )
+            asset_list=ArrayAgg('assets__value')
+        ).only(
+            "id", "name", "assets", "criticity",
+            "updated_at", "risk_level", "teams"
+        )
 
     for asset_group in ags.order_by(Lower("name")):
         assets_names = ""
@@ -446,8 +446,12 @@ def bulkadd_asset_view(request):
     form = AssetBulkForm(request.POST, request.FILES)
     # if request.FILES:
     csv_file = request.FILES['file']
-    decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
-    records = csv.DictReader(decoded_file, delimiter=';')
+    try:
+        decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
+        records = csv.DictReader(decoded_file, delimiter=';')
+    except Exception:
+        messages.error(request, "Unable to process CSV file '{}'. Check weird chars. No assets imported.".format(asset))
+        return redirect('list_assets_view')
 
     # Note: Header is skiped automatically
     for line in records:
