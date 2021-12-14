@@ -438,18 +438,21 @@ def get_scan_report_html_api(request, scan_id):
 @pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_report_json_api(request, scan_id):
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
-    print(scan.report_filepath)
 
-    filename = str(scan.report_filepath)
-    if not os.path.isfile(filename):
-        return HttpResponse(status=404)
-
-    wrapper = FileWrapper(open(filename))
-    response = HttpResponse(wrapper, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=report_'+os.path.basename(filename)
-    response['Content-Length'] = os.path.getsize(filename)
-
+    response = JsonResponse(scan.to_dict())
+    response['Content-Disposition'] = 'attachment; filename=scandef_'+str(scan.id)+'.json'
     return response
+
+    # filename = str(scan.report_filepath)
+    # if not os.path.isfile(filename):
+    #     return HttpResponse(status=404)
+    #
+    # wrapper = FileWrapper(open(filename))
+    # response = HttpResponse(wrapper, content_type='text/plain')
+    # response['Content-Disposition'] = 'attachment; filename=report_'+os.path.basename(filename)
+    # response['Content-Length'] = os.path.getsize(filename)
+    #
+    # return response
 
 
 @api_view(['GET'])
