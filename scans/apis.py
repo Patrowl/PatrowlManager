@@ -438,6 +438,7 @@ def get_scan_report_html_api(request, scan_id):
 @pro_group_required('ScansManager', 'ScansViewer')
 def get_scan_report_json_api(request, scan_id):
     scan = get_object_or_404(Scan.objects.for_user(request.user), id=scan_id)
+    print(scan.report_filepath)
 
     filename = str(scan.report_filepath)
     if not os.path.isfile(filename):

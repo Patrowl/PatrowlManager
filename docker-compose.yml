@@ -50,7 +50,7 @@ services:
       - "8083:8083"
     volumes:
       - ./staticfiles:/opt/patrowl-manager/staticfiles
-      - ./media:/opt/patrowl-manager/media
+      # - ./media:/opt/patrowl-manager/media
       - ./var/log:/opt/patrowl-manager/var/log
       - ./nginx_docker.conf:/etc/nginx/conf.d/default.conf
     depends_on:
