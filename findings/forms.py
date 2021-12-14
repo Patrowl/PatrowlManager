@@ -2,6 +2,7 @@
 
 import os
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import Finding, FINDING_SEVERITIES
 
 ENGINE_TYPES = (
@@ -29,7 +30,7 @@ class ImportFindingsForm(forms.Form):
         choices=FINDING_SEVERITIES),
         label='Minimum severity')
     file = forms.FileField(widget=forms.FileInput(
-        attrs={'accept': 'text/xml,application/json'}),
+        attrs={'accept': '.json,.xml,.nessus'}),
         validators=[validate_file_extension]
     )
 
