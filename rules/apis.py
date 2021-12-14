@@ -66,7 +66,7 @@ def add_rule_api(request):
     return JsonResponse({'status': 'success'})
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def toggle_rule_status_api(request, rule_id):
     """Change status of an alerting rule."""
     rule = get_object_or_404(Rule, id=rule_id)
@@ -79,7 +79,7 @@ def toggle_rule_status_api(request, rule_id):
     return JsonResponse({'status': 'success'})
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def duplicate_rule_api(request, rule_id):
     """Duplicate an alerting rule."""
     new_rule = get_object_or_404(Rule, id=rule_id)

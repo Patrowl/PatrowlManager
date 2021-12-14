@@ -328,7 +328,8 @@
 
       var request = $.ajax({
         url: "{% url 'duplicate_rule_api' 0 %}".replace("0", rule_id),
-        method: "GET",
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
       });
       request.done(function(response){
         if (response.status == 'success'){location.reload()}
@@ -340,7 +341,7 @@
       rule_id = e.currentTarget.getAttribute('rule-id');
       var request = $.ajax({
         url: "/rules/api/v1/change_status/"+rule_id,
-        method: "GET",
+        method: "POST",
         headers: {"X-CSRFToken": "{{ csrf_token }}"},
         success: function(){
           if (e.currentTarget.textContent == "Disabled") {
@@ -407,7 +408,6 @@
         var request = $.ajax({
           url: delete_url,
           method: "POST",
-          // data: JSON.stringify(rules_to_delete),
           data: rules_to_delete,
           contentType: "application/json"
         });
