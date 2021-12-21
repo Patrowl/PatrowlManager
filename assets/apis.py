@@ -202,7 +202,7 @@ def list_assets_api(request):
                 format=Value("asset", output_field=CharField())
             ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).annotate(
-                value=F("name").distinct()
+                value=F("name")
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save, post_delete
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django_celery_beat.models import PeriodicTask
@@ -173,23 +173,23 @@ class Scan(models.Model):
     objects = ScanManager()
 
     # Attributes
-    scan_settings   = models.CharField(max_length=256, null=True, blank=True)
+    scan_settings = models.CharField(max_length=256, null=True, blank=True)
     scan_definition = models.ForeignKey(ScanDefinition, null=True, on_delete=models.CASCADE)
-    assets          = models.ManyToManyField('assets.Asset')
-    task_id         = models.UUIDField(editable=True, null=True, blank=True)
-    title           = models.CharField(max_length=256)
-    status          = models.CharField(max_length=20)
-    engine          = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL)
-    engine_type     = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
-    engine_policy   = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
-    owner           = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
-    summary         = JSONField(null=True, blank=True)
-    timeout_delay   = models.IntegerField(null=True, blank=True)
-    report_filepath = models.CharField(max_length=256, null=True, blank=True)        # /media/reports/2/nmap/nmap_6054be57-1ce9-493e-9801-9cb049e3672.json
-    started_at      = models.DateTimeField(null=True, blank=True)
-    finished_at     = models.DateTimeField(null=True, blank=True)
-    created_at      = models.DateTimeField(default=timezone.now)
-    updated_at      = models.DateTimeField(default=timezone.now)
+    assets = models.ManyToManyField('assets.Asset')
+    task_id = models.UUIDField(editable=True, null=True, blank=True)
+    title = models.CharField(max_length=256)
+    status = models.CharField(max_length=20)
+    engine = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL)
+    engine_type = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
+    engine_policy = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    summary = JSONField(null=True, blank=True)
+    timeout_delay = models.IntegerField(null=True, blank=True)
+    report_filepath = models.CharField(max_length=256, null=True, blank=True)  # /media/reports/2/nmap/nmap_6054be57-1ce9-493e-9801-9cb049e3672.json
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         db_table = 'scans'
@@ -226,15 +226,30 @@ class Scan(models.Model):
         if self.summary is not None and 'missing' in dict(self.summary):
             missing = self.summary['missing']
 
+        excluded_filters = Q(status='false-positive') | Q(status='duplicate')
+
+        stats = raw_findings.exclude(excluded_filters).aggregate(
+            total=Count('id'),
+            nb_critical=Count('id', filter=Q(severity='critical')),
+            nb_high=Count('id', filter=Q(severity='high')),
+            nb_medium=Count('id', filter=Q(severity='medium')),
+            nb_low=Count('id', filter=Q(severity='low')),
+            nb_info=Count('id', filter=Q(severity='info')),
+            nb_new=Count('id', filter=Q(status='new')),
+            nb_ack=Count('id', filter=Q(status='ack')),
+            nb_fp=Count('id', filter=Q(status='false-positive"')),
+        )
+
         self.summary = {
-            "total": raw_findings.count(),
-            "critical": raw_findings.filter(severity='critical').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "high":  raw_findings.filter(severity='high').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "medium": raw_findings.filter(severity='medium').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "low":   raw_findings.filter(severity='low').exclude(Q(status='false-positive') | Q(status='duplicate')).count(),
-            "info":  raw_findings.filter(severity='info').exclude(status='duplicate').count(),
-            "new":   self.finding_set.count(),
-            "false-positive": raw_findings.filter(Q(status='false-positive') | Q(status='duplicate')).count(),
+            "total": stats['total'],
+            "critical": stats['nb_critical'],
+            "high": stats['nb_high'],
+            "medium": stats['nb_medium'],
+            "low": stats['nb_low'],
+            "info": stats['nb_info'],
+            "new": stats['nb_new'],
+            # "false-positive": raw_findings.filter(Q(status='false-positive') | Q(status='duplicate')).count(),
+            "false-positive": stats['nb_fp'],
             "missing": missing
         }
 
@@ -274,20 +289,20 @@ class ScanJob(models.Model):
     # objects = ScanJobManager()
 
     # Attributes
-    position        = models.IntegerField(default=1, null=True, blank=True)
-    scan            = models.ForeignKey(Scan, null=True, on_delete=models.CASCADE)
-    assets          = models.ManyToManyField('assets.Asset')
-    task_id         = models.UUIDField(editable=True, null=True, blank=True)
-    status          = models.CharField(choices=SCAN_JOB_STATUS, default='started', max_length=20)
-    engine          = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL)
-    engine_type     = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
-    engine_policy   = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
-    summary         = JSONField(null=True, blank=True)
-    options         = JSONField(null=True, blank=True)
-    started_at      = models.DateTimeField(null=True, blank=True)
-    finished_at     = models.DateTimeField(null=True, blank=True)
-    created_at      = models.DateTimeField(default=timezone.now)
-    updated_at      = models.DateTimeField(default=timezone.now)
+    position = models.IntegerField(default=1, null=True, blank=True)
+    scan = models.ForeignKey(Scan, null=True, on_delete=models.CASCADE)
+    assets = models.ManyToManyField('assets.Asset')
+    task_id = models.UUIDField(editable=True, null=True, blank=True)
+    status = models.CharField(choices=SCAN_JOB_STATUS, default='started', max_length=20)
+    engine = models.ForeignKey('engines.EngineInstance', null=True, blank=True, on_delete=models.SET_NULL)
+    engine_type = models.ForeignKey('engines.Engine', null=True, on_delete=models.SET_NULL)
+    engine_policy = models.ForeignKey('engines.EnginePolicy', null=True, on_delete=models.SET_NULL)
+    summary = JSONField(null=True, blank=True)
+    options = JSONField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         db_table = 'scan_jobs'
@@ -309,18 +324,18 @@ class ScanJob(models.Model):
 
 
 class ScanCampaign(models.Model):
-    scan_def_list   = models.ManyToManyField(ScanDefinition)
-    title           = models.CharField(max_length=256)
-    description     = models.CharField(max_length=256)
-    enabled         = models.BooleanField(default=False)
-    status          = models.CharField(max_length=20)
-    owner           = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
-    timeout_delay   = models.IntegerField(null=True, blank=True)
+    scan_def_list = models.ManyToManyField(ScanDefinition)
+    title = models.CharField(max_length=256)
+    description = models.CharField(max_length=256)
+    enabled = models.BooleanField(default=False)
+    status = models.CharField(max_length=20)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    timeout_delay = models.IntegerField(null=True, blank=True)
     report_filepath = models.CharField(max_length=256,null=True, blank=True)
-    scheduled_at    = models.DateTimeField(null=True, blank=True)
-    expire_at       = models.DateTimeField(null=True, blank=True)
-    created_at      = models.DateTimeField(default=timezone.now)
-    updated_at      = models.DateTimeField(default=timezone.now)
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    expire_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         db_table = 'scan_campaigns'

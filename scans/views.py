@@ -692,7 +692,7 @@ def edit_scan_def_view(request, scan_def_id):
 @pro_group_required('ScansManager', 'ScansViewer')
 def detail_scan_def_view(request, scan_definition_id):
     """Details of a scan definition."""
-    scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user), id=scan_definition_id)
+    scan_def = get_object_or_404(ScanDefinition.objects.for_user(request.user).prefetch_related('assets_list', 'scan_set'), id=scan_definition_id)
     scan_list = scan_def.scan_set.order_by('-finished_at')
 
     paginator = Paginator(scan_list, 20)

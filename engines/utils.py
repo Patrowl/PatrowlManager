@@ -558,24 +558,24 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
                     type="DEBUG", severity="INFO", scan=scan)
 
                 new_finding = Finding.objects.create(
-                    raw_finding = new_raw_finding,
-                    asset       = asset,
-                    asset_name  = asset.value,
-                    scan        = scan,
-                    owner       = scan.owner,
-                    title       = finding['title'],
-                    type        = finding['type'],
-                    confidence  = finding['confidence'],
-                    severity    = finding['severity'],
-                    description = finding['description'],
-                    solution    = finding['solution'],
-                    status      = tmp_status,
-                    engine_type = scan.engine_type.name,
-                    risk_info   = risk_info,
-                    vuln_refs   = vuln_refs,
-                    links       = links,
-                    tags        = tags,
-                    raw_data    = raw_data
+                    raw_finding=new_raw_finding,
+                    asset=asset,
+                    asset_name=asset.value,
+                    scan=scan,
+                    owner=scan.owner,
+                    title=finding['title'],
+                    type=finding['type'],
+                    confidence=finding['confidence'],
+                    severity=finding['severity'],
+                    description=finding['description'],
+                    solution=finding['solution'],
+                    status=tmp_status,
+                    engine_type=scan.engine_type.name,
+                    risk_info=risk_info,
+                    vuln_refs=vuln_refs,
+                    links=links,
+                    tags=tags,
+                    raw_data=raw_data
                 )
                 new_finding.save()
 
