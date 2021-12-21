@@ -326,7 +326,7 @@ function InitForm(){
   $("input:radio[name='engine_policy'][value='{{scan_def.engine_policy.id}}']").attr("checked", "checked");
 
   // - Engine
-  engine_list = JSON.parse(JSON.parse(document.getElementById('engine_list_script').textContent));
+  var engine_list = JSON.parse(JSON.parse(document.getElementById('engine_list_script').textContent));
   $('select#id_engine').append("<option value='-1' selected>---- random (by default) ----</option>");
   for (i = 0; i< engine_list.length; i++){
     if(engine_list[i]["engine__name"] == "{{scan_def.engine_type.name}}"){
@@ -547,7 +547,7 @@ function AddHooks(){
     // });
 
     // List appropriate engine instances depending on scan policy
-    engine_list = JSON.parse(JSON.parse(document.getElementById('engine_list_script').textContent));
+    var engine_list = JSON.parse(JSON.parse(document.getElementById('engine_list_script').textContent));
     $("[name='engine_policy']").change(function(e){
       engine_name = e.currentTarget.getAttribute('engine-name');
       $('select#id_engine').empty();

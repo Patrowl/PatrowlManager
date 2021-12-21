@@ -221,7 +221,7 @@ label.radio {
 </div>
 
 {{ scan_policies_json|json_script:"scan_policies_json_script" }}
-{{ engine_list|json_script:"engine_list_script" }}
+{{ scan_engines_json|json_script:"engine_list_script" }}
 
 <script>
 
@@ -505,7 +505,7 @@ label.radio {
     });
 
     // List appropriate engine instances depending on scan policy
-    engine_list = JSON.parse(JSON.parse(document.getElementById('engine_list_script').textContent));
+    var engine_list = JSON.parse(JSON.parse(document.getElementById('engine_list_script').textContent));
     $("[name='engine_policy']").change(function(e){
       engine_name = e.currentTarget.getAttribute('engine-name');
       $('select#id_engine').empty();
