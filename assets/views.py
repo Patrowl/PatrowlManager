@@ -54,7 +54,7 @@ def list_assets_view(request):
         "-risk_level__grade"
     ]
     sort_options = request.GET.get("sort", "-updated_at")
-    sort_options_valid = []
+    sort_options_valid = ["-updated_at"]
     for s in sort_options.split(","):
         if s in allowed_sort_options and s not in sort_options_valid:
             sort_options_valid.append(str(s))

@@ -363,7 +363,7 @@ def finding_delete_log(sender, **kwargs):
     asset.calc_risk_grade()
 
     Event.objects.create(message="[Finding] Finding '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id),
-                 type="DELETE", severity="DEBUG")
+        type="DELETE", severity="DEBUG")
 
 
 FINDING_OVERRIDE_ACTIONS = (

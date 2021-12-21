@@ -715,9 +715,9 @@ function toggle(source, element) {
       finding_severity = e.relatedTarget.getAttribute('finding-severity');
       $("div#delete-finding").attr('finding-id', finding_id);
       $("div#delete-finding").html(
-				"Title: <b>"+encodeURIComponent(finding_title)+"</b><br/> \
-				Asset: <b>"+encodeURIComponent(finding_asset)+"</b><br/> \
-				Severity: <b>"+encodeURIComponent(finding_severity)+"</b><br/><br/>"
+				"Title: <b>"+escapeHtml(finding_title)+"</b><br/> \
+				Asset: <b>"+escapeHtml(finding_asset)+"</b><br/> \
+				Severity: <b>"+escapeHtml(finding_severity)+"</b><br/><br/>"
 			);
     });
     $("button.btn-delete-finding").on('click', function (e) {

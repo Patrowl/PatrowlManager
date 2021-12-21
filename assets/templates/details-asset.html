@@ -1202,7 +1202,7 @@ div.risk-trends {
       finding_id = e.relatedTarget.getAttribute('finding-id');
       finding_title = e.relatedTarget.getAttribute('finding-title');
       $("div#delete-finding").attr('finding-id', finding_id);
-      $("div#delete-finding").html("Finding: <strong>"+encodeURIComponent(finding_title)+"</strong><br/><br/>");
+      $("div#delete-finding").html("Finding: <strong>"+escapeHtml(finding_title)+"</strong><br/><br/>");
     });
     $("button.btn-delete-finding").on('click', function (e) {
       finding_id = $("div#delete-finding").attr('finding-id');
@@ -1222,7 +1222,7 @@ div.risk-trends {
       id = e.relatedTarget.getAttribute('scan-id');
       scan_title = e.relatedTarget.getAttribute('scan-title');
       $("div#delete-scan").attr('scan-id', id);
-      $("div#delete-scan").html("Title: <strong>"+encodeURIComponent(scan_title)+"</strong><br/><br/>");
+      $("div#delete-scan").html("Title: <strong>"+escapeHtml(scan_title)+"</strong><br/><br/>");
     });
     $("button.btn-delete-scan").on('click', function (e) {
       id = $("div#delete-scan").attr('scan-id');

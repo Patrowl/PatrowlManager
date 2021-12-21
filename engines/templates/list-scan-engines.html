@@ -196,20 +196,20 @@
           $("div#info-engine").html("Loading...");
         },
         success: function(data, textStatus, jqXHR){
-          info_data = "Engine: <strong>"+encodeURIComponent(data["engine"]["name"])+"</strong><br/>";
-          info_data+= "API URL: <strong>"+encodeURIComponent(data["engine"]["api_url"])+"</strong><br/>";
+          info_data = "Engine: <strong>"+escapeHtml(data["engine"]["name"])+"</strong><br/>";
+          info_data+= "API URL: <strong>"+escapeHtml(data["engine"]["api_url"])+"</strong><br/>";
 
           if(data["engine_infos"]["status"] == "ERROR") {
             info_data+= "Oper status: <strong>ERROR</strong><br/>";
             if(data["engine_infos"]["details"]){
-              info_data+= "Request: <strong>"+encodeURIComponent(data["engine_infos"]["details"]["request"])+"</strong></br>"
-              info_data+= "Reason: <strong>"+encodeURIComponent(data["engine_infos"]["details"]["reason"])+"</strong></br>"
+              info_data+= "Request: <strong>"+escapeHtml(data["engine_infos"]["details"]["request"])+"</strong></br>"
+              info_data+= "Reason: <strong>"+escapeHtml(data["engine_infos"]["details"]["reason"])+"</strong></br>"
             }
           } else {
-            info_data+= "Nb scans: <strong>"+encodeURIComponent(data["nb_scans"])+"</strong><br/>";
-            info_data+= "Oper status: <strong>"+encodeURIComponent(data["engine_infos"]["engine_config"]["status"])+"</strong><br/>";
-            info_data+= "Version: <strong>"+encodeURIComponent(data["engine_infos"]["engine_config"]["version"])+"</strong><br/>";
-            info_data+= "Description: <strong>"+encodeURIComponent(data["engine_infos"]["engine_config"]["description"])+"</strong><br/>";
+            info_data+= "Nb scans: <strong>"+escapeHtml(data["nb_scans"])+"</strong><br/>";
+            info_data+= "Oper status: <strong>"+escapeHtml(data["engine_infos"]["engine_config"]["status"])+"</strong><br/>";
+            info_data+= "Version: <strong>"+escapeHtml(data["engine_infos"]["engine_config"]["version"])+"</strong><br/>";
+            info_data+= "Description: <strong>"+escapeHtml(data["engine_infos"]["engine_config"]["description"])+"</strong><br/>";
 
             current_scans=data["current_scans"];
             if (current_scans == null || Object.keys(current_scans).length === 0) {
@@ -219,7 +219,7 @@
               for (var scan in current_scans){
                 if (current_scans.hasOwnProperty(scan)) {
                   scan_id = Object.keys(current_scans[scan])[0];
-                  info_data+= " * id="+scan_id+", started_at: "+new Date(current_scans[scan][scan_id]["started_at"])+", status: "+encodeURIComponent(current_scans[scan][scan_id]["status"])+" <br/>";
+                  info_data+= " * id="+scan_id+", started_at: "+new Date(current_scans[scan][scan_id]["started_at"])+", status: "+escapeHtml(current_scans[scan][scan_id]["status"])+" <br/>";
                 }
               }
             }
@@ -235,7 +235,7 @@
       engine_id = e.relatedTarget.getAttribute('engine-id');
       engine_name = e.relatedTarget.getAttribute('engine-name');
       $("div#delete-engine").attr('engine-id', engine_id);
-      $("div#delete-engine").html("Engine: <strong>"+encodeURIComponent(engine_name)+"</strong><br/><br/>");
+      $("div#delete-engine").html("Engine: <strong>"+escapeHtml(engine_name)+"</strong><br/><br/>");
     });
     $("button.btn-delete-engine").on('click', function (e) {
       engine_id = $("div#delete-engine").attr('engine-id');

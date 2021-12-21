@@ -397,11 +397,11 @@ label.radio {
         },
         suggestion: function(data) {
           if (data.format == "asset"){
-            return '<div>' + encodeURIComponent(data.value) + ' - '+ encodeURIComponent(data.name) + '</div>';
+            return '<div>' + escapeHtml(data.value) + ' - '+ escapeHtml(data.name) + '</div>';
           } else if (data.format == "taggroup"){
-            return '<div> [Tags] ' + encodeURIComponent(data.value) + ' - '+ encodeURIComponent(data.name) + '</div>';
+            return '<div> [Tags] ' + escapeHtml(data.value) + ' - '+ escapeHtml(data.name) + '</div>';
           }else {
-            return '<div> [Group] ' + encodeURIComponent(data.value) + ' - '+ encodeURIComponent(data.name) + '</div>';
+            return '<div> [Group] ' + escapeHtml(data.value) + ' - '+ escapeHtml(data.name) + '</div>';
           }
         }
       }
@@ -412,23 +412,23 @@ label.radio {
           _selected_assets.push(datum["value"]);
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"'checked/> "+encodeURIComponent(e.target.value)+"</label><br/>");
+            <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"'checked/> "+escapeHtml(e.target.value)+"</label><br/>");
         } else if (datum["format"] == "taggroup") {
         _selected_assets.push(datum["value"]);
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_taggroups_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_taggroups_list_"+_id_asset+"' class='custom-control-input' name='taggroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+encodeURIComponent(e.target.value)+" (tag)</label><br/>");
+            <input id='id_taggroups_list_"+_id_asset+"' class='custom-control-input' name='taggroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+escapeHtml(e.target.value)+" (tag)</label><br/>");
          } else {
           _selected_assets.push(datum["value"]);
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assetgroups_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_assetgroups_list_"+_id_asset+"' class='custom-control-input' name='assetgroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+encodeURIComponent(e.target.value)+" (group)</label><br/>");
+            <input id='id_assetgroups_list_"+_id_asset+"' class='custom-control-input' name='assetgroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+escapeHtml(e.target.value)+" (group)</label><br/>");
         }
       }
     });
 
     // Filter scan policy by engines & categories
-    var policies_list = JSON.parse(document.getElementById('scan_policies_json_script').textContent);
+    var policies_list = JSON.parse(JSON.parse(document.getElementById('scan_policies_json_script').textContent));
     var hidden_policies_by_cat = [];
     var hidden_policies_by_engine = [];
     $('#category-buttons').bind('change', function(e){
@@ -505,7 +505,7 @@ label.radio {
     });
 
     // List appropriate engine instances depending on scan policy
-    engine_list = JSON.parse(document.getElementById('engine_list_script').textContent);
+    engine_list = JSON.parse(JSON.parse(document.getElementById('engine_list_script').textContent));
     $("[name='engine_policy']").change(function(e){
       engine_name = e.currentTarget.getAttribute('engine-name');
       $('select#id_engine').empty();

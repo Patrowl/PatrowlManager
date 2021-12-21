@@ -330,7 +330,7 @@ def patch_management_view(request):
         35453, # Microsoft Windows Update Reboot Required - http://www.tenable.com/plugins/index.php?view=single&id=35453
         63756, # AIX 5.2 TL 0 : reboot - http://www.tenable.com/plugins/index.php?view=single&id=63756
         63757, # AIX 5.3 TL 0 : reboot http://www.tenable.com/plugins/index.php?view=single&id=63757
-        ]
+    ]
     dataset_7days_reboot = Asset.objects.for_user(request.user).filter(
         Q(rawfinding__created_at__gt=seven_days_ago) &
         Q(rawfinding__risk_info__vuln_publication_date__gte=seven_days_ago.strftime('%Y/%m/%d')) &

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""REST-API definitions for Events."""
+"""REST-API definitions for Events and Alerts."""
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -36,6 +36,7 @@ def delete_event_api(request, event_id):
 
 @api_view(['POST'])
 def ack_alerts_api(request):
+    """Acknowledge an alert."""
     alerts = request.data
     for alert_id in alerts:
         a = Alert.objects.filter(id=alert_id).first()
@@ -48,6 +49,7 @@ def ack_alerts_api(request):
 
 @api_view(['POST'])
 def archive_alerts_api(request):
+    """Archive an alert."""
     alerts = request.data
     for alert_id in alerts:
         a = Alert.objects.filter(id=alert_id).first()

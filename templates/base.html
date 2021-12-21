@@ -83,6 +83,18 @@
 
     }
 
+    function escapeHtml(text) {
+      var map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+
+      return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
     $(function(){
       $(".clickable-row").click(function() {
         var sel = getSelection().toString();
@@ -98,7 +110,12 @@
       {% if user.is_authenticated %}
       refresh_engines_status();
       if({{ PATROWL_REFRESH_ENGINE }}>0){
-        setInterval(function() {refresh_engines_status();},({{ PATROWL_REFRESH_ENGINE }}>5000)?{{ PATROWL_REFRESH_ENGINE }}:5000);
+        setInterval(
+          function() {
+            refresh_engines_status();
+          },(
+            {{ PATROWL_REFRESH_ENGINE }} > 5000)?{{ PATROWL_REFRESH_ENGINE }}:5000
+        );
       }
       {% endif %}
 

@@ -146,7 +146,7 @@ def detail_scan_view(request, scan_id):
             })
 
     # Generate findings stats
-    month_ago = datetime.today()-timedelta(days=30)
+    month_ago = datetime.today() - timedelta(days=30)
     findings_stats = {
         "count": raw_findings.count(),
         "cvss_gte_70": raw_findings.filter(risk_info__cvss_base_score__gte=7.0).count(),

@@ -185,7 +185,7 @@
       policy_id = e.relatedTarget.getAttribute('policy-id');
       policy_name = e.relatedTarget.getAttribute('policy-name');
       $("div#delete-policy").attr('policy-id', policy_id);
-      $("div#delete-policy").html("Policy: <b>"+encodeURIComponent(policy_name)+"</b><br/><br/>");
+      $("div#delete-policy").html("Policy: <b>"+escapeHtml(policy_name)+"</b><br/><br/>");
     });
     $("button.btn-delete-policy").on('click', function (e) {
       policy_id = $("div#delete-policy").attr('policy-id');

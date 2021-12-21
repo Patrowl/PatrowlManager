@@ -581,7 +581,7 @@ $(function() {
   // Run direct scan now Event
   $("#modal-run-scan").on('show.bs.modal', function (e) {
     scan_title = e.relatedTarget.getAttribute('scan-title');
-    $("div#run-scan").html("Scan started: <b>"+encodeURIComponent(scan_title)+"</b><br/><br/>");
+    $("div#run-scan").html("Scan started: <b>"+escapeHtml(scan_title)+"</b><br/><br/>");
 
     //Hide the modal 3 seconds later
     var myModal = $(this);
@@ -682,7 +682,7 @@ $(function() {
     id = e.relatedTarget.getAttribute('scan-id');
     scan_title = e.relatedTarget.getAttribute('scan-title');
     $("div#delete-scan").attr('scan-id', id);
-    $("div#delete-scan").html("ID: <b>"+id+"</b><br/>Title: <b>"+encodeURIComponent(scan_title)+"</b><br/><br/>");
+    $("div#delete-scan").html("ID: <b>"+id+"</b><br/>Title: <b>"+escapeHtml(scan_title)+"</b><br/><br/>");
   });
   $("button.btn-delete-scan").on('click', function (e) {
     id = $("div#delete-scan").attr('scan-id');

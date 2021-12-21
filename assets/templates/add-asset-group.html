@@ -145,7 +145,7 @@ _selected_assets = [];
           return '<div class="noitems"> No items found</div>';
         },
         suggestion: function(data) {
-            return '<div>' + encodeURIComponent(data.value) + ' - '+ encodeURIComponent(data.name) + '</div>';
+            return '<div>' + escapeHtml(data.value) + ' - '+ escapeHtml(data.name) + '</div>';
         }
       }
     }).bind("typeahead:selected", function(e, datum, name) {

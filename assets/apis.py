@@ -181,7 +181,8 @@ def list_assets_api(request):
                 Q(value__icontains=q) | Q(name__icontains=q)
             ).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'categories__value', 'assetowner__name')
+            # ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'categories__value', 'assetowner__name').distinct()
+            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).filter(
                 name__icontains=q
             ).annotate(
@@ -189,38 +190,39 @@ def list_assets_api(request):
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
-        taggroups = AssetCategory.objects.filter(
-                value__icontains=q
-            ).annotate(
-                name=F("value")
-            ).annotate(
-                format=Value("taggroup", output_field=CharField())
-            ).values('id', 'value', 'format', 'name')
+        # taggroups = AssetCategory.objects.filter(
+        #         value__icontains=q
+        #     ).annotate(
+        #         name=F("value")
+        #     ).annotate(
+        #         format=Value("taggroup", output_field=CharField())
+        #     ).values('id', 'value', 'format', 'name')
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
-            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'categories__value', 'assetowner__name')
+            ).values('id', 'value', 'format', 'name', 'type', 'exposure', 'assetowner__name')
         assetgroups = AssetGroup.objects.for_user(request.user).annotate(
-                value=F("name")
+                value=F("name").distinct()
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
-        taggroups = AssetCategory.objects.annotate(
-            name=F("value")
-        ).annotate(
-            format=Value("taggroup", output_field=CharField())
-        ).values('id', 'value', 'format', 'name')
+        # taggroups = AssetCategory.objects.annotate(
+        #     name=F("value")
+        # ).annotate(
+        #     format=Value("taggroup", output_field=CharField())
+        # ).values('id', 'value', 'format', 'name')
 
     # Filter by team
     if team is not None and len(team) > 0:
-        assets = assets.filter(teams__in=team)
-        assetgroups = assetgroups.filter(teams__in=team)
-        taggroups = taggroups.filter(teams__in=team)
+        assets = assets.filter(teams__in=[team])
+        assetgroups = assetgroups.filter(teams__in=[team])
+        # taggroups = taggroups.filter(teams__in=[team])
 
-    assets_list = list(assets)
-    assetgroups_list = list(assetgroups)
-    taggroups_list = list(taggroups)
-    return JsonResponse(assets_list + assetgroups_list + taggroups_list, safe=False)
+    assets_list = list(assets.distinct())
+    assetgroups_list = list(assetgroups.distinct())
+    # taggroups_list = list(taggroups.distinct())
+    # return JsonResponse(assets_list + assetgroups_list + taggroups_list, safe=False)
+    return JsonResponse(assets_list + assetgroups_list, safe=False)
 
 
 @api_view(['GET'])
@@ -242,7 +244,7 @@ def list_only_assets_api(request):
 
     # Filter by team
     if team is not None and len(team) > 0:
-        assets = assets.filter(teams__in=team)
+        assets = assets.filter(teams__in=[team])
 
     assets_list = list(assets)
     return JsonResponse(assets_list, safe=False)
