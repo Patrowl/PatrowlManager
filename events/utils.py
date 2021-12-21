@@ -1,4 +1,4 @@
-from .models import Alert
+from .models import Alert, AlertOverride
 from findings.models import Finding
 from assets.models import Asset
 from rules.models import Rule
@@ -60,13 +60,29 @@ def generate_finding_alert(finding_id, scan_id, severity="info", action="new_fin
     if action not in actions.keys():
         return None
 
-    alert_message = actions[action]['message']
-    alert_type = actions[action]['type']
-
-    # finding = Finding.objects.filter(id=finding_id, status="new").first()
+    # Check if finding exists
     finding = Finding.objects.filter(id=finding_id).first()
     if finding is None:
         return None
+
+    # Evaluate potential override / disabled alerts
+    overrides_disable = AlertOverride.objects.filter(enabled=True, action="disable-alert", engine_type=finding.engine_type)
+
+    # if finding.asset.teams.count() > 0:
+    #     overrides_disable.filter(teams__in=finding.asset.teams.all())
+    #
+
+    # Search matchinsg findings
+    for o in overrides_disable:
+        of = o.params['filters']
+        of.update({
+            'id': finding.id,
+        })
+        if Finding.objects.filter(**of).first() is not None:
+            return None
+
+    alert_message = actions[action]['message']
+    alert_type = actions[action]['type']
 
     # Set default severity
     if severity not in ['info', 'low', 'medium', 'high', 'critical']:

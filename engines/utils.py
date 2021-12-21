@@ -475,23 +475,23 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         for asset in assets:
             # Store finding in the RawFinding table
             new_raw_finding = RawFinding.objects.create(
-                asset       = asset,
-                asset_name  = asset.value,
-                scan        = scan,
-                owner       = scan.owner,
-                title       = finding['title'],
-                type        = finding['type'],
-                confidence  = finding['confidence'],
-                severity    = finding['severity'],
-                description = finding['description'],
-                solution    = finding['solution'],
-                status      = "new",
-                engine_type = scan.engine_type.name,
-                risk_info   = risk_info,
-                vuln_refs   = vuln_refs,
-                links       = links,
-                tags        = tags,
-                raw_data    = raw_data
+                asset=asset,
+                asset_name=asset.value,
+                scan=scan,
+                owner=scan.owner,
+                title=finding['title'],
+                type=finding['type'],
+                confidence=finding['confidence'],
+                severity=finding['severity'],
+                description=finding['description'],
+                solution=finding['solution'],
+                status="new",
+                engine_type=scan.engine_type.name,
+                risk_info=risk_info,
+                vuln_refs=vuln_refs,
+                links=links,
+                tags=tags,
+                raw_data=raw_data
             )
             new_raw_finding.save()
 

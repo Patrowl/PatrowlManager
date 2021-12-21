@@ -145,7 +145,7 @@
           engine = engines_json[engine_id];
           enabled = ""
           if (engine["enabled"] == true) {enabled = "Enabled";} else {enabled="Disabled"}
-          title = encodeURIComponent(engine["name"]) + " ("+enabled+"/"+engine["status"]+")";
+          title = escapeHtml(engine["name"]) + " ("+enabled+"/"+engine["status"]+")";
           status_color = "default";
           if (engine["enabled"] && engine["status"] == "READY" || engine["status"] == "WORKING") {
             status_color = "success";
@@ -568,7 +568,7 @@
           <a href="https://twitter.com/patrowl_io"><i class="text-muted fab fa-twitter fa-lg"></i></a>
           <a href="https://www.linkedin.com/company/patrowl/"><i class="text-muted fab fa-linkedin fa-lg"></i></a>
           {% if PRO_EDITION == False %}
-            <a href="https://patrowl.io/get-started"><span class="label label-warning">Pro Edition available</span></a>
+            <a href="https://patrowl.io/"><span class="label label-warning">Pro Edition available</span></a>
           {% endif %}
         </div>
         {% if user.is_authenticated %}
