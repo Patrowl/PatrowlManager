@@ -78,11 +78,11 @@ sync(){
       "${IGNORE_REFS_PATTERN[@]}" \
     | git update-ref --stdin
 
-    git push \
+    git push -f\
       --all \
       "${dst_repo}" \
     || [ "${TWO_WAY}" = true ]
-    git push \
+    git push -f\
       --tags \
       "${dst_repo}" \
     || [ "${TWO_WAY}" = true ]
