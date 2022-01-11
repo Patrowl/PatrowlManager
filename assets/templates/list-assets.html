@@ -42,6 +42,7 @@ function toggle(source, element) {
     <ul class="nav nav-tabs" id="menu_tabs_ul">
       <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div" >Assets</a></li>
       <li class="menu_assetgroups"><a data-toggle="tab" href="#assetgroups_div">Asset Groups</a></li>
+      <li class="menu_dynamicassetgroups"><a data-toggle="tab" href="#dynamicassetgroups_div">Dynamic Asset Groups</a></li>
     </ul>
     <div class="tab-content">
       <div id="assets_div" class="tab-pane fade in active">
@@ -81,31 +82,31 @@ function toggle(source, element) {
             <input type="text" placeholder="Quick search..." class="form-control form-control-xs search-input" id="asset-quick-search-name" style="height: 32px; transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out; border: 1px solid #ced4da;"/>
           </div>
 
-        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
-          <select id="asset-quick-search-type" name="asset-quick-search-type" multiple placeholder="Type...">
-          {% for asset in assets|dictsort:'type' %}
-            {% ifchanged %}<option value="{{ asset.type }}">{{ asset.type }}</option>{% endifchanged %}
-          {% endfor %}
-          </select>
-        </div>
-        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
-          <select id="asset-quick-search-criticity" name="asset-quick-search-criticity" multiple placeholder="Criticality...">
-            {% for asset in assets %}
-                {% ifchanged %}<option value="{{ asset.criticity }}">{{ asset.criticity }}</option>{% endifchanged %}
+          <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
+            <select id="asset-quick-search-type" name="asset-quick-search-type" multiple placeholder="Type...">
+            {% for asset in assets|dictsort:'type' %}
+              {% ifchanged %}<option value="{{ asset.type }}">{{ asset.type }}</option>{% endifchanged %}
             {% endfor %}
-          </select>
-        </div>
-        <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 0px;">
-          <select id="asset-quick-search-tag" name="asset-quick-search-tag" multiple placeholder="Tags...">
-              {% for tag in tags %}
-                {% ifchanged %}<option value="{{ tag }}">{{ tag }}</option>{% endifchanged %}
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-sm-1" >
-            <button type="submit" class="btn btn-primary btn-sm btn-block asset-quick-search search-input-button" >Search</button>
-        <!--<i class="form-control-xs-feedback glyphicon glyphicon-search" style="color: #b4bcc2;"></i>-->
-        </div>
+            </select>
+          </div>
+          <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 5px;">
+            <select id="asset-quick-search-criticity" name="asset-quick-search-criticity" multiple placeholder="Criticality...">
+              {% for asset in assets %}
+                  {% ifchanged %}<option value="{{ asset.criticity }}">{{ asset.criticity }}</option>{% endifchanged %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="has-feedback col-sm-2 div-override" style="padding-left: 5px; padding-right: 0px;">
+            <select id="asset-quick-search-tag" name="asset-quick-search-tag" multiple placeholder="Tags...">
+                {% for tag in tags %}
+                  {% ifchanged %}<option value="{{ tag }}">{{ tag }}</option>{% endifchanged %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-1" >
+              <button type="submit" class="btn btn-primary btn-sm btn-block asset-quick-search search-input-button" >Search</button>
+          <!--<i class="form-control-xs-feedback glyphicon glyphicon-search" style="color: #b4bcc2;"></i>-->
+          </div>
 
           <div class="dropdown col-sm-2 div-override" style="padding-left: 0px;">
             <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -315,6 +316,153 @@ function toggle(source, element) {
         </tbody>
         </table>
       </div>
+
+      <div id="dynamicassetgroups_div" class="tab-pane fade">
+        <div class="row" style="margin-top: 5px;">
+
+          <div class="dropdown col-sm-1 div-override" style="">
+            <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-sort" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="height: 32px;">
+              Actions
+              <span class="caret"></span>
+            </button>
+            <!-- <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
+              <li><a href="{% url 'export_assets_api' %}">> Export assets (CSV)</a></li>
+              <li><a href="{% url 'refresh_all_asset_grade_api' %}" class="text-danger">>> Refresh all scores</a></li>
+
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
+                <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
+                <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
+                    <li><a data-target="#modal-update-group" data-toggle="modal"  href="#">+ Update Group of selected assets</a></li>
+                    <li><a data-target="#modal-update-owner" data-toggle="modal"  href="#">+ Update Owner of selected assets</a></li>
+                <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+                {% endif %}
+              {% else %}
+              <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
+              <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
+              <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
+                  <li><a data-target="#modal-update-group" data-toggle="modal"  href="#">+ Update Group of selected assets</a></li>
+                  <li><a data-target="#modal-update-owner" data-toggle="modal"  href="#">+ Update Owner of selected assets</a></li>
+              <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+              {% endif %}
+            </ul> -->
+          </div>
+        </div>
+
+
+        <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
+          <thead>
+            <tr>
+              <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'dynamicassetgroups')" /></th>
+              <th data-field="name"  onclick="sortby('name', 'dynamicassetgroups');">Name</th>
+              <th data-field="tags">Tags</th>
+              {% if PRO_EDITION %}
+              <th data-field="teams">Teams</th>
+              {% endif %}
+              <!-- <th data-field="categories">Tags</th> -->
+              <th data-field="criticity" onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticality</th>
+              <!-- <th data-field="score" onclick="sortby('-risk_level__grade,criticity_num', 'assets');">Score</th> -->
+              <th data-field="updated_at" onclick="sortby('-updated_at', 'assets');">Last update</th>
+              <th data-field="actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dynamic_asset_group in dynamic_asset_groups %}
+            <tr>
+              <td><input type="checkbox" class="radio" name="dynamicassetgroups" value="{{ dynamic_asset_group.id }}"/></td>
+              <td><a href="/assets/dyngroups/details/{{ dynamic_asset_group.id }}">{{ dynamic_asset_group.name }}</a></td>
+              <!-- <td><a href="#">{{ dynamic_asset_group.name }}</a></td> -->
+              <td>
+                {% for tag in dynamic_asset_group.tags %}
+                <span class="label label-primary">{{tag|lower}}</span>
+                {% endfor %}
+              </td>
+              {% if PRO_EDITION %}
+              <td>{{ dynamic_asset_group.teams.all|join:", " }}</td>
+              {% endif %}
+              <!-- <td>{{ asset.cat_list|join:", "|truncatechars:15 }}</td> -->
+              {% if dynamic_asset_group.criticity == 'low' %}
+              <td><span class="label label-low">Low</span></td>
+              {% elif asdynamic_asset_groupset.criticity == "medium" %}
+              <td><span class="label label-warning">Medium</span></td>
+              {% elif dynamic_asset_group.criticity == 'high' %}
+              <td><span class="label label-danger">High</span></td>
+              {% else %}
+              <td><span class="label label-low">Low</span></td>
+              {% endif %}
+              <!-- <td><span class="badge badge-risk-grade-{{ dynamic_asset_group.get_risk_grade }}">{{ dynamic_asset_group.get_risk_grade }}</span></td> -->
+              <td>{{ dynamic_asset_group.updated_at|smartdate }}</td>
+              <td>
+                <button type="button" class="btn btn-default btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/dyngroups/details/{{ dynamic_asset_group.id }}'">
+                  <span class="glyphicon glyphicon-eye-open"></span></button>
+               {% if PRO_EDITION %}
+                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                 <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/dyngroups/edit/{{ dynamic_asset_group.id }}'">
+                   <span class="glyphicon glyphicon-pencil"></span></button>
+                 <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-dynamic-asset-group"
+                    asset-id="{{ dynamic_asset_group.id }}" asset-name="{{ dynamic_asset_group.name }}">
+                    <span class="glyphicon glyphicon-remove"></span></button>
+                 {% endif %}
+               {% else %}
+               <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/dyngroups/{{ dynamic_asset_group.id }}'">
+                 <span class="glyphicon glyphicon-pencil"></span></button>
+               <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-dynamic-asset-group"
+                  asset-id="{{ dynamic_asset_group.id }}" asset-name="{{ dynamic_asset_group.name }}">
+                  <span class="glyphicon glyphicon-remove"></span></button>
+               {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div style="display: inline-flex;">
+          <!-- <ul class="pagination pagination-xs">
+            {% if assets.number == 1 %}
+              <li class="disabled"><span>&laquo;&laquo;</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a></li>
+            {% endif %}
+            {% if assets.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href= "#" onclick="gotopage({{ assets.previous_page_number }}, 'assets');">&laquo;</a>
+            </li>
+            {% else %}
+            <li class="disabled"><span>&laquo;</span></li>
+            {% endif %}
+
+            {% for i in assets.paginator|proper_paginate:assets.number %}
+              {% if assets.number == i %}
+                  <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+              {% else %}
+                  <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'assets');">{{ i }}</a></li>
+              {% endif %}
+            {% endfor %}
+            {% if assets.has_next %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.next_page_number}}, 'assets');">&raquo;</a></li>
+            {% else %}
+              <li class="disabled"><span>&raquo;</span></li>
+            {% endif %}
+            {% if assets.number == assets.paginator.num_pages %}
+              <li class="disabled"><span>⇥</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.paginator.num_pages}}, 'assets');">&raquo;&raquo;</a></li>
+            {% endif %}
+          </ul>
+          <div style="margin: 21px;">
+            <select id="nb_rows_per_page_dag" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
+            dynamic asset groups per page
+          </div>
+        </div> -->
+      </div>
+
     </div>
   </div>
 
@@ -376,6 +524,32 @@ function toggle(source, element) {
           </div>
           Confirm Deleting?
           <button type="button" class="btn btn-xs btn-danger btn-delete-asset-group" data-dismiss="modal">Yes</button>
+          <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Asset Group modal -->
+  <div class="modal fade" id="modal-delete-dynamic-asset-group" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary">
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel">Delete Dynamic Asset Group</h4>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div id="delete-dynamic-asset-group">
+            <!-- Content -->
+          </div>
+          Confirm Deleting?
+          <button type="button" class="btn btn-xs btn-danger btn-delete-dynamic-asset-group" data-dismiss="modal">Yes</button>
           <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
         </div>
       </div>
@@ -575,13 +749,24 @@ function toggle(source, element) {
     // tab selection
     target = url.searchParams.get("target");
     if (target == "asset_group") {
+      $('#dynamicassetgroups_div').removeClass('in active');
       $('#assets_div').removeClass('in active');
       $('#assetgroups_div').addClass('in active');
       $('li.menu_assets').removeClass('active');
       $('li.menu_assetgroups').addClass('active');
+      $('li.menu_dynamicassetgroups').removeClass('active');
+    } else if (target == "dynamic_asset_group") {
+      $('#dynamicassetgroups_div').addClass('in active');
+      $('#assetgroups_div').removeClass('in active');
+      $('#assets_div').removeClass('in active');
+      $('li.menu_dynamicassetgroups').addClass('active');
+      $('li.menu_assetgroups').removeClass('active');
+      $('li.menu_assets').removeClass('active');
     } else {
+      $('#dynamicassetgroups_div').removeClass('in active');
       $('#assetgroups_div').removeClass('in active');
       $('#assets_div').addClass('in active');
+      $('li.menu_dynamicassetgroups').removeClass('active');
       $('li.menu_assetgroups').removeClass('active');
       $('li.menu_assets').addClass('active');
     }

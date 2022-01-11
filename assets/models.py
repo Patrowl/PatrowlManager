@@ -487,6 +487,11 @@ class AssetGroup(models.Model):
                 for f in a.finding_set.filter(created_at__lte=enddate).only('id', 'severity'):
                     findings.append(f)
 
+        # for finding in findings:
+        #     if finding['status'] not in ["false-positive", "duplicate", "closed", "mitigated", "undone", "patched"]:
+        #         risk_level['total'] = risk_level.get('total', 0) + 1
+        #         risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
+
         if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"
         if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0:
@@ -560,6 +565,146 @@ def assetgroup_delete_log(sender, **kwargs):
     AuditLog.objects.create(
         message=message,
         scope='asset', type='assetgroup_delete',
+        request_context=inspect.stack())
+
+
+class DynamicAssetGroup(models.Model):
+    """Class definition of DynamicAssetGroup."""
+
+    # Manager
+    objects = AssetManager()
+
+    # Attributes
+    name = models.CharField(max_length=256, unique=True)
+    criticity = models.CharField(choices=ASSET_CRITICITIES, default='low', max_length=10)
+    risk_level = JSONField(default=get_default_risk_level)
+    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    description = models.CharField(max_length=256, null=True, blank=True)
+    tags = models.ManyToManyField(AssetCategory, blank=True)
+    teams = models.ManyToManyField('users.team', blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        """Metadata options."""
+
+        db_table = 'asset_groups_dynamic'
+
+    def __str__(self):
+        """Return string representation of a DynamicAssetGroup."""
+        return "{}/{}".format(self.id, self.name)
+
+    def save(self, *args, **kwargs):
+        """Override save function to update timestamp on-the-fly."""
+        # update the 'updated_at' entry on each update except on creation
+        if not self._state.adding:
+            self.updated_at = timezone.now()
+        return super(DynamicAssetGroup, self).save(*args, **kwargs)
+
+    def get_assets(self):
+        """Return related assets."""
+        return Asset.objects.filter(categories__in=self.tags.all()).distinct()
+
+    def get_risk_grade(self, history=None):
+        if history:  # history= nb days before
+            self.calc_risk_grade(history=history)
+        return str(self.risk_level['grade'])
+
+    def calc_risk_grade(self, history=None):
+        risk_level = {
+            "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
+            "total": 0, "grade": "-"}
+
+        findings = []
+        if not history:
+            for a in self.get_assets():
+                for f in a.finding_set.all().only('id', 'severity'):
+                    findings.append(f)
+        else:
+            startdate = datetime.datetime.today()
+            enddate = startdate - datetime.timedelta(days=history)
+            for a in self.get_assets():
+                for f in a.finding_set.filter(created_at__lte=enddate).only('id', 'severity'):
+                    findings.append(f)
+
+        for finding in findings:
+            if finding['status'] not in ["false-positive", "duplicate", "closed", "mitigated", "undone", "patched"]:
+                risk_level['total'] = risk_level.get('total', 0) + 1
+                risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
+
+        if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
+            risk_level['grade'] = "-"
+        if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0:
+            risk_level['grade'] = "A"
+        elif risk_level['high'] == 0 and risk_level['medium'] <= 1 and risk_level['low'] <= 5:
+            risk_level['grade'] = "B"
+        elif risk_level['high'] == 0 and risk_level['medium'] <= 5:
+            risk_level['grade'] = "C"
+        elif risk_level['high'] <= 1 and risk_level['medium'] <= 5:
+            risk_level['grade'] = "D"
+        elif risk_level['high'] <= 3:
+            risk_level['grade'] = "E"
+        elif risk_level['high'] > 3:
+            risk_level['grade'] = "F"
+        else:
+            risk_level['grade'] = "n/a"
+
+        if not history:
+            self.risk_level = risk_level
+            self.save()
+        return risk_level
+
+    def get_risk_score(self, history=None, force_calc=False):
+        if force_calc:
+            self.calc_risk_grade()
+        risk_score = 0
+        if self.risk_level['grade'] == "A":
+            risk_score = 100
+        elif self.risk_level['grade'] == "B":
+            risk_score = 200
+        elif self.risk_level['grade'] == "C":
+            risk_score = 300
+        elif self.risk_level['grade'] == "D":
+            risk_score = 400
+        elif self.risk_level['grade'] == "E":
+            risk_score = 500
+        elif self.risk_level['grade'] == "F":
+            risk_score = 600
+        else:
+            risk_score = 0
+
+        risk_score = risk_score + (self.risk_level['low'] * 1)
+        risk_score = risk_score + (self.risk_level['medium'] * 3)
+        risk_score = risk_score + (self.risk_level['high'] * 10)
+
+        return risk_score
+
+
+@receiver(post_save, sender=DynamicAssetGroup)
+def dynamicassetgroup_create_update_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = ""
+    if kwargs['created']:
+        message = "[DynamicAssetGroup] New dynamic asset group created (id={}): {}".format(kwargs['instance'].id, kwargs['instance'])
+        Event.objects.create(message=message, type="CREATE", severity="DEBUG")
+    else:
+        message = "[DynamicAssetGroup] Dynamic asset group '{}' modified (id={})".format(kwargs['instance'], kwargs['instance'].id)
+        Event.objects.create(message=message, type="UPDATE", severity="DEBUG")
+
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='dynamicassetgroup_create_update',
+        request_context=inspect.stack())
+
+
+@receiver(post_delete, sender=DynamicAssetGroup)
+def dynamicassetgroup_delete_log(sender, **kwargs):
+    from events.models import Event, AuditLog
+    message = "[DynamicAssetGroup] Dynamic asset group '{}' deleted (id={})".format(kwargs['instance'], kwargs['instance'].id)
+    Event.objects.create(message=message, type="DELETE", severity="DEBUG")
+    AuditLog.objects.create(
+        message=message,
+        scope='asset', type='dynamicassetgroup_delete',
         request_context=inspect.stack())
 
 

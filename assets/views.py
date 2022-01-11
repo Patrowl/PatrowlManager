@@ -19,7 +19,7 @@ from scans.models import Scan, ScanDefinition
 from users.models import Team, TeamUser
 from common.utils import encoding, pro_group_required
 from .forms import AssetForm, AssetGroupForm, AssetBulkForm, AssetOwnerForm
-from .models import Asset, AssetGroup, AssetOwner, AssetCategory
+from .models import Asset, AssetGroup, AssetOwner, AssetCategory, DynamicAssetGroup
 from .models import ASSET_INVESTIGATION_LINKS
 from .apis import _add_asset_tags
 from .utils import _get_allowed_team
@@ -152,12 +152,40 @@ def list_assets_view(request):
         }
         asset_groups.append(ag)
 
+    # List dynamic asset groups
+    dynamic_asset_groups = []
+    if teamid_selected >= 0:
+        dags = DynamicAssetGroup.objects.for_team(request.user, teamid_selected).prefetch_related('teams', 'tags').all().annotate(tag_list=ArrayAgg('tags__value')).only(
+            "id", "name", "criticity", "updated_at", "risk_level", "teams"
+        )
+    else:
+        dags = DynamicAssetGroup.objects.for_user(request.user).prefetch_related('teams', 'tags').all().annotate(tag_list=ArrayAgg('tags__value')).only(
+            "id", "name", "criticity", "updated_at", "risk_level", "teams"
+        )
+
+    for dynamic_asset_group in dags.order_by(Lower("name")):
+        assets_names = ""
+        if asset_group.asset_list != [None]:
+            assets_names = ", ".join(asset_group.asset_list)
+        dag = {
+            "id": dynamic_asset_group.id,
+            "name": dynamic_asset_group.name,
+            "criticity": dynamic_asset_group.criticity,
+            "tags": dynamic_asset_group.tag_list,
+            "assets": dynamic_asset_group.get_assets(),
+            "updated_at": dynamic_asset_group.updated_at,
+            "teams": dynamic_asset_group.teams
+        }
+        dynamic_asset_groups.append(dag)
+    print(dynamic_asset_groups)
+
     tags = assets_list.values_list('categories__value', flat=True).order_by('categories__value').distinct()
     owners = AssetOwner.objects.all()
 
     return render(request, 'list-assets.html', {
         'assets': assets,
         'asset_groups': asset_groups,
+        'dynamic_asset_groups': dynamic_asset_groups,
         'teams': teams,
         'tags': tags,
         'owners': owners
@@ -765,6 +793,158 @@ def detail_asset_group_view(request, assetgroup_id):
         ag_findings = findings_paginator.page(findings_paginator.num_pages)
 
     return render(request, 'details-asset-group.html', {
+        'asset_group': asset_group,
+        'asset_group_risk_grade': asset_group_risk_grade,
+        'assets': assets,
+        'findings': ag_findings,
+        'findings_stats': findings_stats,
+        'scans_stats': scans_stats,
+        'scans': scans,
+        'scan_defs': scan_defs,
+        'engines_stats': engines_stats,
+        'asset_scopes': list(asset_scopes.items())
+    })
+
+
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def detail_dynamic_asset_group_view(request, assetgroup_id):
+    """Return dynamic asset group details."""
+    asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user).prefetch_related('tags'), id=assetgroup_id)
+
+    # assets_list = asset_group.assets.all().order_by("-risk_level__grade", "criticity", "type")
+    assets_list = asset_group.get_assets().order_by("-risk_level__grade", "criticity", "type")
+
+    findings = Finding.objects.severity_ordering().filter(
+        asset__in=asset_group.get_assets()
+    ).order_by(
+        '-severity_order', 'asset', 'type', 'updated_at'
+    ).only(
+        "severity", "status", "engine_type", "risk_info", "vuln_refs",
+        "title", "id", "solution", "updated_at", "type", "asset_id",
+        "asset_name")
+
+    asset_scopes = {}
+    for scope in EnginePolicyScope.objects.all():
+        asset_scopes.update({
+            scope.name: {
+                'priority': scope.priority,
+                'id': scope.id,
+                'total': 0,
+                'critical': 0,
+                'high': 0,
+                'medium': 0,
+                'low': 0,
+                'info': 0
+            }
+        })
+
+    findings_stats = {
+        'total': 0,
+        'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0,
+        'new': 0, 'ack': 0
+    }
+    engines_stats = {}
+
+    # for finding in findings:
+    #     for fs in finding.scope_list:
+    #         if fs is not None:
+    #             c = asset_scopes[fs]
+    #             asset_scopes[fs].update({'total': c['total']+1, finding.severity: c[finding.severity]+1})
+    #     if finding.engine_type not in engines_stats.keys():
+    #         engines_stats.update({finding.engine_type: 0})
+    #     engines_stats[finding.engine_type] = engines_stats.get(finding.engine_type, 0) + 1
+
+    engines_stats_filter_agg = {}
+    for engine in Engine.objects.values_list('name', flat=True):
+        engines_stats_filter_agg.update({
+            f"engine_{engine}": Count('id', filter=Q(engine_type=engine))
+        })
+
+    engines_scopes_filter_agg = {}
+
+    # Sorry...
+    findings_stats = findings.aggregate(
+        nb_new=Count('id', filter=Q(status='new')),
+        nb_ack=Count('id', filter=Q(status='ack')),
+        nb_critical=Count('id', filter=Q(severity='critical')),
+        nb_high=Count('id', filter=Q(severity='high')),
+        nb_medium=Count('id', filter=Q(severity='medium')),
+        nb_low=Count('id', filter=Q(severity='low')),
+        nb_info=Count('id', filter=Q(severity='info')),
+        total=Count('id'),
+        **engines_stats_filter_agg,
+        **engines_scopes_filter_agg
+    )
+
+    # Sorry again...
+    # for scope in scope_names:
+    #     asset_scopes[scope].update({
+    #         'total': findings_stats['scope_'+scope+'_total'],
+    #         'info': findings_stats['scope_'+scope+'_info'],
+    #         'low': findings_stats['scope_'+scope+'_low'],
+    #         'medium': findings_stats['scope_'+scope+'_medium'],
+    #         'high': findings_stats['scope_'+scope+'_high'],
+    #         'critical': findings_stats['scope_'+scope+'_critical'],
+    #     })
+
+    # Scans
+    # scan_defs = ScanDefinition.objects.filter(
+    #     Q(assetgroups_list__in=[asset_group])
+    # ).annotate(
+    #     engine_type_name=F('engine_type__name'),
+    #     nb_scans=Count('scan')
+    # )
+    scan_defs = ScanDefinition.objects.filter(id=0)
+
+    scan_defs_stats = scan_defs.aggregate(
+        nb_periodic=Count('id', filter=Q(scan_type='periodic')),
+        nb_ondemand=Count('id', filter=Q(scan_type='single')),
+        nb_running=Count('id', filter=Q(scan_type='started')),
+    )
+
+    scans = Scan.objects.filter(scan_definition__in=scan_defs)
+
+    scans_stats = {
+        'performed': len(scans),
+        'defined': len(scan_defs),
+        'periodic': scan_defs_stats['nb_periodic'],
+        'ondemand': scan_defs_stats['nb_ondemand'],
+        'running': scan_defs_stats['nb_running']
+    }
+
+    # calculate automatically risk grade
+    asset_group_risk_grade = {
+        'now': asset_group.get_risk_grade(),
+        # 'day_ago': asset_group.get_risk_grade(history = 1),
+        # 'week_ago': asset_group.get_risk_grade(history = 7),
+        # 'month_ago': asset_group.get_risk_grade(history = 30),
+        # 'year_ago': asset_group.get_risk_grade(history = 365)
+    }
+
+    # Paginations
+    # Pagination assets
+    nb_rows = int(request.GET.get('n_assets', 25))
+    assets_paginator = Paginator(assets_list, nb_rows)
+    page = request.GET.get('p_assets', 1)
+    try:
+        assets = assets_paginator.page(page)
+    except PageNotAnInteger:
+        assets = assets_paginator.page(1)
+    except EmptyPage:
+        assets = assets_paginator.page(assets_paginator.num_pages)
+
+    # Pagination findings
+    nb_rows = int(request.GET.get('n_findings', 50))
+    findings_paginator = Paginator(findings, nb_rows)
+    page = request.GET.get('p_findings', 1)
+    try:
+        ag_findings = findings_paginator.page(page)
+    except PageNotAnInteger:
+        ag_findings = findings_paginator.page(1)
+    except EmptyPage:
+        ag_findings = findings_paginator.page(findings_paginator.num_pages)
+
+    return render(request, 'details-dyn-asset-group.html', {
         'asset_group': asset_group,
         'asset_group_risk_grade': asset_group_risk_grade,
         'assets': assets,

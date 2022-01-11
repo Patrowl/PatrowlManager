@@ -21,6 +21,8 @@ urlpatterns = [
     url(r'^details/(?P<asset_id>[0-9]+)$', views.detail_asset_view, name='detail_asset_view'),
     # # ex: /assets/groups/details/8
     url(r'^groups/details/(?P<assetgroup_id>[0-9]+)$', views.detail_asset_group_view, name='detail_asset_group_view'),
+    # # ex: /assets/dyngroups/details/8
+    url(r'^dyngroups/details/(?P<assetgroup_id>[0-9]+)$', views.detail_dynamic_asset_group_view, name='detail_dynamic_asset_group_view'),
     # ex: /assets/eval/8
     url(r'^eval/(?P<asset_name>[\w\.-]+)$', views.evaluate_asset_risk_view, name='evaluate_asset_risk_view'),
     # ex: /assets/owners/list
@@ -61,6 +63,8 @@ urlpatterns = [
     url(r'^api/v1/delete/(?P<asset_id>[0-9]+)$', apis.delete_asset_api, name='delete_asset_api'),
     # ex: /assets/api/v1/groups/export
     url(r'^api/v1/groups/export$', apis.export_assetgroups_api, name='export_assetgroups_api'),
+    # ex: /assets/api/v1/dyngroups/export
+    url(r'^api/v1/dyngroups/export$', apis.export_dynassetgroups_api, name='export_dynassetgroups_api'),
     # ex: /assets/api/v1/groups/add
     url(r'^api/v1/groups/add$', apis.add_asset_group_api, name='add_asset_group_api'),
     # ex: /assets/api/v1/groups/delete/2

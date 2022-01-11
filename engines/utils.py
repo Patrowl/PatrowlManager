@@ -420,6 +420,7 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         # get the hostnames received and check if they are known in the user' assets
         assets = []
 
+        # Search assets
         for addr in list(finding['target']['addr']):
             asset = Asset.objects.filter(value=addr).first()
             if asset is None:  # asset unknown by the manager

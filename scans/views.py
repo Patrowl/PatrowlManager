@@ -352,7 +352,7 @@ def add_scan_def_view(request):
             "id": p.id,
             "engine": p.engine.id,
             "name": p.name,
-            "scopes": list(p.scopes.values_list("id", flat=True)),
+            "scopes": [pp.id for pp in p.scopes.all()],
         })
 
     if request.method == 'GET' or ScanDefinitionForm(request.POST, user=request.user).errors:
@@ -497,7 +497,7 @@ def add_scan_def_view(request):
 @pro_group_required('ScansManager')
 def edit_scan_def_view(request, scan_def_id):
     request_user_id = request.user.id
-    scan_definition = get_object_or_404(ScanDefinition, id=scan_def_id)
+    scan_definition = get_object_or_404(ScanDefinition.objects.prefetch_related('assets_list', 'assetgroups_list'), id=scan_def_id)
     scan_cats = EnginePolicyScope.objects.all().values()
     # scan_policies = list(EnginePolicy.objects.all().prefetch_related("engine", "scopes"))
     scan_policies = EnginePolicy.objects.prefetch_related("engine", "scopes").all().order_by(Lower('name'))
@@ -516,7 +516,7 @@ def edit_scan_def_view(request, scan_def_id):
             "id": p.id,
             "engine": p.engine_id,
             "name": p.name,
-            "scopes": list(p.scopes.values_list("id", flat=True)),
+            "scopes": [pp.id for pp in p.scopes.all()],
         })
 
     form = None

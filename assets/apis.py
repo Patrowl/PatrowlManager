@@ -12,7 +12,7 @@ from wsgiref.util import FileWrapper
 from rest_framework.decorators import api_view
 from common.utils import pro_group_required
 
-from .models import Asset, AssetGroup, AssetCategory
+from .models import Asset, AssetGroup, AssetCategory, DynamicAssetGroup
 from .models import AssetOwner, AssetOwnerContact, AssetOwnerDocument
 from .models import ASSET_CRITICITIES
 from .forms import AssetOwnerContactForm, AssetOwnerDocumentForm, AssetGroupForm
@@ -367,6 +367,44 @@ def export_assetgroups_api(request):
 
     for assetgroup in AssetGroup.objects.for_user(request.user).all().order_by('name'):
         for asset in assetgroup.assets.all():
+            try:
+                asset_owner = asset.owner.username
+            except Exception:
+                asset_owner = ""
+
+            writer.writerow([
+                smart_str(asset.value),
+                asset.name,
+                asset.type,
+                smart_str(asset.description),
+                asset.criticity,
+                smart_str(assetgroup.name),
+                ",".join([a.value for a in asset.categories.all()]),
+                asset_owner,
+                ",".join([t.name for t in asset.teams.all()]),
+                asset.exposure,
+                asset.created_at
+            ])
+    return response
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def export_dynassetgroups_api(request):
+    AuditLog.objects.create(
+        message="Export dynamic asset groups as CSV file".format(request.user),
+        scope='asset', type='dynassetgroups_export_csv', owner=request.user, context=request)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="patrowl_dyn_asset_groups.csv"'
+    writer = csv.writer(response, delimiter=';')
+
+    writer.writerow([
+        'asset_value', 'asset_name', 'asset_type', 'asset_description',
+        'asset_criticality', 'asset_groupname', 'asset_tags', 'owner', 'team', 'asset_exposure',
+        'created_at'])
+
+    for assetgroup in DynamicAssetGroup.objects.for_user(request.user).all().order_by('name'):
+        for asset in assetgroup.get_assets():
             try:
                 asset_owner = asset.owner.username
             except Exception:

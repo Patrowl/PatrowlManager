@@ -98,17 +98,17 @@ div.risk-trends {
         <dd>
           {% if PRO_EDITION %}
             {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
-              {% for tag in asset_group.categories.all %}
+              {% for tag in asset_group.tags.all %}
               <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}"></i></span>
               {% endfor %}
             <a href="#modal-edit-asset-group-tags" data-toggle="modal" data-target="#modal-edit-asset-group-tags">+ add</a>
             {% else %}
-              {% for tag in asset_group.categories.all %}
+              {% for tag in asset_group.tags.all %}
               <span class="label label-primary">{{tag.value|lower}}</span>
               {% endfor %}
             {% endif %}
           {% else %}
-          {% for tag in asset_group.categories.all %}
+          {% for tag in asset_group.tags.all %}
           <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}"></i></span>
           {% endfor %}
           <a href="#modal-edit-asset-group-tags" data-toggle="modal" data-target="#modal-edit-asset-group-tags">+ add</a>
@@ -883,7 +883,7 @@ div.risk-trends {
       <div class="modal-body">
         <div id="asset-tags">
           <!-- Content -->
-          <strong>Current tags</strong>: {{ asset_group.categories.all|join:", " }}<br/>
+          <strong>Current tags</strong>: {{ asset_group.tags.all|join:", " }}<br/>
           <p class="text-warning">
             Warning: <br/>
             1/ All sub-tags will be deleted if a parent tag is added<br/>
