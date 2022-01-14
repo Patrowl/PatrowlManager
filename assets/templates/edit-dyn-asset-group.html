@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load patrowl_tags %}
+{% block content %}
+<style>
+
+#scrollable-dropdown-menu .tt-menu {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.no_padding {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+label.radio {
+  margin-left: 20px;
+}
+</style>
+
+<ul class="breadcrumb">
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
+  <li class="active">edit dynamic asset group [<a href="{% url 'list_assets_view' %}">back</a>]</li>
+</ul>
+
+<div class="container">
+  <form action="/assets/dyngroups/edit/{{ assetgroup_id }}" method="post" class="form-horizontal">
+    <legend>Edit a dynamic asset group</legend>
+    {% csrf_token %}
+     <!-- Title -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_name">Title</label>
+      <div class="col-sm-5">
+        <input id="id_name" name="name" type="text" placeholder="Enter a title..." required class="form-control" value="{{asset_group.name}}"/>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_description">Description</label>
+      <div class="col-sm-5">
+        <textarea cols="40" id="id_description" name="description" placeholder="Enter a quick description..." rows="5" class="form-control">{{asset_group.description}}</textarea>
+      </div>
+    </div>
+
+    <!-- Criticality -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_criticity">Criticality</label>
+      <div class="col-sm-5">
+        <select name="criticity" class="form-control form-control-sm" id="id_criticity">
+          <option value="low" {% if asset_group.criticity == "low" %}selected{%endif%}>low</option>
+          <option value="medium" {% if asset_group.criticity == "medium" %}selected{%endif%}>medium</option>
+          <option value="high" {% if asset_group.criticity == "high" %}selected{%endif%}>high</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_tags">Tags</label>
+      <div class="col-sm-5">
+        <select class="form-control form-control-sm" id="id_tags" name="tags" size="4" multiple>
+          {% for tag in tags_list %}
+          {% if tag.value in asset_group.tags.all|attr:"value" %}
+          <option value="{{tag.id}}" selected>{{tag.value}}</option>
+          {% else %}
+          <option value="{{tag.id}}">{{tag.value}}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Teams -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_teams">Teams</label>
+      <div class="col-sm-5">
+        <select class="form-control form-control-sm" id="id_teams" name="teams" size="4" multiple>
+          {% for team in teams_list %}
+            {% if team.name in asset_group.teams.all|attr:"name" %}
+            <option value="{{team.id}}" selected>{{team.name}}</option>
+            {% else %}
+            <option value="{{team.id}}">{{team.name}}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group submit-div">
+      <div class="col-sm-2">
+      </div>
+      <div class="col-sm-5">
+        <button type="submit" class="btn btn-warning col-sm-12 form-control-sm">Modify dynamic asset group</button>
+        <!-- <br/>
+        <br/>
+        <button class="btn btn-danger col-sm-12 form-control-sm" type="button" data-toggle="modal" data-target="#modal-delete-dynamic-asset-group"
+          asset-group-id="{{ asset_group.id }}" asset-group-value="{{ asset_group.name }}">Delete</button> -->
+      </div>
+    </div>
+  </form>
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<!-- Delete Dynamic Asset Group modal -->
+<div class="modal fade" id="modal-dynamic-delete-asset-group" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Delete Dynamic Asset Group</h4>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div id="delete-dynamic-asset-group">
+          <!-- Content -->
+        </div>
+        Confirm Deleting?
+        <button type="button" class="btn btn-xs btn-danger btn-delete-dynamic-asset-group" data-dismiss="modal">Yes</button>
+        <button type="button" class="btn btn-xs btn-primary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function() {
+
+    // Delete dynamic asset group modal
+    $("#modal-delete-dynamic-asset-group").on('show.bs.modal', function (e) {
+      id = e.relatedTarget.getAttribute('asset-group-id');
+      asset_group_value = e.relatedTarget.getAttribute('asset-group-value');
+      $("div#delete-dynamic-asset-group").attr('asset-group-id', id);
+      $("div#delete-dynamic-asset-group").html("Dynamic Asset Group Name: <strong>"+asset_group_value+"</strong><br/><br/>");
+    });
+    $("button.btn-delete-dynamic-asset-group").on('click', function (e) {
+      id = $("div#delete-dynamic-asset-group").attr('asset-group-id');
+      delete_dynamic_asset_group_url = "/assets/deletedyngroup/"+id;
+      var request = $.ajax({
+        url: delete_dynamic_asset_group_url,
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        success: function(){
+          window.location = "{% url 'list_assets_view' %}";
+        }
+      });
+    });
+  });
+
+</script>
+
+{% endblock %}

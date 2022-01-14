@@ -352,6 +352,49 @@ def export_assets_api(request, assetgroup_id=None):
 
 @api_view(['GET'])
 @pro_group_required('AssetsManager', 'AssetsViewer')
+def export_dyn_assets_api(request, assetgroup_id=None):
+    AuditLog.objects.create(
+        message="Export assets as CSV file".format(request.user),
+        scope='asset', type='assets_export_csv', owner=request.user, context=request)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="patrowl_assets.csv"'
+
+    writer = csv.writer(response, delimiter=';')
+
+    assets = []
+    if assetgroup_id:
+        asset_group = DynamicAssetGroup.objects.for_user(request.user).get(id=assetgroup_id)
+        response['Content-Disposition'] = 'attachment; filename="patrowl_assetgroup_{}.csv"'.format(slugify(asset_group.name))
+        for asset in asset_group.get_assets():
+            assets.append(asset)
+    else:
+        assets = Asset.objects.for_user(request.user).all()
+
+    writer.writerow([
+        'asset_value', 'asset_name', 'asset_type', 'asset_description',
+        'asset_criticality', 'asset_tags', 'owner', 'team', 'asset_exposure', 'created_at'])
+    for asset in assets:
+        try:
+            asset_owner = asset.owner.username
+        except Exception:
+            asset_owner = ""
+        writer.writerow([
+            smart_str(asset.value),
+            asset.name,
+            asset.type,
+            smart_str(asset.description),
+            asset.criticity,
+            ",".join([a.value for a in asset.categories.all()]),
+            asset_owner,
+            ",".join([t.name for t in asset.teams.all()]),
+            asset.exposure,
+            asset.created_at
+        ])
+    return response
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def export_assetgroups_api(request):
     AuditLog.objects.create(
         message="Export asset groups as CSV file".format(request.user),
@@ -563,6 +606,26 @@ def delete_assetgroup_api(request, assetgroup_id):
     return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
 
 
+@api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
+def delete_dyn_assetgroup_api(request, assetgroup_id):
+    assetgroup = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=assetgroup_id)
+    assetgroup.delete()
+
+    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+
+
+@api_view(['POST', 'DELETE'])
+@pro_group_required('AssetsManager')
+def delete_dyn_assetgroups_api(request):
+    dags = request.data
+    for dynamic_asset_group_id in dags:
+        a = DynamicAssetGroup.objects.for_user(request.user).get(id=dynamic_asset_group_id)
+        a.delete()
+
+    return JsonResponse({'status': 'success'}, json_dumps_params={'indent': 2})
+
+
 @api_view(['POST'])
 @pro_group_required('AssetsManager')
 def edit_assetgroup_api(request, assetgroup_id):
@@ -647,6 +710,17 @@ def add_asset_group_tags_api(request, assetgroup_id):
 
 @api_view(['POST'])
 @pro_group_required('AssetsManager')
+def add_dyn_asset_group_tags_api(request, assetgroup_id):
+    if request.method == 'POST':
+        asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=assetgroup_id)
+        new_tag = _add_asset_tags(asset_group, request.POST.getlist('input-search-tags')[0])
+        asset_group.tags.add(new_tag)
+
+    return redirect('detail_dynamic_asset_group_view', assetgroup_id=assetgroup_id)
+
+
+@api_view(['POST'])
+@pro_group_required('AssetsManager')
 def delete_asset_tags_api(request, asset_id):
     tag_id = request.POST.get('tag_id', None)
     try:
@@ -679,6 +753,23 @@ def delete_asset_group_tags_api(request, assetgroup_id):
         assetgroup.categories.remove(tag)  # @todo: check error cases
 
     return redirect('detail_asset_group_view', assetgroup_id=assetgroup_id)
+
+
+@api_view(['POST'])
+@pro_group_required('AssetsManager')
+def delete_dyn_asset_group_tags_api(request, assetgroup_id):
+    tag_id = request.POST.get('tag_id', None)
+    try:
+        tag = AssetCategory.objects.get(id=tag_id)
+    except AssetCategory.DoesNotExist:
+        Event.objects.create(message="[AssetCategory/delete_dyn_asset_group_tags_api()] DynamicAssetGroup with id '{}' was not found.".format(assetgroup_id), type="ERROR", severity="ERROR")
+        return redirect('detail_dynamic_asset_group_view', assetgroup_id=assetgroup_id)
+
+    if request.method == 'POST':
+        assetgroup = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=assetgroup_id)
+        assetgroup.tags.remove(tag)  # @todo: check error cases
+
+    return redirect('detail_dynamic_asset_group_view', assetgroup_id=assetgroup_id)
 
 
 @api_view(['GET'])
@@ -788,6 +879,19 @@ def get_asset_group_report_html_api(request, asset_group_id):
 
 @api_view(['GET'])
 @pro_group_required('AssetsManager', 'AssetsViewer')
+def get_dyn_asset_group_report_html_api(request, asset_group_id):
+    asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=asset_group_id)
+    assets = asset_group.get_assets()
+
+    # OPTIMIZE: findings
+
+    return render(request, 'report-assetgroup-findings.html', {
+        'asset_group': asset_group,
+        'assets': assets})
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
 def get_asset_group_report_json_api(request, asset_group_id):
     asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related("assets"), id=asset_group_id)
 
@@ -815,7 +919,41 @@ def get_asset_group_report_json_api(request, asset_group_id):
             'asset': asset_dict,
             'findings': findings_tmp,
             'findings_stats': findings_stats
-            })
+        })
+
+    return JsonResponse(assets, safe=False)
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def get_dyn_asset_group_report_json_api(request, asset_group_id):
+    asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=asset_group_id)
+
+    assets = list()
+    for asset in asset_group.get_assets():
+
+        findings_tmp = list()
+        findings_stats = {}
+
+        # @todo: invert loops
+        for sev in ["critical", "high", "medium", "low", "info"]:
+            tmp = Finding.objects.filter(asset=asset.id, severity=sev).order_by('type')
+            tmp_count = tmp.count()
+            findings_stats.update({sev: tmp_count})
+            if tmp_count > 0:
+                for f in tmp:
+                    tmp_f = model_to_dict(f, exclude=["scopes"])
+                    tmp_f.update({"scopes": [ff.name for ff in f.scopes.all()]})
+                    findings_tmp.append(tmp_f)
+
+        asset_dict = model_to_dict(asset, exclude=["categories", "teams"])
+        asset_tags = [tag.value for tag in asset.categories.all()]
+        asset_dict.update({"categories": asset_tags})
+        assets.append({
+            'asset': asset_dict,
+            'findings': findings_tmp,
+            'findings_stats': findings_stats
+        })
 
     return JsonResponse(assets, safe=False)
 
@@ -840,6 +978,11 @@ def get_asset_group_report_csv_api(request, asset_group_id):
         'found_at', 'updated_at'
     ])
 
+    try:
+        scan_engine_name = f.scan.engine.name
+    except Exception:
+        scan_engine_name = ""
+
     for asset in asset_group.assets.all():
         for f in Finding.objects.filter(asset=asset.id).order_by('severity_num'):
             links = ""
@@ -855,12 +998,63 @@ def get_asset_group_report_csv_api(request, asset_group_id):
                 ", ".join([ff.name for ff in f.scopes.all()]),
                 ", ".join(f.tags),
                 links,
-                f.engine_type, f.scan.engine.name,
+                f.engine_type, scan_engine_name,
                 smart_str(f.scan.title), smart_str(f.scan.engine_policy.name),
                 f.found_at, f.updated_at
             ])
 
     return response
+
+
+@api_view(['GET'])
+@pro_group_required('AssetsManager', 'AssetsViewer')
+def get_dyn_asset_group_report_csv_api(request, asset_group_id):
+    asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=asset_group_id)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="patrowl_dynassetgroup_{}.csv"'.format(slugify(asset_group.name))
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'asset_value',
+        'id', 'title', 'description', 'solution',
+        'type', 'severity', 'score',
+        'status', 'comments',
+        'scopes',
+        'tags',
+        'links',
+        'engine_type', 'engine_name',
+        'scan_title', 'scan_policy',
+        'found_at', 'updated_at'
+    ])
+
+    for asset in asset_group.get_assets():
+        for f in Finding.objects.filter(asset=asset.id).order_by('severity_num'):
+            links = ""
+            scan_engine_name = ""
+            try:
+                links = ", ".join(f.links)
+            except Exception:
+                pass
+
+            try:
+                scan_engine_name = f.scan.engine.name
+            except Exception:
+                pass
+
+            writer.writerow([
+                smart_str(asset.value),
+                f.id, smart_str(f.title), smart_str(f.description), smart_str(f.solution),
+                f.type, f.severity, f.score,
+                f.status, smart_str(f.comments),
+                ", ".join([ff.name for ff in f.scopes.all()]),
+                ", ".join(f.tags),
+                links,
+                f.engine_type, scan_engine_name,
+                smart_str(f.scan.title), smart_str(f.scan.engine_policy.name),
+                f.found_at, f.updated_at
+            ])
+
+    return response
+
 
 @api_view(['POST'])
 @pro_group_required('AssetsManager')

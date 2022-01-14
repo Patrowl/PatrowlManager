@@ -60,16 +60,16 @@ div.risk-trends {
 
 <ul class="breadcrumb">
   <li><a href="{% url 'list_assets_view' %}">assets</a></li>
-  <li><a href="{% url 'list_assets_view' %}?target=asset_group">groups</a></li>
+  <li><a href="{% url 'list_assets_view' %}?target=dynamic_asset_group">dynamic groups</a></li>
 
   {% if PRO_EDITION %}
     {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
-    <li class="active">details for: {{ asset_group.name }} [<a href='/assets/groups/edit/{{ asset_group.id }}'>edit</a>]</li>
+    <li class="active">details for: {{ asset_group.name }} [<a href='/assets/dyngroups/edit/{{ asset_group.id }}'>edit</a>]</li>
     {% else %}
     <li class="active">details for: {{ asset_group.name }}</li>
     {% endif %}
   {% else %}
-  <li class="active">details for: {{ asset_group.name }} [<a href='/assets/groups/edit/{{ asset_group.id }}'>edit</a>]</li>
+  <li class="active">details for: {{ asset_group.name }} [<a href='/assets/dyngroups/edit/{{ asset_group.id }}'>edit</a>]</li>
   {% endif %}
 </ul>
 
@@ -101,7 +101,7 @@ div.risk-trends {
               {% for tag in asset_group.tags.all %}
               <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}"></i></span>
               {% endfor %}
-            <a href="#modal-edit-asset-group-tags" data-toggle="modal" data-target="#modal-edit-asset-group-tags">+ add</a>
+            <a href="#modal-edit-dynamic-asset-group-tags" data-toggle="modal" data-target="#modal-edit-dynamic-asset-group-tags">+ add</a>
             {% else %}
               {% for tag in asset_group.tags.all %}
               <span class="label label-primary">{{tag.value|lower}}</span>
@@ -111,7 +111,7 @@ div.risk-trends {
           {% for tag in asset_group.tags.all %}
           <span class="label label-primary">{{tag.value|lower}} <i class="glyphicon glyphicon-remove text-warning delete-tag-btn" tag-id="{{tag.id}}"></i></span>
           {% endfor %}
-          <a href="#modal-edit-asset-group-tags" data-toggle="modal" data-target="#modal-edit-asset-group-tags">+ add</a>
+          <a href="#modal-edit-dynamic-asset-group-tags" data-toggle="modal" data-target="#modal-edit-dynamic-asset-group-tags">+ add</a>
           {% endif %}
         </dd>
 
@@ -129,13 +129,13 @@ div.risk-trends {
 
         <dt>Download report</dt>
         <dd>
-          <a href="/assets/api/v1/groups/report/json/{{ asset_group.id }}">json</a> -
-          <a href="/assets/api/v1/groups/report/csv/{{ asset_group.id }}">csv</a> -
-          <a href="/assets/api/v1/groups/report/html/{{ asset_group.id }}">html</a>
+          <a href="/assets/api/v1/dyngroups/report/json/{{ asset_group.id }}">json</a> -
+          <a href="/assets/api/v1/dyngroups/report/csv/{{ asset_group.id }}">csv</a> -
+          <a href="/assets/api/v1/dyngroups/report/html/{{ asset_group.id }}">html</a>
         </dd>
         <dt>Export assets</dt>
         <dd>
-          <a href="{% url 'export_assets_api' asset_group.id %}">CSV</a>
+          <a href="{% url 'export_dyn_assets_api' asset_group.id %}">CSV</a>
         </dd>
       </dl>
     </div><!-- End of first col -->
@@ -255,7 +255,7 @@ div.risk-trends {
 
 <div class="container-fluid">
   <ul class="nav nav-tabs" id="menu_tabs_ul">
-    <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div">Assets ({{assets.number}})</a></li>
+    <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div">Assets ({{assets|length}})</a></li>
     <li class="menu_findings"><a data-toggle="tab"  href="#findings_div">Findings ({{findings_stats.total}})</a></li>
     <li class="menu_remediations"><a data-toggle="tab" href="#remediations_div">Remediations</a></li>
     <li class="menu_scans"><a data-toggle="tab" href="#scans_div">Scans</a></li>
@@ -866,7 +866,7 @@ div.risk-trends {
 </div>
 
 <!-- Edit Asset Modal -->
-<div class="modal fade" id="modal-edit-asset-group-tags" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modal-edit-dynamic-asset-group-tags" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <!-- Modal Header -->
@@ -889,7 +889,7 @@ div.risk-trends {
             1/ All sub-tags will be deleted if a parent tag is added<br/>
             2/ Parent tag will be deleted if a child tag is added</p>
 
-          <form class="search-asset-group-tags-form" action="/assets/api/v1/groups/details/{{asset_group.id}}/add_tag" method="post">
+          <form class="search-dynamic-asset-group-tags-form" action="/assets/api/v1/dyngroups/details/{{asset_group.id}}/add_tag" method="post">
             {% csrf_token %}
             <input type="text" id="input-search-tags" name="input-search-tags"/><button class="btn btn-xs btn-warning" type="submit">+</button>
           </form>
@@ -1065,7 +1065,7 @@ div.risk-trends {
 
     // Delete tag
     $("i.delete-tag-btn").on('click', function(eventObject) {
-      del_url="/assets/api/v1/groups/details/{{asset_group.id}}/del_tag"
+      del_url="/assets/api/v1/dyngroups/details/{{asset_group.id}}/del_tag"
       tag_id = eventObject.currentTarget.getAttribute('tag-id');
       var request = $.ajax({
         url: del_url,
@@ -1093,7 +1093,7 @@ div.risk-trends {
           });
        },
       minLength: 2,
-      appendTo: ".search-asset-group-tags-form",
+      appendTo: ".search-dynamic-asset-group-tags-form",
       autoFocus: true
     });
 

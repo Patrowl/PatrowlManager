@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+
+#scrollable-dropdown-menu .tt-menu {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.no_padding {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+label.radio {
+  margin-left: 20px;
+}
+</style>
+
+<ul class="breadcrumb">
+  <li><a href="{% url 'list_assets_view' %}">assets</a></li>
+  <li class="active">add new dynamic asset group manually [<a href="{% url 'list_assets_view' %}">back</a>]</li>
+</ul>
+
+<div class="container">
+  <form action="{% url 'add_dyn_asset_group_view' %}" method="post" class="form-horizontal" id="add-dyn-asset-group-form">
+    <legend>Add a dynamic asset group</legend>
+    {% csrf_token %}
+
+
+      <!-- Title -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_name">Title</label>
+      <div class="col-sm-5">
+        <input id="id_name" name="name" type="text" placeholder="Enter a title..." required class="form-control"/>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_description">Description</label>
+      <div class="col-sm-5">
+        <textarea cols="40" id="id_description" name="description" placeholder="Enter a quick description..." rows="5" class="form-control"></textarea>
+      </div>
+    </div>
+
+    <!-- Criticality -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_criticity">Criticality</label>
+      <div class="col-sm-5">
+        <select name="criticity" class="form-control form-control-sm" id="id_criticity">
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_tags">Tags</label>
+      <div class="col-sm-5">
+        <select class="form-control form-control-sm" id="id_tags" name="tags" size="4" multiple>
+          {% for tag in tags_list %}
+          <option value="{{tag.id}}">{{tag.value}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Teams -->
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="id_teams">Teams</label>
+      <div class="col-sm-5">
+        <select class="form-control form-control-sm" id="id_teams" name="teams" size="4" multiple>
+          {% for team in teams_list %}
+          <option value="{{team.id}}">{{team.name}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group submit-div">
+      <div class="col-sm-2">
+      </div>
+      <div class="col-sm-5">
+        <button type="submit" class="btn btn-warning col-sm-12">Create a new dynamic asset group</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="notifications">
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+</div>
+{% endblock %}

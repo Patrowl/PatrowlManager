@@ -193,7 +193,7 @@ function toggle(source, element) {
           </tbody>
         </table>
 
-        <!-- Pagination -->
+        <!-- Assets Pagination -->
         <div style="display: inline-flex;">
           <ul class="pagination pagination-xs">
             {% if assets.number == 1 %}
@@ -222,13 +222,13 @@ function toggle(source, element) {
               <li class="disabled"><span>&raquo;</span></li>
             {% endif %}
             {% if assets.number == assets.paginator.num_pages %}
-              <li class="disabled"><span>⇥</span></li>
+              <li class="disabled"><span>&raquo;&raquo;</span></li>
             {% else %}
               <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.paginator.num_pages}}, 'assets');">&raquo;&raquo;</a></li>
             {% endif %}
           </ul>
           <div style="margin: 21px;">
-            <select id="nb_rows_per_page" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+            <select id="nb_assets_per_page" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
               <option value="20" selected>20</option>
               <option value="50">50</option>
               <option value="100">100</option>
@@ -315,6 +315,51 @@ function toggle(source, element) {
         {% endfor %}
         </tbody>
         </table>
+
+        <!-- Asset Groups Pagination -->
+        <div style="display: inline-flex;">
+          <ul class="pagination pagination-xs">
+            {% if asset_groups.number == 1 %}
+              <li class="disabled"><span>&laquo;&laquo;</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'asset_group');">&laquo;&laquo;</a></li>
+            {% endif %}
+            {% if asset_groups.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href= "#" onclick="gotopage({{ asset_groups.previous_page_number }}, 'asset_group');">&laquo;</a>
+            </li>
+            {% else %}
+            <li class="disabled"><span>&laquo;</span></li>
+            {% endif %}
+
+            {% for i in asset_groups.paginator|proper_paginate:asset_groups.number %}
+              {% if asset_groups.number == i %}
+                  <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+              {% else %}
+                  <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'asset_group');">{{ i }}</a></li>
+              {% endif %}
+            {% endfor %}
+            {% if asset_groups.has_next %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{asset_groups.next_page_number}}, 'asset_group');">&raquo;</a></li>
+            {% else %}
+              <li class="disabled"><span>&raquo;</span></li>
+            {% endif %}
+            {% if asset_groups.number == asset_groups.paginator.num_pages %}
+              <li class="disabled"><span>&raquo;&raquo;</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{asset_groups.paginator.num_pages}}, 'asset_group');">&raquo;&raquo;</a></li>
+            {% endif %}
+          </ul>
+          <div style="margin: 21px;">
+            <select id="nb_asset_groups_per_page" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
+            asset groups per page
+          </div>
+        </div>
       </div>
 
       <div id="dynamicassetgroups_div" class="tab-pane fade">
@@ -325,18 +370,14 @@ function toggle(source, element) {
               Actions
               <span class="caret"></span>
             </button>
-            <!-- <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
-              <li><a href="{% url 'export_assets_api' %}">> Export assets (CSV)</a></li>
-              <li><a href="{% url 'refresh_all_asset_grade_api' %}" class="text-danger">>> Refresh all scores</a></li>
+            <ul class="dropdown-menu" aria-labelledby="dropdown-menu-sort" style="left: 15px;">
+              <!-- <li><a href="{% url 'export_assets_api' %}">> Export assets (CSV)</a></li> -->
+              <!-- <li><a href="{% url 'refresh_all_asset_grade_api' %}" class="text-danger">>> Refresh all scores</a></li> -->
 
               {% if PRO_EDITION %}
                 {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
-                <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
-                <li><a class="btn-asset-bulkadd" href="{% url 'bulkadd_asset_view' %}">+ Add new assets in bulk</a></li>
-                <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
-                    <li><a data-target="#modal-update-group" data-toggle="modal"  href="#">+ Update Group of selected assets</a></li>
-                    <li><a data-target="#modal-update-owner" data-toggle="modal"  href="#">+ Update Owner of selected assets</a></li>
-                <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+                <li><a class="btn-dynamic-asset-group-add" href="{% url 'add_dyn_asset_group_view' %}">+ Add a new dynamic asset group manually</a></li>
+                <li><a class="btn-delete-selected-dynamic-asset-groups" href="#">! Delete selected assets (no confirm)</a></li>
                 {% endif %}
               {% else %}
               <li><a class="btn-asset-add" href="{% url 'add_asset_view' %}">+ Add a new asset manually</a></li>
@@ -344,9 +385,9 @@ function toggle(source, element) {
               <li><a data-target="#modal-update-assets" data-toggle="modal"  href="#">+ Update criticality of selected assets</a></li>
                   <li><a data-target="#modal-update-group" data-toggle="modal"  href="#">+ Update Group of selected assets</a></li>
                   <li><a data-target="#modal-update-owner" data-toggle="modal"  href="#">+ Update Owner of selected assets</a></li>
-              <li><a class="btn-delete-selected" href="#">! Delete selected assets (no confirm)</a></li>
+              <li><a class="btn-delete-selected-dynamic-asset-groups" href="#">! Delete selected assets (no confirm)</a></li>
               {% endif %}
-            </ul> -->
+            </ul>
           </div>
         </div>
 
@@ -355,15 +396,15 @@ function toggle(source, element) {
           <thead>
             <tr>
               <th data-field="cb"><input type="checkbox" onClick="toggle(this, 'dynamicassetgroups')" /></th>
-              <th data-field="name"  onclick="sortby('name', 'dynamicassetgroups');">Name</th>
+              <th data-field="name"  onclick="sortby('name', 'dynamic_asset_group');">Name</th>
               <th data-field="tags">Tags</th>
               {% if PRO_EDITION %}
               <th data-field="teams">Teams</th>
               {% endif %}
               <!-- <th data-field="categories">Tags</th> -->
-              <th data-field="criticity" onclick="sortby('criticity_num,-risk_level__grade', 'assets');">Criticality</th>
+              <th data-field="criticity" onclick="sortby('criticity_num,-risk_level__grade', 'dynamic_asset_group');">Criticality</th>
               <!-- <th data-field="score" onclick="sortby('-risk_level__grade,criticity_num', 'assets');">Score</th> -->
-              <th data-field="updated_at" onclick="sortby('-updated_at', 'assets');">Last update</th>
+              <th data-field="updated_at" onclick="sortby('-updated_at', 'dynamic_asset_group');">Last update</th>
               <th data-field="actions">Actions</th>
             </tr>
           </thead>
@@ -401,14 +442,14 @@ function toggle(source, element) {
                  <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/dyngroups/edit/{{ dynamic_asset_group.id }}'">
                    <span class="glyphicon glyphicon-pencil"></span></button>
                  <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-dynamic-asset-group"
-                    asset-id="{{ dynamic_asset_group.id }}" asset-name="{{ dynamic_asset_group.name }}">
+                    asset-group-id="{{ dynamic_asset_group.id }}" asset-group-name="{{ dynamic_asset_group.name }}">
                     <span class="glyphicon glyphicon-remove"></span></button>
                  {% endif %}
                {% else %}
                <button type="button" class="btn btn-warning btn-xs" aria-haspopup="true" aria-expanded="false" onclick="location.href='/assets/dyngroups/{{ dynamic_asset_group.id }}'">
                  <span class="glyphicon glyphicon-pencil"></span></button>
                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-dynamic-asset-group"
-                  asset-id="{{ dynamic_asset_group.id }}" asset-name="{{ dynamic_asset_group.name }}">
+                  asset-group-id="{{ dynamic_asset_group.id }}" asset-group-name="{{ dynamic_asset_group.name }}">
                   <span class="glyphicon glyphicon-remove"></span></button>
                {% endif %}
               </td>
@@ -417,42 +458,42 @@ function toggle(source, element) {
           </tbody>
         </table>
 
-        <!-- Pagination -->
+        <!-- Dynamic Asset Groups Pagination -->
         <div style="display: inline-flex;">
-          <!-- <ul class="pagination pagination-xs">
-            {% if assets.number == 1 %}
+          <ul class="pagination pagination-xs">
+            {% if dynamic_asset_groups.number == 1 %}
               <li class="disabled"><span>&laquo;&laquo;</span></li>
             {% else %}
-              <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'assets');">&laquo;&laquo;</a></li>
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage(1, 'dynamic_asset_group');">&laquo;&laquo;</a></li>
             {% endif %}
-            {% if assets.has_previous %}
+            {% if dynamic_asset_groups.has_previous %}
             <li class="page-item">
-              <a class="page-link" href= "#" onclick="gotopage({{ assets.previous_page_number }}, 'assets');">&laquo;</a>
+              <a class="page-link" href= "#" onclick="gotopage({{ dynamic_asset_groups.previous_page_number }}, 'dynamic_asset_group');">&laquo;</a>
             </li>
             {% else %}
             <li class="disabled"><span>&laquo;</span></li>
             {% endif %}
 
-            {% for i in assets.paginator|proper_paginate:assets.number %}
-              {% if assets.number == i %}
+            {% for i in dynamic_asset_groups.paginator|proper_paginate:dynamic_asset_groups.number %}
+              {% if dynamic_asset_groups.number == i %}
                   <li class="page-item active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
               {% else %}
-                  <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'assets');">{{ i }}</a></li>
+                  <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{i}}, 'dynamic_asset_group');">{{ i }}</a></li>
               {% endif %}
             {% endfor %}
-            {% if assets.has_next %}
-              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.next_page_number}}, 'assets');">&raquo;</a></li>
+            {% if dynamic_asset_groups.has_next %}
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{dynamic_asset_groups.next_page_number}}, 'dynamic_asset_group');">&raquo;</a></li>
             {% else %}
               <li class="disabled"><span>&raquo;</span></li>
             {% endif %}
-            {% if assets.number == assets.paginator.num_pages %}
-              <li class="disabled"><span>⇥</span></li>
+            {% if dynamic_asset_groups.number == dynamic_asset_groups.paginator.num_pages %}
+              <li class="disabled"><span>&raquo;&raquo;</span></li>
             {% else %}
-              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{assets.paginator.num_pages}}, 'assets');">&raquo;&raquo;</a></li>
+              <li class="page-item"><a class="page-link" href="#" onclick="gotopage({{dynamic_asset_groups.paginator.num_pages}}, 'dynamic_asset_group');">&raquo;&raquo;</a></li>
             {% endif %}
           </ul>
           <div style="margin: 21px;">
-            <select id="nb_rows_per_page_dag" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
+            <select id="nb_dynamic_asset_groups_per_page" class="form-control form-control-xs" style="width:auto; display:inline-block; padding:0;">
               <option value="20" selected>20</option>
               <option value="50">50</option>
               <option value="100">100</option>
@@ -460,8 +501,7 @@ function toggle(source, element) {
             </select>
             dynamic asset groups per page
           </div>
-        </div> -->
-      </div>
+        </div>
 
     </div>
   </div>
@@ -530,7 +570,7 @@ function toggle(source, element) {
     </div>
   </div>
 
-  <!-- Delete Asset Group modal -->
+  <!-- Delete Dynamic Asset Group modal -->
   <div class="modal fade" id="modal-delete-dynamic-asset-group" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -626,7 +666,7 @@ function toggle(source, element) {
     </div>
   </div>
 
-        <!-- Update Owner modal -->
+  <!-- Update Owner modal -->
   <div class="modal fade" id="modal-update-owner" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -660,6 +700,7 @@ function toggle(source, element) {
       </div>
     </div>
   </div>
+</div>
 <script>
 
   NB_ROWS=10;
@@ -671,9 +712,16 @@ function toggle(source, element) {
     window.location = url.search;
   };
 
-  var gotopage = function gotopage(page_num, target = "asset") {
-    url.searchParams.set("page", page_num);
-    url.searchParams.set("target", target);
+  var gotopage = function gotopage(page_num, target = "assets") {
+    if (target == "assets") {
+      url.searchParams.set("p_a", page_num);
+    } else if (target == "asset_group") {
+      url.searchParams.set("p_ag", page_num);
+    } else if (target == "dynamic_asset_group") {
+      url.searchParams.set("p_dag", page_num);
+    }
+    // url.searchParams.set("page", page_num);
+    // url.searchParams.set("target", target);
     window.location = url.search;
   };
 
@@ -785,8 +833,8 @@ function toggle(source, element) {
     // Quick search
     $('button.asset-quick-search').on('click',function(e) {
         var sort_options = url.searchParams.get("sort");
-        var n_options = url.searchParams.get("n");
-        if (url.searchParams.get("n") == null) {
+        var n_options = url.searchParams.get("n_a");
+        if (url.searchParams.get("n_a") == null) {
           n_options = NB_ROWS;
         }
         filters =''
@@ -802,7 +850,7 @@ function toggle(source, element) {
         if ($('input#asset-quick-search-tag').val() != "") {
 				filters+="&filter_tag="+$('#asset-quick-search-tag').val();
 			}
-        window.location = "{% url 'list_assets_view' %}?sort="+sort_options+filters+"&n="+n_options;
+      window.location = "{% url 'list_assets_view' %}?sort="+sort_options+filters+"&n="+n_options;
 
     });
 
@@ -847,6 +895,28 @@ function toggle(source, element) {
       });
     });
 
+
+    // Delete dynamic asset group modal
+    $("#modal-delete-dynamic-asset-group").on('show.bs.modal', function (e) {
+      id = e.relatedTarget.getAttribute('asset-group-id');
+      asset_group_name = e.relatedTarget.getAttribute('asset-group-name');
+      $("div#delete-dynamic-asset-group").attr('asset-group-id', id);
+      $("div#delete-dynamic-asset-group").html("Dynamic Asset Group Name: <b>"+escapeHtml(asset_group_name)+"</b><br/><br/>");
+    });
+    $("button.btn-delete-dynamic-asset-group").on('click', function (e) {
+      id = $("div#delete-dynamic-asset-group").attr('asset-group-id');
+      // delete_dyn_asset_group_url = "{% url 'delete_assetgroup_api' 0 %}".replace("0", id);
+      delete_dyn_asset_group_url = "{% url 'delete_dyn_assetgroup_api' 0 %}".replace("0", id);
+      var request = $.ajax({
+        url: delete_dyn_asset_group_url,
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        success: function(){
+          location.reload();
+        }
+      });
+    });
+
     // Update asset criticities
     $("button.btn-update-assets").on('click', function (e) {
       assets_to_update = [];
@@ -863,7 +933,6 @@ function toggle(source, element) {
           method: "POST",
           headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify({'assets': assets_to_update, 'criticity': criticity}),
-          // data: JSON.stringify(assets_to_update),
           contentType: "application/json"
         });
         request.done(function(response){
@@ -889,7 +958,6 @@ function toggle(source, element) {
           method: "POST",
           headers: {"X-CSRFToken": "{{ csrf_token }}"},
           data: JSON.stringify({'assets': assets_to_update, 'group': groupps}),
-          // data: JSON.stringify(assets_to_update),
           contentType: "application/json"
         });
         request.done(function(response){
@@ -948,17 +1016,65 @@ function toggle(source, element) {
       }
     });
 
-    // Manage nb_rows_per_page
-    _nb_rows = url.searchParams.get("n");
+    // Delete selected dynamic asset groups
+    $("a.btn-delete-selected-dynamic-asset-groups").on('click', function(eventObject) {
+      dags_to_delete = [];
+      $("input[name='dynamicassetgroups']").each(function(cbx){
+        if (this.checked) {
+          dags_to_delete.push(this.value)
+        }
+      })
+
+      if (dags_to_delete.length != 0){
+        var request = $.ajax({
+          url: "{% url 'delete_dyn_assetgroups_api' %}",
+          method: "POST",
+          headers: {"X-CSRFToken": "{{ csrf_token }}"},
+          data: JSON.stringify(dags_to_delete),
+          contentType: "application/json"
+        });
+        request.done(function(response){
+          if (response.status == 'success'){location.reload()}
+        });
+      }
+    });
+
+    // Manage nb_assets_per_page
+    _nb_rows = url.searchParams.get("n_a");
     if (typeof _nb_rows === "undefined") {
 
     } else {
-      $('#nb_rows_per_page').val(_nb_rows);
+      $('#nb_assets_per_page').val(_nb_rows);
     }
-
-    $('#nb_rows_per_page').change(function(e){
+    $('#nb_assets_per_page').change(function(e){
       nb_rows = e.target.value;
-      url.searchParams.set("n", nb_rows);
+      url.searchParams.set("n_a", nb_rows);
+      window.location = url.search;
+    });
+
+    // Manage nb_asset_groups_per_page
+    _nb_rows_ag = url.searchParams.get("n_ag");
+    if (typeof _nb_rows_ag === "undefined") {
+
+    } else {
+      $('#nb_asset_groups_per_page').val(_nb_rows_ag);
+    }
+    $('#nb_asset_groups_per_page').change(function(e){
+      nb_rows = e.target.value;
+      url.searchParams.set("n_ag", nb_rows);
+      window.location = url.search;
+    });
+
+    // Manage nb_dynamic_asset_groups_per_page
+    _nb_rows_dag = url.searchParams.get("n_dag");
+    if (typeof _nb_rows_dag === "undefined") {
+
+    } else {
+      $('#nb_dynamic_asset_groups_per_page').val(_nb_rows_dag);
+    }
+    $('#nb_dynamic_asset_groups_per_page').change(function(e){
+      nb_rows = e.target.value;
+      url.searchParams.set("n_dag", nb_rows);
       window.location = url.search;
     });
 

@@ -18,7 +18,7 @@ from engines.models import EnginePolicyScope, Engine
 from scans.models import Scan, ScanDefinition
 from users.models import Team, TeamUser
 from common.utils import encoding, pro_group_required
-from .forms import AssetForm, AssetGroupForm, AssetBulkForm, AssetOwnerForm
+from .forms import AssetForm, AssetGroupForm, DynamicAssetGroupForm, AssetBulkForm, AssetOwnerForm
 from .models import Asset, AssetGroup, AssetOwner, AssetCategory, DynamicAssetGroup
 from .models import ASSET_INVESTIGATION_LINKS
 from .apis import _add_asset_tags
@@ -90,29 +90,36 @@ def list_assets_view(request):
     # Query
     if teamid_selected >= 0:
         assets_list = assets_list.filter(filters).annotate(
-                criticity_num=Case(
-                    When(criticity="high", then=Value("1")),
-                    When(criticity="medium", then=Value("2")),
-                    When(criticity="low", then=Value("3")),
-                    default=Value("1"),
-                    output_field=CharField())
-                ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
+            criticity_num=Case(
+                When(criticity="high", then=Value("1")),
+                When(criticity="medium", then=Value("2")),
+                When(criticity="low", then=Value("3")),
+                default=Value("1"),
+                output_field=CharField())
+            ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
     else:
         assets_list = assets_list.filter(filters).annotate(
-                criticity_num=Case(
-                    When(criticity="high", then=Value("1")),
-                    When(criticity="medium", then=Value("2")),
-                    When(criticity="low", then=Value("3")),
-                    default=Value("1"),
-                    output_field=CharField())
-                ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
+            criticity_num=Case(
+                When(criticity="high", then=Value("1")),
+                When(criticity="medium", then=Value("2")),
+                When(criticity="low", then=Value("3")),
+                default=Value("1"),
+                output_field=CharField())
+            ).annotate(cat_list=ArrayAgg('categories__value')).order_by(*sort_options_valid)
 
     # Pagination assets
-    nb_rows = request.GET.get('n', 20)
-    if str(nb_rows).isnumeric() is False:
-        nb_rows = 20
-    assets_paginator = Paginator(assets_list, nb_rows)
-    page = request.GET.get('page')
+    nb_rows_assets = request.GET.get('n_a', 20)
+    nb_rows_assetgroups = request.GET.get('n_ag', 20)
+    nb_rows_dynamicassetgroups = request.GET.get('n_dag', 20)
+    if str(nb_rows_assets).isnumeric() is False:
+        nb_rows_assets = 20
+    if str(nb_rows_assetgroups).isnumeric() is False:
+        nb_rows_assetgroups = 20
+    if str(nb_rows_dynamicassetgroups).isnumeric() is False:
+        nb_rows_dynamicassetgroups = 20
+
+    assets_paginator = Paginator(assets_list, nb_rows_assets)
+    page = request.GET.get('p_a')
     try:
         assets = assets_paginator.page(page)
     except PageNotAnInteger:
@@ -121,7 +128,7 @@ def list_assets_view(request):
         assets = assets_paginator.page(assets_paginator.num_pages)
 
     # List asset groups
-    asset_groups = []
+    asset_groups_list = []
     if teamid_selected >= 0:
         ags = AssetGroup.objects.for_team(request.user, teamid_selected).prefetch_related('teams', 'categories').all().annotate(
             asset_list=ArrayAgg('assets__value')
@@ -150,10 +157,19 @@ def list_assets_view(request):
             "risk_grade": asset_group.risk_level['grade'],
             "teams": asset_group.teams
         }
-        asset_groups.append(ag)
+        asset_groups_list.append(ag)
+
+    asset_groups_paginator = Paginator(asset_groups_list, nb_rows_assetgroups)
+    page_ag = request.GET.get('p_ag')
+    try:
+        asset_groups = asset_groups_paginator.page(page_ag)
+    except PageNotAnInteger:
+        asset_groups = asset_groups_paginator.page(1)
+    except EmptyPage:
+        asset_groups = asset_groups_paginator.page(asset_groups_paginator.num_pages)
 
     # List dynamic asset groups
-    dynamic_asset_groups = []
+    dynamic_asset_groups_list = []
     if teamid_selected >= 0:
         dags = DynamicAssetGroup.objects.for_team(request.user, teamid_selected).prefetch_related('teams', 'tags').all().annotate(tag_list=ArrayAgg('tags__value')).only(
             "id", "name", "criticity", "updated_at", "risk_level", "teams"
@@ -176,8 +192,17 @@ def list_assets_view(request):
             "updated_at": dynamic_asset_group.updated_at,
             "teams": dynamic_asset_group.teams
         }
-        dynamic_asset_groups.append(dag)
-    print(dynamic_asset_groups)
+        dynamic_asset_groups_list.append(dag)
+
+    dynamic_asset_groups_paginator = Paginator(dynamic_asset_groups_list, nb_rows_dynamicassetgroups)
+    page_dag = request.GET.get('p_dag')
+    try:
+        dynamic_asset_groups = dynamic_asset_groups_paginator.page(page_dag)
+    except PageNotAnInteger:
+        dynamic_asset_groups = dynamic_asset_groups_paginator.page(1)
+    except EmptyPage:
+        dynamic_asset_groups = dynamic_asset_groups_paginator.page(dynamic_asset_groups_paginator.num_pages)
+
 
     tags = assets_list.values_list('categories__value', flat=True).order_by('categories__value').distinct()
     owners = AssetOwner.objects.all()
@@ -350,9 +375,52 @@ def add_asset_group_view(request):
 
 
 @pro_group_required('AssetsManager')
+def add_dyn_asset_group_view(request):
+    """Add a dynamic asset group."""
+    form = None
+
+    if request.method == 'GET':
+        form = DynamicAssetGroupForm(user=request.user)
+        teams_list = request.user.users_team.values('id', 'name').order_by('name')
+        tags_list = AssetCategory.objects.all()
+    elif request.method == 'POST':
+        form = DynamicAssetGroupForm(request.POST, user=request.user)
+        if form.is_valid():
+            asset_args = {
+                'name': form.cleaned_data['name'],
+                'criticity': form.cleaned_data['criticity'],
+                'description': form.cleaned_data['description'],
+                'owner': request.user
+            }
+            asset_group = DynamicAssetGroup(**asset_args)
+            asset_group.save()
+
+            # Add tags
+            if 'tags' in form.cleaned_data.keys():
+                for tag in form.cleaned_data['tags']:
+                    asset_group.tags.add(tag)
+
+            # Add the teams to the new group
+            if 'teams' in form.cleaned_data.keys():
+                for team in form.cleaned_data['teams']:
+                    asset_group.teams.add(team)
+
+            asset_group.save()
+
+            asset_group.calc_risk_grade()
+            asset_group.save()
+            messages.success(request, 'Creation submission successful')
+
+            return redirect('detail_dynamic_asset_group_view', assetgroup_id=asset_group.id)
+    return render(request, 'add-dyn-asset-group.html', {
+        'form': form, 'teams_list': teams_list, 'tags_list': tags_list
+    })
+
+
+@pro_group_required('AssetsManager')
 def edit_asset_group_view(request, assetgroup_id):
     """Edit an asset group."""
-    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related('teams', 'assets'), id=assetgroup_id)
+    asset_group = get_object_or_404(AssetGroup.objects.for_user(request.user).prefetch_related('teams', 'assets', 'categories'), id=assetgroup_id)
 
     form = AssetGroupForm(user=request.user)
     if request.method == 'GET':
@@ -391,6 +459,54 @@ def edit_asset_group_view(request, assetgroup_id):
         'assetgroup_id': assetgroup_id,
         'asset_group': asset_group,
         'teams_list': teams_list
+    })
+
+
+@pro_group_required('AssetsManager')
+def edit_dyn_asset_group_view(request, assetgroup_id):
+    """Edit a dynamic asset group."""
+    asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user).prefetch_related('teams', 'tags'), id=assetgroup_id)
+
+    form = DynamicAssetGroupForm(user=request.user)
+    if request.method == 'GET':
+        form = DynamicAssetGroupForm(instance=asset_group, user=request.user)
+        teams_list = request.user.users_team.values('id', 'name').order_by('name')
+        tags_list = AssetCategory.objects.all()
+    elif request.method == 'POST':
+        form = DynamicAssetGroupForm(request.POST, instance=asset_group, user=request.user)
+        if form.is_valid():
+            if asset_group.name != form.cleaned_data['name']:
+                asset_group.name = form.cleaned_data['name']
+            asset_group.description = form.cleaned_data['description']
+            asset_group.criticity = form.cleaned_data['criticity']
+
+            # Add tags
+            if 'tags' in form.cleaned_data.keys():
+                asset_group.tags.clear()
+                for tag in form.cleaned_data['tags']:
+                    asset_group.tags.add(tag)
+
+            # Update the teams
+            if 'teams' in form.cleaned_data.keys():
+                asset_group.teams.clear()
+                for team in form.cleaned_data['teams']:
+                    asset_group.teams.add(team)
+            #
+            # asset_group.evaluate_risk()
+            # asset_group.save()
+
+            asset_group.calc_risk_grade()
+            asset_group.save()
+
+            messages.success(request, 'Update submission successful')
+            return redirect('detail_dynamic_asset_group_view', assetgroup_id=assetgroup_id)
+
+    return render(request, 'edit-dyn-asset-group.html', {
+        'form': form,
+        'assetgroup_id': assetgroup_id,
+        'asset_group': asset_group,
+        'teams_list': teams_list,
+        'tags_list': tags_list
     })
 
 

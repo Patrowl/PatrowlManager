@@ -337,6 +337,18 @@
               {% else %}
                 <li><a href="{% url 'add_asset_group_view' %}">+ Add new group of assets</a></li>
               {% endif %}
+
+              <li role="separator" class="divider"></li>
+              <li><a href="{% url 'list_assets_view' %}?target=dynamic_asset_group">Dynamic asset groups</a></li>
+
+              {% if PRO_EDITION %}
+                {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
+                  <li><a href="{% url 'add_dyn_asset_group_view' %}">+ Add new dynamic group of assets</a></li>
+                {% endif %}
+              {% else %}
+                <li><a href="{% url 'add_dyn_asset_group_view' %}">+ Add new dynamic group of assets</a></li>
+              {% endif %}
+
               <li role="separator" class="divider"></li>
               <li><a href="/assets/owners/list">Asset owners</a></li>
 
@@ -563,7 +575,7 @@
     <footer class="footer">
       <div class="container-fluid">
         <div class="col-sm-6">
-          <span class="text-muted">PatrOwl Manager 2018-2021 - version: {{ PATROWL_VERSION }}</span>
+          <span class="text-muted">PatrOwl Manager 2018-2022 - version: {{ PATROWL_VERSION }}</span>
           <a href="https://github.com/Patrowl/PatrowlManager"><i class="text-muted fab fa-github fa-lg"></i></a>
           <a href="https://twitter.com/patrowl_io"><i class="text-muted fab fa-twitter fa-lg"></i></a>
           <a href="https://www.linkedin.com/company/patrowl/"><i class="text-muted fab fa-linkedin fa-lg"></i></a>

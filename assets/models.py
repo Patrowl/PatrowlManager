@@ -606,11 +606,13 @@ class DynamicAssetGroup(models.Model):
         return Asset.objects.filter(categories__in=self.tags.all()).distinct()
 
     def get_risk_grade(self, history=None):
+        """Return risk grade."""
         if history:  # history= nb days before
             self.calc_risk_grade(history=history)
         return str(self.risk_level['grade'])
 
     def calc_risk_grade(self, history=None):
+        """Calculate risk grade from finding severities and asset criticalities."""
         risk_level = {
             "info": 0, "low": 0, "medium": 0, "high": 0, "critical": 0,
             "total": 0, "grade": "-"}
@@ -628,9 +630,9 @@ class DynamicAssetGroup(models.Model):
                     findings.append(f)
 
         for finding in findings:
-            if finding['status'] not in ["false-positive", "duplicate", "closed", "mitigated", "undone", "patched"]:
+            if finding.status not in ["false-positive", "duplicate", "closed", "mitigated", "undone", "patched"]:
                 risk_level['total'] = risk_level.get('total', 0) + 1
-                risk_level[finding['severity']] = risk_level.get(finding['severity'], 0) + 1
+                risk_level[finding.severity] = risk_level.get(finding.severity, 0) + 1
 
         if risk_level['high'] == 0 and risk_level['medium'] == 0 and risk_level['low'] == 0 and risk_level['info'] == 0:
             risk_level['grade'] = "-"
@@ -655,6 +657,7 @@ class DynamicAssetGroup(models.Model):
         return risk_level
 
     def get_risk_score(self, history=None, force_calc=False):
+        """Retuen risk score."""
         if force_calc:
             self.calc_risk_grade()
         risk_score = 0

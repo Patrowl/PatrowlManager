@@ -2,7 +2,8 @@
 
 from django import forms
 from django.conf import settings
-from .models import Asset, AssetGroup, AssetOwner, AssetOwnerContact, AssetOwnerDocument
+from .models import Asset, AssetGroup, DynamicAssetGroup
+from .models import AssetOwner, AssetOwnerContact, AssetOwnerDocument
 from .models import TLP_COLORS, ASSET_TYPES, ASSET_CRITICITIES, ASSET_EXPOSURES
 from users.models import Team
 
@@ -70,6 +71,34 @@ class AssetGroupForm(forms.ModelForm):
         # @Todo: RBAC_CHECK
         assets = [Asset.objects.for_user(self.user).all().only('id', 'value').order_by('value').values()]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
+
+        # Check allowed teams (Available in Pro Edition)
+        if settings.PRO_EDITION:
+            self.fields['teams'].widget = forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
+            if self.user.is_superuser:
+                self.fields['teams'].queryset = Team.objects.order_by('name')
+            else:
+                self.fields['teams'].queryset = Team.objects.filter(organization_users__in=self.user.users_teamuser.all()).order_by('name')
+        else:
+            self.fields.pop('teams')
+
+
+class DynamicAssetGroupForm(forms.ModelForm):
+    class Meta:
+        model = DynamicAssetGroup
+        fields = ['id', 'name', 'description', 'criticity', 'tags', 'teams']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
+            'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
+            'tags': forms.SelectMultiple(attrs={'class': 'form-control form-control-sm'})
+        }
+
+    criticity = forms.CharField(widget=forms.Select(choices=ASSET_CRITICITIES, attrs={'class': 'form-control form-control-sm'}))
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(DynamicAssetGroupForm, self).__init__(*args, **kwargs)
+
 
         # Check allowed teams (Available in Pro Edition)
         if settings.PRO_EDITION:
