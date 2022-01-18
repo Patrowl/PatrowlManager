@@ -29,7 +29,7 @@ services:
     image: patrowl/patrowl-manager-community-edition:${PATROWL_MANAGER_VERSION}
     environment:
       - POSTGRES_HOST=db
-      - DEBUG=False
+      - DEBUG=True
       - RABBITMQ_HOSTNAME=rabbitmq:5672
     depends_on:
       - db

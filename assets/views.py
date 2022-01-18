@@ -180,9 +180,9 @@ def list_assets_view(request):
         )
 
     for dynamic_asset_group in dags.order_by(Lower("name")):
-        assets_names = ""
-        if asset_group.asset_list != [None]:
-            assets_names = ", ".join(asset_group.asset_list)
+        # assets_names = ""
+        # if len(dynamic_asset_group.get_assets()) > 1:
+        #     assets_names = ", ".join(dynamic_asset_group.get_assets())
         dag = {
             "id": dynamic_asset_group.id,
             "name": dynamic_asset_group.name,
@@ -202,7 +202,6 @@ def list_assets_view(request):
         dynamic_asset_groups = dynamic_asset_groups_paginator.page(1)
     except EmptyPage:
         dynamic_asset_groups = dynamic_asset_groups_paginator.page(dynamic_asset_groups_paginator.num_pages)
-
 
     tags = assets_list.values_list('categories__value', flat=True).order_by('categories__value').distinct()
     owners = AssetOwner.objects.all()
@@ -405,7 +404,7 @@ def add_dyn_asset_group_view(request):
                 for team in form.cleaned_data['teams']:
                     asset_group.teams.add(team)
 
-            asset_group.save()
+            # asset_group.save()
 
             asset_group.calc_risk_grade()
             asset_group.save()
@@ -724,6 +723,8 @@ def detail_asset_view(request, asset_id):
     }
 
     asset_groups = list(AssetGroup.objects.for_user(request.user).filter(assets__in=[asset]).only("id"))
+    # dyn_asset_groups = list(DynamicAssetGroup.objects.for_user(request.user).filter(tags__in=asset.categories.all()).only("id"))
+    # print(dyn_asset_groups)
     scan_defs = ScanDefinition.objects.filter(Q(assets_list__in=[asset]) | Q(assetgroups_list__in=asset_groups)).annotate(engine_type_name=F('engine_type__name')).annotate(scan_set_count=Count('scan')).order_by('-updated_at')
     scans = Scan.objects.filter(assets__in=[asset]).values("id", "title", "status", "summary", "updated_at").annotate(engine_type_name=F('engine_type__name')).order_by('-updated_at')
 
@@ -1004,13 +1005,13 @@ def detail_dynamic_asset_group_view(request, assetgroup_id):
     #     })
 
     # Scans
-    # scan_defs = ScanDefinition.objects.filter(
-    #     Q(assetgroups_list__in=[asset_group])
-    # ).annotate(
-    #     engine_type_name=F('engine_type__name'),
-    #     nb_scans=Count('scan')
-    # )
-    scan_defs = ScanDefinition.objects.filter(id=0)
+    scan_defs = ScanDefinition.objects.filter(
+        Q(dynassetgroups_list__in=[asset_group])
+    ).annotate(
+        engine_type_name=F('engine_type__name'),
+        nb_scans=Count('scan')
+    )
+    # scan_defs = ScanDefinition.objects.filter(id=0)
 
     scan_defs_stats = scan_defs.aggregate(
         nb_periodic=Count('id', filter=Q(scan_type='periodic')),

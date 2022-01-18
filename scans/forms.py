@@ -3,7 +3,7 @@
 from django import forms
 from .models import ScanCampaign, ScanDefinition
 from engines.models import EnginePolicy
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, DynamicAssetGroup
 from datetimewidget.widgets import DateTimeWidget
 from datetime import datetime
 engines = []
@@ -74,9 +74,11 @@ class ScanCampaignForm(forms.ModelForm):
 class ScanDefinitionForm(forms.ModelForm):
     class Meta:
         model = ScanDefinition
-        fields = ['scan_type', 'title', 'engine', 'engine_policy',
-                  'description', 'every', 'period', 'enabled',
-                  'scheduled_at', 'assetgroups_list', 'assets_list']
+        fields = [
+            'scan_type', 'title', 'engine', 'engine_policy',
+            'description', 'every', 'period', 'enabled', 'scheduled_at',
+            'dynassetgroups_list', 'assetgroups_list', 'assets_list'
+        ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': '4'}),
@@ -105,3 +107,6 @@ class ScanDefinitionForm(forms.ModelForm):
 
         assetgroups = [(a.id, a.name) for a in AssetGroup.objects.all().only('id', 'name')]
         self.fields['assetgroups_list'].widget = forms.CheckboxSelectMultiple(choices=assetgroups)
+
+        dynassetgroups = [(a.id, a.name) for a in DynamicAssetGroup.objects.all().only('id', 'name')]
+        self.fields['dynassetgroups_list'].widget = forms.CheckboxSelectMultiple(choices=dynassetgroups)

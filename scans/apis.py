@@ -26,7 +26,6 @@ from datetime import timedelta
 from pytz import timezone
 import datetime
 import json
-import os
 import csv
 import tzlocal
 
@@ -414,7 +413,7 @@ def get_scan_report_html_api(request, scan_id):
 
         try:
             recipients = Setting.objects.get(key="alerts.endpoint.email").value
-        except Exception as e:
+        except Exception:
             logger.error('Unable to send report as email message. "alerts.endpoint.email" setting not configured:')
             return JsonResponse({'status': 'error', 'reason': '"alerts.endpoint.email" setting not configured'}, 400)
 
@@ -471,7 +470,7 @@ def get_scan_report_csv_api(request, scan_id):
         'finding_tags', 'finding_severity', 'finding_description',
         'finding_solution', 'finding_hash', 'finding_creation_date',
         'finding_risk_info', 'finding_cvss', 'finding_links'
-        ])
+    ])
 
     for finding in RawFinding.objects.filter(scan=scan).order_by('asset__name', 'severity', 'title'):
         engine_policy_name = ""
@@ -564,6 +563,7 @@ def add_retest_finding_scan_def_api(request, finding_id):
         )
         scan_def.assets_list.set(scan_def_original.assets_list.all())
         scan_def.assetgroups_list.set(scan_def_original.assetgroups_list.all())
+        scan_def.dynassetgroups_list.set(scan_def_original.dynassetgroups_list.all())
         scan_def.teams.set(scan_def_original.teams.all())
         scan_def.save()
     except Exception as e:

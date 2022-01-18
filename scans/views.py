@@ -15,7 +15,7 @@ from .models import Scan, ScanDefinition
 from .utils import _update_celerybeat, _run_scan
 from engines.models import EnginePolicy, EngineInstance, EnginePolicyScope
 from findings.models import RawFinding
-from assets.models import Asset, AssetGroup, AssetCategory
+from assets.models import Asset, AssetGroup, DynamicAssetGroup
 from users.models import Team, TeamUser
 from common.utils import pro_group_required
 
@@ -72,7 +72,14 @@ def detail_scan_view(request, scan_id):
 
     # Search asset groups related to the scan
     assetgroups = scan.scan_definition.assetgroups_list.all().prefetch_related("assets")
-    taggroups = scan.scan_definition.taggroups_list.all().prefetch_related("asset_set")
+    dynassetgroups = scan.scan_definition.dynassetgroups_list.all()
+    dynassetgroups_assets = []
+    dynassetgroups_assets_id = []
+    for dag in dynassetgroups:
+        dag_assets = dag.get_assets()
+        dynassetgroups_assets.append(dag_assets)
+        for dag_asset in dag_assets:
+            dynassetgroups_assets_id.append(dag_asset.id)
 
     # Add the assets from the asset group to the existing list of assets
     if len(assetgroups) == 0:
@@ -83,13 +90,14 @@ def detail_scan_view(request, scan_id):
             for ag in assetgroups:
                 if asset not in ag.assets.all():
                     other_assets.append(asset)
-    if len(taggroups) == 0:
+    if len(dynassetgroups) == 0:
         other_assets = assets
     else:
         other_assets = []
         for asset in assets:
-            for ag in taggroups:
-                if asset not in ag.asset_set.all():
+            for dag in dynassetgroups:
+                # if asset not in dag.get_assets():
+                if asset not in dynassetgroups_assets:
                     other_assets.append(asset)
 
     # Search raw findings related to the asset
@@ -110,14 +118,17 @@ def detail_scan_view(request, scan_id):
         })
 
     for f in raw_findings.filter(asset__in=assets):
-        summary_assets[f.asset_name].update({
-            f.severity: summary_assets[f.asset_name][f.severity] + 1,
-            "total": summary_assets[f.asset_name]["total"] + 1
-        })
+        try:
+            summary_assets[f.asset_name].update({
+                f.severity: summary_assets[f.asset_name][f.severity] + 1,
+                "total": summary_assets[f.asset_name]["total"] + 1
+            })
+        except Exception:
+            pass
 
     # Generate summary info on asset groups (for progress bars)
     summary_assetgroups = {}
-    summary_taggroups = {}
+    summary_dynassetgroups = {}
     for ag in assetgroups:
         summary_assetgroups.update({
             ag.id: {
@@ -131,18 +142,19 @@ def detail_scan_view(request, scan_id):
                 f.severity: summary_assetgroups[ag.id][f.severity] + 1,
                 "total": summary_assetgroups[ag.id]["total"] + 1
             })
-    for ag in taggroups:
-        summary_taggroups.update({
-            ag.id: {
+    for dag in dynassetgroups:
+        summary_dynassetgroups.update({
+            dag.id: {
                 "info": 0, "low": 0, "medium": 0,
                 "high": 0, "critical": 0, "total": 0
             }
         })
 
-        for f in raw_findings.filter(asset__in=ag.asset_set.all()):
-            summary_taggroups[ag.id].update({
-                f.severity: summary_taggroups[ag.id][f.severity] + 1,
-                "total": summary_taggroups[ag.id]["total"] + 1
+        # for f in raw_findings.filter(asset__in=dag.get_assets()):
+        for f in raw_findings.filter(asset__in=dynassetgroups_assets_id):
+            summary_dynassetgroups[dag.id].update({
+                f.severity: summary_dynassetgroups[dag.id][f.severity] + 1,
+                "total": summary_dynassetgroups[dag.id]["total"] + 1
             })
 
     # Generate findings stats
@@ -190,10 +202,10 @@ def detail_scan_view(request, scan_id):
         'scan': scan,
         'summary_assets': summary_assets,
         'summary_assetgroups': summary_assetgroups,
-        'summary_taggroups': summary_taggroups,
+        'summary_dynassetgroups': summary_dynassetgroups,
         'assets': scan_assets,
         'assetgroups': assetgroups,
-        'taggroups': taggroups,
+        'dynassetgroups': dynassetgroups,
         'other_assets': other_assets,
         'findings': scan_findings,
         'findings_stats': findings_stats,
@@ -237,15 +249,15 @@ def list_scans_view(request):
     if teamid_selected >= 0:
         scan_list = Scan.objects.for_team(request.user, teamid_selected).filter(**scans_filters).annotate(
             scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
-            ).only(
-                "engine_type", "title", "status", "summary", "updated_at", "finished_at"
-            ).order_by('-finished_at')
+        ).only(
+            "engine_type", "title", "status", "summary", "updated_at", "finished_at"
+        ).order_by('-finished_at')
     else:
         scan_list = Scan.objects.for_user(request.user).filter(**scans_filters).annotate(
             scan_def_id=F("scan_definition__id"), eng_type=F("engine_type__name")
-            ).only(
-                "engine_type", "title", "status", "summary", "updated_at", "finished_at"
-            ).order_by('-finished_at')
+        ).only(
+            "engine_type", "title", "status", "summary", "updated_at", "finished_at"
+        ).order_by('-finished_at')
 
     paginator = Paginator(scan_list, 10)
     page = request.GET.get('page')
@@ -408,6 +420,7 @@ def add_scan_def_view(request):
                     "datatype": asset.type
                 })
 
+            # Asset Groups
             for assetgroup_id in form.data.getlist('assetgroups_list'):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
                 scan_definition.assetgroups_list.add(assetgroup)
@@ -419,10 +432,12 @@ def add_scan_def_view(request):
                         "criticity": a.criticity,
                         "datatype": a.type
                     })
-            for taggroup_id in form.data.getlist('taggroups_list'):
-                taggroup = AssetCategory.objects.get(id=taggroup_id)
-                scan_definition.taggroups_list.add(taggroup)
-                for a in taggroup.asset_set.all():
+
+            # Dynamic Asset Groups
+            for dynassetgroup_id in form.data.getlist('dynassetgroups_list'):
+                dynassetgroup = DynamicAssetGroup.objects.get(id=dynassetgroup_id)
+                scan_definition.dynassetgroups_list.add(dynassetgroup)
+                for a in dynassetgroup.get_assets():
                     scan_definition.assets_list.add(a)
                     assets_list.append({
                         "id": a.id,
@@ -550,7 +565,7 @@ def edit_scan_def_view(request, scan_def_id):
             # Update assets
             scan_definition.assets_list.clear()
             scan_definition.assetgroups_list.clear()
-            scan_definition.taggroups_list.clear()
+            scan_definition.dynassetgroups_list.clear()
 
             assets_list = []
             for asset_id in form.data.getlist('assets_list'):
@@ -562,6 +577,7 @@ def edit_scan_def_view(request, scan_def_id):
                     "criticity": asset.criticity,
                     "datatype": asset.type
                 })
+
             for assetgroup_id in form.data.getlist('assetgroups_list'):
                 assetgroup = AssetGroup.objects.get(id=assetgroup_id)
                 scan_definition.assetgroups_list.add(assetgroup)
@@ -573,10 +589,11 @@ def edit_scan_def_view(request, scan_def_id):
                         "criticity": a.criticity,
                         "datatype": a.type
                     })
-            for taggroup_id in form.data.getlist('taggroups_list'):
-                taggroup = AssetCategory.objects.get(id=taggroup_id)
-                scan_definition.taggroups_list.add(taggroup)
-                for a in taggroup.asset_set.all():
+
+            for dynassetgroup_id in form.data.getlist('dynassetgroups_list'):
+                dynassetgroup = DynamicAssetGroup.objects.get(id=dynassetgroup_id)
+                scan_definition.dynassetgroups_list.add(dynassetgroup)
+                for a in dynassetgroup.get_assets():
                     scan_definition.assets_list.add(a)
                     assets_list.append({
                         "id": a.id,
@@ -584,6 +601,7 @@ def edit_scan_def_view(request, scan_def_id):
                         "criticity": a.criticity,
                         "datatype": a.type
                     })
+
             if form.cleaned_data['scan_type'] == 'single':
                 scan_definition.scan_type = 'single'
                 scan_definition.every = None

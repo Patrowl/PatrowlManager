@@ -350,7 +350,7 @@ label.radio {
         // Clear assets_list
         $("input[name='assets_list']").parents('label').remove();
         $("linput[name='assetgroups_list']").parents('label').remove();
-        $("linput[name='taggroups_list']").parents('label').remove();
+        $("linput[name='dynassetgroups_list']").parents('label').remove();
         _selected_assets = [];
       } else {
         _selected_team = '';
@@ -363,7 +363,7 @@ label.radio {
       // Clear assets_list
       $("input[name='assets_list']").parents('label').remove();
       $("linput[name='assetgroups_list']").parents('label').remove();
-      $("linput[name='taggroups_list']").parents('label').remove();
+      $("linput[name='dynassetgroups_list']").parents('label').remove();
       _selected_assets = [];
     });
 
@@ -397,11 +397,11 @@ label.radio {
         },
         suggestion: function(data) {
           if (data.format == "asset"){
-            return '<div>' + escapeHtml(data.value) + ' - '+ escapeHtml(data.name) + '</div>';
-          } else if (data.format == "taggroup"){
-            return '<div> [Tags] ' + escapeHtml(data.value) + ' - '+ escapeHtml(data.name) + '</div>';
-          }else {
-            return '<div> [Group] ' + escapeHtml(data.value) + ' - '+ escapeHtml(data.name) + '</div>';
+            return '<div>' + escapeHtml(data.value) + ' - ' + escapeHtml(data.name) + '</div>';
+          } else if (data.format == "dynassetgroup"){
+            return '<div> [DynamicAssetGroup] ' + escapeHtml(data.name) + '</div>';
+          } else {
+            return '<div> [AssetGroup] ' + escapeHtml(data.name) + '</div>';
           }
         }
       }
@@ -413,11 +413,11 @@ label.radio {
           _id_asset += 1;
           $('div.cbx_assets').append("<label for='id_assets_list_"+_id_asset+"' class='custom-control-label'>\
             <input id='id_assets_list_"+_id_asset+"' class='custom-control-input' name='assets_list' type='checkbox' value='"+datum["id"]+"' asset-type='"+datum["type"]+"'checked/> "+escapeHtml(e.target.value)+"</label><br/>");
-        } else if (datum["format"] == "taggroup") {
+        } else if (datum["format"] == "dynassetgroup") {
         _selected_assets.push(datum["value"]);
           _id_asset += 1;
-          $('div.cbx_assets').append("<label for='id_taggroups_list_"+_id_asset+"' class='custom-control-label'>\
-            <input id='id_taggroups_list_"+_id_asset+"' class='custom-control-input' name='taggroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+escapeHtml(e.target.value)+" (tag)</label><br/>");
+          $('div.cbx_assets').append("<label for='id_dynassetgroups_list_"+_id_asset+"' class='custom-control-label'>\
+            <input id='id_dynassetgroups_list_"+_id_asset+"' class='custom-control-input' name='dynassetgroups_list' type='checkbox' value='"+datum["id"]+"' checked/> "+escapeHtml(e.target.value)+" (dynamic group)</label><br/>");
          } else {
           _selected_assets.push(datum["value"]);
           _id_asset += 1;

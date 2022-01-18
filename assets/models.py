@@ -603,7 +603,7 @@ class DynamicAssetGroup(models.Model):
 
     def get_assets(self):
         """Return related assets."""
-        return Asset.objects.filter(categories__in=self.tags.all()).distinct()
+        return Asset.objects.filter(categories__in=self.tags.all()).prefetch_related('finding_set').distinct()
 
     def get_risk_grade(self, history=None):
         """Return risk grade."""
@@ -618,14 +618,15 @@ class DynamicAssetGroup(models.Model):
             "total": 0, "grade": "-"}
 
         findings = []
+        assets = self.get_assets()
         if not history:
-            for a in self.get_assets():
+            for a in assets:
                 for f in a.finding_set.all().only('id', 'severity'):
                     findings.append(f)
         else:
             startdate = datetime.datetime.today()
             enddate = startdate - datetime.timedelta(days=history)
-            for a in self.get_assets():
+            for a in assets:
                 for f in a.finding_set.filter(created_at__lte=enddate).only('id', 'severity'):
                     findings.append(f)
 

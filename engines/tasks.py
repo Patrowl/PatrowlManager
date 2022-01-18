@@ -314,7 +314,7 @@ def start_periodic_scan_task(self, params):
     scan_def = ScanDefinition.objects.get(id=params['scan_definition_id'])
     Event.objects.create(message=f"{evt_prefix} Task started.", type="INFO", severity="INFO")
 
-    # -0- Create the Scan entry in db
+    # Create the Scan entry
     scan = Scan.objects.create(
         scan_definition=scan_def,
         title=scan_def.title,

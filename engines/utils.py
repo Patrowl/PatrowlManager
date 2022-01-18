@@ -79,6 +79,12 @@ def _run_scan(evt_prefix, scan_id):
             if not scan.assets.filter(id=a.id).exists():
                 scan.assets.add(a)
 
+    # Append assets related to the asset groups
+    for dynassetgroup in scan.scan_definition.dynassetgroups_list.all():
+        for a in dynassetgroup.get_assets():
+            if not scan.assets.filter(id=a.id).exists():
+                scan.assets.add(a)
+
     # Check if the assets list is not empty
     if scan.assets.count() == 0:
         Event.objects.create(message=f"{evt_prefix} BeforeScan - No assets set. Task aborted.", type="ERROR", severity="ERROR", scan=scan)
@@ -122,6 +128,8 @@ def _run_scan(evt_prefix, scan_id):
 
     except Exception as e:
         print(e)
+        scan.update_status('error', 'finished_at')
+        return False
 
     return True
 
@@ -198,8 +206,8 @@ def _run_scan_job(self, evt_prefix, scan_id, assets_subset, position=1, max_time
     for asset_id in assets_subset:
         try:
             scan_job.assets.add(Asset.objects.get(id=asset_id))
-        except Exception as e:
-            print("Bad asset id:", asset_id, str(e))
+        except Exception:
+            # print("Bad asset id:", asset_id, str(e))
             pass
 
     # -x- Select an engine instance
@@ -620,6 +628,8 @@ def _import_findings(findings, scan, engine_name=None, engine_id=None, owner_id=
         a.calc_risk_grade()
     for ag in scan.scan_definition.assetgroups_list.all():
         ag.calc_risk_grade()
+    for dag in scan.scan_definition.dynassetgroups_list.all():
+        dag.calc_risk_grade()
 
     # Search missing findings
     nb_missing = 0

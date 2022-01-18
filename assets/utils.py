@@ -56,7 +56,7 @@ def _add_new_asset(metadata):
         # Add this asset to the group
         asset_group.assets.add(asset)
 
-        print(asset)
+        # print(asset)
     except Exception:
         return None
 

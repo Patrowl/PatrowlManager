@@ -99,7 +99,6 @@ class DynamicAssetGroupForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super(DynamicAssetGroupForm, self).__init__(*args, **kwargs)
 
-
         # Check allowed teams (Available in Pro Edition)
         if settings.PRO_EDITION:
             self.fields['teams'].widget = forms.SelectMultiple(attrs={'class': 'form-control form-control-sm', 'size': '4'})
@@ -125,8 +124,7 @@ class AssetOwnerForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super(AssetOwnerForm, self).__init__(*args, **kwargs)
 
-        # assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all()]
-        assets = [Asset.objects.for_user(self.user).all().only('id', 'value').order_by('value').values()]
+        assets = [(asset.id, asset.value) for asset in Asset.objects.for_user(self.user).all()]
         self.fields['assets'].widget = forms.CheckboxSelectMultiple(choices=assets)
 
 

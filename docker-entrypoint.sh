@@ -20,19 +20,19 @@ cat VERSION
 echo "[+] Collect static files"
 python manage.py collectstatic --noinput
 
-echo "[+] Update DB schema (if already created)"
-var/bin/update_db_migrations.sh
-
-# Apply database migrations
-echo "[+] Make database migrations"
-echo " - scans"
-python manage.py makemigrations scans
-echo " - findings"
-python manage.py makemigrations findings
-echo " - events"
-python manage.py makemigrations events
-echo " - ... and all the rest"
-python manage.py makemigrations
+# echo "[+] Update DB schema (if already created)"
+# var/bin/update_db_migrations.sh
+#
+# # Apply database migrations
+# echo "[+] Make database migrations"
+# echo " - scans"
+# python manage.py makemigrations scans
+# echo " - findings"
+# python manage.py makemigrations findings
+# echo " - events"
+# python manage.py makemigrations events
+# echo " - ... and all the rest"
+# python manage.py makemigrations
 
 # Apply database migrations
 echo "[+] Apply database migrations"

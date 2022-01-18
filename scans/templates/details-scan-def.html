@@ -36,9 +36,10 @@
             {% if not forloop.last %}, {% endif %}
           {% endfor %}
         {% endif %}
-          {% if scan_def.taggroups_list.count > 0 %}
-          {% for taggroup in scan_def.taggroups_list.all %}
-            {{ taggroup.value }} (<a data-toggle="modal" data-target="#modal-showall-grouped-assets">+</a>)
+
+        {% if scan_def.dynassetgroups_list.count > 0 %}
+          {% for dynassetgroup in scan_def.dynassetgroups_list.all %}
+            {{ dynassetgroup.value }} (<a data-toggle="modal" data-target="#modal-showall-grouped-assets">+</a>)
             {% if not forloop.last %}, {% endif %}
           {% endfor %}
         {% endif %}
@@ -352,9 +353,9 @@
             {% endfor %}
             <br/><br/>
           {% endfor %}
-            {% for taggroup in scan_def.taggroups_list.all %}
-            <strong>{{ taggroup.value }}</strong>:<br/>
-            {% for a in taggroup.asset_set.all %}
+          {% for dynassetgroup in scan_def.dynassetgroups_list.all %}
+            <strong>{{ dynassetgroup.name }}</strong>:<br/>
+            {% for a in dynassetgroup.get_assets %}
               {{ a.value }}{% if not forloop.last %}, {% endif %}
             {% endfor %}
             <br/><br/>

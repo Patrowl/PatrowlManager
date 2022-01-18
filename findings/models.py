@@ -125,7 +125,7 @@ class RawFinding(models.Model):
         db_table = 'raw_findings'
 
     def __str__(self):
-        return "{}/{}/{}".format(self.id, self.asset.value, self.title)
+        return "{}/{}".format(self.id, self.title)
 
     def get_risk(self):
         return (self.severity, self.confidence)
@@ -284,7 +284,7 @@ class Finding(models.Model):
         for rule in rules:
             rule_query = Q()
             for rule_filter in rule['filters']:
-                print(rule_filter)
+                # print(rule_filter)
                 rule_filter.update({'id': self.id, 'asset__type__in': rule['allowed_datatypes']})
                 rule_query = rule_query | Q(**rule_filter)
 
@@ -292,7 +292,7 @@ class Finding(models.Model):
 
             if matches is not None:
                 asset_value = rule['output_pattern'].replace('__asset__', self.asset_name)
-                print("asset_value:", asset_value)
+                # print("asset_value:", asset_value)
 
                 # Check if the asset is already created
                 if Asset.objects.filter(value=asset_value).only('id').first() is None:
@@ -306,7 +306,7 @@ class Finding(models.Model):
                         "asset_teams": self.asset.teams.all(),
                         "owner": self.owner,
                     }
-                    print(tmp_asset)
+                    # print(tmp_asset)
                     tmp_asset_id = _add_new_asset(tmp_asset)
                     new_assets.append(tmp_asset_id)
         return list(set(new_assets))

@@ -24,14 +24,14 @@ class ScanDefAssetGroupInline(admin.TabularInline):
     model = ScanDefinition.assetgroups_list.through
 
 
-class ScanDefTagGroupInline(admin.TabularInline):
-    model = ScanDefinition.taggroups_list.through
+class ScanDefDynAssetGroupInline(admin.TabularInline):
+    model = ScanDefinition.dynassetgroups_list.through
 
 
 class ScanDefAdmin(admin.ModelAdmin):
-    exclude = ('assets_list', 'assetgroups_list', 'taggroups_list',)
+    exclude = ('assets_list', 'assetgroups_list', 'dynassetgroups_list',)
     inlines = [
-        ScanDefAssetInline, ScanDefAssetGroupInline, ScanDefTagGroupInline
+        ScanDefAssetInline, ScanDefAssetGroupInline, ScanDefDynAssetGroupInline
     ]
 
 

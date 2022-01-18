@@ -255,7 +255,7 @@ div.risk-trends {
 
 <div class="container-fluid">
   <ul class="nav nav-tabs" id="menu_tabs_ul">
-    <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div">Assets ({{assets|length}})</a></li>
+    <li class="active menu_assets"><a data-toggle="tab"  href="#assets_div">Assets ({{assets.paginator.count}})</a></li>
     <li class="menu_findings"><a data-toggle="tab"  href="#findings_div">Findings ({{findings_stats.total}})</a></li>
     <li class="menu_remediations"><a data-toggle="tab" href="#remediations_div">Remediations</a></li>
     <li class="menu_scans"><a data-toggle="tab" href="#scans_div">Scans</a></li>
@@ -275,7 +275,7 @@ div.risk-trends {
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-            <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li>
+            <!-- <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li> -->
           </ul>
         </div>
         {% endif %}
@@ -286,7 +286,7 @@ div.risk-trends {
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-          <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li>
+          <!-- <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li> -->
         </ul>
       </div>
       {% endif %}
@@ -964,27 +964,27 @@ div.risk-trends {
   $(function() {
 
     // Delete selected assets
-    $("a.btn-delete-selected-assets").on('click', function(eventObject) {
-      assets_to_delete = []
-      $("input[name='asset']").each(function(cbx){
-        if (this.checked) {
-          assets_to_delete.push(this.value)
-        }
-      })
-
-      if (assets_to_delete.length != 0){
-        var request = $.ajax({
-          url: "{% url 'delete_assets_from_group_api' asset_group.id %}",
-          method: "POST",
-          headers: {"X-CSRFToken": "{{ csrf_token }}"},
-          data: JSON.stringify(assets_to_delete),
-          contentType: "application/json"
-        });
-        request.done(function(response){
-          if (response.status == 'success'){location.reload()}
-        });
-      }
-    });
+    // $("a.btn-delete-selected-assets").on('click', function(eventObject) {
+    //   assets_to_delete = []
+    //   $("input[name='asset']").each(function(cbx){
+    //     if (this.checked) {
+    //       assets_to_delete.push(this.value)
+    //     }
+    //   })
+    //
+    //   if (assets_to_delete.length != 0){
+    //     var request = $.ajax({
+    //       url: "{% url 'delete_assets_from_group_api' asset_group.id %}",
+    //       method: "POST",
+    //       headers: {"X-CSRFToken": "{{ csrf_token }}"},
+    //       data: JSON.stringify(assets_to_delete),
+    //       contentType: "application/json"
+    //     });
+    //     request.done(function(response){
+    //       if (response.status == 'success'){location.reload()}
+    //     });
+    //   }
+    // });
 
     // Delete selected findings
     $("a.btn-delete-selected").on('click', function(eventObject) {

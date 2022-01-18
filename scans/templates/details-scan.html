@@ -252,6 +252,62 @@ function toggle(source, element) {
         </div>
         {% endif %}
 
+        <!-- Dynamic Asset groups tab -->
+        {% if dynassetgroups.count > 0 %}
+        <div id="dynassetgroups" class="tab-pane fade">
+          <table class="table table-hover" id="table-dynamic-asset-groups">
+            <thead>
+              <tr>
+                <th data-field="dynassetgroup_name">Asset group name</th>
+                <th data-field="dynassetgroup_criticity">Criticality</th>
+                <th data-field="dynassetgroup_findings" style="width: 60%">Finding summary</th>
+                <!-- <th data-field="actions">Actions</th> -->
+              </tr>
+            </thead>
+            <tbody>
+            {% for dynassetgroup in dynassetgroups %}
+            <tr>
+              <td>{{ dynassetgroup.name }}</td>
+              {% if dynassetgroup.criticity == 'low' %}
+              <td><span class="label label-success">Low</span></td>
+              {% elif dynassetgroup.criticity == 'medium' %}
+              <td><span class="label label-info">Medium</span></td>
+              {% elif dynassetgroup.criticity == 'high' %}
+              <td><span class="label label-warning">High</span></td>
+              {% endif %}
+              <td class="scan-progress">
+                <div class="progress">
+                  {% with total_findings=summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:'total' %}
+                  {% if scan.status == "finished" and total_findings > 0 %}
+                  <div class="progress-bar progress-bar-critical" role="progressbar" style="width:{{ summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:'critical' | perc:total_findings }}%">
+                    {{summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:"critical"}}
+                  </div>
+                  <div class="progress-bar progress-bar-high" role="progressbar" style="width:{{ summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:'high' | perc:total_findings }}%">
+                    {{summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:"high"}}
+                  </div>
+                  <div class="progress-bar progress-bar-medium" role="progressbar" style="width:{{ summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:'medium' | perc:total_findings }}%">
+                    {{summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:"medium"}}
+                  </div>
+                  <div class="progress-bar progress-bar-low" role="progressbar" style="width:{{ summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:'low' | perc:total_findings }}%">
+                    {{summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:"low"}}
+                  </div>
+                  <div class="progress-bar progress-bar-info" role="progressbar" style="width:{{ summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:'info' | perc:total_findings }}%">
+                    {{summary_dynassetgroups|keyvalue:dynassetgroup.id|keyvalue:"info"}}
+                  </div>
+                  {% else %}
+                  <div class="progress-bar progress-bar-zero" role="progressbar">
+                    0
+                  </div>
+                  {% endif %}
+                  {% endwith %}
+                </div>
+              </td>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+
         <!-- Findings tab -->
         <div id="findings" class="tab-pane fade">
           <div class="dropdown">
@@ -533,7 +589,14 @@ function toggle(source, element) {
         <div id="showall-assets">
           {% if assetgroups|length > 0 %}
             {% for ag in assetgroups %}
-                {{ ag.assets.all|join:", " }}
+              <strong>{{ ag.name }}</strong>:<br/>
+              {{ ag.assets.all|join:", " }}
+            {% endfor %}
+          {% endif %}
+          {% if dynassetgroups|length > 0 %}
+            {% for dag in dynassetgroups %}
+              <strong>{{ dag.name }}</strong>:<br/>
+              {{ dag.get_assets|join:", " }}
             {% endfor %}
           {% endif %}
           {% for a in other_assets %}

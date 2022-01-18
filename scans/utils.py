@@ -8,7 +8,7 @@ from app.settings import SUPERVISORD_API_URL
 from .models import Scan, ScanDefinition, SCAN_STATUS
 from engines.models import EngineInstance, EnginePolicy
 from engines.tasks import startscan_task
-from assets.models import Asset, AssetGroup
+from assets.models import Asset, AssetGroup, DynamicAssetGroup
 from events.models import Event, AuditLog
 
 # import xmlrpclib
@@ -91,8 +91,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
                 "criticity": a.criticity,
                 "datatype": a.type
             })
-    for taggroup in scan_def.taggroups_list.all():
-        for a in taggroup.asset_set.all():
+    for dynassetgroup in scan_def.dynassetgroups_list.all():
+        for a in dynassetgroup.get_assets():
             scan.assets.add(a)
             assets_list.append({
                 "id": a.id,
@@ -102,7 +102,8 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     parameters = {
         "scan_definition_id": scan_def.id,
         "scan_params": {
-            "assets": assets_list,
+            # "assets": assets_list,
+            "assets": [dict(t) for t in {tuple(d.items()) for d in assets_list}],
             "options": scan.engine_policy.options,
             "engine_id": engine.id,
             "scan_id": scan.id
@@ -131,8 +132,7 @@ def _run_scan(scan_def_id, owner_id, eta=None):
     scan.status = "enqueued"
     scan.task_id = uuid.UUID(str(resp))
     scan.save()
-    Event.objects.create(message="[RunScan] Scan started (enqueued).",
-        type="INFO", severity="INFO", scan=scan)
+    Event.objects.create(message="[RunScan] Scan started (enqueued).", type="INFO", severity="INFO", scan=scan)
 
     return True
 
@@ -146,6 +146,10 @@ def _check_scan_asset_types(scan_def_id):
             return False
     for assetgroup in scan_def.assetgroups_list.all():
         for asset in assetgroup.assets.all():
+            if asset.type not in allowed_asset_types:
+                return False
+    for dynassetgroup in scan_def.dynassetgroups_list.all():
+        for asset in assetgroup.get_assets():
             if asset.type not in allowed_asset_types:
                 return False
 
@@ -247,6 +251,19 @@ def _add_scan_def(params, owner):
                     "datatype": a.type
                 })
 
+    if "dynassetgroups" in params.keys():
+        for assetgroup_id in params.getlist("dynassetgroups"):
+            assetgroup = DynamicAssetGroup.objects.for_user(owner).get(id=assetgroup_id)
+            scan_definition.dynassetgroups_list.add(assetgroup)
+            for a in assetgroup.get_assets():
+                scan_definition.assets_list.add(a)
+                assets_list.append({
+                    "id": a.id,
+                    "value": a.value.strip(),
+                    "criticity": a.criticity,
+                    "datatype": a.type
+                })
+
     scan_definition.save()
 
     # Start the scan
@@ -259,8 +276,8 @@ def _add_scan_def(params, owner):
     if params['scan_type'] == 'periodic':
         parameters = {
             "scan_params": {
-                "assets": assets_list,
-                # "assetgroups": assetgroups_list,
+                # "assets": assets_list,
+                "assets": [dict(t) for t in {tuple(d.items()) for d in assets_list}],
                 "options": scan_definition.engine_policy.options,
             },
             "scan_definition_id": scan_definition.id,

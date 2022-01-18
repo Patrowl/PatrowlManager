@@ -10,7 +10,7 @@ def extract_cpe(cpe_vector):
         c = CPE(cpe_vector)
         vendor = c.get_vendor()[0]
         product = c.get_product()[0]
-        print("-->", c, vendor, product)
+        # print("-->", c, vendor, product)
     except Exception as e:
         print(e)
 

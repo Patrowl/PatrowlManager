@@ -190,13 +190,14 @@ def list_assets_api(request):
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
-        # taggroups = AssetCategory.objects.filter(
-        #         value__icontains=q
-        #     ).annotate(
-        #         name=F("value")
-        #     ).annotate(
-        #         format=Value("taggroup", output_field=CharField())
-        #     ).values('id', 'value', 'format', 'name')
+        dynassetgroups = DynamicAssetGroup.objects.for_user(request.user).filter(
+                name__icontains=q
+            ).annotate(
+                value=F("name")
+            ).annotate(
+                format=Value("dynassetgroup", output_field=CharField())
+            ).values('id', 'value', 'format', 'name')
+
     else:
         assets = Asset.objects.for_user(request.user).annotate(
                 format=Value("asset", output_field=CharField())
@@ -206,23 +207,22 @@ def list_assets_api(request):
             ).annotate(
                 format=Value("assetgroup", output_field=CharField())
             ).values('id', 'value', 'format', 'name')
-        # taggroups = AssetCategory.objects.annotate(
-        #     name=F("value")
-        # ).annotate(
-        #     format=Value("taggroup", output_field=CharField())
-        # ).values('id', 'value', 'format', 'name')
+        dynassetgroups = DynamicAssetGroup.objects.for_user(request.user).annotate(
+                value=F("name")
+            ).annotate(
+                format=Value("dynassetgroup", output_field=CharField())
+            ).values('id', 'value', 'format', 'name')
 
     # Filter by team
     if team is not None and len(team) > 0:
         assets = assets.filter(teams__in=[team])
         assetgroups = assetgroups.filter(teams__in=[team])
-        # taggroups = taggroups.filter(teams__in=[team])
+        dynassetgroups = dynassetgroups.filter(teams__in=[team])
 
     assets_list = list(assets.distinct())
     assetgroups_list = list(assetgroups.distinct())
-    # taggroups_list = list(taggroups.distinct())
-    # return JsonResponse(assets_list + assetgroups_list + taggroups_list, safe=False)
-    return JsonResponse(assets_list + assetgroups_list, safe=False)
+    dynassetgroups_list = list(dynassetgroups.distinct())
+    return JsonResponse(assets_list + assetgroups_list + dynassetgroups_list, safe=False)
 
 
 @api_view(['GET'])
@@ -685,6 +685,36 @@ def _add_asset_tags(asset, new_value):
     return new_tag
 
 
+def _add_asset_tags_dyn(dynassetgroupasset, new_value):
+    new_tag = AssetCategory.objects.filter(value__iexact=new_value).first()
+    if not new_tag:
+        if not AssetCategory.objects.filter(value="Custom").first():
+            AssetCategory.objects.create(value="Custom", comments="custom tags")
+        custom_tags = AssetCategory.objects.get(value="Custom")
+        new_tag = custom_tags.add_child(value=new_value)
+
+        Event.objects.create(message="[AssetCategory/_add_asset_tags_dyn()] New AssetCategory created: '{}' with id: {}.".format(new_value, new_tag.id), type="INFO", severity="INFO")
+
+    if new_tag not in dynassetgroupasset.tags.all():  # Not already set
+        # Check if futures parents has been already selected. If True: delete them
+        cats = list(dynassetgroupasset.tags.all().values_list('value', flat=True))
+        if new_tag.get_all_parents():
+            pars = [t.value for t in new_tag.get_all_parents()]
+        else:
+            pars = []
+        intersec_par = set(pars).intersection(cats)
+        if intersec_par:
+            dynassetgroupasset.tags.remove(AssetCategory.objects.get(value=list(intersec_par)[0]))
+
+        # Check if current tags are not children of the new tag.
+        # If True: delete them
+        chis = [t.value for t in new_tag.get_children()]
+        for c in set(chis).intersection(cats):
+            dynassetgroupasset.tags.remove(AssetCategory.objects.get(value=c))
+
+    return new_tag
+
+
 @api_view(['POST'])
 @pro_group_required('AssetsManager')
 def add_asset_tags_api(request, asset_id):
@@ -712,9 +742,9 @@ def add_asset_group_tags_api(request, assetgroup_id):
 @pro_group_required('AssetsManager')
 def add_dyn_asset_group_tags_api(request, assetgroup_id):
     if request.method == 'POST':
-        asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=assetgroup_id)
-        new_tag = _add_asset_tags(asset_group, request.POST.getlist('input-search-tags')[0])
-        asset_group.tags.add(new_tag)
+        dyn_asset_group = get_object_or_404(DynamicAssetGroup.objects.for_user(request.user), id=assetgroup_id)
+        new_tag = _add_asset_tags_dyn(dyn_asset_group, request.POST.getlist('input-search-tags')[0])
+        dyn_asset_group.tags.add(new_tag)
 
     return redirect('detail_dynamic_asset_group_view', assetgroup_id=assetgroup_id)
 
