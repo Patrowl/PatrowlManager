@@ -267,7 +267,7 @@ div.risk-trends {
     <div id="assets_div" class="tab-pane fade in active">
 
 
-      {% if PRO_EDITION %}
+      <!-- {% if PRO_EDITION %}
         {% if request.user.is_superuser or request.user|has_role:"MANAGER" or request.user|has_role:"ANALYST" %}
         <div class="dropdown">
           <button class="btn btn-primary btn-xs dropdown-toggle" type="button" id="dropdown-menu-actions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -275,7 +275,7 @@ div.risk-trends {
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-            <!-- <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li> -->
+            <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li>
           </ul>
         </div>
         {% endif %}
@@ -286,14 +286,14 @@ div.risk-trends {
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="dropdown-menu-actions">
-          <!-- <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li> -->
+          <li><a class="btn-delete-selected-assets" href="#">Delete selected assets (no confirm)</a></li>
         </ul>
       </div>
-      {% endif %}
+      {% endif %} -->
       <table class="table table-hover" data-toggle="table" data-sort-name="value" data-sort-order="desc">
         <thead>
           <tr>
-            <th scope="col"><input type="checkbox" onClick="toggle(this, 'asset')" /></th>
+            <!-- <th scope="col"><input type="checkbox" onClick="toggle(this, 'asset')" /></th> -->
             <th data-field="name">Name</th>
             <th data-field="findings_summary">Findings summary</th>
             <th data-field="criticity">Criticality</th>
@@ -307,7 +307,7 @@ div.risk-trends {
           {# for asset in assets|sort_by:"-risk_level__grade,criticity,type" #}
           {% for asset in assets %}
           <tr class='dblclickable-row' data-href='/assets/details/{{ asset.id }}'>
-            <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td>
+            <!-- <td><input type="checkbox" class="radio" name="asset" value="{{ asset.id }}"/></td> -->
             <td><a href="/assets/details/{{ asset.id }}">{{ asset.name }} ({{ asset.value }})</a></td>
             <td>
               {% if asset.risk_level.critical > 0 %}

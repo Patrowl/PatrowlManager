@@ -51,6 +51,8 @@ def homepage_dashboard_view(request):
     alerts_new_critical = Count('id', filter=Q(severity="critical"))
     alerts = alerts_new.aggregate(alerts_new_info=alerts_new_info,alerts_new_low=alerts_new_low,alerts_new_medium=alerts_new_medium,alerts_new_high=alerts_new_high,alerts_new_critical=alerts_new_critical)
 
+    oneyear_threshold = datetime.datetime.now() - datetime.timedelta(days=365)
+
     global_stats = {
         "assets": {
             "total": assets.count(),
@@ -65,6 +67,7 @@ def homepage_dashboard_view(request):
             "running": scans.filter(status="started").count(),
             "enqueued": scans.filter(status="enqueued").count(),
             "performed": scans.count(),
+            "performed_since_1y": scans.filter(created_at__gt=oneyear_threshold).count(),
             # "active_periodic": ScanDefinition.objects.for_user(request.user).filter(enabled=True, scan_type='periodic').count(),
             "active_periodic": scan_definitions.filter(enabled=True, scan_type='periodic').count(),
         },

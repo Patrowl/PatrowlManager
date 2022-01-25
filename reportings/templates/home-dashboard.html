@@ -130,10 +130,10 @@ td.bg-grade-F-high {background-color: black; color: white;}
       <div class="tile-content">
         <h2 class="text-center strong">{{global_stats.scans.running}}</h2>
         <h6 class="text-muted text-center">Running scans</h6>
-        <small>Active Periodic: {{global_stats.scans.active_periodic}}</small><br/>
+        <!-- <small>Active Periodic: {{global_stats.scans.active_periodic}}</small><br/> -->
+        <small>Defined: {{global_stats.scans.defined}}</small><br/>
         <small>Enqueued: {{global_stats.scans.running}}</small><br/>
-        <small>Performed: {{global_stats.scans.performed}}</small><br/>
-        <small>Defined: {{global_stats.scans.defined}}</small>
+        <small>Performed: {{global_stats.scans.performed}} (to year:{{global_stats.scans.performed_since_1y}})</small><br/>
       </div>
     </div>
     <!-- <div class="tile col-sm-15" ondblclick="window.location='/rules/list'">
