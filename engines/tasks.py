@@ -278,17 +278,16 @@ def stopscan_task(self, scan_id):
     except Exception:
         pass
 
-    engine = scan.engine
     for scanjob in scan.scanjob_set.all():
         try:
-            resp = requests.get(url=str(engine.api_url)+"stop/"+str(scanjob.id), verify=False, proxies=PROXIES)
+            resp = requests.get(url=str(scanjob.engine.api_url)+"stop/"+str(scanjob.id), verify=False, proxies=PROXIES)
             if resp.status_code != 200 or json.loads(resp.text)['status'] == "error":
                 scan.update_status('error', 'finished_at')
                 Event.objects.create(message="[EngineTasks/stopscan_task/{}] Error when stopping scan job '{}'.".format(self.request.id, scanjob.id), type="ERROR", severity="ERROR", scan=scan, description="STATUS CODE={}, {}".format(resp.status_code, json.loads(resp.text)))
                 return False
         except Exception as e:
             scan.update_status('error', 'finished_at')
-            Event.objects.create(message="[EngineTasks/stopscan_task/{}] Error when stopping scan job '{}' (exception).".format(self.request.id, scanjob.id), type="ERROR", severity="ERROR", scan=scan, description="{}".format(e.message))
+            Event.objects.create(message="[EngineTasks/stopscan_task/{}] Error when stopping scan job '{}' (exception).".format(self.request.id, scanjob.id), type="ERROR", severity="ERROR", scan=scan, description=str(e))
             return False
 
     scan.update_status('stopped', 'finished_at')
