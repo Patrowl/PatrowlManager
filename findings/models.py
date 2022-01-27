@@ -277,6 +277,8 @@ class Finding(models.Model):
     def evaluate_assets(self):
         """Create assets by analysing results."""
         # print("evaluate_assets", settings.ASSET_DETECTION_RULES)
+        if hasattr(settings, 'ASSET_DETECTION_RULES') is False:
+            return []
         rules = settings.ASSET_DETECTION_RULES
         new_assets = []
         # new_assets_tmp = []

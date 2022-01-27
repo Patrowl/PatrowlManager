@@ -1,2 +1,39 @@
 # -*- coding: utf-8 -*-
-ASSET_DETECTION_RULES = {}
+ASSET_DETECTION_RULES = [
+    {
+        "name": "New urls from NMAP report (HTTP)",
+        "datatype": "url",
+        "group_name": "New URLS",
+        "filters": [
+            {
+                "asset_name__startswith": "http://",
+            }, {
+                "engine_type": "NMAP",
+                "title__startswith": "Service 'http' is running"
+            }, {
+                "engine_type": "NMAP",
+                "title__startswith": "Port 'tcp/80' is open"
+            },
+        ],
+        "allowed_datatypes": ["ip", "domain", "fqdn"],
+        "output_pattern": "http://__asset__"
+    },
+    {
+        "name": "New urls from NMAP report (HTTPS)",
+        "datatype": "url",
+        "group_name": "New URLS",
+        "filters": [
+            {
+                "asset_name__startswith": "https://",
+            }, {
+                "engine_type": "NMAP",
+                "title__startswith": "Service 'https' is running"
+            }, {
+                "engine_type": "NMAP",
+                "title__startswith": "Port 'tcp/443' is open"
+            },
+        ],
+        "allowed_datatypes": ["ip", "domain", "fqdn"],
+        "output_pattern": "https://__asset__"
+    },
+]

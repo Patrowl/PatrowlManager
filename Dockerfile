@@ -1,6 +1,6 @@
 FROM python:3.7-slim
 MAINTAINER Patrowl.io "getsupport@patrowl.io"
-LABEL Name="PatrowlManager" Version="1.8.1"
+LABEL Name="PatrowlManager" Version="1.8.2"
 
 ENV PYTHONUNBUFFERED 1
 ARG arg_http_proxy
@@ -29,6 +29,7 @@ RUN python --version \
 
 COPY . /opt/patrowl-manager/
 COPY app/settings.py.sample /opt/patrowl-manager/app/settings.py
+COPY app/assets_detection_rules.py.sample /opt/patrowl-manager/app/assets_detection_rules.py
 
 EXPOSE 8003
 ENTRYPOINT ["/opt/patrowl-manager/docker-entrypoint.sh"]
