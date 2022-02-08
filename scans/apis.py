@@ -352,7 +352,6 @@ def get_scan_report_html_api(request, scan_id):
         tmp_scan['assets'].append(asset.value)
 
     tmp_scan['engine_type_name'] = scan.engine_type.name
-    tmp_scan['engine_name'] = scan.engine.name
     tmp_scan['engine_policy_name'] = scan.engine_policy.name
 
     findings = RawFinding.objects.filter(scan=scan.id)

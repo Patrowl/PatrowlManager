@@ -435,6 +435,7 @@ def edit_asset_group_view(request, assetgroup_id):
 
             # Update assets
             asset_group.assets.clear()
+            
             for asset_id in form.data.getlist('assets'):
                 asset_group.assets.add(Asset.objects.for_user(request.user).get(id=asset_id))
 

@@ -265,69 +265,14 @@
       window.location = url.search+"#events";
     });
 
-    // EventTable = $('#dt_events').DataTable({
-    //   "ajax": {
-    //     "url": "/events/list",
-    //     "dataType": "json",
-    //     "type": "GET"
-    //   },
-    //   "data": [],
-    //   rowCallback: function (row, data) {},
-    //   "columns": [
-    //     { "data": "id" },
-    //     { "data": "severity" },
-    //     { "data": "message" },
-    //     { "data": "type" },
-    //     { "data": "created_at" }
-    //   ],
-    //   "aoColumnDefs":[{
-    //     "aTargets":[5],
-    //     "mData": "id",
-    //     "mRender": function (data, type, full) {
-    //         return '<button type="button" event-id="'+data+'" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete-event"><span class="glyphicon glyphicon-remove"></span></button>';
-    //     }
-    //   }],
-    //   "order": [[ 0, 'desc' ]],
-    //   initComplete: function () {
-    //     this.api().columns().every( function () {
-    //       if (this.index() == 1 || this.index() == 3){
-    //         var column = this;
-    //         var select = $('<select><option value=""></option></select>')
-    //             .appendTo( $(column.footer()).empty() )
-    //             .on( 'change', function () {
-    //                 var val = $.fn.dataTable.util.escapeRegex(
-    //                     $(this).val()
-    //                 );
-    //                 column
-    //                     .search( val ? '^'+val+'$' : '', true, false )
-    //                     .draw();
-    //             } );
-    //         column.data().unique().sort().each( function ( d, j ) {
-    //             select.append( '<option value="'+d+'">'+d+'</option>' )
-    //         } );
-    //       }
-    //     } );
-    //   }
-    // });
   });
-
-  // $('li a[href="#events"]').on("click", function (e) {
-  //   $.ajax({
-  //     url: "/events/",
-  //     type: "GET",
-  //     dataType: "json",
-  //     }).done(function (result) {
-  //       EventTable.clear().draw();
-  //       EventTable.rows.add(result).draw();
-  //     });
-  // });
 
   // Delete setting modal
   $("#modal-delete-setting").on('show.bs.modal', function (e) {
     id = e.relatedTarget.getAttribute('setting-id');
     key = e.relatedTarget.getAttribute('setting-key');
     $("div#delete-setting").attr('setting-id', id);
-    $("div#delete-setting").html("Setting: <b>"+encodeURIComponent(key)+"</b><br/><br/>");
+    $("div#delete-setting").html("Setting: <b>"+escapeHtml(key)+"</b><br/><br/>");
   });
   $("button.btn-delete-setting").on('click', function (e) {
     id = $("div#delete-setting").attr('setting-id');
@@ -341,14 +286,16 @@
   });
 
   $("button.btn-add-setting").on('click', function (e) {
+    new_setting = {
+      "setting_key": $('#add_setting_key').val(),
+      "setting_value": $('#add_setting_value').val()
+    }
     var request = $.ajax({
       url: "/settings/api/v1/add",
       method: "POST",
       headers: {"X-CSRFToken": "{{ csrf_token }}"},
-      data: {
-        "setting_key": $('#add_setting_key').val(),
-        "setting_value": $('#add_setting_value').val()
-      },
+      data: JSON.stringify(new_setting),
+      contentType: "application/json",
       success: function(){
         location.reload();
       }
@@ -365,7 +312,7 @@
     setting_id=e.delegateTarget.getAttribute("setting-id");
     setting_value=$('div#setting_value_'+setting_id+' i').text();
     $('div#setting_value_'+setting_id).empty();
-    $('div#setting_value_'+setting_id).append("<input type='text' value='"+encodeURIComponent(setting_value)+"' name='setting_value' class='form-control form-control-sm'/>");
+    $('div#setting_value_'+setting_id).append("<input type='text' value='"+escapeHtml(setting_value)+"' name='setting_value' class='form-control form-control-sm'/>");
 
     //On Enter key press, update the field
     $('input[name="setting_value"]').keyup(function(e){
@@ -377,26 +324,28 @@
         }
     });
     $('input').bind("enterKey", function(e){
-       var request = $.ajax({
-         url: "/settings/api/v1/update",
-         method: "POST",
-         headers: {"X-CSRFToken": "{{ csrf_token }}"},
-         data: {
-           "setting_id": e.target.parentElement.getAttribute("setting-id"),
-           "setting_value": e.target.value
-         },
-         success: function(){
-           location.reload();
-           $('div#setting_value_'+setting_id).empty();
-           $('div#setting_value_'+setting_id).append("<i>"+encodeURIComponent(e.target.value)+"</i>");
-         }
-       });
+      edited_setting = {
+        "setting_id": e.target.parentElement.getAttribute("setting-id"),
+        "setting_value": e.target.value
+      }
+      var request = $.ajax({
+        url: "/settings/api/v1/update",
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+        data: JSON.stringify(edited_setting),
+        contentType: "application/json",
+        success: function(){
+          location.reload();
+          $('div#setting_value_'+setting_id).empty();
+          $('div#setting_value_'+setting_id).append("<i>"+e.target.value+"</i>");
+        }
+      });
     });
     $('input').bind("escapeKey", function(e){
        setting_id = e.target.parentElement.getAttribute("setting-id");
        setting_value = e.target.getAttribute("value");
        $('div#setting_value_'+setting_id).empty();
-       $('div#setting_value_'+setting_id).append("<i>"+encodeURIComponent(setting_value)+"</i>");
+       $('div#setting_value_'+setting_id).append("<i>"+escapeHtml(setting_value)+"</i>");
     });
   };
 
