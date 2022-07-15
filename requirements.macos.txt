@@ -10,7 +10,7 @@ coreschema==0.0.4
 Django==2.2.26
 #django-celery-beat==1.1.1
 django-celery-beat==2.0.0
-django-celery-results==2.0.1
+django-celery-results==2.4.0
 django-cursor-pagination==0.1.4
 django-datetime-widget==0.9.3
 django-debug-toolbar==3.2.2
