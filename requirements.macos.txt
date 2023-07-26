@@ -3,7 +3,7 @@ Babel==2.9.1
 backports-abc==0.5
 billiard==3.6.1.0
 celery==4.4.0
-certifi==2017.4.17
+certifi==2023.7.22
 chardet==3.0.4
 coreapi==2.3.3
 coreschema==0.0.4
