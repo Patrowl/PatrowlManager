@@ -1,0 +1,1531 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "PatrOwl Manager REST-API",
+    "description": "Swagger REST-API definitions for Patrowl Manager",
+    "version": "1.0.3"
+  },
+  "host": "localhost:8000",
+  "schemes": ["http"],
+  "paths": {
+    "/assets/api/v1/asset_grade_refresh": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_asset_grade_refresh_list"
+      }
+    },
+    "/assets/api/v1/asset_grade_refresh{asset_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_read"
+      }
+    },
+    "/assets/api/v1/assetgroup_grade_refresh": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_assetgroup_grade_refresh_list"
+      }
+    },
+    "/assets/api/v1/assetgroup_grade_refresh/{assetgroup_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "assetgroup_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_assetgroup_grade_refresh_read"
+      }
+    },
+    "/assets/api/v1/delete": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_delete_create"
+      }
+    },
+    "/assets/api/v1/details/{asset_id}/add_tag": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_details_add_tag_create"
+      }
+    },
+    "/assets/api/v1/details/{asset_id}/del_tag": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_details_del_tag_create"
+      }
+    },
+    "/assets/api/v1/details/{asset_name}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_name",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_details_read"
+      }
+    },
+    "/assets/api/v1/export": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_export_list"
+      }
+    },
+    "/assets/api/v1/export/{assetgroup_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "assetgroup_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_export_read"
+      }
+    },
+    "/assets/api/v1/groups/details/{assetgroup_id}/add_tag": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "assetgroup_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_groups_details_add_tag_create"
+      }
+    },
+    "/assets/api/v1/groups/details/{assetgroup_id}/del_tag": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "assetgroup_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_groups_details_del_tag_create"
+      }
+    },
+    "/assets/api/v1/groups/report/html/{asset_group_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_group_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_groups_report_html_read"
+      }
+    },
+    "/assets/api/v1/list": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_list_list"
+      }
+    },
+    "/assets/api/v1/owners/addcontact/{asset_owner_id}": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_owner_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_owners_addcontact_create"
+      }
+    },
+    "/assets/api/v1/owners/deletecontact/{asset_owner_id}": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_owner_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_owners_deletecontact_create"
+      }
+    },
+    "/assets/api/v1/owners/deletedoc/{asset_owner_id}": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_owner_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_owners_deletedoc_create"
+      }
+    },
+    "/assets/api/v1/owners/editcom/{asset_owner_id}": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_owner_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_owners_editcom_create"
+      }
+    },
+    "/assets/api/v1/owners/getdoc/{asset_owner_doc_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_owner_doc_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_owners_getdoc_read"
+      }
+    },
+    "/assets/api/v1/refresh_all_grades": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_refresh_all_grades_list"
+      }
+    },
+    "/assets/api/v1/report/html/{asset_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_report_html_read"
+      }
+    },
+    "/assets/api/v1/report/json/{asset_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_report_json_read"
+      }
+    },
+    "/assets/api/v1/stats": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_stats_list"
+      }
+    },
+    "/assets/api/v1/tags": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "assets_api_v1_tags_list"
+      }
+    },
+    "/assets/api/v1/trends/{asset_id}": {
+      "get": {
+        "tags": ["assets"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_id",
+          "in": "path"
+        }],
+        "operationId": "assets_api_v1_trends_read"
+      }
+    },
+    "/assets/owners/api/v1/adddoc/{asset_owner_id}": {
+      "post": {
+        "tags": ["assets"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "asset_owner_id",
+          "in": "path"
+        }],
+        "operationId": "assets_owners_api_v1_adddoc_create"
+      }
+    },
+    "/engines/api/v1/autorefresh": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "engines_api_v1_autorefresh_list"
+      }
+    },
+    "/engines/api/v1/instance/info/{engine_id}": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "engine_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_instance_info_read"
+      }
+    },
+    "/engines/api/v1/instances/info/{engine_id}": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "engine_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_instances_info_read"
+      }
+    },
+    "/engines/api/v1/instances/list": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "engines_api_v1_instances_list_list"
+      }
+    },
+    "/engines/api/v1/instances/status/change/{engine_id}": {
+      "patch": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "engine_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_instances_status_change_partial_update"
+      }
+    },
+    "/engines/api/v1/instances/status/{engine_id}": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "engine_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_instances_status_read"
+      }
+    },
+    "/engines/api/v1/list": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "engines_api_v1_list_list"
+      }
+    },
+    "/engines/api/v1/list/by_id/{engine_id}": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "engine_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_list_by_id_read"
+      }
+    },
+    "/engines/api/v1/list/by_name/{engine_name}": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "engine_name",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_list_by_name_read"
+      }
+    },
+    "/engines/api/v1/policies/delete/{policy_id}": {
+      "delete": {
+        "tags": ["engines"],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "policy_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_policies_delete_delete"
+      }
+    },
+    "/engines/api/v1/policies/duplicate/{policy_id}": {
+      "put": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "policy_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_policies_duplicate_update"
+      }
+    },
+    "/engines/api/v1/policies/export": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "engines_api_v1_policies_export_list"
+      },
+      "post": {
+        "tags": ["engines"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "engines_api_v1_policies_export_create"
+      }
+    },
+    "/engines/api/v1/policies/export/{policy_id}": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "policy_id",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_policies_export_read"
+      }
+    },
+    "/engines/api/v1/policies/list/by_name/{engine_name}": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "engine_name",
+          "in": "path"
+        }],
+        "operationId": "engines_api_v1_policies_list_by_name_read"
+      }
+    },
+    "/engines/api/v1/refresh": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "engines_api_v1_refresh_list"
+      }
+    },
+    "/engines/api/v1/types": {
+      "get": {
+        "tags": ["engines"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "engines_api_v1_types_list"
+      }
+    },
+    "/events/api/v1/delete/{event_id}": {
+      "delete": {
+        "description": "Delete an event.",
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "event_id",
+          "in": "path"
+        }],
+        "tags": ["events"],
+        "summary": "Delete an event.",
+        "operationId": "events_api_v1_delete_delete",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/events/api/v1/list": {
+      "get": {
+        "description": "List Events.",
+        "parameters": [],
+        "tags": ["events"],
+        "summary": "List Events.",
+        "operationId": "events_api_v1_list_list",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/findings/api/v1/add": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_add_list"
+      },
+      "post": {
+        "tags": ["findings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_add_create"
+      }
+    },
+    "/findings/api/v1/alert/{finding_id}": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "finding_id",
+          "in": "path"
+        }],
+        "operationId": "findings_api_v1_alert_read"
+      }
+    },
+    "/findings/api/v1/delete": {
+      "post": {
+        "tags": ["findings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_delete_create"
+      }
+    },
+    "/findings/api/v1/export": {
+      "post": {
+        "tags": ["findings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_export_create"
+      }
+    },
+    "/findings/api/v1/export/{finding_id}": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "finding_id",
+          "in": "path"
+        }],
+        "operationId": "findings_api_v1_export_read"
+      }
+    },
+    "/findings/api/v1/gen_alerts/{finding_id}": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "finding_id",
+          "in": "path"
+        }],
+        "operationId": "findings_api_v1_gen_alerts_read"
+      }
+    },
+    "/findings/api/v1/list": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_list_list"
+      }
+    },
+    "/findings/api/v1/raw/{finding_id}": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "finding_id",
+          "in": "path"
+        }],
+        "operationId": "findings_api_v1_raw_read"
+      }
+    },
+    "/findings/api/v1/rdelete": {
+      "post": {
+        "tags": ["findings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_rdelete_create"
+      }
+    },
+    "/findings/api/v1/rstatus": {
+      "post": {
+        "tags": ["findings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_rstatus_create"
+      }
+    },
+    "/findings/api/v1/stats": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_stats_list"
+      }
+    },
+    "/findings/api/v1/status": {
+      "post": {
+        "tags": ["findings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "findings_api_v1_status_create"
+      }
+    },
+    "/findings/api/v1/update/{finding_id}": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "finding_id",
+          "in": "path"
+        }],
+        "operationId": "findings_api_v1_update_read"
+      }
+    },
+    "/findings/api/v1/update_comments/{finding_id}": {
+      "post": {
+        "tags": ["findings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "finding_id",
+          "in": "path"
+        }],
+        "operationId": "findings_api_v1_update_comments_create"
+      }
+    },
+    "/findings/api/v1/{finding_id}": {
+      "get": {
+        "tags": ["findings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "finding_id",
+          "in": "path"
+        }],
+        "operationId": "findings_api_v1_read"
+      }
+    },
+    "/rules/api/v1/add": {
+      "post": {
+        "tags": ["rules"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "rules_api_v1_add_create"
+      }
+    },
+    "/rules/api/v1/change_status/{rule_id}": {
+      "get": {
+        "tags": ["rules"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "rule_id",
+          "in": "path"
+        }],
+        "operationId": "rules_api_v1_change_status_read"
+      }
+    },
+    "/rules/api/v1/delete": {
+      "post": {
+        "tags": ["rules"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "rules_api_v1_delete_create"
+      }
+    },
+    "/rules/api/v1/duplicate/{rule_id}": {
+      "get": {
+        "tags": ["rules"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "rule_id",
+          "in": "path"
+        }],
+        "operationId": "rules_api_v1_duplicate_read"
+      }
+    },
+    "/rules/api/v1/list": {
+      "get": {
+        "tags": ["rules"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "rules_api_v1_list_list"
+      }
+    },
+    "/scans/api/v1/defs/change_status/{scan_def_id}": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "scan_def_id",
+          "in": "path"
+        }],
+        "operationId": "scans_api_v1_defs_change_status_read"
+      }
+    },
+    "/scans/api/v1/defs/run/{scan_def_id}": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "scan_def_id",
+          "in": "path"
+        }],
+        "operationId": "scans_api_v1_defs_run_read"
+      }
+    },
+    "/scans/api/v1/delete": {
+      "post": {
+        "tags": ["scans"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "scans_api_v1_delete_create"
+      }
+    },
+    "/scans/api/v1/filter": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "scans_api_v1_filter_list"
+      }
+    },
+    "/scans/api/v1/list": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "scans_api_v1_list_list"
+      }
+    },
+    "/scans/api/v1/listbydate": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "scans_api_v1_listbydate_list"
+      }
+    },
+    "/scans/api/v1/report/csv/{scan_id}": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "scan_id",
+          "in": "path"
+        }],
+        "operationId": "scans_api_v1_report_csv_read"
+      }
+    },
+    "/scans/api/v1/report/html/{scan_id}": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "scan_id",
+          "in": "path"
+        }],
+        "operationId": "scans_api_v1_report_html_read"
+      }
+    },
+    "/scans/api/v1/report/json/{scan_id}": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "scan_id",
+          "in": "path"
+        }],
+        "operationId": "scans_api_v1_report_json_read"
+      }
+    },
+    "/scans/api/v1/reportzip/{scan_id}": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "scan_id",
+          "in": "path"
+        }],
+        "operationId": "scans_api_v1_reportzip_read"
+      }
+    },
+    "/scans/api/v1/stats": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "scans_api_v1_stats_list"
+      }
+    },
+    "/scans/api/v1/stop/{scan_id}": {
+      "get": {
+        "tags": ["scans"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "scan_id",
+          "in": "path"
+        }],
+        "operationId": "scans_api_v1_stop_read"
+      }
+    },
+    "/search/api/v1/": {
+      "get": {
+        "description": "REST-API: Search based on keywords.",
+        "parameters": [],
+        "tags": ["search"],
+        "summary": "REST-API: Search based on keywords.",
+        "operationId": "search_api_v1_list",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/settings/api/v1/add": {
+      "post": {
+        "tags": ["settings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "settings_api_v1_add_create"
+      }
+    },
+    "/settings/api/v1/delete/{setting_id}": {
+      "get": {
+        "tags": ["settings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "setting_id",
+          "in": "path"
+        }],
+        "operationId": "settings_api_v1_delete_read"
+      }
+    },
+    "/settings/api/v1/export": {
+      "get": {
+        "tags": ["settings"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "settings_api_v1_export_list"
+      }
+    },
+    "/settings/api/v1/update": {
+      "post": {
+        "tags": ["settings"],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "settings_api_v1_update_create"
+      }
+    },
+    "/users/api/v1/authtoken/delete": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_api_v1_authtoken_delete_list"
+      }
+    },
+    "/users/api/v1/authtoken/delete/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_api_v1_authtoken_delete_read"
+      }
+    },
+    "/users/api/v1/authtoken/get": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_api_v1_authtoken_get_list"
+      }
+    },
+    "/users/api/v1/authtoken/get/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_api_v1_authtoken_get_read"
+      }
+    },
+    "/users/api/v1/authtoken/renew": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_api_v1_authtoken_renew_list"
+      }
+    },
+    "/users/api/v1/authtoken/renew/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_api_v1_authtoken_renew_read"
+      }
+    },
+    "/users/api/v1/details/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_api_v1_details_read"
+      }
+    },
+    "/users/api/v1/list": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_api_v1_list_list"
+      }
+    },
+    "/users/users/api/v1/authtoken/delete": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_users_api_v1_authtoken_delete_list"
+      }
+    },
+    "/users/users/api/v1/authtoken/delete/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_users_api_v1_authtoken_delete_read"
+      }
+    },
+    "/users/users/api/v1/authtoken/get": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_users_api_v1_authtoken_get_list"
+      }
+    },
+    "/users/users/api/v1/authtoken/get/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_users_api_v1_authtoken_get_read"
+      }
+    },
+    "/users/users/api/v1/authtoken/renew": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_users_api_v1_authtoken_renew_list"
+      }
+    },
+    "/users/users/api/v1/authtoken/renew/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_users_api_v1_authtoken_renew_read"
+      }
+    },
+    "/users/users/api/v1/details/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [{
+          "description": "",
+          "required": true,
+          "type": "string",
+          "name": "user_id",
+          "in": "path"
+        }],
+        "operationId": "users_users_api_v1_details_read"
+      }
+    },
+    "/users/users/api/v1/list": {
+      "get": {
+        "tags": ["users"],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "parameters": [],
+        "operationId": "users_users_api_v1_list_list"
+      }
+    }
+  },
+  "securityDefinitions": {
+    "basic": {
+      "type": "basic"
+    }
+  }
+}
