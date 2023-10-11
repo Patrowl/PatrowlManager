@@ -2,10 +2,12 @@
 *.pyc
 __pycache__
 env
+.env
 env3
 db.sqlite3
 .DS_Store
 dump.rdb
+config.py
 app/settings.py
 app/settings-*.py
 app/assets_detection_rules.py
@@ -25,3 +27,4 @@ docker-entrypoint.cloud.sh*
 pro
 env3pro/
 .env-*
+
