@@ -489,10 +489,10 @@ def add_asset_api(request):
         asset.save()
 
         return JsonResponse(asset.to_dict())
-    except Exception as e:
+    except Exception:
         return JsonResponse({
             'status': 'error',
-            'reason': f'Unable to create asset with provided args.{e}'
+            'reason': 'Unable to create asset with provided args.'
         })
 
 
