@@ -238,8 +238,8 @@ def _add_scan_def(params, owner):
                 "datatype": asset.type
             })
 
-    if "assetgroups" in params.keys():
-        for assetgroup_id in params.getlist("assetgroups"):
+    if "assetgroups" in params.keys() and params["assetgroups" ] not in [None, '', []]:
+        for assetgroup_id in params["assetgroups"]:
             assetgroup = AssetGroup.objects.for_user(owner).get(id=assetgroup_id)
             scan_definition.assetgroups_list.add(assetgroup)
             for a in assetgroup.assets.all():
@@ -251,8 +251,8 @@ def _add_scan_def(params, owner):
                     "datatype": a.type
                 })
 
-    if "dynassetgroups" in params.keys():
-        for assetgroup_id in params.getlist("dynassetgroups"):
+    if "dynassetgroups" in params.keys() and params["dynassetgroups" ] not in [None, '', []]:
+        for assetgroup_id in params["dynassetgroups"]:
             assetgroup = DynamicAssetGroup.objects.for_user(owner).get(id=assetgroup_id)
             scan_definition.dynassetgroups_list.add(assetgroup)
             for a in assetgroup.get_assets():
