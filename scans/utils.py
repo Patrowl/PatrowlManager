@@ -226,8 +226,8 @@ def _add_scan_def(params, owner):
         scan_definition.teams.add(owner.users_team.get(id=params['scan_team_list']))
 
     assets_list = []
-    if "assets" in params.keys():
-        for asset_id in params.getlist("assets"):
+    if "assets" in params.keys() and params["assets" ] not in [None, '', []]:
+        for asset_id in params["assets"]:
             # asset = Asset.objects.get(id=asset_id)
             asset = Asset.objects.for_user(owner).get(id=asset_id)
             scan_definition.assets_list.add(asset)
