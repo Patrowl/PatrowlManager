@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM python:3.8.18-slim
 MAINTAINER Patrowl.io "getsupport@patrowl.io"
 LABEL Name="PatrowlManager" Version="1.8.4"
 
