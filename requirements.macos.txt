@@ -47,7 +47,7 @@ requests==2.25.1
 simplejson==3.16.0
 singledispatch==3.4.0.3
 six==1.10.0
-sqlparse==0.4.2
+sqlparse==0.5.0
 supervisor==4.2.1
 thehive4py==1.8.1
 tornado==5.1
