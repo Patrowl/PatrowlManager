@@ -22,7 +22,7 @@ djangorestframework-datatables==0.6.0
 flower==0.9.2
 future==0.16.0
 futures==3.1.1
-gunicorn==20.0.4
+gunicorn==22.0.0
 idna==2.5
 importlib-metadata==0.23
 itypes==1.1.0
