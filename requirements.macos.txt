@@ -7,7 +7,7 @@ certifi==2017.4.17
 chardet==3.0.4
 coreapi==2.3.3
 coreschema==0.0.4
-Django==2.2.26
+Django==4.2.22
 #django-celery-beat==1.1.1
 django-celery-beat==2.0.0
 django-celery-results==2.0.1
@@ -43,7 +43,7 @@ python-magic==0.4.15
 python-magic-bin==0.4.14
 python-memcached==1.59
 pytz==2019.2
-requests==2.25.1
+requests==2.32.4
 simplejson==3.16.0
 singledispatch==3.4.0.3
 six==1.10.0
