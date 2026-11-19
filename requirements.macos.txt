@@ -67,3 +67,4 @@ django-annoying==0.10.6
 django-reset-migrations
 django-dbconn-retry
 cpe==1.2.1
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
