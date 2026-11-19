@@ -2,12 +2,12 @@ amqp==2.5.2
 Babel==2.9.1
 backports-abc==0.5
 billiard==3.6.1.0
-celery==4.4.0
+celery==5.2.2
 certifi==2017.4.17
 chardet==3.0.4
 coreapi==2.3.3
 coreschema==0.0.4
-Django==2.2.26
+Django==3.2.15
 #django-celery-beat==1.1.1
 django-celery-beat==2.0.0
 django-celery-results==2.0.1
