@@ -59,7 +59,7 @@ Werkzeug==2.0.1
 zipp==0.6.0
 django-filter==2.4.0
 django-cors-headers==3.2.0
-djangorestframework-simplejwt==4.4.0
+djangorestframework-simplejwt==5.2.2
 django-health-check==3.12.1
 psutil==5.7.0
 django-organizations==1.1.2
